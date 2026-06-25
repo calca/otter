@@ -54,9 +54,9 @@ object ThemeManager {
     /** Colore accent del tema corrente (per il widget e altri usi non-Activity). */
     fun accentColor(context: Context): Int {
         return when (getTheme(context)) {
-            AppTheme.SAGE        -> 0xFF3D7A5C.toInt()
-            AppTheme.LAVENDER    -> 0xFF7C6FA0.toInt()
-            AppTheme.TERRACOTTA  -> 0xFFA0604A.toInt()
+            AppTheme.SAGE        -> 0xFF0F5238.toInt()
+            AppTheme.LAVENDER    -> 0xFF6750A4.toInt()
+            AppTheme.TERRACOTTA  -> 0xFF8F4C38.toInt()
         }
     }
 }

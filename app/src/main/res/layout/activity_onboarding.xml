@@ -1,9 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:background="?attr/colorSurface">
+    android:background="?android:attr/windowBackground">
 
     <!-- Indicatore step (pallini) -->
     <LinearLayout
@@ -49,8 +50,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="@string/onb1_title"
-                    android:textSize="26sp"
-                    android:textStyle="bold"
+                    android:textAppearance="?attr/textAppearanceHeadlineMedium"
                     android:textColor="?attr/colorPrimary"
                     android:textAlignment="center"
                     android:layout_marginBottom="16dp" />
@@ -59,10 +59,10 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:text="@string/onb1_body"
-                    android:textColor="?android:attr/textColorPrimary"
+                    android:textAppearance="?attr/textAppearanceBodyLarge"
+                    android:textColor="?attr/colorOnSurface"
                     android:textAlignment="center"
-                    android:textSize="16sp"
-                    android:lineSpacingMultiplier="1.5" />
+                    android:lineSpacingMultiplier="1.4" />
             </LinearLayout>
 
             <!-- STEP 2: Come funziona -->
@@ -85,8 +85,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="@string/onb2_title"
-                    android:textSize="26sp"
-                    android:textStyle="bold"
+                    android:textAppearance="?attr/textAppearanceHeadlineMedium"
                     android:textColor="?attr/colorPrimary"
                     android:textAlignment="center"
                     android:layout_marginBottom="16dp" />
@@ -95,10 +94,10 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:text="@string/onb2_body"
-                    android:textColor="?android:attr/textColorPrimary"
+                    android:textAppearance="?attr/textAppearanceBodyLarge"
+                    android:textColor="?attr/colorOnSurface"
                     android:textAlignment="center"
-                    android:textSize="16sp"
-                    android:lineSpacingMultiplier="1.5" />
+                    android:lineSpacingMultiplier="1.4" />
             </LinearLayout>
 
             <!-- STEP 3: Permessi -->
@@ -121,8 +120,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="@string/onb3_title"
-                    android:textSize="26sp"
-                    android:textStyle="bold"
+                    android:textAppearance="?attr/textAppearanceHeadlineMedium"
                     android:textColor="?attr/colorPrimary"
                     android:textAlignment="center"
                     android:layout_marginBottom="16dp" />
@@ -131,10 +129,10 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:text="@string/onb3_body"
-                    android:textColor="?android:attr/textColorPrimary"
+                    android:textAppearance="?attr/textAppearanceBodyLarge"
+                    android:textColor="?attr/colorOnSurface"
                     android:textAlignment="center"
-                    android:textSize="16sp"
-                    android:lineSpacingMultiplier="1.5"
+                    android:lineSpacingMultiplier="1.4"
                     android:layout_marginBottom="24dp" />
 
                 <Button
@@ -155,6 +153,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:textAlignment="center"
+                    android:textAppearance="?attr/textAppearanceLabelLarge"
                     android:textColor="?attr/colorPrimary"
                     android:layout_marginTop="16dp" />
             </LinearLayout>
@@ -179,8 +178,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="@string/onb4_title"
-                    android:textSize="26sp"
-                    android:textStyle="bold"
+                    android:textAppearance="?attr/textAppearanceHeadlineMedium"
                     android:textColor="?attr/colorPrimary"
                     android:textAlignment="center"
                     android:layout_marginBottom="16dp" />
@@ -189,17 +187,17 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:text="@string/onb4_body"
-                    android:textColor="?android:attr/textColorPrimary"
+                    android:textAppearance="?attr/textAppearanceBodyLarge"
+                    android:textColor="?attr/colorOnSurface"
                     android:textAlignment="center"
-                    android:textSize="16sp"
-                    android:lineSpacingMultiplier="1.5"
+                    android:lineSpacingMultiplier="1.4"
                     android:layout_marginBottom="24dp" />
 
                 <com.google.android.material.textfield.TextInputLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:hint="@string/hint_new_password"
-                    style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                    style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
                     android:layout_marginBottom="12dp">
                     <com.google.android.material.textfield.TextInputEditText
                         android:id="@+id/onbPasswordField"
@@ -212,7 +210,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:hint="@string/hint_confirm_password"
-                    style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
+                    style="@style/Widget.Material3.TextInputLayout.OutlinedBox">
                     <com.google.android.material.textfield.TextInputEditText
                         android:id="@+id/onbPasswordConfirmField"
                         android:layout_width="match_parent"
@@ -224,8 +222,8 @@
                     android:id="@+id/onbPasswordError"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:textColor="@color/pause_error"
-                    android:textSize="14sp"
+                    android:textAppearance="?attr/textAppearanceLabelMedium"
+                    android:textColor="?attr/colorError"
                     android:layout_marginTop="8dp"
                     android:visibility="gone" />
             </LinearLayout>
@@ -250,8 +248,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="@string/onb5_title"
-                    android:textSize="26sp"
-                    android:textStyle="bold"
+                    android:textAppearance="?attr/textAppearanceHeadlineMedium"
                     android:textColor="?attr/colorPrimary"
                     android:textAlignment="center"
                     android:layout_marginBottom="16dp" />
@@ -260,10 +257,10 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:text="@string/onb5_body"
-                    android:textColor="?android:attr/textColorPrimary"
+                    android:textAppearance="?attr/textAppearanceBodyLarge"
+                    android:textColor="?attr/colorOnSurface"
                     android:textAlignment="center"
-                    android:textSize="16sp"
-                    android:lineSpacingMultiplier="1.5" />
+                    android:lineSpacingMultiplier="1.4" />
             </LinearLayout>
 
         </LinearLayout>
@@ -279,7 +276,7 @@
 
         <Button
             android:id="@+id/backButton"
-            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+            style="@style/Widget.Material3.Button.OutlinedButton"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"

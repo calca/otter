@@ -1,96 +1,142 @@
 <?xml version="1.0" encoding="utf-8"?>
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:background="?android:attr/windowBackground">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:padding="24dp"
-        android:gravity="center_horizontal">
+        android:padding="24dp">
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/app_name"
-            android:textSize="24sp"
-            android:textStyle="bold"
+            android:textAppearance="?attr/textAppearanceHeadlineLarge"
+            android:textColor="?attr/colorOnBackground"
             android:layout_marginBottom="24dp" />
 
-        <!-- Gruppo: schermata principale per avviare una pausa -->
+        <!-- Status Card -->
+        <com.google.android.material.card.MaterialCardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:cardCornerRadius="28dp"
+            app:cardBackgroundColor="?attr/colorSecondaryContainer"
+            app:cardElevation="0dp"
+            android:layout_marginBottom="24dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="24dp"
+                android:gravity="center">
+
+                <TextView
+                    android:id="@+id/statusText"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:textAppearance="?attr/textAppearanceBodyLarge"
+                    android:textColor="?attr/colorOnSecondaryContainer"
+                    android:textAlignment="center" />
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+
+        <!-- Session Group -->
         <LinearLayout
             android:id="@+id/mainGroup"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:gravity="center_horizontal">
-
-            <!-- Selettore tema -->
-            <include layout="@layout/view_theme_picker" />
-
-            <TextView
-                android:id="@+id/statusText"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:textAlignment="center"
-                android:layout_marginBottom="16dp" />
+            android:orientation="vertical">
 
             <TextView
                 android:id="@+id/durationLabel"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:text="@string/duration_label"
-                android:textAlignment="center" />
+                android:textAppearance="?attr/textAppearanceTitleMedium"
+                android:layout_marginBottom="12dp" />
 
-            <NumberPicker
-                android:id="@+id/durationPicker"
+            <com.google.android.material.card.MaterialCardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="16dp" />
+                app:cardCornerRadius="28dp"
+                app:cardElevation="0dp"
+                app:strokeWidth="1dp"
+                app:strokeColor="?attr/colorOutlineVariant"
+                android:layout_marginBottom="24dp">
 
-            <Button
-                android:id="@+id/permissionsButton"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="@string/grant_permissions"
-                android:layout_marginBottom="16dp" />
-
-            <Button
-                android:id="@+id/setHomeButton"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="@string/set_as_home"
-                android:layout_marginBottom="16dp" />
+                <NumberPicker
+                    android:id="@+id/durationPicker"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_margin="16dp" />
+            </com.google.android.material.card.MaterialCardView>
 
             <Button
                 android:id="@+id/startPauseButton"
                 android:layout_width="match_parent"
+                android:layout_height="64dp"
+                android:text="@string/start_pause"
+                android:textAppearance="?attr/textAppearanceTitleLarge"
+                android:layout_marginBottom="24dp" />
+
+            <!-- Configuration Section -->
+            <TextView
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="@string/start_pause" />
+                android:text="Configurazione"
+                android:textAppearance="?attr/textAppearanceLabelLarge"
+                android:textColor="?attr/colorSecondary"
+                android:layout_marginBottom="12dp" />
 
             <Button
+                android:id="@+id/permissionsButton"
+                style="@style/Widget.Material3.Button.TonalButton"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/grant_permissions"
+                android:layout_marginBottom="8dp" />
+
+            <Button
+                android:id="@+id/setHomeButton"
+                style="@style/Widget.Material3.Button.TonalButton"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/set_as_home"
+                android:layout_marginBottom="24dp" />
+
+            <!-- Utilities Section -->
+            <include layout="@layout/view_theme_picker" />
+
+            <com.google.android.material.button.MaterialButton
                 android:id="@+id/manageAppsButton"
+                style="@style/Widget.Material3.Button.OutlinedButton"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:text="@string/manage_allowed_apps"
-                android:layout_marginTop="24dp" />
+                android:layout_marginTop="12dp" />
 
-            <Button
+            <com.google.android.material.button.MaterialButton
                 android:id="@+id/changePasswordButton"
+                style="@style/Widget.Material3.Button.OutlinedButton"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:text="@string/change_password"
                 android:layout_marginTop="8dp" />
 
-            <Button
+            <com.google.android.material.button.MaterialButton
                 android:id="@+id/historyButton"
+                style="@style/Widget.Material3.Button.OutlinedButton"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:text="@string/history_title"
                 android:layout_marginTop="8dp" />
 
-            <CheckBox
+            <com.google.android.material.checkbox.MaterialCheckBox
                 android:id="@+id/phrasesToggle"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"

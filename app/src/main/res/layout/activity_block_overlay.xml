@@ -1,79 +1,95 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
     android:gravity="center"
-    android:padding="40dp"
-    android:background="?attr/colorSurface">
+    android:padding="32dp"
+    android:background="?android:attr/windowBackground">
 
     <TextView
+        android:id="@+id/blockTitle"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="@string/block_title"
-        android:textSize="22sp"
-        android:textStyle="bold"
-        android:textColor="?attr/colorPrimary"
-        android:layout_marginBottom="8dp" />
+        android:textAppearance="?attr/textAppearanceHeadlineMedium"
+        android:textColor="?attr/colorOnBackground"
+        android:layout_marginBottom="12dp" />
 
     <TextView
+        android:id="@+id/blockMessage"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="@string/block_message"
-        android:textColor="?android:attr/textColorSecondary"
+        android:textAppearance="?attr/textAppearanceBodyMedium"
+        android:textColor="?attr/colorOnSurfaceVariant"
         android:textAlignment="center"
-        android:textSize="14sp"
         android:layout_marginBottom="32dp" />
 
-    <!-- Frase riflessiva opzionale: nascosta se non abilitata -->
+    <!-- Optional reflective phrase -->
     <TextView
         android:id="@+id/phraseText"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:textColor="?android:attr/textColorPrimary"
+        android:textAppearance="?attr/textAppearanceHeadlineSmall"
+        android:textColor="?attr/colorSecondary"
         android:textAlignment="center"
-        android:textSize="17sp"
-        android:textStyle="italic"
         android:lineSpacingMultiplier="1.4"
-        android:paddingBottom="32dp"
+        android:layout_marginBottom="32dp"
         android:visibility="gone" />
 
-    <TextView
-        android:id="@+id/remainingText"
+    <com.google.android.material.card.MaterialCardView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:textSize="20sp"
-        android:textStyle="italic"
-        android:textColor="?attr/colorPrimary"
-        android:textAlignment="center"
-        android:lineSpacingMultiplier="1.3"
-        android:layout_marginBottom="40dp" />
+        app:cardCornerRadius="28dp"
+        app:cardBackgroundColor="?attr/colorSurfaceVariant"
+        app:cardElevation="0dp"
+        android:layout_marginBottom="40dp">
 
-    <EditText
-        android:id="@+id/passwordField"
+        <TextView
+            android:id="@+id/remainingText"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:padding="24dp"
+            android:textAppearance="?attr/textAppearanceDisplaySmall"
+            android:textColor="?attr/colorPrimary"
+            android:textAlignment="center" />
+    </com.google.android.material.card.MaterialCardView>
+
+    <com.google.android.material.textfield.TextInputLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="@string/hint_unlock_password"
-        android:inputType="textPassword"
-        android:textColor="?android:attr/textColorPrimary"
-        android:textColorHint="?android:attr/textColorSecondary"
-        android:backgroundTint="?attr/colorPrimary" />
+        app:boxBackgroundMode="filled"
+        app:boxCornerRadiusTopStart="28dp"
+        app:boxCornerRadiusTopEnd="28dp"
+        app:boxCornerRadiusBottomStart="0dp"
+        app:boxCornerRadiusBottomEnd="0dp"
+        app:boxStrokeColor="?attr/colorPrimary"
+        app:hintTextColor="?attr/colorPrimary">
+
+        <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/passwordField"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="@string/hint_unlock_password"
+            android:inputType="textPassword" />
+    </com.google.android.material.textfield.TextInputLayout>
 
     <TextView
         android:id="@+id/statusText"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:textColor="@color/pause_error"
+        android:textAppearance="?attr/textAppearanceLabelMedium"
+        android:textColor="?attr/colorError"
         android:textAlignment="center"
-        android:layout_marginTop="6dp" />
+        android:layout_marginTop="8dp" />
 
     <Button
         android:id="@+id/unlockButton"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="56dp"
         android:text="@string/unlock"
-        android:layout_marginTop="20dp"
-        android:backgroundTint="?attr/colorPrimary"
-        android:textColor="?attr/colorOnPrimary" />
+        android:layout_marginTop="24dp" />
 
 </LinearLayout>

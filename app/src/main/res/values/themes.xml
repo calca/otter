@@ -1,87 +1,148 @@
 <resources>
 
-    <!-- ═══════════════════════════════════════════════════
-         SAGE (Verde salvia — palette originale)
-         ═══════════════════════════════════════════════════ -->
-    <style name="Theme.CalmOtter.Sage" parent="Theme.MaterialComponents.DayNight.NoActionBar">
-        <item name="android:windowBackground">#EAF0E8</item>
-        <item name="android:colorBackground">#EAF0E8</item>
-        <item name="colorSurface">#F5F8F4</item>
-        <item name="android:textColorPrimary">#2C4A3E</item>
-        <item name="android:textColorSecondary">#557A6A</item>
-        <item name="colorPrimary">#3D7A5C</item>
-        <item name="colorPrimaryVariant">#3D7A5C</item>
-        <item name="colorOnPrimary">#EAF0E8</item>
-        <item name="colorError">#B85450</item>
+    <!-- Material 3 Structural Base (No ActionBar) -->
+    <style name="Theme.CalmOtter.Base" parent="Theme.Material3.DayNight.NoActionBar">
+        <item name="colorError">@color/m3_error</item>
+        <item name="colorOnError">@color/m3_on_error</item>
+        <item name="colorErrorContainer">@color/m3_error_container</item>
+        <item name="colorOnErrorContainer">@color/m3_on_error_container</item>
+        <item name="colorOutline">@color/m3_outline</item>
+        <item name="colorOutlineVariant">@color/m3_outline_variant</item>
+
+        <item name="shapeAppearanceLargeComponent">@style/ShapeAppearance.CalmOtter.Large</item>
+        <item name="shapeAppearanceMediumComponent">@style/ShapeAppearance.CalmOtter.Large</item>
+        <item name="materialButtonStyle">@style/Widget.CalmOtter.Button</item>
+    </style>
+
+    <!-- Material 3 Structural Base (With ActionBar) -->
+    <style name="Theme.CalmOtter.Base.WithActionBar" parent="Theme.Material3.DayNight">
+        <item name="colorError">@color/m3_error</item>
+        <item name="colorOnError">@color/m3_on_error</item>
+        <item name="colorErrorContainer">@color/m3_error_container</item>
+        <item name="colorOnErrorContainer">@color/m3_on_error_container</item>
+        <item name="colorOutline">@color/m3_outline</item>
+        <item name="colorOutlineVariant">@color/m3_outline_variant</item>
+
+        <item name="shapeAppearanceLargeComponent">@style/ShapeAppearance.CalmOtter.Large</item>
+        <item name="shapeAppearanceMediumComponent">@style/ShapeAppearance.CalmOtter.Large</item>
+        <item name="materialButtonStyle">@style/Widget.CalmOtter.Button</item>
+    </style>
+
+    <!-- SAGE THEME -->
+    <style name="Theme.CalmOtter.Sage" parent="Theme.CalmOtter.Base">
+        <item name="colorPrimary">@color/sage_primary</item>
+        <item name="colorOnPrimary">@color/sage_on_primary</item>
+        <item name="colorPrimaryContainer">@color/sage_primary_container</item>
+        <item name="colorOnPrimaryContainer">@color/sage_on_primary_container</item>
+        <item name="colorSecondary">@color/sage_secondary</item>
+        <item name="colorOnSecondary">@color/sage_on_secondary</item>
+        <item name="colorSecondaryContainer">@color/sage_secondary_container</item>
+        <item name="colorOnSecondaryContainer">@color/sage_on_secondary_container</item>
+        <item name="android:windowBackground">@color/sage_background</item>
+        <item name="colorSurface">@color/sage_surface</item>
+        <item name="colorOnSurface">@color/sage_on_surface</item>
+        <item name="colorSurfaceVariant">@color/sage_surface_variant</item>
+        <item name="colorOnSurfaceVariant">#404943</item>
     </style>
     <style name="Theme.CalmOtter.Sage.Block" parent="Theme.CalmOtter.Sage" />
-    <style name="Theme.CalmOtter.Sage.WithActionBar" parent="Theme.MaterialComponents.DayNight">
-        <item name="android:windowBackground">#EAF0E8</item>
-        <item name="android:colorBackground">#EAF0E8</item>
-        <item name="colorSurface">#F5F8F4</item>
-        <item name="android:textColorPrimary">#2C4A3E</item>
-        <item name="android:textColorSecondary">#557A6A</item>
-        <item name="colorPrimary">#3D7A5C</item>
-        <item name="colorPrimaryVariant">#3D7A5C</item>
-        <item name="colorOnPrimary">#EAF0E8</item>
-        <item name="colorError">#B85450</item>
+    <style name="Theme.CalmOtter.Sage.WithActionBar" parent="Theme.CalmOtter.Base.WithActionBar">
+        <item name="colorPrimary">@color/sage_primary</item>
+        <item name="colorOnPrimary">@color/sage_on_primary</item>
+        <item name="colorPrimaryContainer">@color/sage_primary_container</item>
+        <item name="colorOnPrimaryContainer">@color/sage_on_primary_container</item>
+        <item name="colorSecondary">@color/sage_secondary</item>
+        <item name="colorOnSecondary">@color/sage_on_secondary</item>
+        <item name="colorSecondaryContainer">@color/sage_secondary_container</item>
+        <item name="colorOnSecondaryContainer">@color/sage_on_secondary_container</item>
+        <item name="android:windowBackground">@color/sage_background</item>
+        <item name="colorSurface">@color/sage_surface</item>
+        <item name="colorOnSurface">@color/sage_on_surface</item>
+        <item name="colorSurfaceVariant">@color/sage_surface_variant</item>
+        <item name="colorOnSurfaceVariant">#404943</item>
     </style>
 
-    <!-- ═══════════════════════════════════════════════════
-         LAVENDER (Lavanda)
-         ═══════════════════════════════════════════════════ -->
-    <style name="Theme.CalmOtter.Lavender" parent="Theme.MaterialComponents.DayNight.NoActionBar">
-        <item name="android:windowBackground">#F0EDF8</item>
-        <item name="android:colorBackground">#F0EDF8</item>
-        <item name="colorSurface">#F8F6FC</item>
-        <item name="android:textColorPrimary">#2E2547</item>
-        <item name="android:textColorSecondary">#6B5E8A</item>
-        <item name="colorPrimary">#7C6FA0</item>
-        <item name="colorPrimaryVariant">#7C6FA0</item>
-        <item name="colorOnPrimary">#F0EDF8</item>
-        <item name="colorError">#B85450</item>
+    <!-- LAVENDER THEME -->
+    <style name="Theme.CalmOtter.Lavender" parent="Theme.CalmOtter.Base">
+        <item name="colorPrimary">@color/lavender_primary</item>
+        <item name="colorOnPrimary">@color/lavender_on_primary</item>
+        <item name="colorPrimaryContainer">@color/lavender_primary_container</item>
+        <item name="colorOnPrimaryContainer">@color/lavender_on_primary_container</item>
+        <item name="colorSecondary">@color/lavender_secondary</item>
+        <item name="colorOnSecondary">@color/lavender_on_secondary</item>
+        <item name="colorSecondaryContainer">@color/lavender_secondary_container</item>
+        <item name="colorOnSecondaryContainer">@color/lavender_on_secondary_container</item>
+        <item name="android:windowBackground">@color/lavender_background</item>
+        <item name="colorSurface">@color/lavender_surface</item>
+        <item name="colorOnSurface">@color/lavender_on_surface</item>
+        <item name="colorSurfaceVariant">@color/lavender_surface_variant</item>
+        <item name="colorOnSurfaceVariant">#49454f</item>
     </style>
     <style name="Theme.CalmOtter.Lavender.Block" parent="Theme.CalmOtter.Lavender" />
-    <style name="Theme.CalmOtter.Lavender.WithActionBar" parent="Theme.MaterialComponents.DayNight">
-        <item name="android:windowBackground">#F0EDF8</item>
-        <item name="android:colorBackground">#F0EDF8</item>
-        <item name="colorSurface">#F8F6FC</item>
-        <item name="android:textColorPrimary">#2E2547</item>
-        <item name="android:textColorSecondary">#6B5E8A</item>
-        <item name="colorPrimary">#7C6FA0</item>
-        <item name="colorPrimaryVariant">#7C6FA0</item>
-        <item name="colorOnPrimary">#F0EDF8</item>
-        <item name="colorError">#B85450</item>
+    <style name="Theme.CalmOtter.Lavender.WithActionBar" parent="Theme.CalmOtter.Base.WithActionBar">
+        <item name="colorPrimary">@color/lavender_primary</item>
+        <item name="colorOnPrimary">@color/lavender_on_primary</item>
+        <item name="colorPrimaryContainer">@color/lavender_primary_container</item>
+        <item name="colorOnPrimaryContainer">@color/lavender_on_primary_container</item>
+        <item name="colorSecondary">@color/lavender_secondary</item>
+        <item name="colorOnSecondary">@color/lavender_on_secondary</item>
+        <item name="colorSecondaryContainer">@color/lavender_secondary_container</item>
+        <item name="colorOnSecondaryContainer">@color/lavender_on_secondary_container</item>
+        <item name="android:windowBackground">@color/lavender_background</item>
+        <item name="colorSurface">@color/lavender_surface</item>
+        <item name="colorOnSurface">@color/lavender_on_surface</item>
+        <item name="colorSurfaceVariant">@color/lavender_surface_variant</item>
+        <item name="colorOnSurfaceVariant">#49454f</item>
     </style>
 
-    <!-- ═══════════════════════════════════════════════════
-         TERRACOTTA
-         ═══════════════════════════════════════════════════ -->
-    <style name="Theme.CalmOtter.Terracotta" parent="Theme.MaterialComponents.DayNight.NoActionBar">
-        <item name="android:windowBackground">#F5EDEA</item>
-        <item name="android:colorBackground">#F5EDEA</item>
-        <item name="colorSurface">#FBF6F4</item>
-        <item name="android:textColorPrimary">#3D2218</item>
-        <item name="android:textColorSecondary">#7A4A38</item>
-        <item name="colorPrimary">#A0604A</item>
-        <item name="colorPrimaryVariant">#A0604A</item>
-        <item name="colorOnPrimary">#F5EDEA</item>
-        <item name="colorError">#B85450</item>
+    <!-- TERRACOTTA THEME -->
+    <style name="Theme.CalmOtter.Terracotta" parent="Theme.CalmOtter.Base">
+        <item name="colorPrimary">@color/terracotta_primary</item>
+        <item name="colorOnPrimary">@color/terracotta_on_primary</item>
+        <item name="colorPrimaryContainer">@color/terracotta_primary_container</item>
+        <item name="colorOnPrimaryContainer">@color/terracotta_on_primary_container</item>
+        <item name="colorSecondary">@color/terracotta_secondary</item>
+        <item name="colorOnSecondary">@color/terracotta_on_secondary</item>
+        <item name="colorSecondaryContainer">@color/terracotta_secondary_container</item>
+        <item name="colorOnSecondaryContainer">@color/terracotta_on_secondary_container</item>
+        <item name="android:windowBackground">@color/terracotta_background</item>
+        <item name="colorSurface">@color/terracotta_surface</item>
+        <item name="colorOnSurface">@color/terracotta_on_surface</item>
+        <item name="colorSurfaceVariant">@color/terracotta_surface_variant</item>
+        <item name="colorOnSurfaceVariant">#53433f</item>
     </style>
     <style name="Theme.CalmOtter.Terracotta.Block" parent="Theme.CalmOtter.Terracotta" />
-    <style name="Theme.CalmOtter.Terracotta.WithActionBar" parent="Theme.MaterialComponents.DayNight">
-        <item name="android:windowBackground">#F5EDEA</item>
-        <item name="android:colorBackground">#F5EDEA</item>
-        <item name="colorSurface">#FBF6F4</item>
-        <item name="android:textColorPrimary">#3D2218</item>
-        <item name="android:textColorSecondary">#7A4A38</item>
-        <item name="colorPrimary">#A0604A</item>
-        <item name="colorPrimaryVariant">#A0604A</item>
-        <item name="colorOnPrimary">#F5EDEA</item>
-        <item name="colorError">#B85450</item>
+    <style name="Theme.CalmOtter.Terracotta.WithActionBar" parent="Theme.CalmOtter.Base.WithActionBar">
+        <item name="colorPrimary">@color/terracotta_primary</item>
+        <item name="colorOnPrimary">@color/terracotta_on_primary</item>
+        <item name="colorPrimaryContainer">@color/terracotta_primary_container</item>
+        <item name="colorOnPrimaryContainer">@color/terracotta_on_primary_container</item>
+        <item name="colorSecondary">@color/terracotta_secondary</item>
+        <item name="colorOnSecondary">@color/terracotta_on_secondary</item>
+        <item name="colorSecondaryContainer">@color/terracotta_secondary_container</item>
+        <item name="colorOnSecondaryContainer">@color/terracotta_on_secondary_container</item>
+        <item name="android:windowBackground">@color/terracotta_background</item>
+        <item name="colorSurface">@color/terracotta_surface</item>
+        <item name="colorOnSurface">@color/terracotta_on_surface</item>
+        <item name="colorSurfaceVariant">@color/terracotta_surface_variant</item>
+        <item name="colorOnSurfaceVariant">#53433f</item>
     </style>
 
-    <!-- Alias senza suffisso usati dal manifest (puntano al tema corrente via ThemeManager) -->
+    <!-- Shared Styles -->
+    <style name="Widget.CalmOtter.Button" parent="Widget.Material3.Button">
+        <item name="shapeAppearance">@style/ShapeAppearance.CalmOtter.Pill</item>
+    </style>
+
+    <style name="ShapeAppearance.CalmOtter.Large" parent="">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSize">28dp</item>
+    </style>
+
+    <style name="ShapeAppearance.CalmOtter.Pill" parent="">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSize">50%</item>
+    </style>
+
+    <!-- Default Aliases -->
     <style name="Theme.CalmOtter"          parent="Theme.CalmOtter.Sage" />
     <style name="Theme.CalmOtter.Block"    parent="Theme.CalmOtter.Sage.Block" />
     <style name="Theme.CalmOtter.WithActionBar" parent="Theme.CalmOtter.Sage.WithActionBar" />
