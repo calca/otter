@@ -5,6 +5,7 @@ import android.app.NotificationManager
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
+import android.os.Build
 
 /**
  * Gestisce lo stato "sessione di pausa attiva/non attiva", la sua durata e,
@@ -131,12 +132,22 @@ class SessionManager(private val context: Context) {
         if (!nm.isNotificationPolicyAccessGranted) return // permesso non concesso: si ignora silenziosamente
 
         if (enabled) {
-            // Silenzia tutto tranne le chiamate telefoniche, da qualunque numero
+            // Silenzia tutto tranne le chiamate telefoniche, da qualunque numero.
+            // Nasconde anche i pallini (dots), la tendina (pull-down) e la barra di stato (status bar).
+            val suppressedEffects = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+                NotificationManager.Policy.SUPPRESSED_EFFECT_BADGE or
+                        NotificationManager.Policy.SUPPRESSED_EFFECT_NOTIFICATION_LIST or
+                        NotificationManager.Policy.SUPPRESSED_EFFECT_STATUS_BAR
+            } else {
+                0
+            }
+
             nm.setNotificationPolicy(
                 NotificationManager.Policy(
                     NotificationManager.Policy.PRIORITY_CATEGORY_CALLS,
                     NotificationManager.Policy.PRIORITY_SENDERS_ANY,
-                    0
+                    0,
+                    suppressedEffects
                 )
             )
             nm.setInterruptionFilter(NotificationManager.INTERRUPTION_FILTER_PRIORITY)

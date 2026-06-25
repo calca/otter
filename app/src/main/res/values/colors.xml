@@ -50,5 +50,7 @@
     <color name="m3_outline_variant">#bfc9c1</color>
 
     <!-- Legacy compatibility -->
+    <color name="pause_accent">#0f5238</color>
+    <color name="pause_on_background_secondary">#5b6560</color>
     <color name="pause_error">#ba1a1a</color>
 </resources>
