@@ -1,32 +1,30 @@
 # Calm Otter
 
-App Android nativa (Kotlin) per aiutare a usare meno il telefono: quando l'utente
-avvia una "sessione di pausa", tutte le app vengono bloccate tranne il telefono
-(chiamate), e le notifiche vengono silenziate (tranne le chiamate). La sessione
-può terminare SOLO inserendo una password impostata in precedenza da un'altra
-persona ("accountability partner").
+Native Android app (Kotlin) designed to help reduce phone usage: when the user
+starts a "pause session," all apps are blocked except for the Phone app
+(calls), and notifications are silenced (except for calls). The session
+can ONLY be terminated by entering a password previously set by someone else
+(an "accountability partner").
 
-## Come funziona
+## How it works
 
-1. **Primo avvio**: l'altra persona apre l'app e imposta la password (salvata
-   come hash PBKDF2-HMAC-SHA256 con salt casuale, dentro `EncryptedSharedPreferences`
-   cifrato via Android Keystore — la password in chiaro non viene mai salvata).
-2. **Concessione permessi** (una tantum): Accessibilità + Accesso alla politica
-   di notifica (Non disturbare).
-3. **Inizio pausa**: l'utente sceglie la durata (passi di 30 minuti, da 30 min
-   a 4 ore) e tocca "Inizia pausa". Da quel momento:
-   - `AppBlockerAccessibilityService` rileva ogni cambio di app in primo piano
-     e, se non è l'app Telefono di default (o questa stessa app), rilancia la
-     schermata di blocco a tutto schermo, con countdown del tempo rimanente.
-   - Viene attivata la modalità Non disturbare con solo le chiamate consentite.
-   - Viene programmato un allarme di sistema (`AlarmManager`) che termina la
-     sessione automaticamente allo scadere del tempo, anche se l'utente non
-     sta usando il telefono in quel momento.
-4. **Fine pausa**: la sessione termina automaticamente allo scadere del tempo
-   scelto, oppure prima se viene inserita la password corretta nella
-   schermata di blocco.
+1. **First Run**: The other person opens the app and sets the password (saved
+   as a PBKDF2-HMAC-SHA256 hash with a random salt, inside `EncryptedSharedPreferences`
+   encrypted via Android Keystore — the plain-text password is never saved).
+2. **Grant Permissions** (one-time): Accessibility + Notification Policy Access
+   (Do Not Disturb).
+3. **Start Pause**: The user chooses the duration (30-minute increments, from
+   30 mins to 4 hours) and taps "Start Pause". From that moment:
+   - `AppBlockerAccessibilityService` detects every foreground app change
+     and, if it's not the default Phone app (or this app itself), it launches the
+     full-screen block overlay with a remaining time countdown.
+   - Do Not Disturb mode is activated, allowing only calls.
+   - A system alarm (`AlarmManager`) is scheduled to automatically end the
+     session when time expires, even if the user is not using the phone.
+4. **End Pause**: The session ends automatically when the chosen time expires,
+   or earlier if the correct password is entered in the block screen.
 
-## Struttura del progetto
+## Project Structure
 
 ```
 Calm Otter/
@@ -34,17 +32,17 @@ Calm Otter/
 │   ├── build.gradle.kts
 │   └── src/main/
 │       ├── AndroidManifest.xml
-│       ├── java/com/example/pauselock/
-│       │   ├── MainActivity.kt                  # setup password + avvio pausa
-│       │   ├── BlockOverlayActivity.kt           # schermata di blocco
-│       │   ├── AppBlockerAccessibilityService.kt # rilevamento app in foreground
-│       │   ├── HomeActivity.kt                   # app Home: blocco o inoltro al launcher originale
-│       │   ├── LauncherManager.kt                # memorizza il launcher originale del telefono
-│       │   ├── AllowedAppsManager.kt             # elenco app extra consentite
-│       │   ├── AllowedAppsActivity.kt            # UI per modificare l'elenco (gated da password)
-│       │   ├── SessionExpiryReceiver.kt          # scadenza automatica via AlarmManager
-│       │   ├── SessionManager.kt                 # stato sessione, durata, Non disturbare
-│       │   └── PasswordManager.kt                # hash/verifica password
+│       ├── java/com/calmotter/app/
+│       │   ├── MainActivity.kt                  # password setup + start pause
+│       │   ├── BlockOverlayActivity.kt           # block screen UI
+│       │   ├── AppBlockerAccessibilityService.kt # foreground app detection
+│       │   ├── HomeActivity.kt                   # Home app: block or forward to original launcher
+│       │   ├── LauncherManager.kt                # stores the original phone launcher
+│       │   ├── AllowedAppsManager.kt             # list of extra allowed apps
+│       │   ├── AllowedAppsActivity.kt            # UI to modify the list (password gated)
+│       │   ├── SessionExpiryReceiver.kt          # auto-expiry via AlarmManager
+│       │   ├── SessionManager.kt                 # session state, duration, DND
+│       │   └── PasswordManager.kt                # password hash/verification
 │       └── res/
 │           ├── layout/
 │           ├── values/
@@ -53,66 +51,65 @@ Calm Otter/
 └── settings.gradle.kts
 ```
 
-## Come aprirlo
+## How to open
 
-Apri la cartella `Calm Otter/` con Android Studio (Hedgehog o successivo):
-verrà generato automaticamente il Gradle Wrapper e sincronizzate le
-dipendenze. Non è incluso `gradlew` perché generato da Android Studio al
-primo sync.
+Open the `Calm Otter/` folder with Android Studio (Hedgehog or later):
+the Gradle Wrapper will be automatically generated and dependencies
+synchronized. `gradlew` is not included because it's generated by Android Studio
+during the first sync.
 
-## Lista app extra consentite
+## Extra Allowed Apps List
 
-Oltre al telefono, è possibile scegliere altre app che restano utilizzabili
-durante una pausa (es. mappe, messaggi con la famiglia). L'elenco si gestisce
-da "Gestisci app consentite" in `MainActivity`, ma per aprirlo viene
-richiesta la password — la stessa impostata al primo avvio. Solo chi la
-conosce può quindi aggiungere o togliere app dalla lista; l'elenco è salvato
-in `SharedPreferences` locali (dato non sensibile, nessuna cifratura
-necessaria) e letto in tempo reale da `AppBlockerAccessibilityService`.
+In addition to the phone, you can choose other apps that remain usable
+during a pause (e.g., maps, family messaging). The list is managed
+via "Manage allowed apps" in `MainActivity`, but requires the password to open
+— the same one set during first run. Only someone who knows the password can
+add or remove apps from the list; the list is saved in local `SharedPreferences`
+(non-sensitive data, no encryption needed) and read in real-time by
+`AppBlockerAccessibilityService`.
 
-## App Home
+## Home App
 
-Calm Otter può essere impostata come app Home del telefono ("Imposta come Home
-(consigliato)" in `MainActivity`). Da quel momento, ogni pressione del tasto
-Home passa da `HomeActivity`:
+Calm Otter can be set as the phone's Home app ("Set as Home (recommended)" in
+`MainActivity`). From that moment, every press of the Home button goes through
+`HomeActivity`:
 
-- **sessione attiva**: mostra la stessa schermata di blocco (countdown +
-  password) usata per le altre app, eliminando la via di fuga più comoda
-  (le icone sulla home normale);
-- **nessuna sessione attiva**: inoltra immediatamente al launcher originale
-  del telefono — rilevato e salvato una sola volta da `LauncherManager` — e
-  si chiude, così l'uso quotidiano resta invariato.
+- **active session**: shows the same block screen (countdown + password) used
+  for other apps, eliminating the easiest escape route (icons on the normal home);
+- **no active session**: immediately forwards to the original phone launcher
+  — detected and saved once by `LauncherManager` — and closes itself, so
+  daily use remains unchanged.
 
-Questo non sostituisce l'`AccessibilityService` (resta necessario per
-intercettare i passaggi via "App recenti") e non chiude del tutto il blocco
-"soft": l'app Home può sempre essere ricambiata da Impostazioni > App > App
-predefinite > Home, con lo stesso meccanismo (e lo stesso limite) di
-Accessibilità. Aggiunge però attrito reale contro le ricadute d'abitudine.
+This does not replace the `AccessibilityService` (which remains necessary to
+intercept switches via "Recent apps") and does not fully close the "soft"
+block: the Home app can always be changed back from Settings > Apps > Default
+apps > Home, using the same mechanism (and same limit) as Accessibility. However,
+it adds real friction against habitual relapses.
 
-## Limiti noti di questa versione (blocco "soft")
+## Known Limits of this version ("soft" block)
 
-Su Android, senza che l'app sia *Device Owner* (provisioning tipo MDM), non
-esiste un blocco davvero a prova di utente:
+On Android, without being the *Device Owner* (MDM-style provisioning), there is
+no truly user-proof block:
 
-- L'utente può disattivare il servizio di Accessibilità da
-  Impostazioni > Accessibilità, in qualsiasi momento, senza password.
-- Avviando il telefono in Safe Mode, i servizi di accessibilità di terze
-  parti non vengono caricati.
-- Il tasto Home non è intercettabile: porta alla home, ma la schermata di
-  blocco ricompare non appena si prova ad aprire un'altra app.
+- The user can disable the Accessibility service from
+  Settings > Accessibility at any time, without a password.
+- Booting the phone in Safe Mode prevents third-party accessibility services
+  from loading.
+- The Home button is not interceptable: it leads to the home screen, but the
+  block screen reappears as soon as another app is opened.
 
-Per un blocco "hard" servirebbe trasformare l'app in Device Owner (richiede
-provisioning al setup del dispositivo o reset di fabbrica) e usare
-`DevicePolicyManager` con Lock Task Mode + `addUserRestriction` su
-`DISALLOW_CONFIGURE_ACCESSIBILITY`, `DISALLOW_SAFE_BOOT`,
-`DISALLOW_UNINSTALL_APPS`. È un passo significativo in termini di invasività
-e complessità: lo lascerei come eventuale v2, solo se il blocco soft si rivela
-insufficiente nell'uso reale.
+For a "hard" block, the app would need to be converted to a Device Owner (requires
+provisioning during device setup or factory reset) and use
+`DevicePolicyManager` with Lock Task Mode + `addUserRestriction` for
+`DISALLOW_CONFIGURE_ACCESSIBILITY`, `DISALLOW_SAFE_BOOT`, and
+`DISALLOW_UNINSTALL_APPS`. This is a significant step in terms of invasiveness
+and complexity; I would leave it for a potential v2 if the soft block proves
+insufficient in real-world use.
 
-## Possibili evoluzioni
+## Possible Evolutions
 
-- Device Admin (non Device Owner) per rendere più scomoda la disinstallazione
-  durante una sessione attiva.
-- Cronologia sessioni / statistiche d'uso.
-- Sblocco remoto (richiede un piccolo backend) invece che solo locale.
-- Whitelist configurabile invece del solo telefono (es. mappe, messaggi famiglia).
+- Device Admin (not Device Owner) to make uninstallation more difficult
+  during an active session.
+- Session history / usage statistics.
+- Remote unlock (requires a small backend) instead of only local.
+- Configurable whitelist instead of just the phone (e.g., maps, family messages).
