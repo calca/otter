@@ -1,0 +1,78 @@
+<resources>
+
+    <!-- SAGE night -->
+    <style name="Theme.CalmOtter.Sage" parent="Theme.MaterialComponents.DayNight.NoActionBar">
+        <item name="android:windowBackground">#1A2B38</item>
+        <item name="android:colorBackground">#1A2B38</item>
+        <item name="colorSurface">#223040</item>
+        <item name="android:textColorPrimary">#D4E8DC</item>
+        <item name="android:textColorSecondary">#8AADA0</item>
+        <item name="colorPrimary">#6BBFA0</item>
+        <item name="colorPrimaryVariant">#6BBFA0</item>
+        <item name="colorOnPrimary">#1A2B38</item>
+        <item name="colorError">#E07A78</item>
+    </style>
+    <style name="Theme.CalmOtter.Sage.Block"          parent="Theme.CalmOtter.Sage" />
+    <style name="Theme.CalmOtter.Sage.WithActionBar"  parent="Theme.MaterialComponents.DayNight">
+        <item name="android:windowBackground">#1A2B38</item>
+        <item name="android:colorBackground">#1A2B38</item>
+        <item name="colorSurface">#223040</item>
+        <item name="android:textColorPrimary">#D4E8DC</item>
+        <item name="android:textColorSecondary">#8AADA0</item>
+        <item name="colorPrimary">#6BBFA0</item>
+        <item name="colorPrimaryVariant">#6BBFA0</item>
+        <item name="colorOnPrimary">#1A2B38</item>
+        <item name="colorError">#E07A78</item>
+    </style>
+
+    <!-- LAVENDER night -->
+    <style name="Theme.CalmOtter.Lavender" parent="Theme.MaterialComponents.DayNight.NoActionBar">
+        <item name="android:windowBackground">#1E1A2E</item>
+        <item name="android:colorBackground">#1E1A2E</item>
+        <item name="colorSurface">#262240</item>
+        <item name="android:textColorPrimary">#E0D8F5</item>
+        <item name="android:textColorSecondary">#9B8FC0</item>
+        <item name="colorPrimary">#A99ED0</item>
+        <item name="colorPrimaryVariant">#A99ED0</item>
+        <item name="colorOnPrimary">#1E1A2E</item>
+        <item name="colorError">#E07A78</item>
+    </style>
+    <style name="Theme.CalmOtter.Lavender.Block"         parent="Theme.CalmOtter.Lavender" />
+    <style name="Theme.CalmOtter.Lavender.WithActionBar" parent="Theme.MaterialComponents.DayNight">
+        <item name="android:windowBackground">#1E1A2E</item>
+        <item name="android:colorBackground">#1E1A2E</item>
+        <item name="colorSurface">#262240</item>
+        <item name="android:textColorPrimary">#E0D8F5</item>
+        <item name="android:textColorSecondary">#9B8FC0</item>
+        <item name="colorPrimary">#A99ED0</item>
+        <item name="colorPrimaryVariant">#A99ED0</item>
+        <item name="colorOnPrimary">#1E1A2E</item>
+        <item name="colorError">#E07A78</item>
+    </style>
+
+    <!-- TERRACOTTA night -->
+    <style name="Theme.CalmOtter.Terracotta" parent="Theme.MaterialComponents.DayNight.NoActionBar">
+        <item name="android:windowBackground">#2A1812</item>
+        <item name="android:colorBackground">#2A1812</item>
+        <item name="colorSurface">#381F15</item>
+        <item name="android:textColorPrimary">#F0DDD8</item>
+        <item name="android:textColorSecondary">#C09080</item>
+        <item name="colorPrimary">#C4927A</item>
+        <item name="colorPrimaryVariant">#C4927A</item>
+        <item name="colorOnPrimary">#2A1812</item>
+        <item name="colorError">#E07A78</item>
+    </style>
+    <style name="Theme.CalmOtter.Terracotta.Block"         parent="Theme.CalmOtter.Terracotta" />
+    <style name="Theme.CalmOtter.Terracotta.WithActionBar" parent="Theme.MaterialComponents.DayNight">
+        <item name="android:windowBackground">#2A1812</item>
+        <item name="android:colorBackground">#2A1812</item>
+        <item name="colorSurface">#381F15</item>
+        <item name="android:textColorPrimary">#F0DDD8</item>
+        <item name="android:textColorSecondary">#C09080</item>
+        <item name="colorPrimary">#C4927A</item>
+        <item name="colorPrimaryVariant">#C4927A</item>
+        <item name="colorOnPrimary">#2A1812</item>
+        <item name="colorError">#E07A78</item>
+    </style>
+
+</resources>

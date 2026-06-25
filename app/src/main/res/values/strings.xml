@@ -1,0 +1,115 @@
+<resources>
+    <string name="app_name">Calm Otter</string>
+
+    <string name="setup_password_info">Imposta la password che SOLO un\'altra persona conoscerà: servirà per terminare le sessioni di pausa.</string>
+    <string name="hint_new_password">Nuova password</string>
+    <string name="hint_confirm_password">Conferma password</string>
+    <string name="save_password">Salva password</string>
+    <string name="password_too_short">La password deve avere almeno 4 caratteri</string>
+    <string name="passwords_dont_match">Le due password non coincidono</string>
+    <string name="password_saved">Password impostata</string>
+
+    <string name="session_active">Sessione di pausa attiva</string>
+    <string name="session_active_with_time">Sessione di pausa attiva — circa %1$d min rimanenti</string>
+    <string name="permissions_missing">Permessi mancanti: tocca \"Concedi permessi\"</string>
+    <string name="ready">Pronto per iniziare una pausa</string>
+    <string name="duration_label">Durata della pausa</string>
+    <string name="grant_permissions">Concedi permessi</string>
+    <string name="set_as_home">Imposta come Home (consigliato)</string>
+    <string name="start_pause">Inizia pausa</string>
+    <string name="session_started">Sessione di pausa avviata</string>
+    <string name="session_ended">Sessione terminata</string>
+
+    <string name="block_title">Pausa in corso</string>
+    <string name="block_message">Tutte le app sono bloccate, tranne il telefono. Solo chi conosce la password può terminare la pausa prima del tempo.</string>
+    <string name="remaining_time_format">%1$d:%2$02d</string>
+    <string name="hint_unlock_password">Password</string>
+    <string name="unlock">Sblocca</string>
+    <string name="wrong_password">Password errata</string>
+
+    <string name="accessibility_service_description">Permette a PauseLock di rilevare quale app è in primo piano per applicare il blocco durante le sessioni di pausa.</string>
+
+    <string name="theme_sage">Salvia</string>
+    <string name="theme_lavender">Lavanda</string>
+    <string name="theme_terracotta">Terracotta</string>
+
+    <string name="notification_channel_name">Sessione in corso</string>
+    <string name="notification_channel_description">Mostra lo stato della sessione di pausa attiva</string>
+
+    <string name="history_all_sessions">Tutte le sessioni</string>
+    <string name="weekly_summary_none">Nessuna sessione questa settimana</string>
+    <string name="weekly_summary_one">1 sessione questa settimana · %1$s</string>
+    <string name="weekly_summary_many">%1$d sessioni questa settimana · %2$s</string>
+
+    <string name="history_title">Cronologia</string>
+    <string name="history_empty">Nessuna sessione ancora.\nAvvia la tua prima pausa 🌿</string>
+    <string name="history_clear">Svuota cronologia</string>
+    <string name="history_clear_confirm">Vuoi eliminare tutta la cronologia? L\'operazione non è reversibile.</string>
+    <string name="history_item_natural">Completata naturalmente</string>
+    <string name="history_item_early">Interrotta — pianificata %1$d min</string>
+    <string name="stat_sessions">sessioni</string>
+    <string name="stat_minutes">tempo totale</string>
+    <string name="stat_completed">completate</string>
+    <string name="stat_completed_fraction">%1$d / %2$d</string>
+
+    <string name="manage_allowed_apps">Gestisci app consentite</string>
+    <string name="change_password">Cambia password</string>
+    <string name="change_password_title">Cambia password</string>
+    <string name="change_password_info">Solo chi conosce la password attuale può impostarne una nuova.</string>
+    <string name="change_password_confirm">Salva nuova password</string>
+    <string name="hint_current_password">Password attuale</string>
+    <string name="wrong_current_password">Password attuale errata</string>
+    <string name="password_changed">Password aggiornata</string>
+    <string name="phrases_toggle_label">Mostra frasi durante la pausa</string>
+    <string name="manage_allowed_apps_password_prompt">Inserisci la password per modificare l\'elenco</string>
+    <string name="confirm">Conferma</string>
+    <string name="allowed_apps_title">App consentite durante la pausa</string>
+    <string name="allowed_apps_intro">Le app selezionate resteranno utilizzabili durante una sessione. Le consentite appaiono in cima.</string>
+    <string name="allowed_apps_search">Cerca app</string>
+    <string name="save">Salva</string>
+    <string name="allowed_apps_saved">Elenco aggiornato</string>
+
+    <string name="widget_description">Avvia una sessione di pausa in un tap</string>
+    <string name="widget_label_idle">Pausa</string>
+    <string name="widget_soon">tra poco</string>
+    <string name="widget_minutes">~%1$d min</string>
+    <string name="widget_hours">~%1$dh %2$dm</string>
+
+    <!-- Onboarding -->
+    <string name="onb1_title">Benvenuto in Calm Otter</string>
+    <string name="onb1_body">Calm Otter ti aiuta a prenderti delle pause vere dal telefono — senza distrazioni, senza notifiche. Solo tu e il momento presente.</string>
+    <string name="onb2_title">Come funziona</string>
+    <string name="onb2_body">Quando vuoi fare una pausa, scegli quanto tempo e avvii la sessione.\n\nTutte le app vengono bloccate, tranne il telefono per le chiamate.\n\nLa sessione termina da sola allo scadere del tempo, oppure prima — ma solo se una persona di fiducia inserisce la password.\n\nÈ un patto tra te e qualcuno che ti vuole bene.</string>
+    <string name="onb3_title">Due permessi necessari</string>
+    <string name="onb3_body">Per funzionare, Calm Otter ha bisogno di:\n\n🔍 Accessibilità — per rilevare quale app è aperta e mostrare la schermata di blocco.\n\n🔔 Non disturbare — per silenziare le notifiche durante la pausa, lasciando passare solo le chiamate.\n\nNessun dato viene condiviso o trasmesso.</string>
+    <string name="onb3_btn_accessibility">Concedi accesso Accessibilità</string>
+    <string name="onb3_btn_dnd">Concedi accesso Non disturbare</string>
+    <string name="onb3_permissions_ok">✓ Tutti i permessi concessi</string>
+    <string name="onb3_missing_dnd">✓ Accessibilità ok · In attesa di Non disturbare</string>
+    <string name="onb3_missing_accessibility">✓ Non disturbare ok · In attesa di Accessibilità</string>
+    <string name="onb3_missing_both">Entrambi i permessi sono necessari per continuare</string>
+    <string name="onb4_title">Scegli la password insieme</string>
+    <string name="onb4_body">Passa il telefono alla persona di fiducia.\n\nSarà lei a scegliere la password — e a tenerla per sé. Solo lei potrà terminare una sessione prima del tempo.\n\nNon devi sapere la password: è parte del patto.</string>
+    <string name="onb5_title">Tutto pronto 🌿</string>
+    <string name="onb5_body">Calm Otter è configurato.\n\nQuando sei pronto per una pausa, apri l\'app, scegli la durata e inizia.\n\nPrenditi cura di te.</string>
+    <string name="onb_next">Avanti</string>
+    <string name="onb_back">Indietro</string>
+    <string name="onb_finish">Iniziamo</string>
+
+    <!-- Frasi rilassanti/riflessive mostrate durante la pausa (opzionale) -->
+    <string-array name="pause_phrases">
+        <item>Respira. Questo momento è tuo.</item>
+        <item>Il silenzio è una forma di rispetto verso sé stessi.</item>
+        <item>Non stai perdendo nulla. Stai recuperando qualcosa.</item>
+        <item>La mente ha bisogno di vuoto per fare spazio alle idee.</item>
+        <item>Ogni pausa è un piccolo atto di cura.</item>
+        <item>Guarda fuori dalla finestra. Il mondo è ancora lì.</item>
+        <item>Cosa vorresti fare se non avessi il telefono in mano?</item>
+        <item>La noia è il terreno fertile della creatività.</item>
+        <item>Sei più presente di quanto pensi.</item>
+        <item>Meno schermi, più profondità.</item>
+        <item>Il corpo sa cosa fare quando la mente si ferma.</item>
+        <item>Stai scegliendo il presente invece dello schermo.</item>
+    </string-array>
+    <string name="phrase_format">“%1$s”</string>
+</resources>

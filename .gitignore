@@ -1,0 +1,30 @@
+# Built artifacts
+**/build/
+*.apk
+*.aar
+*.bundle
+
+# Local configuration files
+local.properties
+
+# Gradle
+.gradle/
+gradle-app.setting
+!gradle-wrapper.jar
+
+# IDE specific files
+.idea/
+*.iml
+*.iws
+.project
+.classpath
+.settings/
+
+# macOS
+.DS_Store
+
+# Logs
+*.log
+
+# Capture profiling data
+*.hprof

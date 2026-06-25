@@ -1,0 +1,128 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <uses-permission android:name="android.permission.ACCESS_NOTIFICATION_POLICY" />
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <!-- Android 14+: specifica il tipo del foreground service -->
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE" />
+    <!-- Android 13+: necessario per mostrare notifiche -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+
+    <application
+        android:allowBackup="true"
+        android:label="@string/app_name"
+        android:theme="@style/Theme.CalmOtter"
+        android:supportsRtl="true">
+
+        <activity
+            android:name=".OnboardingActivity"
+            android:exported="true"
+            android:theme="@style/Theme.CalmOtter.WithActionBar">
+        </activity>
+
+        <activity
+            android:name=".MainActivity"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+
+        <activity
+            android:name=".BlockOverlayActivity"
+            android:exported="false"
+            android:launchMode="singleInstance"
+            android:excludeFromRecents="true"
+            android:theme="@style/Theme.CalmOtter.Block" />
+
+        <activity
+            android:name=".HomeActivity"
+            android:exported="true"
+            android:launchMode="singleInstance"
+            android:excludeFromRecents="true"
+            android:theme="@style/Theme.CalmOtter.Block">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.HOME" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+        </activity>
+
+        <activity
+            android:name=".HistoryActivity"
+            android:exported="false"
+            android:label="@string/history_title"
+            android:theme="@style/Theme.CalmOtter.WithActionBar" />
+
+        <activity
+            android:name=".ChangePasswordActivity"
+            android:exported="false"
+            android:label="@string/change_password_title"
+            android:theme="@style/Theme.CalmOtter.WithActionBar" />
+
+        <activity
+            android:name=".AllowedAppsActivity"
+            android:exported="false"
+            android:label="@string/allowed_apps_title"
+            android:theme="@style/Theme.CalmOtter.WithActionBar" />
+
+        <!--
+            RECEIVE_BOOT_COMPLETED: al riavvio del telefono, se una sessione
+            era in corso, ripristina il blocco e il DND.
+            directBootAware=false (default): il receiver parte solo dopo che
+            l'utente ha sbloccato il telefono con PIN/impronta al boot — non
+            ci servono i dati cifrati prima di quel punto, e tenerlo false
+            evita complessità inutile.
+        -->
+        <receiver
+            android:name=".PauseWidgetProvider"
+            android:exported="true"
+            android:label="@string/widget_label_idle">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+                <action android:name="com.calmotter.app.WIDGET_TAP" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/widget_pause_info" />
+        </receiver>
+
+        <receiver
+            android:name=".BootReceiver"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+                <!-- Alcuni dispositivi Huawei/MIUI usano questo invece di BOOT_COMPLETED -->
+                <action android:name="android.intent.action.QUICKBOOT_POWERON" />
+            </intent-filter>
+        </receiver>
+
+        <service
+            android:name=".SessionForegroundService"
+            android:exported="false"
+            android:foregroundServiceType="specialUse">
+            <property
+                android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
+                android:value="Mantiene attivo il blocco sessione di pausa" />
+        </service>
+
+        <receiver
+            android:name=".SessionExpiryReceiver"
+            android:exported="false" />
+
+        <service
+            android:name=".AppBlockerAccessibilityService"
+            android:permission="android.permission.BIND_ACCESSIBILITY_SERVICE"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.accessibilityservice.AccessibilityService" />
+            </intent-filter>
+            <meta-data
+                android:name="android.accessibilityservice.config"
+                android:resource="@xml/accessibility_service_config" />
+        </service>
+
+    </application>
+</manifest>

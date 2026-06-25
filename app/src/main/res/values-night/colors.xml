@@ -1,0 +1,14 @@
+<resources>
+    <!-- Sfondo notturno: blu ardesia profondo, più riposante del nero puro -->
+    <color name="pause_background">#1A2B38</color>
+    <!-- Superficie leggermente più chiara -->
+    <color name="pause_surface">#223040</color>
+    <!-- Testo primario: bianco caldo con leggera tinta verde -->
+    <color name="pause_on_background">#D4E8DC</color>
+    <!-- Testo secondario: morbido -->
+    <color name="pause_on_background_secondary">#8AADA0</color>
+    <!-- Countdown e titoli: menta tenue -->
+    <color name="pause_accent">#6BBFA0</color>
+    <!-- Errore: salmone desaturato -->
+    <color name="pause_error">#E07A78</color>
+</resources>

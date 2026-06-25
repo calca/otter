@@ -1,0 +1,14 @@
+<resources>
+    <!-- Sfondo principale: verde salvia chiarissimo -->
+    <color name="pause_background">#EAF0E8</color>
+    <!-- Superficie card/overlay con leggero contrasto -->
+    <color name="pause_surface">#F5F8F4</color>
+    <!-- Testo primario: verde foresta scuro, leggibile -->
+    <color name="pause_on_background">#2C4A3E</color>
+    <!-- Testo secondario: tono più morbido -->
+    <color name="pause_on_background_secondary">#557A6A</color>
+    <!-- Countdown e titoli in evidenza -->
+    <color name="pause_accent">#3D7A5C</color>
+    <!-- Errore password: rosso desaturato, meno aggressivo del rosso puro -->
+    <color name="pause_error">#B85450</color>
+</resources>

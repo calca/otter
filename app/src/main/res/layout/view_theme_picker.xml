@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal"
+    android:gravity="center"
+    android:padding="16dp">
+
+    <!-- SAGE -->
+    <LinearLayout
+        android:id="@+id/themeSage"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:orientation="vertical"
+        android:gravity="center"
+        android:padding="8dp">
+
+        <View
+            android:id="@+id/dotSage"
+            android:layout_width="36dp"
+            android:layout_height="36dp"
+            android:background="@drawable/theme_dot_sage" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/theme_sage"
+            android:textSize="12sp"
+            android:layout_marginTop="6dp"
+            android:textColor="?android:attr/textColorSecondary" />
+    </LinearLayout>
+
+    <!-- LAVENDER -->
+    <LinearLayout
+        android:id="@+id/themeLavender"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:orientation="vertical"
+        android:gravity="center"
+        android:padding="8dp">
+
+        <View
+            android:id="@+id/dotLavender"
+            android:layout_width="36dp"
+            android:layout_height="36dp"
+            android:background="@drawable/theme_dot_lavender" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/theme_lavender"
+            android:textSize="12sp"
+            android:layout_marginTop="6dp"
+            android:textColor="?android:attr/textColorSecondary" />
+    </LinearLayout>
+
+    <!-- TERRACOTTA -->
+    <LinearLayout
+        android:id="@+id/themeTerracotta"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:orientation="vertical"
+        android:gravity="center"
+        android:padding="8dp">
+
+        <View
+            android:id="@+id/dotTerracotta"
+            android:layout_width="36dp"
+            android:layout_height="36dp"
+            android:background="@drawable/theme_dot_terracotta" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/theme_terracotta"
+            android:textSize="12sp"
+            android:layout_marginTop="6dp"
+            android:textColor="?android:attr/textColorSecondary" />
+    </LinearLayout>
+
+</LinearLayout>
