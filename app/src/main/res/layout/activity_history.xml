@@ -88,6 +88,19 @@
             android:layout_height="wrap_content"
             android:orientation="vertical">
 
+            <!-- Serie giornaliera (streak) -->
+            <TextView
+                android:id="@+id/streakText"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textAlignment="center"
+                android:textSize="14sp"
+                android:textStyle="bold"
+                android:textColor="?attr/colorPrimary"
+                android:paddingHorizontal="16dp"
+                android:paddingTop="16dp"
+                android:visibility="gone" />
+
             <!-- Grafico settimanale -->
             <com.calmotter.app.WeeklyChartView
                 android:id="@+id/weeklyChart"
@@ -107,6 +120,48 @@
                 android:paddingHorizontal="16dp"
                 android:paddingTop="4dp"
                 android:paddingBottom="16dp" />
+
+            <!-- Obiettivo settimanale (opzionale) -->
+            <LinearLayout
+                android:id="@+id/weeklyGoalSection"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:paddingHorizontal="16dp"
+                android:paddingBottom="16dp">
+
+                <ProgressBar
+                    android:id="@+id/goalProgressBar"
+                    style="?android:attr/progressBarStyleHorizontal"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="6dp"
+                    android:max="100"
+                    android:progressTint="?attr/colorPrimary"
+                    android:visibility="gone" />
+
+                <TextView
+                    android:id="@+id/goalProgressText"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:textAlignment="center"
+                    android:textSize="13sp"
+                    android:textColor="?android:attr/textColorSecondary"
+                    android:layout_marginBottom="8dp"
+                    android:visibility="gone" />
+
+                <Button
+                    android:id="@+id/setGoalButton"
+                    style="?android:attr/borderlessButtonStyle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center_horizontal"
+                    android:minWidth="0dp"
+                    android:minHeight="0dp"
+                    android:paddingHorizontal="16dp"
+                    android:text="@string/weekly_goal_set_button" />
+
+            </LinearLayout>
 
             <!-- Separatore -->
             <View

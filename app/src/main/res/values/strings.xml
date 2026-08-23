@@ -53,6 +53,21 @@
     <string name="stat_completed">completate</string>
     <string name="stat_completed_fraction">%1$d / %2$d</string>
 
+    <string name="streak_days">🔥 %1$d giorni di fila</string>
+
+    <string name="weekly_goal_set_button">Imposta obiettivo</string>
+    <string name="weekly_goal_edit_button">Modifica obiettivo</string>
+    <string name="weekly_goal_dialog_title">Obiettivo settimanale</string>
+    <string name="weekly_goal_target_hint">Numero</string>
+    <string name="weekly_goal_type_sessions">Sessioni</string>
+    <string name="weekly_goal_type_minutes">Minuti</string>
+    <string name="weekly_goal_invalid">Inserisci un numero maggiore di zero</string>
+    <string name="weekly_goal_progress_sessions">%1$d di %2$d sessioni questa settimana</string>
+    <string name="weekly_goal_progress_minutes">%1$d di %2$d minuti questa settimana</string>
+
+    <string name="history_export">Esporta cronologia</string>
+    <string name="history_export_empty">Nessuna sessione da esportare</string>
+
     <string name="manage_allowed_apps">Gestisci app consentite</string>
     <string name="change_password">Cambia password</string>
     <string name="change_password_title">Cambia password</string>

@@ -53,6 +53,21 @@
     <string name="stat_completed">completed</string>
     <string name="stat_completed_fraction">%1$d / %2$d</string>
 
+    <string name="streak_days">🔥 %1$d day streak</string>
+
+    <string name="weekly_goal_set_button">Set goal</string>
+    <string name="weekly_goal_edit_button">Edit goal</string>
+    <string name="weekly_goal_dialog_title">Weekly goal</string>
+    <string name="weekly_goal_target_hint">Number</string>
+    <string name="weekly_goal_type_sessions">Sessions</string>
+    <string name="weekly_goal_type_minutes">Minutes</string>
+    <string name="weekly_goal_invalid">Enter a number greater than zero</string>
+    <string name="weekly_goal_progress_sessions">%1$d of %2$d sessions this week</string>
+    <string name="weekly_goal_progress_minutes">%1$d of %2$d minutes this week</string>
+
+    <string name="history_export">Export history</string>
+    <string name="history_export_empty">No sessions to export</string>
+
     <string name="manage_allowed_apps">Manage allowed apps</string>
     <string name="change_password">Change password</string>
     <string name="change_password_title">Change password</string>
