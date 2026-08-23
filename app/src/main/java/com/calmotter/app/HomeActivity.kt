@@ -8,6 +8,7 @@ import android.widget.Button
 import android.widget.EditText
 import android.widget.TextView
 import android.widget.Toast
+import androidx.activity.OnBackPressedCallback
 import androidx.appcompat.app.AppCompatActivity
 
 class HomeActivity : BaseActivity() {
@@ -21,6 +22,12 @@ class HomeActivity : BaseActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
+            override fun handleOnBackPressed() {
+                // Intenzionalmente vuoto per bloccare il tasto back
+            }
+        })
 
         sessionManager = SessionManager(applicationContext)
         passwordManager = PasswordManager(applicationContext)
@@ -106,9 +113,5 @@ class HomeActivity : BaseActivity() {
     override fun onDestroy() {
         countDownTimer?.cancel()
         super.onDestroy()
-    }
-
-    override fun onBackPressed() {
-        // Intenzionalmente vuoto
     }
 }
