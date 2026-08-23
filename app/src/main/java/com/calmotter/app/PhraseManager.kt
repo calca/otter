@@ -1,6 +1,7 @@
 package com.calmotter.app
 
 import android.content.Context
+import androidx.annotation.VisibleForTesting
 
 /**
  * Gestisce la preferenza utente "mostra frasi durante la pausa" e la
@@ -36,5 +37,10 @@ class PhraseManager private constructor(private val context: Context) {
             instance ?: synchronized(this) {
                 instance ?: PhraseManager(context.applicationContext).also { instance = it }
             }
+
+        @VisibleForTesting
+        internal fun resetInstanceForTests() {
+            instance = null
+        }
     }
 }

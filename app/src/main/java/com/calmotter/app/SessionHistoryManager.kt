@@ -1,6 +1,7 @@
 package com.calmotter.app
 
 import android.content.Context
+import androidx.annotation.VisibleForTesting
 
 /**
  * Persiste la cronologia delle sessioni tramite Room (tabella "sessions").
@@ -23,5 +24,10 @@ class SessionHistoryManager private constructor(context: Context) {
             instance ?: synchronized(this) {
                 instance ?: SessionHistoryManager(context.applicationContext).also { instance = it }
             }
+
+        @VisibleForTesting
+        internal fun resetInstanceForTests() {
+            instance = null
+        }
     }
 }

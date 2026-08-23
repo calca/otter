@@ -2,6 +2,7 @@ package com.calmotter.app
 
 import android.content.Context
 import android.util.Base64
+import androidx.annotation.VisibleForTesting
 import androidx.security.crypto.EncryptedSharedPreferences
 import androidx.security.crypto.MasterKey
 import java.security.SecureRandom
@@ -14,6 +15,10 @@ import javax.crypto.spec.PBEKeySpec
  * La password non viene mai salvata in chiaro: si salvano solo salt + hash
  * (PBKDF2-HMAC-SHA256, 120k iterazioni) dentro EncryptedSharedPreferences,
  * a sua volta cifrato con una chiave gestita dall'Android Keystore.
+ *
+ * Il rate-limiting sui tentativi (quanti falliti, per quanto tempo in
+ * lockout) è delegato a [LockoutPolicy], logica pura testabile senza
+ * Keystore.
  */
 class PasswordManager private constructor(context: Context) {
 
@@ -48,7 +53,12 @@ class PasswordManager private constructor(context: Context) {
      * così una chiamata durante il lockout non resetta nulla.
      */
     fun verify(password: String): Boolean {
-        if (isLockedOut()) return false
+        val now = System.currentTimeMillis()
+        val current = LockoutPolicy.State(
+            prefs.getInt(KEY_FAILED_ATTEMPTS, 0),
+            prefs.getLong(KEY_LOCKOUT_UNTIL, 0L)
+        )
+        if (LockoutPolicy.isLockedOut(current, now)) return false
 
         val saltStr = prefs.getString(KEY_SALT, null) ?: return false
         val hashStr = prefs.getString(KEY_HASH, null) ?: return false
@@ -57,38 +67,31 @@ class PasswordManager private constructor(context: Context) {
         val actual = hash(password, salt)
         val matches = actual.contentEquals(expected)
 
-        if (matches) {
-            prefs.edit()
-                .putInt(KEY_FAILED_ATTEMPTS, 0)
-                .putLong(KEY_LOCKOUT_UNTIL, 0L)
-                .apply()
-        } else {
-            val failedAttempts = prefs.getInt(KEY_FAILED_ATTEMPTS, 0) + 1
-            if (failedAttempts >= MAX_ATTEMPTS) {
-                // Lockout raggiunto: azzera il contatore così l'utente riparte
-                // con un nuovo set di tentativi allo scadere del lockout.
-                prefs.edit()
-                    .putInt(KEY_FAILED_ATTEMPTS, 0)
-                    .putLong(KEY_LOCKOUT_UNTIL, System.currentTimeMillis() + LOCKOUT_DURATION_MS)
-                    .apply()
-            } else {
-                prefs.edit()
-                    .putInt(KEY_FAILED_ATTEMPTS, failedAttempts)
-                    .apply()
-            }
-        }
+        val next = LockoutPolicy.afterAttempt(current, matches, now)
+        prefs.edit()
+            .putInt(KEY_FAILED_ATTEMPTS, next.failedAttempts)
+            .putLong(KEY_LOCKOUT_UNTIL, next.lockoutUntilMs)
+            .apply()
 
         return matches
     }
 
     /** True se è attivo un lockout per troppi tentativi errati consecutivi. */
-    fun isLockedOut(): Boolean = prefs.getLong(KEY_LOCKOUT_UNTIL, 0L) > System.currentTimeMillis()
+    fun isLockedOut(): Boolean {
+        val current = LockoutPolicy.State(
+            prefs.getInt(KEY_FAILED_ATTEMPTS, 0),
+            prefs.getLong(KEY_LOCKOUT_UNTIL, 0L)
+        )
+        return LockoutPolicy.isLockedOut(current, System.currentTimeMillis())
+    }
 
     /** Secondi rimanenti al lockout, arrotondati per eccesso; 0 se non in lockout. */
     fun lockoutRemainingSeconds(): Int {
-        val remainingMs = prefs.getLong(KEY_LOCKOUT_UNTIL, 0L) - System.currentTimeMillis()
-        if (remainingMs <= 0) return 0
-        return ((remainingMs + 999) / 1000).toInt()
+        val current = LockoutPolicy.State(
+            prefs.getInt(KEY_FAILED_ATTEMPTS, 0),
+            prefs.getLong(KEY_LOCKOUT_UNTIL, 0L)
+        )
+        return LockoutPolicy.lockoutRemainingSeconds(current, System.currentTimeMillis())
     }
 
     private fun hash(password: String, salt: ByteArray): ByteArray {
@@ -104,8 +107,6 @@ class PasswordManager private constructor(context: Context) {
         private const val KEY_LOCKOUT_UNTIL = "lockout_until"
         private const val ITERATIONS = 120_000
         private const val KEY_LENGTH_BITS = 256
-        private const val MAX_ATTEMPTS = 5
-        private const val LOCKOUT_DURATION_MS = 30_000L
 
         @Volatile private var instance: PasswordManager? = null
 
@@ -113,5 +114,10 @@ class PasswordManager private constructor(context: Context) {
             instance ?: synchronized(this) {
                 instance ?: PasswordManager(context.applicationContext).also { instance = it }
             }
+
+        @VisibleForTesting
+        internal fun resetInstanceForTests() {
+            instance = null
+        }
     }
 }

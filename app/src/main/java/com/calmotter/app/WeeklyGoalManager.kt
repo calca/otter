@@ -1,6 +1,7 @@
 package com.calmotter.app
 
 import android.content.Context
+import androidx.annotation.VisibleForTesting
 
 enum class GoalType { MINUTES, SESSIONS }
 
@@ -44,5 +45,10 @@ class WeeklyGoalManager private constructor(context: Context) {
             instance ?: synchronized(this) {
                 instance ?: WeeklyGoalManager(context.applicationContext).also { instance = it }
             }
+
+        @VisibleForTesting
+        internal fun resetInstanceForTests() {
+            instance = null
+        }
     }
 }

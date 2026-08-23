@@ -1,6 +1,7 @@
 package com.calmotter.app
 
 import android.content.Context
+import androidx.annotation.VisibleForTesting
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
@@ -26,5 +27,11 @@ abstract class CalmOtterDatabase : RoomDatabase() {
                     .build()
                     .also { instance = it }
             }
+
+        @VisibleForTesting
+        internal fun resetInstanceForTests() {
+            instance?.close()
+            instance = null
+        }
     }
 }

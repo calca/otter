@@ -5,6 +5,7 @@ import android.app.NotificationManager
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
+import androidx.annotation.VisibleForTesting
 
 /**
  * Gestisce lo stato "sessione di pausa attiva/non attiva", la sua durata e,
@@ -159,5 +160,10 @@ class SessionManager private constructor(private val context: Context) {
             instance ?: synchronized(this) {
                 instance ?: SessionManager(context.applicationContext).also { instance = it }
             }
+
+        @VisibleForTesting
+        internal fun resetInstanceForTests() {
+            instance = null
+        }
     }
 }
