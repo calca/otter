@@ -2,20 +2,17 @@ package com.calmotter.app
 
 import android.content.Intent
 import android.content.pm.PackageManager
-import android.graphics.drawable.Drawable
 import android.os.Bundle
 import android.view.MenuItem
-import android.view.View
-import android.view.ViewGroup
-import android.widget.ImageView
-import android.widget.ProgressBar
-import android.widget.TextView
-import androidx.core.widget.addTextChangedListener
+import androidx.activity.compose.setContent
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+import androidx.core.graphics.drawable.toBitmap
 import androidx.lifecycle.lifecycleScope
-import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.recyclerview.widget.RecyclerView
-import com.google.android.material.checkbox.MaterialCheckBox
-import com.google.android.material.textfield.TextInputEditText
+import com.calmotter.app.ui.screens.AllowedAppsScreen
+import com.calmotter.app.ui.screens.AppItem
+import com.calmotter.app.ui.theme.CalmOtterTheme
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -24,11 +21,12 @@ import kotlinx.coroutines.withContext
  * Lista di app extra consentite durante una pausa.
  *
  * Raggiungibile solo dopo verifica password in MainActivity.
- * Le modifiche vengono salvate immediatamente al toggle di ogni checkbox,
+ * Le modifiche vengono salvate immediatamente al toggle di ogni riga,
  * senza bisogno di un pulsante Salva esplicito.
  *
- * Il caricamento delle app (icone incluse) avviene su un thread IO per
- * non bloccare la UI — su telefoni con molte app può richiedere qualche
+ * Il caricamento delle app (icone incluse, convertite qui in Bitmap — vedi
+ * AppItem in AllowedAppsScreen.kt) avviene su un thread IO per non
+ * bloccare la UI — su telefoni con molte app può richiedere qualche
  * secondo.
  */
 class AllowedAppsActivity : BaseActivity() {
@@ -36,12 +34,12 @@ class AllowedAppsActivity : BaseActivity() {
     override val themeVariant = ThemeVariant.WITH_ACTION_BAR
 
     private lateinit var allowedAppsManager: AllowedAppsManager
-    private lateinit var adapter: AppsAdapter
-    private var allApps: List<AppItem> = emptyList()
+
+    private var isLoading by mutableStateOf(true)
+    private var allApps by mutableStateOf<List<AppItem>>(emptyList())
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_allowed_apps)
 
         supportActionBar?.apply {
             title = getString(R.string.allowed_apps_title)
@@ -50,24 +48,14 @@ class AllowedAppsActivity : BaseActivity() {
 
         allowedAppsManager = AllowedAppsManager.getInstance(applicationContext)
 
-        val recyclerView = findViewById<RecyclerView>(R.id.appsList)
-        val spinner     = findViewById<ProgressBar>(R.id.loadingSpinner)
-        val searchField = findViewById<TextInputEditText>(R.id.searchField)
-
-        adapter = AppsAdapter { item, isChecked ->
-            // Salvataggio immediato ad ogni toggle
-            val current = allowedAppsManager.getAllowedPackages().toMutableSet()
-            if (isChecked) current.add(item.packageName) else current.remove(item.packageName)
-            allowedAppsManager.setAllowedPackages(current)
-        }
-
-        recyclerView.layoutManager = LinearLayoutManager(this)
-        recyclerView.adapter = adapter
-        recyclerView.itemAnimator = null // evita animazioni ridondanti durante il filtro
-
-        searchField.addTextChangedListener { text ->
-            val query = text?.toString()?.trim() ?: ""
-            adapter.filter(allApps, query)
+        setContent {
+            CalmOtterTheme(appTheme = ThemeManager.getTheme(this)) {
+                AllowedAppsScreen(
+                    isLoading = isLoading,
+                    apps = allApps,
+                    onToggle = ::toggleApp,
+                )
+            }
         }
 
         // Caricamento asincrono su thread IO
@@ -76,16 +64,30 @@ class AllowedAppsActivity : BaseActivity() {
             val apps = withContext(Dispatchers.IO) { loadApps(allowed) }
 
             allApps = apps
-            adapter.filter(apps, "")
-
-            spinner.visibility = View.GONE
-            recyclerView.visibility = View.VISIBLE
+            isLoading = false
         }
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         if (item.itemId == android.R.id.home) { finish(); return true }
         return super.onOptionsItemSelected(item)
+    }
+
+    /**
+     * Salvataggio immediato ad ogni toggle, e aggiornamento della lista in
+     * memoria (nuova lista con l'item copiato/aggiornato, dato che AppItem è
+     * immutabile) così la riga si ridisegna con lo stato corretto.
+     */
+    private fun toggleApp(item: AppItem) {
+        val newIsAllowed = !item.isAllowed
+
+        val current = allowedAppsManager.getAllowedPackages().toMutableSet()
+        if (newIsAllowed) current.add(item.packageName) else current.remove(item.packageName)
+        allowedAppsManager.setAllowedPackages(current)
+
+        allApps = allApps.map {
+            if (it.packageName == item.packageName) it.copy(isAllowed = newIsAllowed) else it
+        }
     }
 
     // ── Caricamento app ───────────────────────────────────────────────────
@@ -105,62 +107,9 @@ class AllowedAppsActivity : BaseActivity() {
                 AppItem(
                     label       = info.loadLabel(packageManager).toString(),
                     packageName = info.packageName,
-                    icon        = info.loadIcon(packageManager),
+                    icon        = info.loadIcon(packageManager).toBitmap(),
                     isAllowed   = info.packageName in allowed
                 )
             }
-    }
-
-    // ── Data class ────────────────────────────────────────────────────────
-
-    data class AppItem(
-        val label: String,
-        val packageName: String,
-        val icon: Drawable,
-        var isAllowed: Boolean
-    )
-
-    // ── Adapter ───────────────────────────────────────────────────────────
-
-    inner class AppsAdapter(
-        private val onToggle: (AppItem, Boolean) -> Unit
-    ) : RecyclerView.Adapter<AppsAdapter.ViewHolder>() {
-
-        private var items: List<AppItem> = emptyList()
-
-        fun filter(source: List<AppItem>, query: String) {
-            items = if (query.isEmpty()) source
-                    else source.filter { it.label.contains(query, ignoreCase = true) }
-            notifyDataSetChanged()
-        }
-
-        override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
-            val view = layoutInflater.inflate(R.layout.item_app, parent, false)
-            return ViewHolder(view)
-        }
-
-        override fun onBindViewHolder(holder: ViewHolder, position: Int) {
-            holder.bind(items[position])
-        }
-
-        override fun getItemCount() = items.size
-
-        inner class ViewHolder(view: View) : RecyclerView.ViewHolder(view) {
-            private val icon     = view.findViewById<ImageView>(R.id.appIcon)
-            private val name     = view.findViewById<TextView>(R.id.appName)
-            private val checkbox = view.findViewById<MaterialCheckBox>(R.id.appCheckbox)
-
-            fun bind(item: AppItem) {
-                icon.setImageDrawable(item.icon)
-                name.text = item.label
-                checkbox.isChecked = item.isAllowed
-
-                itemView.setOnClickListener {
-                    item.isAllowed = !item.isAllowed
-                    checkbox.isChecked = item.isAllowed
-                    onToggle(item, item.isAllowed)
-                }
-            }
-        }
     }
 }
