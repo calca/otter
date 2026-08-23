@@ -221,7 +221,15 @@ class MainActivity : BaseActivity() {
             .setMessage(R.string.manage_allowed_apps_password_prompt)
             .setView(input)
             .setPositiveButton(R.string.confirm) { _, _ ->
-                if (passwordManager.verify(input.text.toString())) {
+                if (passwordManager.isLockedOut()) {
+                    // Dialog "usa e getta": niente countdown live, mostriamo
+                    // solo quanto manca al termine del lockout in questo momento.
+                    Toast.makeText(
+                        this,
+                        getString(R.string.password_locked_out, passwordManager.lockoutRemainingSeconds()),
+                        Toast.LENGTH_SHORT
+                    ).show()
+                } else if (passwordManager.verify(input.text.toString())) {
                     startActivity(Intent(this, AllowedAppsActivity::class.java))
                 } else {
                     Toast.makeText(this, getString(R.string.wrong_password), Toast.LENGTH_SHORT).show()

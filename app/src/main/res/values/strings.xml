@@ -26,6 +26,7 @@
     <string name="hint_unlock_password">Password</string>
     <string name="unlock">Sblocca</string>
     <string name="wrong_password">Password errata</string>
+    <string name="password_locked_out">Troppi tentativi errati. Riprova tra %1$d secondi.</string>
 
     <string name="accessibility_service_description">Permette a PauseLock di rilevare quale app è in primo piano per applicare il blocco durante le sessioni di pausa.</string>
 

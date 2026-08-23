@@ -19,6 +19,7 @@ class HomeActivity : BaseActivity() {
     private lateinit var launcherManager: LauncherManager
     private lateinit var phraseManager: PhraseManager
     private var countDownTimer: CountDownTimer? = null
+    private var lockoutTimer: CountDownTimer? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -76,18 +77,59 @@ class HomeActivity : BaseActivity() {
         }
 
         unlockButton.setOnClickListener {
+            if (passwordManager.isLockedOut()) {
+                startLockoutCountdown(passwordField, unlockButton, statusText)
+                return@setOnClickListener
+            }
             val entered = passwordField.text.toString()
             if (passwordManager.verify(entered)) {
                 sessionManager.endSession()
                 Toast.makeText(this, getString(R.string.session_ended), Toast.LENGTH_SHORT).show()
                 forwardToOriginalLauncher()
             } else {
-                statusText.text = getString(R.string.wrong_password)
                 passwordField.text.clear()
+                if (passwordManager.isLockedOut()) {
+                    startLockoutCountdown(passwordField, unlockButton, statusText)
+                } else {
+                    statusText.text = getString(R.string.wrong_password)
+                }
             }
         }
 
+        if (passwordManager.isLockedOut()) {
+            startLockoutCountdown(passwordField, unlockButton, statusText)
+        }
+
         startCountdown(remainingText)
+    }
+
+    /**
+     * Disabilita campo password e pulsante finché il lockout non scade,
+     * aggiornando il messaggio una volta al secondo (stesso pattern del
+     * CountDownTimer usato per il tempo rimanente della sessione).
+     */
+    private fun startLockoutCountdown(passwordField: EditText, unlockButton: Button, statusText: TextView) {
+        lockoutTimer?.cancel()
+        passwordField.isEnabled = false
+        unlockButton.isEnabled = false
+
+        val remainingMillis = passwordManager.lockoutRemainingSeconds() * 1000L
+        lockoutTimer = object : CountDownTimer(remainingMillis, 1_000L) {
+            override fun onTick(millisUntilFinished: Long) {
+                val secondsLeft = passwordManager.lockoutRemainingSeconds()
+                if (secondsLeft <= 0) {
+                    onFinish()
+                    return
+                }
+                statusText.text = getString(R.string.password_locked_out, secondsLeft)
+            }
+
+            override fun onFinish() {
+                statusText.text = ""
+                passwordField.isEnabled = true
+                unlockButton.isEnabled = true
+            }
+        }.start()
     }
 
     private fun startCountdown(remainingText: TextView) {
@@ -112,6 +154,7 @@ class HomeActivity : BaseActivity() {
 
     override fun onDestroy() {
         countDownTimer?.cancel()
+        lockoutTimer?.cancel()
         super.onDestroy()
     }
 }

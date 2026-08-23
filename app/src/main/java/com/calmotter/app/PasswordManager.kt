@@ -42,13 +42,53 @@ class PasswordManager(context: Context) {
             .apply()
     }
 
+    /**
+     * Verifica la password. Se è attivo un lockout (troppi tentativi errati
+     * consecutivi), ritorna false immediatamente senza toccare hash/contatori,
+     * così una chiamata durante il lockout non resetta nulla.
+     */
     fun verify(password: String): Boolean {
+        if (isLockedOut()) return false
+
         val saltStr = prefs.getString(KEY_SALT, null) ?: return false
         val hashStr = prefs.getString(KEY_HASH, null) ?: return false
         val salt = Base64.decode(saltStr, Base64.NO_WRAP)
         val expected = Base64.decode(hashStr, Base64.NO_WRAP)
         val actual = hash(password, salt)
-        return actual.contentEquals(expected)
+        val matches = actual.contentEquals(expected)
+
+        if (matches) {
+            prefs.edit()
+                .putInt(KEY_FAILED_ATTEMPTS, 0)
+                .putLong(KEY_LOCKOUT_UNTIL, 0L)
+                .apply()
+        } else {
+            val failedAttempts = prefs.getInt(KEY_FAILED_ATTEMPTS, 0) + 1
+            if (failedAttempts >= MAX_ATTEMPTS) {
+                // Lockout raggiunto: azzera il contatore così l'utente riparte
+                // con un nuovo set di tentativi allo scadere del lockout.
+                prefs.edit()
+                    .putInt(KEY_FAILED_ATTEMPTS, 0)
+                    .putLong(KEY_LOCKOUT_UNTIL, System.currentTimeMillis() + LOCKOUT_DURATION_MS)
+                    .apply()
+            } else {
+                prefs.edit()
+                    .putInt(KEY_FAILED_ATTEMPTS, failedAttempts)
+                    .apply()
+            }
+        }
+
+        return matches
+    }
+
+    /** True se è attivo un lockout per troppi tentativi errati consecutivi. */
+    fun isLockedOut(): Boolean = prefs.getLong(KEY_LOCKOUT_UNTIL, 0L) > System.currentTimeMillis()
+
+    /** Secondi rimanenti al lockout, arrotondati per eccesso; 0 se non in lockout. */
+    fun lockoutRemainingSeconds(): Int {
+        val remainingMs = prefs.getLong(KEY_LOCKOUT_UNTIL, 0L) - System.currentTimeMillis()
+        if (remainingMs <= 0) return 0
+        return ((remainingMs + 999) / 1000).toInt()
     }
 
     private fun hash(password: String, salt: ByteArray): ByteArray {
@@ -60,7 +100,11 @@ class PasswordManager(context: Context) {
     companion object {
         private const val KEY_SALT = "password_salt"
         private const val KEY_HASH = "password_hash"
+        private const val KEY_FAILED_ATTEMPTS = "failed_attempts"
+        private const val KEY_LOCKOUT_UNTIL = "lockout_until"
         private const val ITERATIONS = 120_000
         private const val KEY_LENGTH_BITS = 256
+        private const val MAX_ATTEMPTS = 5
+        private const val LOCKOUT_DURATION_MS = 30_000L
     }
 }
