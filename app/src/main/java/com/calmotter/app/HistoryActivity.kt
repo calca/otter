@@ -29,7 +29,7 @@ class HistoryActivity : BaseActivity() {
             setDisplayHomeAsUpEnabled(true)
         }
 
-        historyManager = SessionHistoryManager(applicationContext)
+        historyManager = SessionHistoryManager.getInstance(applicationContext)
         bindAll()
     }
 

@@ -28,9 +28,9 @@ class BlockOverlayActivity : BaseActivity() {
             }
         })
 
-        passwordManager = PasswordManager(applicationContext)
-        sessionManager = SessionManager(applicationContext)
-        phraseManager = PhraseManager(applicationContext)
+        passwordManager = PasswordManager.getInstance(applicationContext)
+        sessionManager = SessionManager.getInstance(applicationContext)
+        phraseManager = PhraseManager.getInstance(applicationContext)
 
         val passwordField = findViewById<EditText>(R.id.passwordField)
         val unlockButton = findViewById<Button>(R.id.unlockButton)

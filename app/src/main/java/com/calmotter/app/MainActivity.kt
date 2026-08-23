@@ -37,10 +37,10 @@ class MainActivity : BaseActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        passwordManager = PasswordManager(applicationContext)
-        sessionManager = SessionManager(applicationContext)
-        launcherManager = LauncherManager(applicationContext)
-        phraseManager = PhraseManager(applicationContext)
+        passwordManager = PasswordManager.getInstance(applicationContext)
+        sessionManager = SessionManager.getInstance(applicationContext)
+        launcherManager = LauncherManager.getInstance(applicationContext)
+        phraseManager = PhraseManager.getInstance(applicationContext)
         launcherManager.saveOriginalLauncherIfNeeded()
 
         // Su Android 13+ chiediamo il permesso per le notifiche al primo avvio

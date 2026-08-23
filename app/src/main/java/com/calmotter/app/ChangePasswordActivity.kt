@@ -23,7 +23,7 @@ class ChangePasswordActivity : BaseActivity() {
             setDisplayHomeAsUpEnabled(true)
         }
 
-        passwordManager = PasswordManager(applicationContext)
+        passwordManager = PasswordManager.getInstance(applicationContext)
 
         val currentField = findViewById<TextInputEditText>(R.id.currentPasswordField)
         val newField = findViewById<TextInputEditText>(R.id.newPasswordField)

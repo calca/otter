@@ -48,7 +48,7 @@ class AllowedAppsActivity : BaseActivity() {
             setDisplayHomeAsUpEnabled(true)
         }
 
-        allowedAppsManager = AllowedAppsManager(applicationContext)
+        allowedAppsManager = AllowedAppsManager.getInstance(applicationContext)
 
         val recyclerView = findViewById<RecyclerView>(R.id.appsList)
         val spinner     = findViewById<ProgressBar>(R.id.loadingSpinner)

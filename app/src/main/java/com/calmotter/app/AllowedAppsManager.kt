@@ -8,7 +8,7 @@ import android.content.Context
  * Dato puramente locale, non sensibile: nessuna cifratura necessaria.
  * La modifica di questo elenco è gated da password lato UI (vedi MainActivity).
  */
-class AllowedAppsManager(context: Context) {
+class AllowedAppsManager private constructor(context: Context) {
 
     private val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
 
@@ -22,5 +22,12 @@ class AllowedAppsManager(context: Context) {
     companion object {
         private const val PREFS_NAME = "calm_otter_allowed_apps"
         private const val KEY_PACKAGES = "allowed_packages"
+
+        @Volatile private var instance: AllowedAppsManager? = null
+
+        fun getInstance(context: Context): AllowedAppsManager =
+            instance ?: synchronized(this) {
+                instance ?: AllowedAppsManager(context.applicationContext).also { instance = it }
+            }
     }
 }

@@ -41,7 +41,7 @@ class SessionForegroundService : Service() {
 
     override fun onCreate() {
         super.onCreate()
-        sessionManager = SessionManager(applicationContext)
+        sessionManager = SessionManager.getInstance(applicationContext)
         createNotificationChannel()
     }
 

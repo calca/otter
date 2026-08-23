@@ -26,7 +26,7 @@ class OnboardingActivity : BaseActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_onboarding)
 
-        passwordManager = PasswordManager(applicationContext)
+        passwordManager = PasswordManager.getInstance(applicationContext)
 
         buildStepIndicator()
         bindPermissionButtons()

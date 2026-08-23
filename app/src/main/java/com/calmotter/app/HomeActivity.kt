@@ -30,10 +30,10 @@ class HomeActivity : BaseActivity() {
             }
         })
 
-        sessionManager = SessionManager(applicationContext)
-        passwordManager = PasswordManager(applicationContext)
-        launcherManager = LauncherManager(applicationContext)
-        phraseManager = PhraseManager(applicationContext)
+        sessionManager = SessionManager.getInstance(applicationContext)
+        passwordManager = PasswordManager.getInstance(applicationContext)
+        launcherManager = LauncherManager.getInstance(applicationContext)
+        phraseManager = PhraseManager.getInstance(applicationContext)
 
         if (!sessionManager.isSessionActive()) {
             forwardToOriginalLauncher()

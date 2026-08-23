@@ -15,7 +15,7 @@ import javax.crypto.spec.PBEKeySpec
  * (PBKDF2-HMAC-SHA256, 120k iterazioni) dentro EncryptedSharedPreferences,
  * a sua volta cifrato con una chiave gestita dall'Android Keystore.
  */
-class PasswordManager(context: Context) {
+class PasswordManager private constructor(context: Context) {
 
     private val prefs = run {
         val masterKey = MasterKey.Builder(context)
@@ -106,5 +106,12 @@ class PasswordManager(context: Context) {
         private const val KEY_LENGTH_BITS = 256
         private const val MAX_ATTEMPTS = 5
         private const val LOCKOUT_DURATION_MS = 30_000L
+
+        @Volatile private var instance: PasswordManager? = null
+
+        fun getInstance(context: Context): PasswordManager =
+            instance ?: synchronized(this) {
+                instance ?: PasswordManager(context.applicationContext).also { instance = it }
+            }
     }
 }

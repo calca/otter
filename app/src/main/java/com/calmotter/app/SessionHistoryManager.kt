@@ -17,7 +17,7 @@ import org.json.JSONObject
  *   "completedNaturally": false
  * }
  */
-class SessionHistoryManager(context: Context) {
+class SessionHistoryManager private constructor(context: Context) {
 
     private val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
 
@@ -60,5 +60,12 @@ class SessionHistoryManager(context: Context) {
     companion object {
         private const val PREFS_NAME = "calm_otter_history"
         private const val KEY_HISTORY = "sessions"
+
+        @Volatile private var instance: SessionHistoryManager? = null
+
+        fun getInstance(context: Context): SessionHistoryManager =
+            instance ?: synchronized(this) {
+                instance ?: SessionHistoryManager(context.applicationContext).also { instance = it }
+            }
     }
 }

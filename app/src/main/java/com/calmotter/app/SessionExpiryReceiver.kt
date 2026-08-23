@@ -11,6 +11,6 @@ import android.content.Intent
  */
 class SessionExpiryReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
-        SessionManager(context).endSession(completedNaturally = true)
+        SessionManager.getInstance(context).endSession(completedNaturally = true)
     }
 }

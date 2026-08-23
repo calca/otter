@@ -13,7 +13,7 @@ import android.content.Intent
  * per questo la rilevazione funziona anche se chiamata dopo che CalmOtter è
  * già stato impostato come Home.
  */
-class LauncherManager(private val context: Context) {
+class LauncherManager private constructor(private val context: Context) {
 
     private val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
 
@@ -35,5 +35,12 @@ class LauncherManager(private val context: Context) {
     companion object {
         private const val PREFS_NAME = "calm_otter_launcher"
         private const val KEY_PACKAGE = "original_launcher_package"
+
+        @Volatile private var instance: LauncherManager? = null
+
+        fun getInstance(context: Context): LauncherManager =
+            instance ?: synchronized(this) {
+                instance ?: LauncherManager(context.applicationContext).also { instance = it }
+            }
     }
 }
