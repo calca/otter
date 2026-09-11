@@ -2,38 +2,50 @@ package com.calmotter.app
 
 import android.content.Intent
 import android.os.Bundle
-import android.os.CountDownTimer
-import android.view.View
-import android.widget.Button
-import android.widget.EditText
-import android.widget.TextView
-import android.widget.Toast
-import androidx.appcompat.app.AppCompatActivity
+import androidx.activity.OnBackPressedCallback
+import androidx.activity.compose.setContent
+import com.calmotter.app.ui.screens.BlockScreen
+import com.calmotter.app.ui.theme.CalmOtterTheme
 
 class HomeActivity : BaseActivity() {
     override val themeVariant = ThemeVariant.BLOCK
 
-    private lateinit var sessionManager: SessionManager
-    private lateinit var passwordManager: PasswordManager
     private lateinit var launcherManager: LauncherManager
-    private lateinit var phraseManager: PhraseManager
-    private var countDownTimer: CountDownTimer? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        sessionManager = SessionManager(applicationContext)
-        passwordManager = PasswordManager(applicationContext)
-        launcherManager = LauncherManager(applicationContext)
-        phraseManager = PhraseManager(applicationContext)
+        onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
+            override fun handleOnBackPressed() {
+                // Intenzionalmente vuoto per bloccare il tasto back
+            }
+        })
+
+        val sessionManager = SessionManager.getInstance(applicationContext)
+        val passwordManager = PasswordManager.getInstance(applicationContext)
+        launcherManager = LauncherManager.getInstance(applicationContext)
+        val phraseManager = PhraseManager.getInstance(applicationContext)
 
         if (!sessionManager.isSessionActive()) {
             forwardToOriginalLauncher()
             return
         }
 
-        setContentView(R.layout.activity_block_overlay)
-        bindBlockScreen()
+        val phrase = phraseManager.randomPhrase()
+        val phraseText = phrase?.let { "“$it”" }
+
+        setContent {
+            CalmOtterTheme(appTheme = ThemeManager.getTheme(this)) {
+                BlockScreen(
+                    sessionManager = sessionManager,
+                    passwordManager = passwordManager,
+                    phraseText = phraseText,
+                    onExpiredImmediately = { forwardToOriginalLauncher() },
+                    onExpiredNaturally = { forwardToOriginalLauncher() },
+                    onUnlocked = { forwardToOriginalLauncher() },
+                )
+            }
+        }
     }
 
     private fun forwardToOriginalLauncher() {
@@ -53,62 +65,5 @@ class HomeActivity : BaseActivity() {
             )
         }
         finish()
-    }
-
-    private fun bindBlockScreen() {
-        val passwordField = findViewById<EditText>(R.id.passwordField)
-        val unlockButton = findViewById<Button>(R.id.unlockButton)
-        val statusText = findViewById<TextView>(R.id.statusText)
-        val remainingText = findViewById<TextView>(R.id.remainingText)
-        val phraseText = findViewById<TextView>(R.id.phraseText)
-
-        val phrase = phraseManager.randomPhrase()
-        if (phrase != null) {
-            phraseText.text = "\u201C$phrase\u201D"
-            phraseText.visibility = View.VISIBLE
-        }
-
-        unlockButton.setOnClickListener {
-            val entered = passwordField.text.toString()
-            if (passwordManager.verify(entered)) {
-                sessionManager.endSession()
-                Toast.makeText(this, getString(R.string.session_ended), Toast.LENGTH_SHORT).show()
-                forwardToOriginalLauncher()
-            } else {
-                statusText.text = getString(R.string.wrong_password)
-                passwordField.text.clear()
-            }
-        }
-
-        startCountdown(remainingText)
-    }
-
-    private fun startCountdown(remainingText: TextView) {
-        val remainingMillis = sessionManager.remainingMillis()
-        if (remainingMillis <= 0) {
-            sessionManager.endSession(completedNaturally = true)
-            forwardToOriginalLauncher()
-            return
-        }
-
-        countDownTimer = object : CountDownTimer(remainingMillis, 60_000) {
-            override fun onTick(millisUntilFinished: Long) {
-                remainingText.text = CalmCountdown.format(millisUntilFinished)
-            }
-
-            override fun onFinish() {
-                sessionManager.endSession(completedNaturally = true)
-                forwardToOriginalLauncher()
-            }
-        }.start()
-    }
-
-    override fun onDestroy() {
-        countDownTimer?.cancel()
-        super.onDestroy()
-    }
-
-    override fun onBackPressed() {
-        // Intenzionalmente vuoto
     }
 }

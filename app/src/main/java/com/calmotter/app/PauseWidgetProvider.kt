@@ -47,7 +47,7 @@ class PauseWidgetProvider : AppWidgetProvider() {
     // ──────────────────────────────────────────────
 
     private fun handleTap(context: Context) {
-        val sessionManager = SessionManager(context)
+        val sessionManager = SessionManager.getInstance(context)
 
         if (sessionManager.isSessionActive()) {
             // Sessione attiva: porta alla schermata di blocco
@@ -72,7 +72,7 @@ class PauseWidgetProvider : AppWidgetProvider() {
         appWidgetManager: AppWidgetManager,
         widgetId: Int
     ) {
-        val sessionManager = SessionManager(context)
+        val sessionManager = SessionManager.getInstance(context)
         val views = RemoteViews(context.packageName, R.layout.widget_pause)
         val isActive = sessionManager.isSessionActive()
 

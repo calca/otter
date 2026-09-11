@@ -25,7 +25,7 @@ class AppBlockerAccessibilityService : AccessibilityService() {
         if (event?.eventType != AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED) return
 
         val packageName = event.packageName?.toString() ?: return
-        val sessionManager = SessionManager(applicationContext)
+        val sessionManager = SessionManager.getInstance(applicationContext)
         if (!sessionManager.isSessionActive()) return
         if (packageName in allowedPackages()) return
 
@@ -39,7 +39,7 @@ class AppBlockerAccessibilityService : AccessibilityService() {
 
     private fun allowedPackages(): Set<String> {
         val telecomManager = getSystemService(Context.TELECOM_SERVICE) as? TelecomManager
-        val extraAllowed = AllowedAppsManager(applicationContext).getAllowedPackages()
+        val extraAllowed = AllowedAppsManager.getInstance(applicationContext).getAllowedPackages()
         return setOfNotNull(
             telecomManager?.defaultDialerPackage, // app Telefono di default del dispositivo
             "com.android.systemui",               // status bar, tendina notifiche, schermata di blocco

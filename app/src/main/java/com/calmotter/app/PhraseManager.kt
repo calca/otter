@@ -1,6 +1,7 @@
 package com.calmotter.app
 
 import android.content.Context
+import androidx.annotation.VisibleForTesting
 
 /**
  * Gestisce la preferenza utente "mostra frasi durante la pausa" e la
@@ -8,7 +9,7 @@ import android.content.Context
  * salvata in SharedPreferences semplici (non sensibile), modificabile
  * dall'utente stesso senza password dalla MainActivity.
  */
-class PhraseManager(private val context: Context) {
+class PhraseManager private constructor(private val context: Context) {
 
     private val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
 
@@ -29,5 +30,17 @@ class PhraseManager(private val context: Context) {
     companion object {
         private const val PREFS_NAME = "calm_otter_phrases"
         private const val KEY_ENABLED = "phrases_enabled"
+
+        @Volatile private var instance: PhraseManager? = null
+
+        fun getInstance(context: Context): PhraseManager =
+            instance ?: synchronized(this) {
+                instance ?: PhraseManager(context.applicationContext).also { instance = it }
+            }
+
+        @VisibleForTesting
+        internal fun resetInstanceForTests() {
+            instance = null
+        }
     }
 }

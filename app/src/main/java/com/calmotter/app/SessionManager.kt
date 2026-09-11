@@ -6,13 +6,14 @@ import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
 import android.os.Build
+import androidx.annotation.VisibleForTesting
 
 /**
  * Gestisce lo stato "sessione di pausa attiva/non attiva", la sua durata e,
  * in parallelo, attiva/disattiva la modalità Non disturbare lasciando
  * passare solo le chiamate.
  */
-class SessionManager(private val context: Context) {
+class SessionManager private constructor(private val context: Context) {
 
     private val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
 
@@ -70,7 +71,7 @@ class SessionManager(private val context: Context) {
             .toInt().coerceAtLeast(0)
 
         if (startTime > 0 && plannedMinutes > 0) {
-            SessionHistoryManager(context).add(
+            SessionHistoryManager.getInstance(context).add(
                 SessionRecord(
                     startTimeMs        = startTime,
                     plannedMinutes     = plannedMinutes,
@@ -163,5 +164,17 @@ class SessionManager(private val context: Context) {
         private const val KEY_END_TIME = "session_end_time"
         private const val KEY_PLANNED_MINUTES = "session_planned_minutes"
         private const val EXPIRY_REQUEST_CODE = 1001
+
+        @Volatile private var instance: SessionManager? = null
+
+        fun getInstance(context: Context): SessionManager =
+            instance ?: synchronized(this) {
+                instance ?: SessionManager(context.applicationContext).also { instance = it }
+            }
+
+        @VisibleForTesting
+        internal fun resetInstanceForTests() {
+            instance = null
+        }
     }
 }

@@ -27,7 +27,7 @@ class BootReceiver : BroadcastReceiver() {
         if (action != Intent.ACTION_BOOT_COMPLETED &&
             action != "android.intent.action.QUICKBOOT_POWERON") return
 
-        val sessionManager = SessionManager(context)
+        val sessionManager = SessionManager.getInstance(context)
         if (!sessionManager.isSessionActive()) return
 
         // Ripristina DND e allarme di scadenza, azzerati dal riavvio

@@ -17,7 +17,7 @@
 
         <activity
             android:name=".OnboardingActivity"
-            android:exported="true"
+            android:exported="false"
             android:theme="@style/Theme.CalmOtter.WithActionBar">
         </activity>
 
@@ -123,6 +123,19 @@
                 android:name="android.accessibilityservice.config"
                 android:resource="@xml/accessibility_service_config" />
         </service>
+
+        <!-- Espone il CSV di export cronologia (cache dir) via content:// URI,
+             necessario per condividerlo tramite ACTION_SEND senza incorrere
+             in FileUriExposedException sulle versioni recenti di Android. -->
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="${applicationId}.fileprovider"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/file_paths" />
+        </provider>
 
     </application>
 </manifest>
