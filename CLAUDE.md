@@ -1,0 +1,115 @@
+# CLAUDE.md
+
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+
+## Project overview
+
+Calm Otter is a native Android app (Kotlin) that helps reduce phone usage. The
+user (or, by design, an "accountability partner" who alone knows the unlock
+password) starts a pause session; for its duration every app except Phone is
+blocked and notifications are silenced, and only the correct password ends it
+early. Everything is local — no backend, no network calls, no analytics.
+
+The lock is intentionally "soft" (see README.md "Known Limits" section): it
+relies on an AccessibilityService and Do Not Disturb, not on Device Owner /
+MDM provisioning. Do not describe it as tamper-proof in code, comments, or UI
+copy — the honesty of that framing is part of the project's stated values
+(see CONTRIBUTING.md).
+
+## Commands
+
+```bash
+./gradlew assembleDebug              # build debug APK
+./gradlew testDebugUnitTest          # run all unit tests (Robolectric)
+./gradlew test --tests "*.SessionManagerTest"                    # single test class
+./gradlew test --tests "*.SessionManagerTest.methodName"         # single test method
+./gradlew lintDebug                  # Android Lint (must be 0 errors — CI enforces this)
+./gradlew assembleRelease            # signed release build; needs KEYSTORE_PATH/
+                                      # KEYSTORE_PASSWORD/KEY_ALIAS/KEY_PASSWORD env vars
+```
+
+CI (`.github/workflows/ci.yml`) runs `lint`, `testDebugUnitTest`, and
+`assembleDebug` on every branch/PR — treat lint errors and test failures as
+build-breaking. `.github/workflows/android.yml` produces a signed release APK
+from a secrets-backed keystore on push to main/master.
+
+Toolchain versions are pinned and interdependent — don't bump AGP/Kotlin/KSP
+independently: KSP's version must match the Kotlin version exactly
+(`1.9.24-1.0.20` for Kotlin `1.9.24`), and the Compose Compiler extension
+version in `app/build.gradle.kts` (`composeOptions.kotlinCompilerExtensionVersion`)
+is tied to the Kotlin version per Google's compatibility map. Since the
+project is still on Kotlin 1.9.x (not 2.0+), Compose is wired via the classic
+`kotlinCompilerExtensionVersion` mechanism rather than the
+`org.jetbrains.kotlin.plugin.compose` plugin.
+
+## Architecture
+
+**UI is 100% Jetpack Compose.** Every screen is an `Activity` (in
+`com.calmotter.app`, flat package) that calls `setContent { }` with a
+Composable from `com.calmotter.app.ui.screens`; there is no XML layout left
+for app screens (`viewBinding = false`). The one exception is the home-screen
+widget (`PauseWidgetProvider` / `PauseGlanceWidget`), built with **Jetpack
+Glance**, not vanilla Compose — the `AppWidgetProviderInfo` XML
+(`widget_pause_info.xml`) still points to a plain XML `initialLayout`
+(`widget_pause.xml`), which is an Android platform requirement, not legacy
+code; don't "clean it up".
+
+**No DI framework.** State-holding classes (`SessionManager`,
+`PasswordManager`, `SessionHistoryManager`, `AllowedAppsManager`,
+`LauncherManager`, `PhraseManager`, `WeeklyGoalManager`) are thread-safe
+singletons obtained via `ClassName.getInstance(context.applicationContext)`
+(double-checked locking, `@Volatile` instance). Each one also exposes an
+internal `resetInstanceForTests()` (`@VisibleForTesting`) — **Robolectric
+tests must call it in `@Before` for every singleton the test path touches**,
+including transitively (e.g. testing `SessionManager` also requires
+resetting `SessionHistoryManager` and `CalmOtterDatabase`, since
+`endSession()` writes through to Room). Forgetting this leaks state between
+tests via the singleton instance.
+
+**Persistence is split by sensitivity:**
+- `PasswordManager` — password hash only (PBKDF2-HMAC-SHA256, 120k
+  iterations, random salt) inside `EncryptedSharedPreferences`, key-managed
+  by Android Keystore (AES256). The plaintext password is never stored.
+- `CalmOtterDatabase` (Room, single entity `SessionRecord`) — session
+  history, read by `SessionHistoryManager`. Uses `allowMainThreadQueries()`
+  deliberately: the dataset is tiny and `SessionManager.endSession()` writes
+  synchronously from a `BroadcastReceiver` with no coroutine scope available.
+- Plain `SharedPreferences` — non-sensitive local state: selected theme
+  (`ThemeManager`), last widget duration, allowed-apps whitelist, saved
+  original launcher.
+
+**Core block/session flow** (see also README.md "How it works"):
+`SessionManager.startSession()` sets DND (`NotificationManager.Policy`, calls
+change depending on `Build.VERSION.SDK_INT`), schedules an inexact
+`AlarmManager` auto-expiry (`SessionExpiryReceiver`), starts
+`SessionForegroundService` (keeps the process/DND alive), and notifies the
+Glance widget. `AppBlockerAccessibilityService` watches foreground-app
+changes and launches `BlockOverlayActivity` for anything not on the allowlist
+(`AllowedAppsManager`) while a session is active. `HomeActivity` intercepts
+the Home button when Calm Otter is set as the default launcher
+(`LauncherManager` remembers the user's real launcher to forward to when no
+session is active): active session → same `BlockScreen` Composable as
+`BlockOverlayActivity`; no session → immediate forward-and-finish. `BootReceiver`
+re-applies DND/alarm/service after reboot if a session was in progress.
+
+**Theming** has two parallel systems that must be kept in sync manually:
+`values/colors.xml` + `values/themes.xml` define three XML palettes (Sage,
+Lavender, Terracotta) × three variants (Base/Block/WithActionBar), applied by
+`ThemeManager.applyTheme()` in `BaseActivity.onCreate()` *before*
+`super.onCreate()` (needed for correct window chrome/status bar before
+Compose ever renders); `ui/theme/CalmOtterTheme.kt` independently hardcodes
+matching Material3 `ColorScheme`s for Compose content and does not read
+`@color/*` resources. If you touch one palette, mirror the change in the
+other file's `Color(...)` literals.
+
+## Conventions
+
+- Comments and identifiers in the codebase are predominantly Italian
+  (`values/strings.xml` is the Italian base locale; `values-en/` is English).
+  Match existing language per-file rather than mixing.
+- No external network calls, no analytics/telemetry — this is a hard
+  constraint from CONTRIBUTING.md's contribution policy, not an oversight.
+- New UI strings need entries in both `values/strings.xml` and
+  `values-en/strings.xml`; `values-en/` also doubles as the reference file
+  translators copy for new locales (see CONTRIBUTING.md for the full i18n
+  workflow).
