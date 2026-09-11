@@ -102,6 +102,14 @@ matching Material3 `ColorScheme`s for Compose content and does not read
 `@color/*` resources. If you touch one palette, mirror the change in the
 other file's `Color(...)` literals.
 
+## Specs
+
+`specs/` holds spec-shaped documentation: one `requirements.md` +
+`design.md` pair per feature area, describing what's already implemented
+(as-built, not a to-do list). Read the relevant pair before making
+non-trivial changes to that area — see `specs/README.md` for the index and
+for the convention to follow when adding specs for new features.
+
 ## Conventions
 
 - Comments and identifiers in the codebase are predominantly Italian
