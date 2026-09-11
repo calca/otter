@@ -15,12 +15,13 @@ kotlin {
 
 android {
     namespace = "com.calmotter.app"
-    compileSdk = 36
+    compileSdk = 37
+    compileSdkMinor = 1
 
     defaultConfig {
         applicationId = "com.calmotter.app"
         minSdk = 26
-        targetSdk = 36
+        targetSdk = 37
         versionCode = 1
         versionName = "1.0"
     }
@@ -76,10 +77,14 @@ dependencies {
     implementation("androidx.room:room-ktx:2.8.5")
     ksp("androidx.room:room-compiler:2.8.5")
 
-    // Jetpack Compose. BOM 2025.12.00 = material3 1.4 con le API Material 3
-    // Expressive stabili (MaterialExpressiveTheme, MotionScheme, nuovi
-    // componenti) — vedi ui/theme/CalmOtterTheme.kt.
-    val composeBom = platform("androidx.compose:compose-bom:2025.12.00")
+    // Jetpack Compose. compose-bom-alpha porta material3 1.5.0-alpha28:
+    // in material3 1.4.0 stabile MaterialExpressiveTheme e
+    // MotionScheme.expressive()/standard() sono `internal` in Kotlin
+    // (verificato decompilando il jar) — diventano pubblici solo da qui.
+    // Nessuna release stabile di material3 le espone ancora: dipendenza
+    // volutamente su canale alpha, può cambiare firma tra un aggiornamento
+    // e l'altro — vedi ui/theme/CalmOtterTheme.kt.
+    val composeBom = platform("androidx.compose:compose-bom-alpha:2026.09.00")
     implementation(composeBom)
     androidTestImplementation(composeBom)
 

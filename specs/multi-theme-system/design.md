@@ -8,7 +8,7 @@
 | `BaseActivity.kt` | Calls `ThemeManager.applyTheme()` before `super.onCreate()` |
 | `res/values/themes.xml` (+ `values-night/themes.xml`) | 3 palettes × 3 variants of AppCompat/Material3 XML themes |
 | `res/values/colors.xml` | Color values referenced by `themes.xml` (`sage_*`, `lavender_*`, `terracotta_*`, plus shared `m3_*` structural colors) |
-| `ui/theme/CalmOtterTheme.kt` | Independent Compose `MaterialTheme` color schemes, one per palette × light/dark |
+| `ui/theme/CalmOtterTheme.kt` | Independent Compose `MaterialExpressiveTheme` color schemes, one per palette × light/dark |
 
 ## Two parallel systems — this is intentional, keep them in sync manually
 
@@ -50,6 +50,31 @@ Three variants per palette, chosen per-Activity via
   use the native `supportActionBar` for a title + Up button
 - `BLOCK` — the full-bleed block screen (`BlockOverlayActivity`,
   `HomeActivity`)
+
+## Material 3 Expressive
+
+`CalmOtterTheme` wraps content in `MaterialExpressiveTheme` (not plain
+`MaterialTheme`), giving every Material3 component in the app the
+Expressive motion scheme, shapes, and typography defaults automatically —
+one theme-level switch, not a per-screen/per-component change. This
+requires `material3` 1.5.0-alpha, pulled in via
+`androidx.compose:compose-bom-alpha:2026.09.00` in `app/build.gradle.kts`
+instead of the stable `compose-bom`. That in turn required bumping
+compileSdk/targetSdk to 37 (`compileSdkMinor = 1`), AGP to 9.4.0, and the
+Gradle wrapper to 9.7.0 — the alpha Compose artifacts compile against a
+newer Android API surface and require a newer AGP than the stable channel
+did.
+
+**This is a deliberate alpha dependency, not an oversight.** As of this
+writing, stable `material3` (1.4.0) does **not** expose
+`MaterialExpressiveTheme` or `MotionScheme.expressive()`/`standard()` to
+app code — verified by decompiling the actual resolved jar: the methods
+exist in the bytecode but are Kotlin `internal`, inaccessible outside the
+material3 module. They only become public starting in the 1.5.0 alpha
+line. Revisit this once material3 1.5.0 (or whichever version stabilizes
+Expressive) ships stable, and consider moving back to the stable
+`compose-bom` (and re-evaluating whether the AGP/Gradle/compileSdk bump is
+still needed) at that point.
 
 ## Theme picker UI
 

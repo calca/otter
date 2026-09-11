@@ -2,7 +2,7 @@ package com.calmotter.app.ui.theme
 
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.ColorScheme
-import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.MaterialExpressiveTheme
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
@@ -25,6 +25,14 @@ import com.calmotter.app.AppTheme
  * Solo i ruoli effettivamente usati dalle schermate Compose finora migrate
  * sono impostati esplicitamente; gli altri ruoli Material3 restano ai
  * default della libreria.
+ *
+ * Il contenuto è avvolto in [MaterialExpressiveTheme] (non il semplice
+ * MaterialTheme): applica Material 3 Expressive — motion scheme a molla,
+ * forme e tipografia "expressive" — a ogni componente M3 dell'app senza
+ * doverlo impostare schermata per schermata. Richiede material3 1.5.0-alpha
+ * (compose-bom-alpha in app/build.gradle.kts): in material3 1.4.0 stabile
+ * MaterialExpressiveTheme e MotionScheme.expressive()/standard() sono
+ * `internal` in Kotlin, verificato decompilando il jar.
  */
 
 // onError è bianco per tutte le palette/modalità: entrambe le tonalità di
@@ -127,5 +135,5 @@ fun CalmOtterTheme(
     content: @Composable () -> Unit
 ) {
     val colorScheme = if (isSystemInDarkTheme()) darkSchemeFor(appTheme) else lightSchemeFor(appTheme)
-    MaterialTheme(colorScheme = colorScheme, content = content)
+    MaterialExpressiveTheme(colorScheme = colorScheme, content = content)
 }
