@@ -19,7 +19,6 @@
     <string name="start_pause">Start pause</string>
     <string name="session_started">Pause session started</string>
     <string name="session_ended">Session ended</string>
-
     <string name="block_title">Pause in progress</string>
     <string name="block_message">All apps are blocked, except the phone. Only the person who knows the password can end the pause early.</string>
     <string name="remaining_time_format">%1$d:%2$02d</string>
