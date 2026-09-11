@@ -89,6 +89,9 @@ dependencies {
     debugImplementation("androidx.compose.ui:ui-tooling")
     implementation("androidx.activity:activity-compose:1.9.0")
 
+    // Widget home screen in Compose (sostituisce RemoteViews/AppWidgetProvider)
+    implementation("androidx.glance:glance-appwidget:1.1.1")
+
     testImplementation("junit:junit:4.13.2")
     testImplementation("org.robolectric:robolectric:4.13")
     testImplementation("androidx.test:core:1.6.1")

@@ -1,122 +1,121 @@
 package com.calmotter.app
 
-import android.app.PendingIntent
-import android.appwidget.AppWidgetManager
-import android.appwidget.AppWidgetProvider
-import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
-import android.view.View
-import android.widget.RemoteViews
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.glance.GlanceId
+import androidx.glance.GlanceModifier
+import androidx.glance.action.ActionParameters
+import androidx.glance.action.clickable
+import androidx.glance.appwidget.GlanceAppWidget
+import androidx.glance.appwidget.GlanceAppWidgetReceiver
+import androidx.glance.appwidget.action.ActionCallback
+import androidx.glance.appwidget.action.actionRunCallback
+import androidx.glance.appwidget.cornerRadius
+import androidx.glance.appwidget.provideContent
+import androidx.glance.appwidget.updateAll
+import androidx.glance.background
+import androidx.glance.color.ColorProvider
+import androidx.glance.layout.Alignment
+import androidx.glance.layout.Column
+import androidx.glance.layout.fillMaxSize
+import androidx.glance.layout.padding
+import androidx.glance.text.FontWeight
+import androidx.glance.text.Text
+import androidx.glance.text.TextStyle
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 
 /**
- * Widget 1×1 per la home screen del launcher.
+ * Widget 1×1 per la home screen del launcher, in Jetpack Glance.
  *
- * Comportamento al tap:
+ * Comportamento al tap (vedi [PauseWidgetTapAction]):
  * - Nessuna sessione attiva → avvia una sessione con l'ultima durata usata
  *   (o 30 min se è la prima volta), senza aprire l'app.
  * - Sessione già attiva → apre BlockOverlayActivity per permettere
  *   lo sblocco anticipato.
  *
  * Il widget si aggiorna:
- * - Ogni 30 minuti (updatePeriodMillis nel manifest, minimo Android).
+ * - Ogni 30 minuti (updatePeriodMillis in widget_pause_info.xml, minimo Android).
  * - Subito dopo startSession/endSession via updateAllWidgets().
  */
-class PauseWidgetProvider : AppWidgetProvider() {
+class PauseGlanceWidget : GlanceAppWidget() {
 
-    override fun onUpdate(
-        context: Context,
-        appWidgetManager: AppWidgetManager,
-        appWidgetIds: IntArray
-    ) {
-        appWidgetIds.forEach { id ->
-            updateWidget(context, appWidgetManager, id)
+    override suspend fun provideGlance(context: Context, id: GlanceId) {
+        val sessionManager = SessionManager.getInstance(context)
+
+        provideContent {
+            val isActive = sessionManager.isSessionActive()
+
+            Column(
+                modifier = GlanceModifier
+                    .fillMaxSize()
+                    .padding(8.dp)
+                    .background(Color(0xFFEAF0E8))
+                    .cornerRadius(16.dp)
+                    .clickable(actionRunCallback<PauseWidgetTapAction>()),
+                horizontalAlignment = Alignment.Horizontal.CenterHorizontally,
+                verticalAlignment = Alignment.Vertical.CenterVertically
+            ) {
+                if (isActive) {
+                    val minutes = (sessionManager.remainingMillis() / 60_000L).toInt().coerceAtLeast(0)
+                    // Testo compatto per lo spazio ridotto del widget
+                    val timeText = when {
+                        minutes < 5 -> context.getString(R.string.widget_soon)
+                        minutes < 60 -> context.getString(R.string.widget_minutes, (minutes / 5) * 5)
+                        else -> context.getString(R.string.widget_hours, minutes / 60, minutes % 60)
+                    }
+                    Text(text = "⏸", style = TextStyle(fontSize = 26.sp))
+                    Text(
+                        text = timeText,
+                        style = TextStyle(
+                            fontSize = 10.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = ColorProvider(day = Color(0xFF3D7A5C), night = Color(0xFF3D7A5C))
+                        )
+                    )
+                } else {
+                    Text(text = "🦦", style = TextStyle(fontSize = 26.sp))
+                    Text(
+                        text = context.getString(R.string.widget_label_idle),
+                        style = TextStyle(
+                            fontSize = 10.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = ColorProvider(day = Color(0xFF2C4A3E), night = Color(0xFF2C4A3E))
+                        )
+                    )
+                }
+            }
         }
     }
+}
 
-    override fun onReceive(context: Context, intent: Intent) {
-        super.onReceive(context, intent)
-
-        if (intent.action == ACTION_TAP) {
-            handleTap(context)
-        }
-    }
-
-    // ──────────────────────────────────────────────
-    // Logica tap
-    // ──────────────────────────────────────────────
-
-    private fun handleTap(context: Context) {
+/** Gestisce il tap sul widget: avvia una sessione oppure apre la schermata di blocco. */
+class PauseWidgetTapAction : ActionCallback {
+    override suspend fun onAction(context: Context, glanceId: GlanceId, parameters: ActionParameters) {
         val sessionManager = SessionManager.getInstance(context)
 
         if (sessionManager.isSessionActive()) {
-            // Sessione attiva: porta alla schermata di blocco
             val intent = Intent(context, BlockOverlayActivity::class.java).apply {
                 flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
             }
             context.startActivity(intent)
         } else {
-            // Nessuna sessione: avvia con l'ultima durata usata (default 30 min)
-            val duration = getLastDuration(context)
-            sessionManager.startSession(duration)
-            updateAllWidgets(context)
+            // sessionManager.startSession() salva già l'ultima durata e aggiorna
+            // il widget (vedi SessionManager.kt).
+            sessionManager.startSession(PauseWidgetProvider.getLastDuration(context))
         }
     }
+}
 
-    // ──────────────────────────────────────────────
-    // Rendering RemoteViews
-    // ──────────────────────────────────────────────
+class PauseWidgetProvider : GlanceAppWidgetReceiver() {
 
-    private fun updateWidget(
-        context: Context,
-        appWidgetManager: AppWidgetManager,
-        widgetId: Int
-    ) {
-        val sessionManager = SessionManager.getInstance(context)
-        val views = RemoteViews(context.packageName, R.layout.widget_pause)
-        val isActive = sessionManager.isSessionActive()
-
-        // Toggle visibilità stati
-        views.setViewVisibility(R.id.widgetIdle, if (isActive) View.GONE else View.VISIBLE)
-        views.setViewVisibility(R.id.widgetActive, if (isActive) View.VISIBLE else View.GONE)
-
-        if (isActive) {
-            val remaining = sessionManager.remainingMillis()
-            val minutes = (remaining / 60_000L).toInt().coerceAtLeast(0)
-            // Testo compatto per lo spazio ridotto del widget
-            val timeText = when {
-                minutes < 5  -> context.getString(R.string.widget_soon)
-                minutes < 60 -> context.getString(R.string.widget_minutes, (minutes / 5) * 5)
-                else         -> context.getString(R.string.widget_hours, minutes / 60, minutes % 60)
-            }
-            views.setTextViewText(R.id.widgetTimeText, timeText)
-        }
-
-        // PendingIntent per il tap
-        val tapIntent = Intent(context, PauseWidgetProvider::class.java).apply {
-            action = ACTION_TAP
-        }
-        val pendingTap = PendingIntent.getBroadcast(
-            context, 0, tapIntent,
-            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
-        )
-        views.setOnClickPendingIntent(R.id.widgetIdle, pendingTap)
-        views.setOnClickPendingIntent(R.id.widgetActive, pendingTap)
-
-        appWidgetManager.updateAppWidget(widgetId, views)
-    }
-
-    // ──────────────────────────────────────────────
-    // Durata predefinita: ultima usata o 30 min
-    // ──────────────────────────────────────────────
-
-    private fun getLastDuration(context: Context): Int {
-        val prefs = context.getSharedPreferences(PREFS_WIDGET, Context.MODE_PRIVATE)
-        return prefs.getInt(KEY_LAST_DURATION, DEFAULT_DURATION_MIN)
-    }
+    override val glanceAppWidget: GlanceAppWidget = PauseGlanceWidget()
 
     companion object {
-        private const val ACTION_TAP = "com.calmotter.app.WIDGET_TAP"
         private const val PREFS_WIDGET = "calm_otter_widget"
         private const val KEY_LAST_DURATION = "last_duration"
         private const val DEFAULT_DURATION_MIN = 30
@@ -126,22 +125,20 @@ class PauseWidgetProvider : AppWidgetProvider() {
          * Chiamato da SessionManager dopo startSession/endSession.
          */
         fun updateAllWidgets(context: Context) {
-            val manager = AppWidgetManager.getInstance(context)
-            val ids = manager.getAppWidgetIds(
-                ComponentName(context, PauseWidgetProvider::class.java)
-            )
-            if (ids.isEmpty()) return
-            val intent = Intent(context, PauseWidgetProvider::class.java).apply {
-                action = AppWidgetManager.ACTION_APPWIDGET_UPDATE
-                putExtra(AppWidgetManager.EXTRA_APPWIDGET_IDS, ids)
+            CoroutineScope(Dispatchers.Default).launch {
+                PauseGlanceWidget().updateAll(context)
             }
-            context.sendBroadcast(intent)
         }
 
         /** Salva la durata appena usata così il widget la riusa al prossimo tap. */
         fun saveLastDuration(context: Context, minutes: Int) {
             context.getSharedPreferences(PREFS_WIDGET, Context.MODE_PRIVATE)
                 .edit().putInt(KEY_LAST_DURATION, minutes).apply()
+        }
+
+        fun getLastDuration(context: Context): Int {
+            val prefs = context.getSharedPreferences(PREFS_WIDGET, Context.MODE_PRIVATE)
+            return prefs.getInt(KEY_LAST_DURATION, DEFAULT_DURATION_MIN)
         }
     }
 }
