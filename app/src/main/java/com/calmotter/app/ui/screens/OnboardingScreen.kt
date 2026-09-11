@@ -26,7 +26,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
@@ -63,8 +62,6 @@ fun OnboardingScreen(
     onGrantDnd: () -> Unit,
     onFinished: () -> Unit,
 ) {
-    val context = LocalContext.current
-
     var currentStep by remember { mutableIntStateOf(0) }
 
     var accessibilityOk by remember { mutableStateOf(false) }
@@ -211,18 +208,21 @@ fun OnboardingScreen(
                 Column(modifier = Modifier.weight(1f).padding(end = 8.dp)) {}
             }
 
+            val passwordTooShortText = stringResource(R.string.password_too_short)
+            val passwordsDontMatchText = stringResource(R.string.passwords_dont_match)
+
             Button(
                 onClick = {
                     // Step 4 (indice 3, password): validazione obbligatoria solo
                     // all'uscita dallo step, non a ogni carattere digitato.
                     if (currentStep == STEP_PASSWORD) {
-                        val errorRes = when {
-                            password.length < 4 -> R.string.password_too_short
-                            password != passwordConfirm -> R.string.passwords_dont_match
+                        val error = when {
+                            password.length < 4 -> passwordTooShortText
+                            password != passwordConfirm -> passwordsDontMatchText
                             else -> null
                         }
-                        if (errorRes != null) {
-                            passwordError = context.getString(errorRes)
+                        if (error != null) {
+                            passwordError = error
                             return@Button
                         }
                         passwordManager.setPassword(password)

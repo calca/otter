@@ -58,6 +58,12 @@ fun BlockScreen(
 
     var password by remember { mutableStateOf("") }
     var statusText by remember { mutableStateOf("") }
+    // Secondi di lockout rimanenti (null = nessun lockout in corso). Tenuto
+    // separato dal testo formattato: stringResource() è @Composable e non
+    // può essere chiamata dentro il LaunchedEffect che aggiorna il conto
+    // alla rovescia — solo il numero viene aggiornato lì, la formattazione
+    // avviene più sotto nel corpo del Composable.
+    var lockoutSecondsRemaining by remember { mutableStateOf<Int?>(null) }
     var remainingText by remember { mutableStateOf("") }
     var isLockedOut by remember { mutableStateOf(passwordManager.isLockedOut()) }
 
@@ -90,16 +96,19 @@ fun BlockScreen(
     LaunchedEffect(isLockedOut) {
         if (isLockedOut) {
             while (passwordManager.isLockedOut()) {
-                statusText = context.getString(
-                    R.string.password_locked_out,
-                    passwordManager.lockoutRemainingSeconds()
-                )
+                lockoutSecondsRemaining = passwordManager.lockoutRemainingSeconds()
                 delay(1000)
             }
             isLockedOut = false
-            statusText = ""
+            lockoutSecondsRemaining = null
         }
     }
+
+    val sessionEndedText = stringResource(R.string.session_ended)
+    val wrongPasswordText = stringResource(R.string.wrong_password)
+    val displayStatusText = lockoutSecondsRemaining?.let {
+        stringResource(R.string.password_locked_out, it)
+    } ?: statusText
 
     Column(
         modifier = Modifier
@@ -162,9 +171,9 @@ fun BlockScreen(
             modifier = Modifier.fillMaxWidth()
         )
 
-        if (statusText.isNotBlank()) {
+        if (displayStatusText.isNotBlank()) {
             Text(
-                text = statusText,
+                text = displayStatusText,
                 color = MaterialTheme.colorScheme.error,
                 textAlign = TextAlign.Center,
                 modifier = Modifier
@@ -181,14 +190,14 @@ fun BlockScreen(
                 }
                 if (passwordManager.verify(password)) {
                     sessionManager.endSession()
-                    Toast.makeText(context, context.getString(R.string.session_ended), Toast.LENGTH_SHORT).show()
+                    Toast.makeText(context, sessionEndedText, Toast.LENGTH_SHORT).show()
                     onUnlocked()
                 } else {
                     password = ""
                     if (passwordManager.isLockedOut()) {
                         isLockedOut = true
                     } else {
-                        statusText = context.getString(R.string.wrong_password)
+                        statusText = wrongPasswordText
                     }
                 }
             },

@@ -1,17 +1,26 @@
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
+    id("org.jetbrains.kotlin.plugin.compose")
     id("com.google.devtools.ksp")
+}
+
+kotlin {
+    compilerOptions {
+        jvmTarget.set(JvmTarget.JVM_17)
+    }
 }
 
 android {
     namespace = "com.calmotter.app"
-    compileSdk = 34
+    compileSdk = 36
 
     defaultConfig {
         applicationId = "com.calmotter.app"
         minSdk = 26
-        targetSdk = 34
+        targetSdk = 36
         versionCode = 1
         versionName = "1.0"
     }
@@ -38,24 +47,14 @@ android {
         targetCompatibility = JavaVersion.VERSION_17
     }
 
-    kotlinOptions {
-        jvmTarget = "17"
-    }
-
     buildFeatures {
         viewBinding = false
         compose = true
     }
 
-    // Meccanismo "classico" (pre-K2) di configurazione del Compose Compiler:
-    // richiesto perché il progetto è su Kotlin 1.9.24, non 2.0+. Con Kotlin 2.0+
-    // si userebbe invece il plugin org.jetbrains.kotlin.plugin.compose.
-    // Versione verificata contro la compatibility map ufficiale di Google
-    // (developer.android.com/jetpack/androidx/releases/compose-kotlin):
-    // Compose Compiler 1.5.14 <-> Kotlin 1.9.24.
-    composeOptions {
-        kotlinCompilerExtensionVersion = "1.5.14"
-    }
+    // Il Compose Compiler è configurato dal plugin org.jetbrains.kotlin.plugin.compose
+    // (Kotlin 2.0+): nessun composeOptions/kotlinCompilerExtensionVersion da
+    // impostare qui, la versione del compiler segue quella di Kotlin.
 
     testOptions {
         unitTests {
@@ -73,26 +72,28 @@ dependencies {
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.8.3")
     // Storage cifrato per salt + hash della password (AES256 via Android Keystore)
     implementation("androidx.security:security-crypto:1.1.0-alpha06")
-    implementation("androidx.room:room-runtime:2.6.1")
-    implementation("androidx.room:room-ktx:2.6.1")
-    ksp("androidx.room:room-compiler:2.6.1")
+    implementation("androidx.room:room-runtime:2.8.5")
+    implementation("androidx.room:room-ktx:2.8.5")
+    ksp("androidx.room:room-compiler:2.8.5")
 
-    // Jetpack Compose (migrazione incrementale: coesiste con XML/Views finché
-    // tutte le schermate non sono state migrate).
-    val composeBom = platform("androidx.compose:compose-bom:2024.06.00")
+    // Jetpack Compose. BOM 2025.12.00 = material3 1.4 con le API Material 3
+    // Expressive stabili (MaterialExpressiveTheme, MotionScheme, nuovi
+    // componenti) — vedi ui/theme/CalmOtterTheme.kt.
+    val composeBom = platform("androidx.compose:compose-bom:2025.12.00")
     implementation(composeBom)
     androidTestImplementation(composeBom)
 
     implementation("androidx.compose.ui:ui")
     implementation("androidx.compose.material3:material3")
+    implementation("androidx.compose.material:material-icons-core")
     implementation("androidx.compose.ui:ui-tooling-preview")
     debugImplementation("androidx.compose.ui:ui-tooling")
     implementation("androidx.activity:activity-compose:1.9.0")
 
     // Widget home screen in Compose (sostituisce RemoteViews/AppWidgetProvider)
-    implementation("androidx.glance:glance-appwidget:1.1.1")
+    implementation("androidx.glance:glance-appwidget:1.2.0")
 
     testImplementation("junit:junit:4.13.2")
-    testImplementation("org.robolectric:robolectric:4.13")
+    testImplementation("org.robolectric:robolectric:4.17")
     testImplementation("androidx.test:core:1.6.1")
 }

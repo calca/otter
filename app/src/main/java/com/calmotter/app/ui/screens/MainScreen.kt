@@ -182,11 +182,13 @@ fun MainScreen(
             }
         }
 
+        val sessionStartedText = stringResource(R.string.session_started)
+
         Button(
             onClick = {
                 val durationMinutes = (numberPicker?.value ?: 1) * 30
                 sessionManager.startSession(durationMinutes)
-                Toast.makeText(context, context.getString(R.string.session_started), Toast.LENGTH_SHORT).show()
+                Toast.makeText(context, sessionStartedText, Toast.LENGTH_SHORT).show()
                 refreshDerivedState()
             },
             enabled = accessibilityOk && dndOk && !sessionActive,

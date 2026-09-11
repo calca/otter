@@ -13,7 +13,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Divider
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -126,7 +126,7 @@ fun HistoryScreen(
                 onEditGoal = onEditGoal,
             )
 
-            Divider(modifier = Modifier.padding(horizontal = 16.dp))
+            HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
 
             Text(
                 text = stringResource(R.string.history_all_sessions),
@@ -219,7 +219,7 @@ private fun WeeklyGoalSection(
             val percent = (current * 100 / goal.target).coerceIn(0, 100)
 
             LinearProgressIndicator(
-                progress = percent / 100f,
+                progress = { percent / 100f },
                 color = MaterialTheme.colorScheme.primary,
                 modifier = Modifier
                     .fillMaxWidth()

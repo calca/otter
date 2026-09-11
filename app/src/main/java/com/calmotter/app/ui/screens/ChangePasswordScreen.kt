@@ -45,6 +45,10 @@ fun ChangePasswordScreen(
     var new1 by remember { mutableStateOf("") }
     var new2 by remember { mutableStateOf("") }
     var errorMessage by remember { mutableStateOf("") }
+    // Secondi di lockout rimanenti (null = nessun lockout in corso). Separato
+    // dal testo formattato: stringResource() è @Composable e non può essere
+    // chiamata dentro il LaunchedEffect che aggiorna il conto alla rovescia.
+    var lockoutSecondsRemaining by remember { mutableStateOf<Int?>(null) }
     var isLockedOut by remember { mutableStateOf(passwordManager.isLockedOut()) }
 
     // Equivalente Compose del CountDownTimer usato dalla versione XML: finché
@@ -53,16 +57,17 @@ fun ChangePasswordScreen(
     LaunchedEffect(isLockedOut) {
         if (isLockedOut) {
             while (passwordManager.isLockedOut()) {
-                errorMessage = context.getString(
-                    R.string.password_locked_out,
-                    passwordManager.lockoutRemainingSeconds()
-                )
+                lockoutSecondsRemaining = passwordManager.lockoutRemainingSeconds()
                 delay(1000)
             }
             isLockedOut = false
-            errorMessage = ""
+            lockoutSecondsRemaining = null
         }
     }
+
+    val displayErrorMessage = lockoutSecondsRemaining?.let {
+        stringResource(R.string.password_locked_out, it)
+    } ?: errorMessage
 
     Column(
         modifier = Modifier
@@ -113,13 +118,18 @@ fun ChangePasswordScreen(
                 .padding(bottom = 24.dp)
         )
 
-        if (errorMessage.isNotBlank()) {
+        if (displayErrorMessage.isNotBlank()) {
             Text(
-                text = errorMessage,
+                text = displayErrorMessage,
                 color = MaterialTheme.colorScheme.error,
                 modifier = Modifier.padding(bottom = 16.dp)
             )
         }
+
+        val wrongCurrentPasswordText = stringResource(R.string.wrong_current_password)
+        val passwordTooShortText = stringResource(R.string.password_too_short)
+        val passwordsDontMatchText = stringResource(R.string.passwords_dont_match)
+        val passwordChangedText = stringResource(R.string.password_changed)
 
         Button(
             onClick = {
@@ -133,9 +143,9 @@ fun ChangePasswordScreen(
                 val currentValid = passwordManager.verify(current)
 
                 val error = when {
-                    !currentValid -> context.getString(R.string.wrong_current_password)
-                    new1.length < 4 -> context.getString(R.string.password_too_short)
-                    new1 != new2 -> context.getString(R.string.passwords_dont_match)
+                    !currentValid -> wrongCurrentPasswordText
+                    new1.length < 4 -> passwordTooShortText
+                    new1 != new2 -> passwordsDontMatchText
                     else -> null
                 }
 
@@ -154,7 +164,7 @@ fun ChangePasswordScreen(
                     }
                 } else {
                     passwordManager.setPassword(new1)
-                    Toast.makeText(context, context.getString(R.string.password_changed), Toast.LENGTH_SHORT).show()
+                    Toast.makeText(context, passwordChangedText, Toast.LENGTH_SHORT).show()
                     onDone()
                 }
             },
