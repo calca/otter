@@ -11,26 +11,39 @@ import com.calmotter.app.AppTheme
 
 /**
  * Schemi colore Material3 per le 3 palette dell'app (Sage/Lavender/Terracotta),
- * chiaro e scuro, ricavati 1:1 dai valori usati dal sistema di temi XML
- * esistente (values/colors.xml + values/themes.xml e le rispettive varianti
- * values-night/). Solo i ruoli effettivamente usati dalle schermate Compose
- * finora migrate sono impostati esplicitamente; gli altri ruoli Material3
- * restano ai default della libreria.
+ * chiaro e scuro. Le due modalità NON condividono la stessa fonte XML, quindi
+ * NON aspettarti che i valori chiaro/scuro siano una semplice variazione di
+ * tonalità l'uno dell'altro:
+ * - Chiaro: ricavato 1:1 da values/colors.xml + values/themes.xml (schema
+ *   Material3 "Desing.md"/redesign).
+ * - Scuro: ricavato 1:1 da values-night/themes.xml, che non è mai stato
+ *   aggiornato dal redesign e resta sullo schema MaterialComponents
+ *   precedente (colori hardcoded lì, non in un colors.xml notturno).
+ * Se aggiorni una palette in un file XML, aggiorna anche qui a mano — nulla
+ * lega automaticamente questi valori a quelli letti dal sistema di temi
+ * XML/AppCompat (vedi CLAUDE.md e specs/multi-theme-system/design.md).
+ * Solo i ruoli effettivamente usati dalle schermate Compose finora migrate
+ * sono impostati esplicitamente; gli altri ruoli Material3 restano ai
+ * default della libreria.
  */
 
 // onError è bianco per tutte le palette/modalità: entrambe le tonalità di
-// errore (#B85450 chiaro, #E07A78 scuro) sono rossi di saturazione media
-// abbastanza scuri da garantire contrasto sufficiente con testo bianco.
+// errore (m3_error/#ba1a1a chiaro, #E07A78 scuro) sono rosse abbastanza
+// scure da garantire contrasto sufficiente con testo bianco.
 private val OnError = Color.White
 
+// Chiaro: sfondo e surface coincidono nella palette M3 attuale (nessun
+// android:colorOnBackground esplicito in values/themes.xml), quindi onBackground
+// riusa lo stesso valore di onSurface (@color/sage_on_surface) anziché un
+// default M3 indovinato.
 private val SageLight = lightColorScheme(
-    background = Color(0xFFEAF0E8),
-    surface = Color(0xFFF5F8F4),
-    onBackground = Color(0xFF2C4A3E),
-    onSurface = Color(0xFF557A6A),
-    primary = Color(0xFF3D7A5C),
-    onPrimary = Color(0xFFEAF0E8),
-    error = Color(0xFFB85450),
+    background = Color(0xFFF9F9F8),  // @color/sage_background
+    surface = Color(0xFFF9F9F8),     // @color/sage_surface
+    onBackground = Color(0xFF191C1C), // @color/sage_on_surface
+    onSurface = Color(0xFF191C1C),    // @color/sage_on_surface
+    primary = Color(0xFF0F5238),      // @color/sage_primary
+    onPrimary = Color(0xFFFFFFFF),    // @color/sage_on_primary
+    error = Color(0xFFBA1A1A),        // @color/m3_error
     onError = OnError,
 )
 
@@ -46,13 +59,13 @@ private val SageDark = darkColorScheme(
 )
 
 private val LavenderLight = lightColorScheme(
-    background = Color(0xFFF0EDF8),
-    surface = Color(0xFFF8F6FC),
-    onBackground = Color(0xFF2E2547),
-    onSurface = Color(0xFF6B5E8A),
-    primary = Color(0xFF7C6FA0),
-    onPrimary = Color(0xFFF0EDF8),
-    error = Color(0xFFB85450),
+    background = Color(0xFFFDF7FF),   // @color/lavender_background
+    surface = Color(0xFFFDF7FF),      // @color/lavender_surface
+    onBackground = Color(0xFF1C1B1F), // @color/lavender_on_surface
+    onSurface = Color(0xFF1C1B1F),    // @color/lavender_on_surface
+    primary = Color(0xFF7C6FA0),      // @color/lavender_primary
+    onPrimary = Color(0xFFFFFFFF),    // @color/lavender_on_primary
+    error = Color(0xFFBA1A1A),        // @color/m3_error
     onError = OnError,
 )
 
@@ -68,13 +81,13 @@ private val LavenderDark = darkColorScheme(
 )
 
 private val TerracottaLight = lightColorScheme(
-    background = Color(0xFFF5EDEA),
-    surface = Color(0xFFFBF6F4),
-    onBackground = Color(0xFF3D2218),
-    onSurface = Color(0xFF7A4A38),
-    primary = Color(0xFFA0604A),
-    onPrimary = Color(0xFFF5EDEA),
-    error = Color(0xFFB85450),
+    background = Color(0xFFFFFBFF),   // @color/terracotta_background
+    surface = Color(0xFFFFFBFF),      // @color/terracotta_surface
+    onBackground = Color(0xFF201A18), // @color/terracotta_on_surface
+    onSurface = Color(0xFF201A18),    // @color/terracotta_on_surface
+    primary = Color(0xFFA0604A),      // @color/terracotta_primary
+    onPrimary = Color(0xFFFFFFFF),    // @color/terracotta_on_primary
+    error = Color(0xFFBA1A1A),        // @color/m3_error
     onError = OnError,
 )
 

@@ -9,6 +9,16 @@
     <!-- Android 13+: necessario per mostrare notifiche -->
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
 
+    <!-- Android 11+ (API 30+): senza questo blocco, queryIntentActivities()
+         in AllowedAppsActivity.loadApps() vedrebbe solo un sottoinsieme delle
+         app installate per via delle restrizioni di package visibility. -->
+    <queries>
+        <intent>
+            <action android:name="android.intent.action.MAIN" />
+            <category android:name="android.intent.category.LAUNCHER" />
+        </intent>
+    </queries>
+
     <application
         android:allowBackup="true"
         android:label="@string/app_name"
