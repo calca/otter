@@ -14,8 +14,8 @@
     <string name="permission_action_done">Done</string>
     <string name="home_permission_dialog_title">Permissions needed</string>
     <string name="home_launcher_chooser_title">Choose which launcher to use</string>
-    <string name="permission_reason_accessibility">🔍 Accessibility — to detect which app is open and show the lock screen.</string>
-    <string name="permission_reason_dnd">🔔 Do Not Disturb — to silence notifications during the pause, allowing only calls.</string>
+    <string name="permission_reason_accessibility">Accessibility — to detect which app is open and show the lock screen.</string>
+    <string name="permission_reason_dnd">Do Not Disturb — to silence notifications during the pause, allowing only calls.</string>
     <string name="close">Close</string>
     <string name="settings_info_label">About</string>
     <string name="settings_info_github">Source code on GitHub</string>
@@ -73,7 +73,7 @@
     <string name="weekly_summary_many">%1$d sessions this week · %2$s</string>
 
     <string name="history_title">History</string>
-    <string name="history_empty">No sessions yet.\nStart your first pause 🌿</string>
+    <string name="history_empty">No sessions yet.\nStart your first pause</string>
     <string name="history_clear">Clear history</string>
     <string name="history_clear_confirm">Delete all history? This action cannot be undone.</string>
     <string name="history_item_natural">Completed naturally</string>
@@ -83,7 +83,7 @@
     <string name="stat_completed">completed</string>
     <string name="stat_completed_fraction">%1$d / %2$d</string>
 
-    <string name="streak_days">🔥 %1$d day streak</string>
+    <string name="streak_days">%1$d day streak</string>
 
     <string name="weekly_goal_set_button">Set goal</string>
     <string name="weekly_goal_edit_button">Edit goal</string>
@@ -129,7 +129,7 @@
     <string name="onb1_body">Calm Otter helps you take real breaks from your phone: choose how long, and for that time every app stays blocked — only calls get through.\n\nThe pause ends on its own when the time is up, or earlier if a trusted person enters the password: it\'s a pact between you and someone who cares about you.</string>
     <string name="onb4_title">Choose the password together</string>
     <string name="onb4_body">Hand the phone to your trusted person: they\'ll choose the password and keep it to themselves — only they can end a session early. You don\'t need to know it: it\'s part of the pact.</string>
-    <string name="onb5_title">All set 🌿</string>
+    <string name="onb5_title">All set</string>
     <string name="onb5_body">Calm Otter is configured.\n\nWhenever you\'re ready for a break, open the app, choose a duration and start.\n\nTake care of yourself.</string>
     <string name="onb_next">Next</string>
     <string name="onb_back">Back</string>

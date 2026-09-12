@@ -71,7 +71,11 @@ class PauseGlanceWidget : GlanceAppWidget() {
                         minutes < 60 -> context.getString(R.string.widget_minutes, (minutes / 5) * 5)
                         else -> context.getString(R.string.widget_hours, minutes / 60, minutes % 60)
                     }
-                    Text(text = "⏸", style = TextStyle(fontSize = 26.sp))
+                    Image(
+                        provider = ImageProvider(R.drawable.ic_pause_widget),
+                        contentDescription = null,
+                        modifier = GlanceModifier.size(26.dp)
+                    )
                     Text(
                         text = timeText,
                         style = TextStyle(

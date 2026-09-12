@@ -123,7 +123,7 @@ class SessionForegroundService : Service() {
         // Frasi brevi per il subtext della notifica — tono diverso dal blocco schermo,
         // più di incoraggiamento che di riflessione
         private val notificationSubPhrases = listOf(
-            "Stai facendo bene 🌿",
+            "Stai facendo bene",
             "Il telefono può aspettare",
             "Un respiro alla volta",
             "Ce la fai",

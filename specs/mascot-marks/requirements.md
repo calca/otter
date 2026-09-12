@@ -44,9 +44,11 @@ the app's design.
    other in a circular badge) instead of the `🔒` emoji.
 3. WHEN the final step ("All set") is shown THEN the system SHALL render
    `SprigMark` (a hand-drawn two-leaf sprig) instead of the `🌿` emoji used
-   as that step's illustration — the same emoji still appears inline in
-   that step's title *string* ("All set 🌿"), which is ordinary decorative
-   text and out of scope here (see design.md).
+   as that step's illustration — at the time, the same emoji still
+   appeared inline in that step's title *string* ("All set 🌿"), out of
+   scope for this story; a later, separate pass removed it (and every
+   other remaining emoji in the app's strings and the widget) — see
+   design.md's "No emoji anywhere in user-facing text or the widget".
 4. WHEN the user has selected a palette (Sage/Lavender/Terracotta) or a
    light/dark mode THEN every mark's colors SHALL follow that choice — none
    are fixed to one hardcoded color set.

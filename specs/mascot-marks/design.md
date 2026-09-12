@@ -142,11 +142,44 @@ conversation) rather than guessed at directly:
 - Both keep the same `surfaceVariant`-trap discipline as every other mark
   here: only `primary`/`onPrimary` (customized per palette) are read, never
   an uncustomized M3 role.
-- The inline `🌿` inside the `onb5_title` *string* ("All set 🌿") was left
-  untouched — that's ordinary decorative text-emoji usage, the same
-  pattern used throughout the app's strings (`streak_days`'s `🔥`,
-  `history_empty`'s `🌿`), not a standalone "icon" replacing an
-  illustration, so it wasn't in scope for this fix.
+- The inline `🌿` inside the `onb5_title` *string* ("All set 🌿") was
+  initially left untouched as ordinary decorative text-emoji usage, the
+  same pattern used throughout the app's strings (`streak_days`'s `🔥`,
+  `history_empty`'s `🌿`) — out of scope for this mark-replacement fix
+  specifically. All of these were later removed in a separate pass (see
+  "No emoji anywhere in user-facing text or the widget" below):
+  `onb5_title`, `streak_days`, `history_empty`,
+  `permission_reason_accessibility`, `permission_reason_dnd`, and the
+  hardcoded notification phrase in `SessionForegroundService.kt` no
+  longer contain any emoji glyph, in either locale.
+
+## No emoji anywhere in user-facing text or the widget
+
+A later, separate pass removed every remaining emoji character, on
+request — including the ones this section explicitly called
+"in scope for a different fix" above. Two categories, beyond the plain
+string edits:
+
+- **`SessionForegroundService.kt`'s `notificationSubPhrases`** — one entry
+  ("Stai facendo bene 🌿") had the same trailing emoji as `onb5_title`, but
+  isn't in `strings.xml` at all (a hardcoded Kotlin string list, so not
+  covered by the i18n string-review workflow) — easy to miss when
+  auditing only resource files.
+- **The widget's `⏸`/`🦦` glyphs were real icons, not decorative text** —
+  unlike the `strings.xml` cases above, these lived in `TextView`s used
+  purely as a pictographic icon (26sp glyph, no surrounding sentence), in
+  two places: `widget_pause.xml` (the plain-XML placeholder, see
+  `home-screen-widget/design.md`) *and*, for `⏸` only, the real Glance
+  active-state content in `PauseWidgetProvider.kt` — the idle state
+  already used `Image(ImageProvider(R.drawable.ic_otter_widget))` instead
+  of the `🦦` glyph in the Glance code (see "Why the widget needed its own
+  drawable" below); only the placeholder XML still had `🦦` as literal
+  text. Both `⏸` spots were replaced with a new
+  `res/drawable/ic_pause_widget.xml` vector (two rounded bars, `#3D7A5C`
+  to match the active-state countdown text color) via `ImageView`
+  (placeholder) / `Image` (Glance), so the placeholder and the real
+  widget content now agree, and `🦦` was replaced the same way in the
+  placeholder using the pre-existing `ic_otter_widget.xml`.
 
 ## Why the widget needed its own drawable
 

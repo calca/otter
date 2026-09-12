@@ -14,8 +14,8 @@
     <string name="permission_action_done">Fatto</string>
     <string name="home_permission_dialog_title">Permessi necessari</string>
     <string name="home_launcher_chooser_title">Scegli il launcher da usare</string>
-    <string name="permission_reason_accessibility">🔍 Accessibilità — per rilevare quale app è aperta e mostrare la schermata di blocco.</string>
-    <string name="permission_reason_dnd">🔔 Non disturbare — per silenziare le notifiche durante la pausa, lasciando passare solo le chiamate.</string>
+    <string name="permission_reason_accessibility">Accessibilità — per rilevare quale app è aperta e mostrare la schermata di blocco.</string>
+    <string name="permission_reason_dnd">Non disturbare — per silenziare le notifiche durante la pausa, lasciando passare solo le chiamate.</string>
     <string name="close">Chiudi</string>
     <string name="settings_info_label">Info</string>
     <string name="settings_info_github">Codice sorgente su GitHub</string>
@@ -73,7 +73,7 @@
     <string name="weekly_summary_many">%1$d sessioni questa settimana · %2$s</string>
 
     <string name="history_title">Cronologia</string>
-    <string name="history_empty">Nessuna sessione ancora.\nAvvia la tua prima pausa 🌿</string>
+    <string name="history_empty">Nessuna sessione ancora.\nAvvia la tua prima pausa</string>
     <string name="history_clear">Svuota cronologia</string>
     <string name="history_clear_confirm">Vuoi eliminare tutta la cronologia? L\'operazione non è reversibile.</string>
     <string name="history_item_natural">Completata naturalmente</string>
@@ -83,7 +83,7 @@
     <string name="stat_completed">completate</string>
     <string name="stat_completed_fraction">%1$d / %2$d</string>
 
-    <string name="streak_days">🔥 %1$d giorni di fila</string>
+    <string name="streak_days">%1$d giorni di fila</string>
 
     <string name="weekly_goal_set_button">Imposta obiettivo</string>
     <string name="weekly_goal_edit_button">Modifica obiettivo</string>
@@ -129,7 +129,7 @@
     <string name="onb1_body">Calm Otter ti aiuta a prenderti delle pause vere dal telefono: scegli quanto tempo, e per quella durata tutte le app restano bloccate — solo le chiamate passano.\n\nLa pausa finisce da sola allo scadere del tempo, oppure prima se una persona di fiducia inserisce la password: è un patto tra te e chi ti vuole bene.</string>
     <string name="onb4_title">Scegli la password insieme</string>
     <string name="onb4_body">Passa il telefono alla persona di fiducia: sceglierà lei la password e la terrà per sé — solo lei potrà terminare una sessione in anticipo. Tu non devi conoscerla: è parte del patto.</string>
-    <string name="onb5_title">Tutto pronto 🌿</string>
+    <string name="onb5_title">Tutto pronto</string>
     <string name="onb5_body">Calm Otter è configurato.\n\nQuando sei pronto per una pausa, apri l\'app, scegli la durata e inizia.\n\nPrenditi cura di te.</string>
     <string name="onb_next">Avanti</string>
     <string name="onb_back">Indietro</string>
