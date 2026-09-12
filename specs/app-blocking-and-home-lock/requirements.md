@@ -23,9 +23,10 @@ so the user can't just use another app instead.
    foreground-app change.
 3. WHEN the block screen is shown THEN the system SHALL display the
    remaining time (via the shared countdown wording, not an exact number),
-   an optional reflective phrase, and a password field to unlock early.
-4. WHEN the correct password is entered on the block screen THEN the system
-   SHALL end the session and return control to the user.
+   an optional reflective phrase, and an Unlock control (a lock icon in
+   the actions row — see User Story 4) that opens a password-entry dialog.
+4. WHEN the correct password is entered and confirmed in that dialog THEN
+   the system SHALL end the session and return control to the user.
 5. WHEN the session expires naturally while the block screen is showing
    THEN the system SHALL show a brief confirmation and close the block
    screen.
@@ -93,25 +94,30 @@ Home shows the block screen instead of any launcher — otherwise being
 
 ### Acceptance Criteria
 
-1. WHEN Calm Otter is set as Home, a session is active, and at least one
-   package is in the allowed-apps list THEN the block screen (Home-button
-   case only — see design.md for why not the regular app-block case too)
-   SHALL show that list below the Unlock button, as a single row of
-   desaturated app icons — deliberately understated (no full-color icons,
-   no vertical list), not a mini launcher to browse.
-2. WHEN one of those icons is tapped THEN the system SHALL launch that
-   app directly.
-3. WHEN the allowed-apps list is empty THEN this section SHALL NOT render
-   at all — no empty-state placeholder.
-4. WHEN an allowed package can no longer be resolved or launched (e.g.
+1. WHEN the block screen is shown THEN the system SHALL display a single
+   actions row containing an Unlock control (a lock-icon badge) plus,
+   WHEN Calm Otter is set as Home, a session is active, and at least one
+   package is in the allowed-apps list (Home-button case only — see
+   design.md for why not the regular app-block case too), that list as
+   desaturated app icons in the same row — deliberately understated (no
+   full-color icons, no vertical list), not a mini launcher to browse.
+2. WHEN the Unlock icon is tapped THEN the system SHALL open a dialog with
+   a password field and Unlock/Cancel actions, rather than keeping a
+   password field permanently visible on the block screen.
+3. WHEN one of the allowed-app icons is tapped THEN the system SHALL
+   launch that app directly, without opening the Unlock dialog.
+4. WHEN the allowed-apps list is empty THEN only the Unlock icon SHALL
+   show in the row (caption reads plain "Unlock") — no empty-state
+   placeholder for the apps portion.
+5. WHEN an allowed package can no longer be resolved or launched (e.g.
    uninstalled since being allowed) THEN the system SHALL drop it from the
    list (or silently no-op the tap) rather than showing an error.
-5. The phone (device's default dialer) SHALL always appear as the first
-   icon, regardless of the configurable allowed-apps list's contents — it
-   was already always exempt from blocking, this just makes it launchable
-   from this screen too, same as the configured apps.
-6. The user-configurable allowed-apps list SHALL be capped at 5 apps
-   (the phone from criterion 5 doesn't count against this cap): attempting
+6. The phone (device's default dialer) SHALL always appear as the first
+   app icon, regardless of the configurable allowed-apps list's contents —
+   it was already always exempt from blocking, this just makes it
+   launchable from this screen too, same as the configured apps.
+7. The user-configurable allowed-apps list SHALL be capped at 5 apps
+   (the phone from criterion 6 doesn't count against this cap): attempting
    to allow a 6th app in the editor SHALL be rejected with a brief message,
    not silently accepted and trimmed elsewhere — this keeps the icon row
    short enough to read at a glance.

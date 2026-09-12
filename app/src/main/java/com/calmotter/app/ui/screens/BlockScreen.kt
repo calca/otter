@@ -3,8 +3,10 @@ package com.calmotter.app.ui.screens
 import android.graphics.Bitmap
 import android.widget.Toast
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
@@ -13,12 +15,17 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Button
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Lock
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -27,6 +34,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.asImageBitmap
@@ -77,6 +85,7 @@ fun BlockScreen(
 ) {
     val context = LocalContext.current
 
+    var showUnlockDialog by remember { mutableStateOf(false) }
     var password by remember { mutableStateOf("") }
     var statusText by remember { mutableStateOf("") }
     // Secondi di lockout rimanenti (null = nessun lockout in corso). Tenuto
@@ -184,90 +193,138 @@ fun BlockScreen(
                 .padding(bottom = 40.dp)
         )
 
-        OutlinedTextField(
-            value = password,
-            onValueChange = { password = it },
-            label = { Text(stringResource(R.string.hint_unlock_password)) },
-            enabled = !isLockedOut,
-            singleLine = true,
-            visualTransformation = PasswordVisualTransformation(),
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
-            modifier = Modifier.fillMaxWidth()
+        // Un'unica row di azioni: lo sblocco (badge pieno, per restare
+        // l'azione principale e distinguersi dalle icone delle app) apre un
+        // dialog con il campo password invece di tenerlo sempre visibile in
+        // pagina — la row resta comunque compatta anche senza app consentite
+        // configurate (l'icona di sblocco è l'unico elemento sempre
+        // presente). Le icone delle app sono desaturate tingendole con
+        // primary (BlendMode.Color: prende tonalità/saturazione dal tint,
+        // luminosità dall'icona originale — trucco duotone) invece di un
+        // grigio neutro, così restano riconoscibili ma defilate e seguono
+        // comunque la palette (Sage/Lavender/Terracotta) — vedi
+        // specs/app-blocking-and-home-lock/design.md per perché questa row
+        // esiste solo quando Calm Otter è l'app Home e per il telefono
+        // sempre incluso/il tetto di 5 app configurabili.
+        Text(
+            // "Sblocca" da sola quando non ci sono app consentite da
+            // mostrare (es. BlockOverlayActivity, che non passa mai
+            // allowedApps) — la frase combinata parlerebbe di un'app da
+            // aprire che qui non esiste.
+            text = if (allowedApps.isNotEmpty()) {
+                stringResource(R.string.block_actions_label)
+            } else {
+                stringResource(R.string.unlock)
+            },
+            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.55f),
+            fontSize = 13.sp,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(top = 40.dp, bottom = 12.dp)
         )
-
-        if (displayStatusText.isNotBlank()) {
-            Text(
-                text = displayStatusText,
-                color = MaterialTheme.colorScheme.error,
-                textAlign = TextAlign.Center,
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(20.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Box(
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = 6.dp)
-            )
-        }
+                    .size(40.dp)
+                    .clip(CircleShape)
+                    .background(MaterialTheme.colorScheme.primary)
+                    .clickable { showUnlockDialog = true },
+                contentAlignment = Alignment.Center,
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Lock,
+                    contentDescription = stringResource(R.string.unlock),
+                    tint = MaterialTheme.colorScheme.onPrimary,
+                    modifier = Modifier.size(20.dp)
+                )
+            }
 
-        Button(
-            onClick = {
-                if (passwordManager.isLockedOut()) {
-                    isLockedOut = true
-                    return@Button
-                }
-                if (passwordManager.verify(password)) {
-                    sessionManager.endSession()
-                    Toast.makeText(context, sessionEndedText, Toast.LENGTH_SHORT).show()
-                    onUnlocked()
-                } else {
-                    password = ""
-                    if (passwordManager.isLockedOut()) {
-                        isLockedOut = true
-                    } else {
-                        statusText = wrongPasswordText
+            val allowedAppTint = MaterialTheme.colorScheme.primary
+            allowedApps.forEach { app ->
+                Image(
+                    bitmap = app.icon.asImageBitmap(),
+                    contentDescription = app.label,
+                    colorFilter = ColorFilter.tint(allowedAppTint, BlendMode.Color),
+                    modifier = Modifier
+                        .size(40.dp)
+                        .clickable { onLaunchApp(app.packageName) }
+                )
+            }
+        }
+    }
+
+    if (showUnlockDialog) {
+        AlertDialog(
+            onDismissRequest = {
+                showUnlockDialog = false
+                password = ""
+                statusText = ""
+            },
+            title = { Text(stringResource(R.string.unlock)) },
+            text = {
+                Column {
+                    OutlinedTextField(
+                        value = password,
+                        onValueChange = { password = it },
+                        label = { Text(stringResource(R.string.hint_unlock_password)) },
+                        enabled = !isLockedOut,
+                        singleLine = true,
+                        visualTransformation = PasswordVisualTransformation(),
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                    if (displayStatusText.isNotBlank()) {
+                        Text(
+                            text = displayStatusText,
+                            color = MaterialTheme.colorScheme.error,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(top = 6.dp)
+                        )
                     }
                 }
             },
-            enabled = !isLockedOut,
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(top = 20.dp)
-        ) {
-            Text(stringResource(R.string.unlock))
-        }
-
-        // Icone "desaturate" tingendole con primary (BlendMode.Color: prende
-        // tonalità/saturazione dal tint, luminosità dall'icona originale —
-        // stesso trucco duotone usato altrove in Android per un'icona
-        // monocromatica) invece di un grigio neutro: restano riconoscibili
-        // a colpo d'occhio ma senza il richiamo visivo di un'icona a colori
-        // pieni, e seguono comunque la palette (Sage/Lavender/Terracotta)
-        // invece di essere fisse su un grigio, stesso principio del resto
-        // delle mascotte/schermate — vedi specs/app-blocking-and-home-lock/
-        // design.md per perché questa sezione esiste solo quando Calm Otter
-        // è l'app Home e per il telefono sempre incluso/il tetto di 5 app.
-        if (allowedApps.isNotEmpty()) {
-            val allowedAppTint = MaterialTheme.colorScheme.primary
-            Text(
-                text = stringResource(R.string.block_allowed_apps_label),
-                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.55f),
-                fontSize = 13.sp,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = 40.dp, bottom = 12.dp)
-            )
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(20.dp),
-            ) {
-                allowedApps.forEach { app ->
-                    Image(
-                        bitmap = app.icon.asImageBitmap(),
-                        contentDescription = app.label,
-                        colorFilter = ColorFilter.tint(allowedAppTint, BlendMode.Color),
-                        modifier = Modifier
-                            .size(40.dp)
-                            .clickable { onLaunchApp(app.packageName) }
-                    )
+            confirmButton = {
+                TextButton(
+                    enabled = !isLockedOut,
+                    onClick = {
+                        if (passwordManager.isLockedOut()) {
+                            isLockedOut = true
+                            return@TextButton
+                        }
+                        if (passwordManager.verify(password)) {
+                            sessionManager.endSession()
+                            Toast.makeText(context, sessionEndedText, Toast.LENGTH_SHORT).show()
+                            showUnlockDialog = false
+                            onUnlocked()
+                        } else {
+                            password = ""
+                            if (passwordManager.isLockedOut()) {
+                                isLockedOut = true
+                            } else {
+                                statusText = wrongPasswordText
+                            }
+                        }
+                    }
+                ) {
+                    Text(stringResource(R.string.unlock))
                 }
-            }
-        }
+            },
+            dismissButton = {
+                TextButton(
+                    onClick = {
+                        showUnlockDialog = false
+                        password = ""
+                        statusText = ""
+                    }
+                ) {
+                    Text(stringResource(android.R.string.cancel))
+                }
+            },
+        )
     }
 }

@@ -50,7 +50,7 @@
     <string name="session_ended">Session ended</string>
     <string name="block_title">Pause in progress</string>
     <string name="block_message">All apps are blocked, except the phone. Only the person who knows the password can end the pause early.</string>
-    <string name="block_allowed_apps_label">Allowed apps</string>
+    <string name="block_actions_label">Unlock or open an allowed app</string>
     <string name="remaining_time_format">%1$d:%2$02d</string>
     <string name="hint_unlock_password">Password</string>
     <string name="unlock">Unlock</string>

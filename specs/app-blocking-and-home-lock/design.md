@@ -24,7 +24,7 @@ set (cheap common case).
 ## Why `BlockOverlayActivity` and `HomeActivity` share `BlockScreen`
 
 Both entry points need identical behavior once shown (countdown, phrase,
-password field, unlock) — the only differences are what happens *after*:
+lock/unlock action, allowed-apps row) — the only differences are what happens *after*:
 `BlockOverlayActivity.finish()`s itself (returns to whatever was blocked);
 `HomeActivity` forwards to the original launcher on unlock/expiry via
 `LauncherManager.getOriginalLauncherPackage()`. These differences are
@@ -90,10 +90,14 @@ never offered a way to launch one.
 - **`BlockScreen` gained two optional parameters**, both defaulting to
   "nothing" so `BlockOverlayActivity` (which never passes them) is
   unaffected: `allowedApps: List<AllowedAppLaunchItem> = emptyList()` and
-  `onLaunchApp: (String) -> Unit = {}`. The section they drive only renders
-  `if (allowedApps.isNotEmpty())`, so `BlockOverlayActivity` — and
-  `HomeActivity` on a session with no allowed apps configured — render
-  identically to before.
+  `onLaunchApp: (String) -> Unit = {}`. The actions row itself (see "Unlock
+  moved into the actions row" below) always renders — Unlock has to be
+  reachable regardless — but the app icons within it are simply omitted
+  when `allowedApps` is empty, and the row's caption switches to a plain
+  "Unlock" instead of "Unlock or open an allowed app" in that case, so
+  `BlockOverlayActivity` (which never has any) and `HomeActivity` with no
+  configured allowed apps both read naturally as "just an unlock control",
+  not a broken empty list.
 - **`AllowedAppLaunchItem(label, packageName, icon: Bitmap)`** (in
   `BlockScreen.kt`) started out text-only (no icon) on the theory that
   plain text would read as more low-key than icons; revised after seeing
@@ -141,7 +145,41 @@ never offered a way to launch one.
   swallowing a null/failed intent silently (package became unlaunchable
   between list-load and tap) rather than surfacing an error — the user
   stays on `BlockScreen`, same as if they'd tapped nothing.
-- Placed in `BlockScreen` *after* the Unlock button, not above the
-  countdown/phrase — it's a secondary affordance, the primary one being
-  either waiting out the session or having the accountability partner
-  unlock it.
+- Placed in `BlockScreen` *after* the countdown/phrase, as its own labeled
+  row — originally below a separate always-visible password field and
+  Unlock button, since folded into the row itself (see next section).
+
+## Unlock moved into the actions row, behind a dialog
+
+Originally `BlockScreen` had an always-visible `OutlinedTextField` +
+`Button("Unlock")` sitting in the main flow, with the allowed-apps row (if
+any) below it. Reworked so Unlock lives in the *same* row as the allowed
+apps, as a solid-`primary`-badge lock icon (same circular badge
+construction as `PausePawsMark`/`PactPawsMark` — filled `primary` circle,
+`onPrimary` icon — deliberately more visually prominent than the
+desaturated app icons next to it, since it's the primary action, not a
+utility) — tapping it opens a Compose `AlertDialog` containing the
+password field, error/lockout text, and the actual "Unlock"/"Cancel"
+buttons, instead of keeping that content permanently on-screen.
+
+- **`showUnlockDialog` (`mutableStateOf(false)`)** gates the dialog;
+  `password`/`statusText`/`isLockedOut`/`lockoutSecondsRemaining` are
+  unchanged from before (still hoisted at `BlockScreen`'s top level, not
+  inside the dialog) so the lockout countdown `LaunchedEffect` keeps
+  running correctly even while the dialog is closed — a user can dismiss
+  the dialog mid-lockout and reopen it later to see the countdown exactly
+  where it left off.
+- **Both `onDismissRequest` and the dialog's own Cancel button** reset
+  `password`/`statusText` in addition to closing the dialog, so reopening
+  it always starts from a clean field rather than showing a stale wrong
+  password or leftover input.
+- The verify/lockout logic inside the confirm button's `onClick` is
+  otherwise identical to the old inline `Button`'s — same
+  `passwordManager.isLockedOut()`/`verify()` calls, same `onUnlocked()`
+  callback on success — just relocated, plus `showUnlockDialog = false`
+  on success so the dialog doesn't linger visible during the
+  forward-to-launcher/finish transition.
+- The row's caption (`block_actions_label` / plain `unlock` string when
+  `allowedApps` is empty) and the row itself are always shown — unlike the
+  old inline Unlock button+field, which were also always shown, this isn't
+  a behavior change, just a relocation into a more compact control.

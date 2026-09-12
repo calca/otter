@@ -50,7 +50,7 @@
     <string name="session_ended">Sessione terminata</string>
     <string name="block_title">Pausa in corso</string>
     <string name="block_message">Tutte le app sono bloccate, tranne il telefono. Solo chi conosce la password può terminare la pausa prima del tempo.</string>
-    <string name="block_allowed_apps_label">App consentite</string>
+    <string name="block_actions_label">Sblocca o apri un\'app consentita</string>
     <string name="remaining_time_format">%1$d:%2$02d</string>
     <string name="hint_unlock_password">Password</string>
     <string name="unlock">Sblocca</string>
