@@ -90,9 +90,15 @@ enjoy, unlike changing the password.
 ## Living Pond redesign
 
 The second Home redesign pass (see `specs/mascot-marks/` for the otter
-marks it reuses) deliberately keeps color use minimal, per explicit
-direction that saturated color on an idle screen is distracting: the otter
-mark, ambient ripples, duration chips, and chart bars are all neutral
-(`onSurface` at varying alpha), and the one color reintroduced — `primary`
-— appears only on the active-session progress ring, because there it
-carries real information (time elapsed) rather than being decorative.
+marks it reuses) deliberately keeps color use restrained, per explicit
+direction that saturated color on an idle screen is distracting, while
+still following the currently-selected palette (Sage/Lavender/Terracotta)
+rather than rendering as flat gray regardless of theme: the otter mark,
+ambient ripples, duration chip backgrounds, and chart bars are all
+`primary` at low alpha (a soft tint of whichever palette is active, not a
+saturated block of color); text stays `onSurface` for legibility. `primary`
+at full intensity appears in exactly two places: the active-session
+progress ring (because there it carries real information — time elapsed —
+rather than being decorative) and the otter's nose, a small fixed accent
+mirroring the pebble in `OtterAtRestIllustration` (see
+`specs/mascot-marks/`).

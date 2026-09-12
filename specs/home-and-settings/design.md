@@ -83,30 +83,41 @@ marks since it's reused nowhere outside Home but is thematically a mark).
   !sessionActive`, computed in `MainScreen` and threaded down, same
   permission logic `MainActivity` already exposed before this redesign.
 - **`DurationChipRow`** — a hand-drawn chip row (`Surface(onClick = ...)`
-  per `DURATION_LABELS` entry, colored via `onSurface.copy(alpha = ...)`),
-  **not** M3's `FilterChip`. `FilterChip`'s selected/unselected colors pull
-  from `secondaryContainer`/`primaryContainer`-family roles, which are not
-  customized per palette (see the `surfaceVariant` trap note in CLAUDE.md
-  and `mascot-marks/design.md`) — using it here would silently reintroduce
-  a fixed, non-palette-aware color, exactly the bug this file already
-  documents once. Replaces the old `NumberPicker`/`AndroidView` wheel
-  entirely; `selectedDurationIndex` (`1..8`, matching `DURATION_LABELS`)
-  lives in `MainScreen`'s own `remember` state instead of being read off an
-  `AndroidView` reference at click time.
+  per `DURATION_LABELS` entry, background colored via
+  `primary.copy(alpha = 0.08f/0.22f)` for unselected/selected — a soft tint
+  of the active palette, not a saturated fill; label text stays `onSurface`
+  for legibility), **not** M3's `FilterChip`. `FilterChip`'s selected/
+  unselected colors pull from `secondaryContainer`/`primaryContainer`-family
+  roles, which are not customized per palette (see the `surfaceVariant`
+  trap note in CLAUDE.md and `mascot-marks/design.md`) — using it here
+  would silently reintroduce a fixed, non-palette-aware color, exactly the
+  bug this file already documents once. Replaces the old `NumberPicker`/
+  `AndroidView` wheel entirely; `selectedDurationIndex` (`1..8`, matching
+  `DURATION_LABELS`) lives in `MainScreen`'s own `remember` state instead of
+  being read off an `AndroidView` reference at click time.
 - **`SessionsChartCard`** — one `Surface(onClick = onHistory)` wrapping a
   header row (streak text or `home_chart_label`, plus the `home_history_cta`
-  affordance text) and a `Row` of 7 `Box`es whose `fillMaxHeight(fraction)`
-  encodes `last7DayMinutes()` (private function, Calendar-based day
-  bucketing of `SessionRecord.effectiveMinutes`, oldest-to-newest, today
-  last — mirrors `SessionStreak`'s own `dayStart()` logic but is not shared
-  code with it, since `SessionStreak.dayStart()` is private). The whole
-  card is the History entry point now (`Modifier.alpha(0.6f)` when
-  `sessionActive`, instead of being hidden) — there is no separate History
-  button anymore.
+  affordance text, both `onSurface`) and a `Row` of 7 `Box`es whose
+  `fillMaxHeight(fraction)` encodes `last7DayMinutes()` (private function,
+  Calendar-based day bucketing of `SessionRecord.effectiveMinutes`,
+  oldest-to-newest, today last — mirrors `SessionStreak`'s own `dayStart()`
+  logic but is not shared code with it, since `SessionStreak.dayStart()` is
+  private); bars are `primary.copy(alpha = 0.18f)`, today's bar
+  `primary.copy(alpha = 0.55f)`. The whole card is the History entry point
+  now (`Modifier.alpha(0.6f)` when `sessionActive`, instead of being
+  hidden) — there is no separate History button anymore.
 
-All of the above deliberately avoid every M3 color role except the eight
-that `CalmOtterTheme.kt` actually customizes per palette
-(`background`/`surface`/`onBackground`/`onSurface`/`primary`/`onPrimary`/
-`error`/`onError`) — see the `surfaceVariant` trap note in CLAUDE.md.
-`primary` appears in exactly one place in this whole scene: the active
-progress ring's sweep arc.
+Every neutral-looking surface in this scene (ripples, chip backgrounds,
+chart bars, the otter's fur) is actually `primary` at low alpha, not
+`onSurface` — a soft tint of whichever palette (Sage/Lavender/Terracotta)
+is active rather than a flat gray, so switching palette in Settings visibly
+changes Home even though nothing here reads as "loud". Text and the
+progress-ring track use `onSurface` (legibility, or a neutral track
+regardless of palette). `primary` at full intensity appears in exactly two
+places: the active-session progress ring's sweep arc, and the otter's nose
+(a fixed small accent, mirroring the pebble in `OtterAtRestIllustration` —
+see `mascot-marks/design.md`). All of the above still avoid every other M3
+color role — only the eight that `CalmOtterTheme.kt` actually customizes
+per palette (`background`/`surface`/`onBackground`/`onSurface`/`primary`/
+`onPrimary`/`error`/`onError`) are ever used — see the `surfaceVariant`
+trap note in CLAUDE.md.

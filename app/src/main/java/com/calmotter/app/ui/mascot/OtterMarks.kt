@@ -150,17 +150,21 @@ fun PausePawsMark(modifier: Modifier = Modifier, markSize: Dp = 72.dp) {
 
 /**
  * Lontra vista dall'alto, a galla: il pulsante principale della Home
- * ("Living Pond", vedi specs/home-and-settings). Tinte neutre (onSurface) sia
- * a riposo che durante una sessione attiva — il colore resta riservato
- * all'anello di avanzamento che le viene disegnato intorno solo quando una
- * sessione è in corso, l'unico punto in cui porta un'informazione reale
- * (quanto tempo è passato) invece di essere decorazione.
+ * ("Living Pond", vedi specs/home-and-settings). Segue la stessa regola di
+ * [OtterAtRestIllustration]: il corpo è "primary" a bassa opacità (rispetta
+ * la palette scelta — Sage/Lavender/Terracotta — restando comunque tenue,
+ * non un blocco di colore saturo), mentre il naso è "primary" a piena
+ * intensità come piccolo accento (lo stesso ruolo del sassolino nell'altra
+ * illustrazione). Il colore pieno resta comunque riservato per lo più
+ * all'anello di avanzamento che le viene disegnato intorno durante una
+ * sessione attiva, l'unico punto in cui porta un'informazione reale (quanto
+ * tempo è passato) invece di essere decorazione.
  */
 @Composable
 fun OtterFloatMark(modifier: Modifier = Modifier, markSize: Dp = 96.dp) {
-    val fur = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.55f)
+    val fur = MaterialTheme.colorScheme.primary.copy(alpha = 0.32f)
     val face = MaterialTheme.colorScheme.background
-    val ink = MaterialTheme.colorScheme.onSurface
+    val nose = MaterialTheme.colorScheme.primary
 
     Canvas(modifier = modifier.size(markSize)) {
         val s = size.width / 108f
@@ -172,6 +176,6 @@ fun OtterFloatMark(modifier: Modifier = Modifier, markSize: Dp = 96.dp) {
 
         drawOval(color = face, topLeft = Offset(v(40f), v(59.8f)), size = Size(v(12f), v(4.4f)))
         drawOval(color = face, topLeft = Offset(v(56f), v(59.8f)), size = Size(v(12f), v(4.4f)))
-        drawCircle(color = ink, radius = v(2.5f), center = Offset(v(54f), v(72f)))
+        drawCircle(color = nose, radius = v(2.5f), center = Offset(v(54f), v(72f)))
     }
 }

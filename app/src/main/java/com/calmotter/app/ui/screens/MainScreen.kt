@@ -310,8 +310,9 @@ private fun PondScene(
 
 /**
  * Increspature ambientali (3 anelli sfasati che si espandono e svaniscono in
- * loop): puramente decorative, segnalano "stagno in attesa". Colore neutro
- * (onSurface) — niente tinte, coerente con il resto della Home.
+ * loop): puramente decorative, segnalano "stagno in attesa". Tinte di
+ * "primary" a opacità molto bassa (max ~0.18) — seguono la palette scelta
+ * (Sage/Lavender/Terracotta) restando comunque tenui, non un colore acceso.
  */
 @Composable
 private fun AmbientRipples(modifier: Modifier = Modifier) {
@@ -324,7 +325,7 @@ private fun AmbientRipples(modifier: Modifier = Modifier) {
         ),
         label = "rippleT",
     )
-    val ringColor = MaterialTheme.colorScheme.onSurface
+    val ringColor = MaterialTheme.colorScheme.primary
 
     Canvas(modifier = modifier) {
         val baseRadius = size.minDimension / 5f
@@ -344,8 +345,9 @@ private fun AmbientRipples(modifier: Modifier = Modifier) {
 
 /**
  * Anello di avanzamento della sessione attiva: l'unico punto della Home
- * dove torna un colore forte (primary), perché qui porta un'informazione
- * reale — quanto è passato — e non è decorazione.
+ * dove "primary" è usato a piena intensità (non a bassa opacità come nel
+ * resto della scena), perché qui porta un'informazione reale — quanto è
+ * passato — e non è decorazione.
  */
 @Composable
 private fun ProgressRing(fraction: Float, modifier: Modifier = Modifier) {
@@ -381,10 +383,12 @@ private fun ProgressRing(fraction: Float, modifier: Modifier = Modifier) {
 /**
  * Riga di chip per scegliere la durata della pausa, scorrevole in
  * orizzontale (8 opzioni, troppe per stare tutte a schermo su telefoni
- * stretti). Tinte neutre disegnate a mano invece del FilterChip di M3: i
- * colori di stato di FilterChip derivano da ruoli non personalizzati per
- * palette (secondaryContainer ecc., vedi la nota su surfaceVariant in
- * CLAUDE.md) e renderebbero comunque colori fissi non coerenti col tema.
+ * stretti). Sfondo disegnato a mano con "primary" a bassa opacità invece del
+ * FilterChip di M3: i colori di stato di FilterChip derivano da ruoli non
+ * personalizzati per palette (secondaryContainer ecc., vedi la nota su
+ * surfaceVariant in CLAUDE.md) e renderebbero comunque colori fissi non
+ * coerenti col tema. Il testo resta "onSurface" (leggibilità), solo lo
+ * sfondo segue la palette scelta.
  */
 @Composable
 private fun DurationChipRow(selectedIndex: Int, onSelect: (Int) -> Unit) {
@@ -399,7 +403,7 @@ private fun DurationChipRow(selectedIndex: Int, onSelect: (Int) -> Unit) {
             Surface(
                 onClick = { onSelect(index + 1) },
                 shape = RoundedCornerShape(50),
-                color = MaterialTheme.colorScheme.onSurface.copy(alpha = if (selected) 0.14f else 0.05f),
+                color = MaterialTheme.colorScheme.primary.copy(alpha = if (selected) 0.22f else 0.08f),
             ) {
                 Text(
                     text = label,
@@ -414,8 +418,10 @@ private fun DurationChipRow(selectedIndex: Int, onSelect: (Int) -> Unit) {
 
 /**
  * Card con streak/ultime sessioni (barre degli ultimi 7 giorni) e CTA verso
- * la Cronologia — l'intera card è cliccabile. Attenuata (non nascosta)
- * durante una sessione attiva: resta consultabile ma non è il focus.
+ * la Cronologia — l'intera card è cliccabile. Sfondo e barre in "primary" a
+ * bassa opacità (segue la palette scelta restando tenue); testo "onSurface"
+ * per la leggibilità. Attenuata (non nascosta) durante una sessione attiva:
+ * resta consultabile ma non è il focus.
  */
 @Composable
 private fun SessionsChartCard(
@@ -429,7 +435,7 @@ private fun SessionsChartCard(
     Surface(
         onClick = onHistory,
         shape = RoundedCornerShape(20.dp),
-        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.05f),
+        color = MaterialTheme.colorScheme.primary.copy(alpha = 0.06f),
         modifier = Modifier
             .fillMaxWidth()
             .alpha(if (dimmed) 0.6f else 1f),
@@ -471,7 +477,7 @@ private fun SessionsChartCard(
                             .weight(1f)
                             .fillMaxHeight(fraction)
                             .background(
-                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = if (isToday) 0.45f else 0.16f),
+                                color = MaterialTheme.colorScheme.primary.copy(alpha = if (isToday) 0.55f else 0.18f),
                                 shape = RoundedCornerShape(4.dp),
                             )
                     )
