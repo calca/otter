@@ -211,7 +211,7 @@ fun MainScreen(
                     style = MaterialTheme.typography.labelSmall,
                     fontFamily = FontFamily.Monospace,
                     color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.55f),
-                    modifier = Modifier.padding(top = 20.dp)
+                    modifier = Modifier.padding(vertical = 20.dp)
                 )
             }
         }
@@ -385,15 +385,15 @@ private fun PondScene(
                 modifier = Modifier.padding(top = 2.dp),
             )
         } else {
-            DurationChipRow(
-                selectedIndex = selectedDurationIndex,
-                onSelect = onSelectDuration,
-            )
             Text(
                 text = stringResource(R.string.home_start_hint),
                 style = MaterialTheme.typography.labelSmall,
                 color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.45f),
-                modifier = Modifier.padding(top = 10.dp),
+            )
+            Spacer(modifier = Modifier.height(10.dp))
+            DurationChipRow(
+                selectedIndex = selectedDurationIndex,
+                onSelect = onSelectDuration,
             )
         }
     }
