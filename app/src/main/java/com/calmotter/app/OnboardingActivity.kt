@@ -1,8 +1,5 @@
 package com.calmotter.app
 
-import android.app.NotificationManager
-import android.content.ComponentName
-import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import android.provider.Settings
@@ -34,11 +31,8 @@ class OnboardingActivity : BaseActivity() {
                 OnboardingScreen(
                     resumeSignal = resumeSignal,
                     passwordManager = passwordManager,
-                    isAccessibilityServiceEnabled = { isAccessibilityServiceEnabled() },
-                    isDndAccessGranted = {
-                        (getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager)
-                            .isNotificationPolicyAccessGranted
-                    },
+                    isAccessibilityServiceEnabled = { isAccessibilityServiceEnabled(this) },
+                    isDndAccessGranted = { isDndAccessGranted(this) },
                     onGrantAccessibility = { startActivity(Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS)) },
                     onGrantDnd = { startActivity(Intent(Settings.ACTION_NOTIFICATION_POLICY_ACCESS_SETTINGS)) },
                     onFinished = { finishOnboarding() },
@@ -58,13 +52,5 @@ class OnboardingActivity : BaseActivity() {
         startActivity(Intent(this, MainActivity::class.java).apply {
             flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
         })
-    }
-
-    private fun isAccessibilityServiceEnabled(): Boolean {
-        val expected = ComponentName(this, AppBlockerAccessibilityService::class.java)
-        val enabled = Settings.Secure.getString(
-            contentResolver, Settings.Secure.ENABLED_ACCESSIBILITY_SERVICES
-        ) ?: return false
-        return enabled.split(":").any { ComponentName.unflattenFromString(it) == expected }
     }
 }

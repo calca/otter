@@ -12,9 +12,12 @@ similarly-motivated visual-identity work from the same design pass.
 Home was later redesigned again as "Living Pond": the otter mark itself
 became the start-pause control (an ambient scene, not a form), and the
 separate streak text + History button were merged into one sessions-chart
-card. See "Living Pond redesign" below for that second pass; User Story 1
-and User Story 3 describe the *current* behavior, not the original
-flat-column one.
+card. See "Living Pond redesign" below for that second pass; a fourth pass
+("Permissions off Home") then moved the accessibility/DND/Home-app status
+entirely off Home too — see that section for why and User Story 1's
+current acceptance criteria for the result. User Story 1 and User Story 3
+describe the *current* behavior throughout, not the original flat-column
+one.
 
 ## User Story 1: A calm Home
 
@@ -28,23 +31,20 @@ buttons for things I rarely touch.
    SHALL display: the app name with a settings icon, ambient decorative
    ripples around the otter mark, a horizontally-scrollable row of duration
    chips (30 min through 4h in 30-minute steps), and the sessions-chart card
-   (see User Story 3).
-2. WHEN the otter mark is tapped AND accessibility access AND Do Not Disturb
-   access are both granted AND no session is active THEN the system SHALL
-   start a pause session for the currently-selected chip's duration — the
-   otter is the Start-Pause control, there is no separate "Start" button.
-3. WHEN accessibility access, Do Not Disturb access, or default-Home status
-   is not yet granted/set THEN the system SHALL show the corresponding
-   prompt button above the pond scene, exactly as before this change (only
-   relocated, not removed) — these are not "settings", they gate the
-   start-pause action itself and must stay visible on Home until resolved;
-   while any permission is missing the otter mark is not tappable.
-4. WHEN a session is active THEN the system SHALL replace the ambient
+   (see User Story 3) — nothing about accessibility/DND/Home-app status is
+   shown here, see "Permissions off Home" below.
+2. WHEN the otter mark is tapped AND no session is active THEN the system
+   SHALL, if accessibility access AND Do Not Disturb access are both
+   already granted, start a pause session for the currently-selected chip's
+   duration; otherwise it SHALL show [PermissionExplainerDialog] instead —
+   the otter is always tappable while idle, never disabled, and is the only
+   Start-Pause control (no separate "Start" button).
+3. WHEN a session is active THEN the system SHALL replace the ambient
    ripples with a functional progress ring around the otter (fraction of
    time elapsed) and replace the duration chips with a status readout
-   ("Paused" + minutes remaining); the duration chips and permission/Home
-   prompts are not shown while a session is active.
-5. WHEN the settings icon is tapped THEN the system SHALL open Settings.
+   ("Paused" + minutes remaining); the duration chips are not shown while a
+   session is active.
+4. WHEN the settings icon is tapped THEN the system SHALL open Settings.
 
 ## User Story 2: Settings holds the occasional stuff
 
@@ -54,16 +54,22 @@ the screen I open every time I want a break.
 
 ### Acceptance Criteria
 
-1. WHEN Settings is opened THEN the system SHALL show: the theme picker
-   (Sage/Lavender/Terracotta), a "Change password" button, a "Manage
-   allowed apps" button, and the reflective-phrases toggle — every one of
-   these previously lived on the home screen.
+1. WHEN Settings is opened THEN the system SHALL show: a permissions status
+   card (see "Permissions off Home"), the theme picker (Sage/Lavender/
+   Terracotta), a "Change password" button, a "Manage allowed apps" button,
+   and the reflective-phrases toggle — every one of these previously lived
+   on the home screen.
 2. WHEN "Manage allowed apps" is tapped THEN the system SHALL require the
    correct password before opening the allowed-apps editor, exactly as
    before this change (see `app-blocking-and-home-lock/requirements.md`) —
    only the screen that asks has moved, not the gate itself.
 3. WHEN a new theme is picked in Settings THEN the system SHALL apply it
    immediately (activity recreation), same as when this lived on Home.
+4. WHEN Settings is reopened after the user has been to a system settings
+   screen (accessibility, Do Not Disturb, or the Home-app chooser) and back
+   THEN the permissions status card SHALL reflect the new state — Settings
+   now refreshes this OS-level state on every resume, the same way Home
+   always has (see "Permissions off Home").
 
 ## User Story 3: History stays on Home
 
@@ -136,3 +142,37 @@ already existed:
    `session-history-and-stats` — not a calendar week) directly below the
    pond scene, giving the enlarged empty space a second piece of real
    content instead of bare padding.
+
+## Permissions off Home
+
+A fourth pass removed the permission-gating banner and "Set as Home"
+button from Home entirely, on explicit feedback that checking these on
+every single app open was annoying, plus a specific design goal for two of
+the three: check them only at the moment the user actually needs them
+(tapping the otter), not proactively.
+
+1. Home SHALL NOT show any accessibility/DND/Home-app status, banner, or
+   button anywhere, ever — not even while all three are missing. The otter
+   remaining tappable at all times (see User Story 1) is what replaces the
+   old banner's job of surfacing the gap.
+2. "Set as Home" is NOT part of the tap-to-explain flow described below —
+   it does not block starting a session at all (only the separate
+   Home-button-interception feature needs it, see
+   `app-blocking-and-home-lock/requirements.md`), so it moved to Settings
+   as a plain status row with no explainer dialog of its own.
+3. WHEN the otter is tapped WHILE accessibility access or Do Not Disturb
+   access (or both) are still missing THEN the system SHALL show
+   `PermissionExplainerDialog`: a title ("Permissions needed") and, for
+   each *currently missing* permission only, one row with a short
+   explanation of why Calm Otter needs it (the same reasoning as
+   onboarding step 3, reworded as standalone strings) and a "Grant" action
+   that opens the matching system settings screen and dismisses the
+   dialog. A permission already granted does not get a row — if the user
+   granted one on a previous visit to this dialog, only the remaining one(s)
+   show up next time.
+4. Settings SHALL show all three (accessibility, Do Not Disturb, "Home
+   app") as a single always-visible status card, each row reading either a
+   checkmark + "Done" or an empty ring + an action ("Grant" for the two
+   system permissions, "Set" for the Home app) — a place to check or fix
+   these deliberately, not a reminder that follows the user onto the
+   screen they open most often.

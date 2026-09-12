@@ -20,6 +20,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
@@ -30,12 +31,13 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Settings
-import androidx.compose.material3.Button
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -80,11 +82,18 @@ private val DURATION_LABELS = arrayOf(
  * con l'otter è l'unico pulsante di avvio (si tocca l'otter stesso), un
  * anello colorato attorno a lei mostra l'avanzamento mentre una sessione è
  * attiva, e la card sotto riassume streak/ultime sessioni con un CTA verso
- * la Cronologia. Tema, cambio password, gestione app consentite e frasi
- * riflessive sono su SettingsScreen (icona ingranaggio): sono azioni
- * occasionali, non quelle compiute ogni volta che si apre l'app.
+ * la Cronologia. Tema, cambio password, gestione app consentite, frasi
+ * riflessive e lo stato di accessibilità/DND/Home sono su SettingsScreen
+ * (icona ingranaggio): sono azioni/controlli occasionali, non quelli
+ * compiuti ogni volta che si apre l'app (vedi
+ * specs/home-and-settings/requirements.md).
  *
- * Diversi valori (stato accessibilità/DND/home, sessione attiva, streak)
+ * L'otter è sempre toccabile quando non c'è una sessione attiva: se
+ * accessibilità e Non disturbare sono già concessi avvia la pausa, altrimenti
+ * apre [PermissionExplainerDialog] — il controllo dei permessi avviene solo
+ * nel momento in cui servono davvero, non come un banner permanente.
+ *
+ * Diversi valori (stato accessibilità/DND, sessione attiva, streak)
  * dipendono da stato esterno che Compose non osserva automaticamente:
  * vanno ricalcolati manualmente a ogni onResume() dell'Activity tramite
  * [resumeSignal] (vedi MainActivity).
@@ -96,10 +105,8 @@ fun MainScreen(
     sessionHistoryManager: SessionHistoryManager,
     isAccessibilityServiceEnabled: () -> Boolean,
     isDndAccessGranted: () -> Boolean,
-    isDefaultHome: () -> Boolean,
     onGrantAccessibility: () -> Unit,
     onGrantDnd: () -> Unit,
-    onSetHome: () -> Unit,
     onHistory: () -> Unit,
     onSettings: () -> Unit,
 ) {
@@ -107,7 +114,6 @@ fun MainScreen(
 
     var accessibilityOk by remember { mutableStateOf(false) }
     var dndOk by remember { mutableStateOf(false) }
-    var homeOk by remember { mutableStateOf(false) }
     var sessionActive by remember { mutableStateOf(false) }
     var remainingMillis by remember { mutableStateOf(0L) }
     var totalMillis by remember { mutableStateOf(0L) }
@@ -115,11 +121,11 @@ fun MainScreen(
     var hasHistory by remember { mutableStateOf(false) }
     var weekSummary by remember { mutableStateOf(WeekSummary(List(7) { 0 }, List(7) { 0 }, 0, 0)) }
     var selectedDurationIndex by remember { mutableIntStateOf(1) }
+    var showPermissionDialog by remember { mutableStateOf(false) }
 
     fun refreshDerivedState() {
         accessibilityOk = isAccessibilityServiceEnabled()
         dndOk = isDndAccessGranted()
-        homeOk = isDefaultHome()
         sessionActive = sessionManager.isSessionActive()
         remainingMillis = sessionManager.remainingMillis()
         totalMillis = sessionManager.totalMillis()
@@ -136,7 +142,6 @@ fun MainScreen(
         refreshDerivedState()
     }
 
-    val canStart = accessibilityOk && dndOk && !sessionActive
     val sessionStartedText = stringResource(R.string.session_started)
 
     Column(
@@ -168,41 +173,12 @@ fun MainScreen(
             }
         }
 
-        if (!sessionActive && (!accessibilityOk || !dndOk)) {
-            Text(
-                text = stringResource(R.string.permissions_missing),
-                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(bottom = 12.dp)
-            )
-            Button(
-                onClick = { if (!accessibilityOk) onGrantAccessibility() else onGrantDnd() },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(bottom = 16.dp)
-            ) {
-                Text(stringResource(R.string.grant_permissions))
-            }
-        }
-
-        if (!sessionActive && !homeOk) {
-            Button(
-                onClick = onSetHome,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(bottom = 16.dp)
-            ) {
-                Text(stringResource(R.string.set_as_home))
-            }
-        }
-
-        // Il riquadro sopra (titolo, eventuali richieste di permessi) e la
-        // card sotto restano alla loro dimensione naturale; questa Column
-        // intermedia si prende tutto lo spazio che avanza e vi centra lo
-        // stagno — così l'otter finisce vicino al vero centro dello schermo
-        // invece che subito sotto l'header, e la card statistiche resta
-        // ancorata in fondo invece di seguire a ruota lo stagno.
+        // Il titolo sopra e la card sotto restano alla loro dimensione
+        // naturale; questa Column intermedia si prende tutto lo spazio che
+        // avanza e vi centra lo stagno — così l'otter finisce vicino al vero
+        // centro dello schermo invece che subito sotto l'header, e la card
+        // statistiche resta ancorata in fondo invece di seguire a ruota lo
+        // stagno.
         Column(
             modifier = Modifier
                 .weight(1f)
@@ -214,14 +190,17 @@ fun MainScreen(
                 sessionActive = sessionActive,
                 remainingMillis = remainingMillis,
                 totalMillis = totalMillis,
-                canStart = canStart,
                 selectedDurationIndex = selectedDurationIndex,
                 onSelectDuration = { selectedDurationIndex = it },
                 onStart = {
-                    val durationMinutes = selectedDurationIndex * 30
-                    sessionManager.startSession(durationMinutes)
-                    Toast.makeText(context, sessionStartedText, Toast.LENGTH_SHORT).show()
-                    refreshDerivedState()
+                    if (accessibilityOk && dndOk) {
+                        val durationMinutes = selectedDurationIndex * 30
+                        sessionManager.startSession(durationMinutes)
+                        Toast.makeText(context, sessionStartedText, Toast.LENGTH_SHORT).show()
+                        refreshDerivedState()
+                    } else {
+                        showPermissionDialog = true
+                    }
                 }
             )
 
@@ -244,19 +223,95 @@ fun MainScreen(
             onHistory = onHistory,
         )
     }
+
+    if (showPermissionDialog) {
+        PermissionExplainerDialog(
+            accessibilityOk = accessibilityOk,
+            dndOk = dndOk,
+            onGrantAccessibility = {
+                showPermissionDialog = false
+                onGrantAccessibility()
+            },
+            onGrantDnd = {
+                showPermissionDialog = false
+                onGrantDnd()
+            },
+            onDismiss = { showPermissionDialog = false },
+        )
+    }
+}
+
+/**
+ * Spiega perché servono i permessi ancora mancanti e offre un'azione per
+ * concederli — mostrato solo al tap sull'otter quando qualcosa manca
+ * ancora, non come banner permanente su Home (vedi
+ * specs/home-and-settings/requirements.md). Elenca solo le righe
+ * effettivamente mancanti: se uno dei due è già stato concesso da quando il
+ * dialog era stato chiuso l'ultima volta, non ricompare qui.
+ */
+@Composable
+private fun PermissionExplainerDialog(
+    accessibilityOk: Boolean,
+    dndOk: Boolean,
+    onGrantAccessibility: () -> Unit,
+    onGrantDnd: () -> Unit,
+    onDismiss: () -> Unit,
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        confirmButton = {
+            TextButton(onClick = onDismiss) {
+                Text(stringResource(R.string.close))
+            }
+        },
+        title = { Text(stringResource(R.string.home_permission_dialog_title)) },
+        text = {
+            Column {
+                if (!accessibilityOk) {
+                    PermissionReasonRow(
+                        reason = stringResource(R.string.permission_reason_accessibility),
+                        actionLabel = stringResource(R.string.permission_action_grant),
+                        onGrant = onGrantAccessibility,
+                    )
+                }
+                if (!dndOk) {
+                    PermissionReasonRow(
+                        reason = stringResource(R.string.permission_reason_dnd),
+                        actionLabel = stringResource(R.string.permission_action_grant),
+                        onGrant = onGrantDnd,
+                    )
+                }
+            }
+        },
+    )
+}
+
+@Composable
+private fun PermissionReasonRow(reason: String, actionLabel: String, onGrant: () -> Unit) {
+    Column(modifier = Modifier.padding(bottom = 12.dp)) {
+        Text(
+            text = reason,
+            color = MaterialTheme.colorScheme.onSurface,
+        )
+        TextButton(onClick = onGrant, contentPadding = PaddingValues(vertical = 4.dp)) {
+            Text(actionLabel)
+        }
+    }
 }
 
 /**
  * Lo "stagno": increspature ambientali a riposo (puramente decorative, si
  * calmano appena parte una sessione) o anello di avanzamento funzionale
  * durante la pausa, con l'otter — il pulsante di avvio — sempre al centro.
+ * L'otter è sempre toccabile quando non c'è una sessione attiva: [onStart]
+ * (in MainScreen) decide se questo significhi avviare la pausa o spiegare
+ * quali permessi mancano ancora.
  */
 @Composable
 private fun PondScene(
     sessionActive: Boolean,
     remainingMillis: Long,
     totalMillis: Long,
-    canStart: Boolean,
     selectedDurationIndex: Int,
     onSelectDuration: (Int) -> Unit,
     onStart: () -> Unit,
@@ -295,7 +350,7 @@ private fun PondScene(
                 modifier = Modifier
                     .offset(y = floatOffset.dp)
                     .clip(CircleShape)
-                    .clickable(enabled = canStart, onClick = onStart),
+                    .clickable(enabled = !sessionActive, onClick = onStart),
                 contentAlignment = Alignment.Center,
             ) {
                 OtterFloatMark(markSize = 124.dp)
@@ -322,14 +377,12 @@ private fun PondScene(
                 selectedIndex = selectedDurationIndex,
                 onSelect = onSelectDuration,
             )
-            if (canStart) {
-                Text(
-                    text = stringResource(R.string.home_start_hint),
-                    style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.45f),
-                    modifier = Modifier.padding(top = 10.dp),
-                )
-            }
+            Text(
+                text = stringResource(R.string.home_start_hint),
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.45f),
+                modifier = Modifier.padding(top = 10.dp),
+            )
         }
     }
 }

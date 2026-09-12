@@ -44,15 +44,18 @@ has already become the default Home app. It only writes once (`if
 (prefs.contains(KEY_PACKAGE)) return`), so it must be called before Calm
 Otter has become Home for the first time to capture the real original
 launcher; `MainActivity.onCreate()` calls it unconditionally, before the
-"Set as Home" button is ever pressed.
+"Set as Home" row (now in Settings, see `home-and-settings/design.md`'s
+"Permissions off Home" — it moved off Home along with the rest of the
+permission/Home-app status) is ever tapped.
 
 ## Setting Calm Otter as Home
 
-`MainActivity.promptSetAsHome()` disables then re-enables
-`HomeActivity`'s component (`COMPONENT_ENABLED_STATE_DISABLED` →
-`_ENABLED`) to force Android's Home-app chooser to reappear even if the
-user previously dismissed it, then fires a `CATEGORY_HOME` intent so the
-chooser shows immediately.
+`SettingsActivity.promptSetAsHome()` (moved here from `MainActivity`, see
+`home-and-settings/design.md`) disables then re-enables `HomeActivity`'s
+component (`COMPONENT_ENABLED_STATE_DISABLED` → `_ENABLED`) to force
+Android's Home-app chooser to reappear even if the user previously
+dismissed it, then fires a `CATEGORY_HOME` intent so the chooser shows
+immediately.
 
 ## Allowed-apps loading
 

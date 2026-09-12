@@ -1,9 +1,6 @@
 package com.calmotter.app
 
 import android.Manifest
-import android.app.NotificationManager
-import android.content.ComponentName
-import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
@@ -27,7 +24,7 @@ class MainActivity : BaseActivity() {
 
     // Incrementato a ogni onResume(): passato come parametro a MainScreen così
     // che il suo LaunchedEffect(resumeSignal) ricalcoli lo stato che dipende
-    // dal sistema operativo (accessibilità, DND, app Home, sessione attiva) —
+    // dal sistema operativo (accessibilità, DND, sessione attiva) —
     // setContent {} viene chiamato una sola volta in onCreate, quindi Compose
     // non ha altrimenti modo di accorgersi di questi cambi di stato esterni.
     private var resumeSignal by mutableIntStateOf(0)
@@ -59,15 +56,10 @@ class MainActivity : BaseActivity() {
                     resumeSignal = resumeSignal,
                     sessionManager = sessionManager,
                     sessionHistoryManager = sessionHistoryManager,
-                    isAccessibilityServiceEnabled = { isAccessibilityServiceEnabled() },
-                    isDndAccessGranted = {
-                        (getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager)
-                            .isNotificationPolicyAccessGranted
-                    },
-                    isDefaultHome = { isDefaultHome() },
+                    isAccessibilityServiceEnabled = { isAccessibilityServiceEnabled(this) },
+                    isDndAccessGranted = { isDndAccessGranted(this) },
                     onGrantAccessibility = { startActivity(Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS)) },
                     onGrantDnd = { startActivity(Intent(Settings.ACTION_NOTIFICATION_POLICY_ACCESS_SETTINGS)) },
-                    onSetHome = { promptSetAsHome() },
                     onHistory = { startActivity(Intent(this, HistoryActivity::class.java)) },
                     onSettings = { startActivity(Intent(this, SettingsActivity::class.java)) },
                 )
@@ -90,47 +82,5 @@ class MainActivity : BaseActivity() {
         }
 
         resumeSignal++
-    }
-
-    private fun isDefaultHome(): Boolean {
-        val intent = Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_HOME)
-        val resolveInfo = packageManager.resolveActivity(intent, PackageManager.MATCH_DEFAULT_ONLY)
-        return resolveInfo?.activityInfo?.packageName == packageName
-    }
-
-    /**
-     * Forza la ricomparsa del selettore "App Home" di Android: disabilitare e
-     * riabilitare il componente azzera la preferenza già salvata dal sistema,
-     * così l'utente può scegliere/confermare CalmOtter come app Home.
-     */
-    private fun promptSetAsHome() {
-        launcherManager.saveOriginalLauncherIfNeeded()
-
-        val componentName = ComponentName(this, HomeActivity::class.java)
-        packageManager.setComponentEnabledSetting(
-            componentName,
-            PackageManager.COMPONENT_ENABLED_STATE_DISABLED,
-            PackageManager.DONT_KILL_APP
-        )
-        packageManager.setComponentEnabledSetting(
-            componentName,
-            PackageManager.COMPONENT_ENABLED_STATE_ENABLED,
-            PackageManager.DONT_KILL_APP
-        )
-
-        val intent = Intent(Intent.ACTION_MAIN).apply {
-            addCategory(Intent.CATEGORY_HOME)
-            flags = Intent.FLAG_ACTIVITY_NEW_TASK
-        }
-        startActivity(intent)
-    }
-
-    private fun isAccessibilityServiceEnabled(): Boolean {
-        val expected = ComponentName(this, AppBlockerAccessibilityService::class.java)
-        val enabled = Settings.Secure.getString(
-            contentResolver,
-            Settings.Secure.ENABLED_ACCESSIBILITY_SERVICES
-        ) ?: return false
-        return enabled.split(":").any { ComponentName.unflattenFromString(it) == expected }
     }
 }

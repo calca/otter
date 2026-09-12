@@ -4,27 +4,38 @@
 
 | File | Role |
 |---|---|
-| `MainActivity.kt` / `ui/screens/MainScreen.kt` | Home: session state, permission gates, streak, navigation to History and Settings |
-| `SettingsActivity.kt` / `ui/screens/SettingsScreen.kt` | Theme picker, change-password launch, password-gated allowed-apps launch, phrases toggle |
+| `MainActivity.kt` / `ui/screens/MainScreen.kt` | Home: session state, streak, tap-to-explain permission dialog, navigation to History and Settings |
+| `SettingsActivity.kt` / `ui/screens/SettingsScreen.kt` | Permission/Home-app status card, theme picker, change-password launch, password-gated allowed-apps launch, phrases toggle |
+| `PermissionChecks.kt` | Two top-level functions (`isAccessibilityServiceEnabled`, `isDndAccessGranted`) shared by `MainActivity`, `OnboardingActivity`, and `SettingsActivity` — previously identical private copies in each |
 
 ## What moved where, and why
 
-Everything that gated `startSession()` itself (accessibility/DND grant
-buttons, Set-as-Home) **stayed on Home** — these aren't preferences, they're
-blockers on the one action Home exists for. Everything that was a
-preference or an occasional admin action (theme, password, allowed-apps,
-phrases) **moved to Settings**. History is the one item that could have
-gone either way and was deliberately kept on Home (see requirements.md
-User Story 3) — it's frequent/rewarding to check, not "configuration".
+Everything that was a preference, an occasional admin action, or a status
+check that doesn't need to interrupt starting a pause (theme, password,
+allowed-apps, phrases, and — since the "Permissions off Home" pass below —
+accessibility/DND/Home-app status) **moved to Settings**. History is the
+one item that could have gone either way and was deliberately kept on Home
+(see requirements.md User Story 3) — it's frequent/rewarding to check, not
+"configuration". Home itself keeps only what's needed to start a pause;
+even the two permissions that *do* gate `startSession()` are no longer a
+persistent Home fixture — see "Permissions off Home" for why tapping the
+otter, not a banner, is what surfaces them now.
 
-`SettingsActivity` follows the exact same shape as `HistoryActivity`/
+`SettingsActivity` follows the same shape as `HistoryActivity`/
 `ChangePasswordActivity`/`AllowedAppsActivity`: `WITH_ACTION_BAR` theme
-variant, `onSupportNavigateUp()` finishes, no `resumeSignal` (nothing on
-this screen depends on OS-level state that can change while backgrounded —
-same reasoning as `HistoryActivity`, see its own design.md).
+variant, `onSupportNavigateUp()` finishes. Unlike those, and unlike its own
+earlier version, it now **does** carry a `resumeSignal` (incremented in
+`onResume()`, same pattern as `MainActivity`/`OnboardingActivity`) — once
+the permissions/Home-app status card moved here, this screen gained
+exactly the kind of OS-level state that can change while backgrounded
+(user taps a status row, goes to system settings, comes back) that used to
+be the reason it *didn't* need one.
 `promptPasswordThenOpenAllowedApps()` and `pickTheme()` were moved here
-verbatim from `MainActivity` — same logic, same `PasswordManager`/
-`ThemeManager` calls, just relocated with their triggering button.
+verbatim from `MainActivity` in an earlier pass — same logic, same
+`PasswordManager`/`ThemeManager` calls, just relocated with their
+triggering button; `isDefaultHome()`/`promptSetAsHome()` (from
+`app-blocking-and-home-lock/design.md`) moved here the same way in this
+pass.
 
 ## Streak on Home
 
@@ -77,11 +88,11 @@ marks since it's reused nowhere outside Home but is thematically a mark).
   `.offset(y = floatOffset.dp)` driven by its own
   `rememberInfiniteTransition` (a slower period while a session is active —
   5200ms vs 3200ms — meant to read as "settled" rather than "waiting").
-  That same `Box` carries `.clip(CircleShape).clickable(enabled = canStart,
-  onClick = onStart)` — **the otter itself is the Start-Pause control**;
-  there is no separate button. `canStart = accessibilityOk && dndOk &&
-  !sessionActive`, computed in `MainScreen` and threaded down, same
-  permission logic `MainActivity` already exposed before this redesign.
+  That same `Box` carries `.clip(CircleShape).clickable(enabled =
+  !sessionActive, onClick = onStart)` — **the otter itself is the
+  Start-Pause control**, and it is *always* enabled while idle (never
+  `canStart`-gated on permissions — see "Permissions off Home" below for
+  what `onStart` does when something's still missing).
 - **`DurationChipRow`** — a hand-drawn chip row (`Surface(onClick = ...)`
   per `DURATION_LABELS` entry, background colored via
   `primary.copy(alpha = 0.08f/0.22f)` for unselected/selected — a soft tint
@@ -154,3 +165,55 @@ scrolling parent isn't. `PondScene`'s pond `Box` grew from 200dp to 260dp
 vertical room now going to the pond instead of empty space below the card,
 a larger otter reads as the deliberate focal point rather than one element
 sized for a cramped top section.
+
+## Permissions off Home: `PermissionExplainerDialog` and `PermissionStatusCard`
+
+A fourth pass removed `MainScreen`'s permission-missing text, "Grant
+permissions" button, and "Set as Home" button entirely, replacing them
+with two separate, more targeted pieces of UI.
+
+- **`PermissionExplainerDialog`** (private composable, `MainScreen.kt`) —
+  a plain M3 `AlertDialog` (the first Compose-native dialog in this
+  codebase; every existing dialog elsewhere — `SettingsActivity`'s
+  password prompt, `HistoryActivity`'s clear-history/weekly-goal dialogs —
+  is a View-based `androidx.appcompat.app.AlertDialog.Builder` invoked
+  imperatively from an `Activity`, not a good fit here since this dialog's
+  state (`showPermissionDialog`) and content both live in `MainScreen`
+  itself). It renders one `PermissionReasonRow` per *currently missing*
+  permission only (`if (!accessibilityOk) ... if (!dndOk) ...` — a
+  permission already granted gets no row, so a second tap after granting
+  one shows only what's left, or doesn't open at all if nothing's left).
+  Each row's reason string (`permission_reason_accessibility`/`_dnd`)
+  mirrors onboarding step 3's wording but is its own string, not extracted
+  from `onb3_body` — onboarding's combined multi-paragraph string was left
+  untouched to avoid any risk to that separately-tested flow. `AlertDialog`
+  itself is left with its default M3 container color
+  (`AlertDialogDefaults.containerColor`, effectively `surfaceContainerHigh`)
+  — that role isn't customized per palette either (same family as the
+  `surfaceVariant` trap in CLAUDE.md), but a dialog surface reading as a
+  fairly neutral system-chrome tone is normal even in most themed M3 apps,
+  unlike a hand-drawn mascot mark; only the row content is a place this
+  design chooses `onSurface` deliberately, not left to a default.
+  `MainScreen`'s `onStart` lambda passed into `PondScene` is what decides
+  which behavior a tap gets: `if (accessibilityOk && dndOk) startSession()
+  else showPermissionDialog = true`.
+- **`PermissionStatusCard`** (private composable, `SettingsScreen.kt`) — a
+  `Surface` (same `primary.copy(alpha = 0.06f)` tint as `SessionsChartCard`
+  on Home, for visual consistency between the app's two card-shaped
+  containers) wrapping three `PermissionStatusRow`s (accessibility, DND,
+  Home-app), each a small circle (filled + "✓" when done, outlined and
+  empty when not) + label + trailing "Done" (muted) or an action word in
+  `primary` (`"Grant"` for the two system permissions, `"Set"` for Home-app
+  — distinct verb since it's a different kind of action, an app-level
+  setting rather than a system permission grant). Always visible, all
+  three rows, whether done or not — a status view to check occasionally,
+  not a to-do list that shrinks; contrast with the Home dialog above, which
+  only ever shows what's missing.
+- Both **reuse `isAccessibilityServiceEnabled()`/`isDndAccessGranted()`**
+  from the new shared `PermissionChecks.kt` (see "What moved where, and
+  why") rather than each Activity computing them independently.
+- **`isDefaultHome()`/`promptSetAsHome()`** moved to `SettingsActivity`
+  unchanged (same `ComponentName`/`PackageManager` dance documented in
+  `app-blocking-and-home-lock/design.md`) — `SettingsScreen` receives them
+  as `isDefaultHome: () -> Boolean` / `onSetHome: () -> Unit`, refreshed by
+  the same `resumeSignal` as the two permission checks.

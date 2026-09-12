@@ -1,7 +1,18 @@
 <resources>
     <string name="app_name">Calm Otter</string>
     <string name="settings_title">Impostazioni</string>
+    <string name="settings_permissions_label">Permessi</string>
     <string name="settings_theme_label">Tema</string>
+    <string name="permission_row_accessibility">Accessibilità</string>
+    <string name="permission_row_dnd">Non disturbare</string>
+    <string name="permission_row_home">App Home</string>
+    <string name="permission_action_grant">Concedi</string>
+    <string name="permission_action_set">Imposta</string>
+    <string name="permission_action_done">Fatto</string>
+    <string name="home_permission_dialog_title">Permessi necessari</string>
+    <string name="permission_reason_accessibility">🔍 Accessibilità — per rilevare quale app è aperta e mostrare la schermata di blocco.</string>
+    <string name="permission_reason_dnd">🔔 Non disturbare — per silenziare le notifiche durante la pausa, lasciando passare solo le chiamate.</string>
+    <string name="close">Chiudi</string>
 
     <string name="setup_password_info">Imposta la password che SOLO un\'altra persona conoscerà: servirà per terminare le sessioni di pausa.</string>
     <string name="hint_new_password">Nuova password</string>
@@ -11,12 +22,7 @@
     <string name="passwords_dont_match">Le due password non coincidono</string>
     <string name="password_saved">Password impostata</string>
 
-    <string name="session_active">Sessione di pausa attiva</string>
     <string name="session_active_with_time">Sessione di pausa attiva — circa %1$d min rimanenti</string>
-    <string name="permissions_missing">Permessi mancanti: tocca \"Concedi permessi\"</string>
-    <string name="grant_permissions">Concedi permessi</string>
-    <string name="set_as_home">Imposta come Home (consigliato)</string>
-    <string name="start_pause">Inizia pausa</string>
     <string name="session_started">Sessione di pausa avviata</string>
     <string name="home_start_hint">Tocca l\'otter per iniziare</string>
     <string name="home_active_label">In pausa</string>
