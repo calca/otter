@@ -104,17 +104,48 @@ fixes the other:
 2. **Status bar**: `window.statusBarColor` is a plain Android window
    property applied once, by the system, when `super.onCreate()` builds the
    window (from the XML theme `BaseActivity`/`ThemeManager.applyTheme()`
-   set right before it) — `setTheme(styleId)` after that point (which is
-   all `ThemeManager.applyTheme()` does) has no retroactive effect on
-   already-applied window attributes. `MainActivity.onResume()` now also
-   sets `window.statusBarColor` explicitly, resolved from the exact same
-   `@color/{sage,lavender,terracotta}_primary` resources `themes.xml` itself
-   uses (not `ThemeManager.accentColor()` — that function's hardcoded
+   set right before it) — it does not update on its own afterward.
+   `MainActivity.onResume()` now fixes this in two steps, both required:
+   first it calls `ThemeManager.applyTheme(this, themeVariant)` again (the
+   same call `BaseActivity.onCreate()` made, just re-run) — this alone has
+   no visible effect since it only updates which style the Activity's
+   `Resources.Theme` object will resolve attributes against *going
+   forward*, it doesn't retroactively touch the already-created window.
+   Then `window.statusBarColor = MaterialColors.getColor(this,
+   com.google.android.material.R.attr.colorPrimary, Color.BLACK)` reads
+   `colorPrimary` back out of that just-updated theme object and applies it
+   to the window explicitly. Skipping the `applyTheme()` re-call was an
+   earlier, incomplete version of this fix: `MaterialColors.getColor()` was
+   still reading the *previous* theme's resolved `colorPrimary`, since
+   nothing had told the Activity's theme object to move on.
+
+   Reading `colorPrimary` this way (rather than a fixed
+   `@color/{sage,lavender,terracotta}_primary` resource, which was this
+   fix's very first attempt) is also what makes it dark-mode-correct for
+   free: `values-night/themes.xml` gives each palette its own distinct
+   dark `colorPrimary` values (`#6BBFA0`/`#A99ED0`/`#C4927A` — not tinted
+   variants of the light `colors.xml` values, see "Two parallel systems"
+   above), and `MaterialColors.getColor()` resolves whichever one is
+   currently active automatically. A `colors.xml`-resource-based version
+   would have needed its own light/dark branching to get this right, and
+   would still have been wrong if it had reused
+   `ThemeManager.accentColor()` — that function's hardcoded
    Lavender/Terracotta hex values have drifted from `colors.xml` and don't
-   match; it's currently unused anywhere else, so the drift was silent).
-   This line only matters on Android <15 — targetSdk 37's mandatory
-   edge-to-edge makes the status bar transparent (no strip to color) on 15+
-   regardless, per CLAUDE.md.
+   match either; it's currently unused anywhere else, so the drift had
+   gone unnoticed.
+
+   This status-bar line only matters on Android <15 — targetSdk 37's
+   mandatory edge-to-edge makes the status bar transparent (no strip to
+   color) on 15+ regardless, per CLAUDE.md.
+
+**Known separate gap, not fixed here**: the theme-picker's three dots
+(`ThemeDot`/`theme_dot_*.xml`, see "Theme picker UI" below) always show
+each palette's *light* `colorPrimary` swatch (from `@color/*_primary` in
+`colors.xml`, which has no night variant), even when the app is in dark
+mode and that palette's actual dark `colorPrimary` is a different color
+(e.g. Sage's dot shows `#0F5238` in dark mode, but selecting it applies
+`#6BBFA0`). Pre-existing, not introduced by this fix — noticed while
+verifying the fix above across both light and dark mode.
 
 Every other Activity this app has is either recreated on the one path that
 changes the theme (`SettingsActivity`) or is always freshly `startActivity`'d

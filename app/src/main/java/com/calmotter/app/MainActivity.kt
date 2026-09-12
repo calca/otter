@@ -15,6 +15,7 @@ import androidx.compose.runtime.setValue
 import androidx.core.content.ContextCompat
 import com.calmotter.app.ui.screens.MainScreen
 import com.calmotter.app.ui.theme.CalmOtterTheme
+import com.google.android.material.color.MaterialColors
 
 class MainActivity : BaseActivity() {
 
@@ -97,16 +98,28 @@ class MainActivity : BaseActivity() {
         // Il colore di sistema della barra di stato (impostato dal tema XML
         // una sola volta, quando super.onCreate() crea la finestra) non
         // segue currentTheme da solo come fa Compose: va riapplicato qui a
-        // mano. Nessun effetto sotto Android 15+ (edge-to-edge imposto da
-        // targetSdk 37 rende la barra di stato trasparente, vedi CLAUDE.md),
-        // ma resta visibile sulle versioni precedenti.
-        window.statusBarColor = ContextCompat.getColor(this, statusBarColorRes(currentTheme))
+        // mano. setTheme() (dentro applyTheme) va richiamato per prima cosa:
+        // il tema risolto dell'Activity resta quello di onCreate() finché
+        // non viene detto altrimenti, quindi senza questa chiamata
+        // MaterialColors.getColor() sotto continuerebbe a leggere
+        // "colorPrimary" della palette precedente anche dopo un cambio.
+        ThemeManager.applyTheme(this, themeVariant)
+        // MaterialColors.getColor legge l'attributo "colorPrimary" già
+        // risolto dal tema (appena riapplicato sopra) — tiene conto da solo
+        // sia della palette sia della modalità chiaro/scuro
+        // (values-night/themes.xml ha i suoi colorPrimary scuri distinti,
+        // non semplici varianti di colors.xml, vedi
+        // specs/multi-theme-system/design.md) — a differenza di un colore
+        // preso da colors.xml (che non ha varianti -night), che sarebbe
+        // risultato sbagliato in dark mode. Nessun effetto sotto Android
+        // 15+ (edge-to-edge imposto da targetSdk 37 rende la barra di stato
+        // trasparente, vedi CLAUDE.md), ma resta visibile sulle versioni
+        // precedenti.
+        window.statusBarColor = MaterialColors.getColor(
+            this,
+            com.google.android.material.R.attr.colorPrimary,
+            android.graphics.Color.BLACK,
+        )
         resumeSignal++
-    }
-
-    private fun statusBarColorRes(theme: AppTheme): Int = when (theme) {
-        AppTheme.SAGE -> R.color.sage_primary
-        AppTheme.LAVENDER -> R.color.lavender_primary
-        AppTheme.TERRACOTTA -> R.color.terracotta_primary
     }
 }
