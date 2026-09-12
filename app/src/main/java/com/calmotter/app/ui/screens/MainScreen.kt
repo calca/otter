@@ -162,14 +162,14 @@ fun MainScreen(
                 text = stringResource(R.string.app_name),
                 fontSize = 24.sp,
                 fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.onBackground,
+                color = MaterialTheme.colorScheme.primary,
                 modifier = Modifier.weight(1f)
             )
             IconButton(onClick = onSettings) {
                 Icon(
                     imageVector = Icons.Default.Settings,
                     contentDescription = stringResource(R.string.settings_title),
-                    tint = MaterialTheme.colorScheme.onBackground
+                    tint = MaterialTheme.colorScheme.primary
                 )
             }
         }
