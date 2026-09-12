@@ -16,6 +16,7 @@ everything described is live in `main` today.
 - [`session-history-and-stats/`](session-history-and-stats/requirements.md) — Room-backed history, streaks, weekly goal, CSV export
 - [`multi-theme-system/`](multi-theme-system/requirements.md) — three-palette theming across XML window chrome and Compose content
 - [`home-screen-widget/`](home-screen-widget/requirements.md) — the Glance 1×1 widget
+- [`mascot-marks/`](mascot-marks/requirements.md) — the app icon and the two in-app otter illustrations
 
 Each feature has:
 - `requirements.md` — user stories with EARS-style acceptance criteria (WHEN/THE SYSTEM SHALL), matching current behavior

@@ -7,6 +7,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.glance.GlanceId
 import androidx.glance.GlanceModifier
+import androidx.glance.Image
+import androidx.glance.ImageProvider
 import androidx.glance.action.ActionParameters
 import androidx.glance.action.clickable
 import androidx.glance.appwidget.GlanceAppWidget
@@ -22,6 +24,7 @@ import androidx.glance.layout.Alignment
 import androidx.glance.layout.Column
 import androidx.glance.layout.fillMaxSize
 import androidx.glance.layout.padding
+import androidx.glance.layout.size
 import androidx.glance.text.FontWeight
 import androidx.glance.text.Text
 import androidx.glance.text.TextStyle
@@ -78,7 +81,11 @@ class PauseGlanceWidget : GlanceAppWidget() {
                         )
                     )
                 } else {
-                    Text(text = "🦦", style = TextStyle(fontSize = 26.sp))
+                    Image(
+                        provider = ImageProvider(R.drawable.ic_otter_widget),
+                        contentDescription = null,
+                        modifier = GlanceModifier.size(28.dp)
+                    )
                     Text(
                         text = context.getString(R.string.widget_label_idle),
                         style = TextStyle(

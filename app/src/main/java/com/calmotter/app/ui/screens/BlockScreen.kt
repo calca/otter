@@ -34,6 +34,7 @@ import com.calmotter.app.CalmCountdown
 import com.calmotter.app.PasswordManager
 import com.calmotter.app.R
 import com.calmotter.app.SessionManager
+import com.calmotter.app.ui.mascot.PausePawsMark
 import kotlinx.coroutines.delay
 
 /**
@@ -118,6 +119,8 @@ fun BlockScreen(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
+        PausePawsMark(modifier = Modifier.padding(bottom = 16.dp))
+
         Text(
             text = stringResource(R.string.block_title),
             color = MaterialTheme.colorScheme.primary,

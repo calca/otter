@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Versione per l'icona "themed"/monocromatica (Android 13+, Material You):
+    solo la silhouette testa+orecchie, senza occhi/naso — le icone
+    monocromatiche vanno semplificate ulteriormente rispetto al foreground
+    a colori, non solo ricolorate.
+-->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M29,58 a25,25 0 1,0 50,0 a25,25 0 1,0 -50,0
+                           M30,42 a10,10 0 1,0 20,0 a10,10 0 1,0 -20,0
+                           M58,42 a10,10 0 1,0 20,0 a10,10 0 1,0 -20,0" />
+</vector>

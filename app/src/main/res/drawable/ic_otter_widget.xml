@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    "Still Otter" per il widget: stessa silhouette di ic_launcher_foreground,
+    ma con i toni invertiti (testa scura, dettagli chiari) perché qui va
+    sopra lo sfondo chiaro del widget (@color/widget_background, non il
+    verde sage pieno dell'icona app) — usare ic_launcher_foreground così
+    com'è darebbe una testa quasi bianca su sfondo quasi bianco.
+-->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <path
+        android:fillColor="#2C4A3E"
+        android:pathData="M29,58 a25,25 0 1,0 50,0 a25,25 0 1,0 -50,0
+                           M30,42 a10,10 0 1,0 20,0 a10,10 0 1,0 -20,0
+                           M58,42 a10,10 0 1,0 20,0 a10,10 0 1,0 -20,0" />
+    <path
+        android:fillColor="#EAF0E8"
+        android:pathData="M40,62 a6,2.2 0 1,0 12,0 a6,2.2 0 1,0 -12,0
+                           M56,62 a6,2.2 0 1,0 12,0 a6,2.2 0 1,0 -12,0
+                           M51.5,72 a2.5,2.5 0 1,0 5,0 a2.5,2.5 0 1,0 -5,0" />
+</vector>

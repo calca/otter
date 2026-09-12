@@ -4,8 +4,10 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
@@ -37,6 +39,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.calmotter.app.PasswordManager
 import com.calmotter.app.R
+import com.calmotter.app.ui.mascot.OtterAtRestIllustration
 
 private const val STEP_COUNT = 5
 private const val STEP_PERMISSIONS = 2
@@ -101,7 +104,11 @@ fun OnboardingScreen(
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             when (currentStep) {
-                0 -> StepBody(emoji = "🦦", titleRes = R.string.onb1_title, bodyRes = R.string.onb1_body)
+                0 -> StepBody(
+                    illustration = { OtterAtRestIllustration() },
+                    titleRes = R.string.onb1_title,
+                    bodyRes = R.string.onb1_body
+                )
                 1 -> StepBody(emoji = "🤝", titleRes = R.string.onb2_title, bodyRes = R.string.onb2_body)
                 STEP_PERMISSIONS -> {
                     StepBody(
@@ -290,16 +297,22 @@ private fun StepIndicator(
 
 @Composable
 private fun StepBody(
-    emoji: String,
     titleRes: Int,
     bodyRes: Int,
+    emoji: String? = null,
+    illustration: @Composable (() -> Unit)? = null,
     bodyBottomPadding: Dp = 0.dp,
 ) {
-    Text(
-        text = emoji,
-        fontSize = 72.sp,
-        modifier = Modifier.padding(bottom = 24.dp)
-    )
+    if (illustration != null) {
+        illustration()
+        Spacer(modifier = Modifier.height(24.dp))
+    } else {
+        Text(
+            text = emoji.orEmpty(),
+            fontSize = 72.sp,
+            modifier = Modifier.padding(bottom = 24.dp)
+        )
+    }
     Text(
         text = stringResource(titleRes),
         fontSize = 26.sp,

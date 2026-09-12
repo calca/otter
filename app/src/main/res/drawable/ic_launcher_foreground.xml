@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    "Still Otter": testa vista di fronte, orecchie che sbucano, occhi chiusi.
+    Coordinate pensate per il canvas adaptive-icon 108x108dp con contenuto
+    entro la safe zone centrale (cerchio di 66dp), così sopravvive a
+    qualunque maschera (cerchio, squircle, quadrato arrotondato) applicata
+    dal launcher — vedi specs/ per il resto della famiglia di marchi.
+-->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <!-- testa + orecchie (stessa tinta, un'unica silhouette) -->
+    <path
+        android:fillColor="#F3F5EF"
+        android:pathData="M29,58 a25,25 0 1,0 50,0 a25,25 0 1,0 -50,0
+                           M30,42 a10,10 0 1,0 20,0 a10,10 0 1,0 -20,0
+                           M58,42 a10,10 0 1,0 20,0 a10,10 0 1,0 -20,0" />
+    <!-- occhi chiusi + naso -->
+    <path
+        android:fillColor="#16241D"
+        android:pathData="M40,62 a6,2.2 0 1,0 12,0 a6,2.2 0 1,0 -12,0
+                           M56,62 a6,2.2 0 1,0 12,0 a6,2.2 0 1,0 -12,0
+                           M51.5,72 a2.5,2.5 0 1,0 5,0 a2.5,2.5 0 1,0 -5,0" />
+</vector>
