@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
@@ -81,7 +82,7 @@ fun HistoryScreen(
         else -> stringResource(R.string.weekly_summary_many, weekSessions, formatMinutes(weekMinutes))
     }
 
-    Column(modifier = Modifier.fillMaxSize()) {
+    Column(modifier = Modifier.fillMaxSize().safeDrawingPadding()) {
         StatsBar(sessions = sessions)
 
         // Tutto il resto in scroll — equivalente del NestedScrollView.
@@ -313,6 +314,7 @@ private fun EmptyHistory() {
     Box(
         modifier = Modifier
             .fillMaxSize()
+            .safeDrawingPadding()
             .padding(48.dp),
         contentAlignment = Alignment.Center
     ) {

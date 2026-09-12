@@ -33,14 +33,21 @@ CI (`.github/workflows/ci.yml`) runs `lint`, `testDebugUnitTest`, and
 build-breaking. `.github/workflows/android.yml` produces a signed release APK
 from a secrets-backed keystore on push to main/master.
 
-Toolchain versions are pinned and interdependent — don't bump AGP/Kotlin/KSP
-independently: KSP's version must match the Kotlin version exactly
-(`1.9.24-1.0.20` for Kotlin `1.9.24`), and the Compose Compiler extension
-version in `app/build.gradle.kts` (`composeOptions.kotlinCompilerExtensionVersion`)
-is tied to the Kotlin version per Google's compatibility map. Since the
-project is still on Kotlin 1.9.x (not 2.0+), Compose is wired via the classic
-`kotlinCompilerExtensionVersion` mechanism rather than the
-`org.jetbrains.kotlin.plugin.compose` plugin.
+Toolchain: Kotlin 2.4.20, AGP 9.4.0, Gradle 9.7.0, compileSdk/targetSdk 37
+(`compileSdkMinor = 1`, i.e. platform 37.1), KSP 2.3.12 (its versioning is
+decoupled from Kotlin's as of the 2.3.x line — no exact-match requirement
+like older KSP). The Compose Compiler is configured via the
+`org.jetbrains.kotlin.plugin.compose` Gradle plugin (required since Kotlin
+2.0+; there's no `composeOptions.kotlinCompilerExtensionVersion` to set).
+Compose comes from `androidx.compose:compose-bom-alpha:2026.09.00` —
+**an alpha channel BOM, not the stable one, on purpose**: stable `material3`
+(1.4.0) has `MaterialExpressiveTheme` and `MotionScheme.expressive()`/
+`standard()` marked Kotlin-`internal` (verified by decompiling the actual
+jar), so Material 3 Expressive isn't reachable from app code until 1.5.0,
+still alpha. Robolectric is pinned to run its own SDK shadow at 35
+(`app/src/test/resources/robolectric.properties`) rather than the real
+targetSdk 37, because Robolectric's SDK-36+ shadows require Java 21 and
+this project builds with Java 17.
 
 ## Architecture
 
@@ -53,6 +60,22 @@ Glance**, not vanilla Compose — the `AppWidgetProviderInfo` XML
 (`widget_pause_info.xml`) still points to a plain XML `initialLayout`
 (`widget_pause.xml`), which is an Android platform requirement, not legacy
 code; don't "clean it up".
+
+`CalmOtterTheme` wraps content in `MaterialExpressiveTheme` (Material 3
+Expressive — spring-based motion, expressive shapes/typography by default).
+See the toolchain paragraph above for why that requires an alpha Compose
+BOM, and `specs/multi-theme-system/design.md` for which `MaterialTheme`
+color roles are actually customized per palette — `surfaceVariant` and
+`primaryContainer` are **not** (they silently fall back to M3's stock
+default, ignoring Sage/Lavender/Terracotta entirely); this has already
+caused one real bug, see `specs/mascot-marks/design.md`.
+
+**Every screen's root layout applies `Modifier.safeDrawingPadding()`.**
+targetSdk 37 means edge-to-edge is enforced (unconditionally, cannot be
+opted out of) on Android 15+ devices — without this, content renders
+under the status bar/notch/nav bar on real hardware, though this is
+invisible on any emulator running Android ≤14. Any new top-level screen
+composable needs this modifier on its root too.
 
 **No DI framework.** State-holding classes (`SessionManager`,
 `PasswordManager`, `SessionHistoryManager`, `AllowedAppsManager`,
