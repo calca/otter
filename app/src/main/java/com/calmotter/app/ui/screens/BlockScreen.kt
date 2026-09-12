@@ -27,8 +27,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.ColorFilter
-import androidx.compose.ui.graphics.ColorMatrix
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
@@ -233,13 +233,18 @@ fun BlockScreen(
             Text(stringResource(R.string.unlock))
         }
 
-        // Icone desaturate in un'unica row (non una lista testuale): restano
-        // riconoscibili a colpo d'occhio ma senza il richiamo visivo di un
-        // colore acceso — vedi specs/app-blocking-and-home-lock/design.md
-        // per perché questa sezione esiste solo quando Calm Otter è l'app
-        // Home (altrove il launcher originale resta comunque raggiungibile)
-        // e per il telefono sempre incluso/il tetto di 5 app configurabili.
+        // Icone "desaturate" tingendole con primary (BlendMode.Color: prende
+        // tonalità/saturazione dal tint, luminosità dall'icona originale —
+        // stesso trucco duotone usato altrove in Android per un'icona
+        // monocromatica) invece di un grigio neutro: restano riconoscibili
+        // a colpo d'occhio ma senza il richiamo visivo di un'icona a colori
+        // pieni, e seguono comunque la palette (Sage/Lavender/Terracotta)
+        // invece di essere fisse su un grigio, stesso principio del resto
+        // delle mascotte/schermate — vedi specs/app-blocking-and-home-lock/
+        // design.md per perché questa sezione esiste solo quando Calm Otter
+        // è l'app Home e per il telefono sempre incluso/il tetto di 5 app.
         if (allowedApps.isNotEmpty()) {
+            val allowedAppTint = MaterialTheme.colorScheme.primary
             Text(
                 text = stringResource(R.string.block_allowed_apps_label),
                 color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.55f),
@@ -256,7 +261,7 @@ fun BlockScreen(
                     Image(
                         bitmap = app.icon.asImageBitmap(),
                         contentDescription = app.label,
-                        colorFilter = ColorFilter.colorMatrix(ColorMatrix().apply { setToSaturation(0f) }),
+                        colorFilter = ColorFilter.tint(allowedAppTint, BlendMode.Color),
                         modifier = Modifier
                             .size(40.dp)
                             .clickable { onLaunchApp(app.packageName) }

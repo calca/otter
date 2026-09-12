@@ -97,13 +97,20 @@ never offered a way to launch one.
 - **`AllowedAppLaunchItem(label, packageName, icon: Bitmap)`** (in
   `BlockScreen.kt`) started out text-only (no icon) on the theory that
   plain text would read as more low-key than icons; revised after seeing
-  it on-device to icons after all, but **desaturated** at draw time
-  (`ColorFilter.colorMatrix(ColorMatrix().apply { setToSaturation(0f) })`)
-  and laid out in a single `Row`, not a vertical list — recognizable at a
-  glance without the visual pull of full-color icons or the length of a
-  text list. `icon` is loaded the same way `AppItem.icon` is in
-  `AllowedAppsScreen.kt` (`loadIcon(packageManager).toBitmap()`), converted
-  to `ImageBitmap` only at draw time via `.asImageBitmap()`.
+  it on-device to icons after all, laid out in a single `Row`, not a
+  vertical list — recognizable at a glance without the length of a text
+  list. Colored via `ColorFilter.tint(MaterialTheme.colorScheme.primary,
+  BlendMode.Color)` rather than a flat grayscale desaturation
+  (`ColorMatrix().setToSaturation(0f)`, the first attempt): `BlendMode.Color`
+  takes hue+saturation from the tint and luminance from the source icon —
+  the standard Android duotone trick — so the icons read as muted/low-key
+  like a plain desaturation would, but tinted toward whichever palette
+  (Sage/Lavender/Terracotta) is active instead of a fixed neutral gray,
+  consistent with every other mark in the app reading from `primary`
+  rather than an uncustomized/neutral role. `icon` is loaded the same way
+  `AppItem.icon` is in `AllowedAppsScreen.kt`
+  (`loadIcon(packageManager).toBitmap()`), converted to `ImageBitmap` only
+  at draw time via `.asImageBitmap()`.
 - **`HomeActivity.loadAllowedAppLaunchItems()`** resolves labels/icons only
   for packages already in `AllowedAppsManager.getAllowedPackages()` — a
   handful of entries, unlike `AllowedAppsActivity.loadApps()`'s full
