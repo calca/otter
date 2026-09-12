@@ -23,9 +23,16 @@ jobs:
 
       - name: Set up Android SDK
         uses: android-actions/setup-android@v3
+        with:
+          # Il default di questa action (build cmdline-tools molto vecchio,
+          # es. 12266719) non riconosce ancora "platforms;android-37.1"
+          # (compileSdk 37.1, richiesto dalle dipendenze Compose alpha):
+          # sdkmanager fallisce con "Failed to find package" anche se il
+          # pacchetto esiste lato Google. Versione più recente verificata.
+          cmdline-tools-version: 14742923
 
-      - name: Install Android SDK platform & build-tools for compileSdk 37
-        run: sdkmanager "platforms;android-37" "build-tools;37.0.0"
+      - name: Install Android SDK platform & build-tools for compileSdk 37.1
+        run: sdkmanager "platforms;android-37.1" "build-tools;37.0.0"
 
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v4
