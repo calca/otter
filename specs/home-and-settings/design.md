@@ -46,3 +46,67 @@ that state or those callbacks belong to Home anymore. Added:
 `ThemeDot` (the AndroidView-wrapped theme-dot selector — see
 `multi-theme-system/design.md`) moved to `SettingsScreen.kt` as private
 composables, unchanged internally.
+
+## Living Pond: `PondScene` (`MainScreen.kt`)
+
+A second redesign pass replaced the plain duration-picker/Start-button/
+streak-text/History-button column with an otter-centric "pond" scene, kept
+in the same file as private composables (no new file — everything here is
+Home-specific, not a general-purpose mascot mark, except `OtterFloatMark`
+itself which lives in `ui/mascot/OtterMarks.kt` alongside the other two
+marks since it's reused nowhere outside Home but is thematically a mark).
+
+- **`PondScene`** — a `Column` containing a fixed-size `Box` (the "pond":
+  ripples/ring + otter, always centered) followed by either the duration
+  chips or the active-session readout. `sessionActive` switches both the
+  Box's contents and the row below it.
+- **`AmbientRipples`** — three `Canvas`-drawn circles animated via one
+  shared `rememberInfiniteTransition` float `t` (`0f..1f`, linear,
+  restarting), each ring reading `(t + phase) % 1f` at a different `phase`
+  (`0f`/`0.33f`/`0.66f`) so they appear staggered from a single animation
+  driver rather than three independent ones. Purely decorative — shown
+  only when `!sessionActive`.
+- **`ProgressRing`** — two `drawArc` calls (a full track + a partial sweep
+  from `-90°`, i.e. starting at 12 o'clock) over a fixed-size `Canvas`.
+  `fraction = 1 - remainingMillis/totalMillis`, recomputed by
+  `refreshDerivedState()` on the same `resumeSignal` cadence as everything
+  else on this screen — **it does not tick live on a per-second timer**;
+  matching the pre-existing `session_active_with_time` status text, which
+  never did either. Shown only when `sessionActive`.
+- **`OtterFloatMark`** (`ui/mascot/OtterMarks.kt`) sits inside a `Box` with
+  `.offset(y = floatOffset.dp)` driven by its own
+  `rememberInfiniteTransition` (a slower period while a session is active —
+  5200ms vs 3200ms — meant to read as "settled" rather than "waiting").
+  That same `Box` carries `.clip(CircleShape).clickable(enabled = canStart,
+  onClick = onStart)` — **the otter itself is the Start-Pause control**;
+  there is no separate button. `canStart = accessibilityOk && dndOk &&
+  !sessionActive`, computed in `MainScreen` and threaded down, same
+  permission logic `MainActivity` already exposed before this redesign.
+- **`DurationChipRow`** — a hand-drawn chip row (`Surface(onClick = ...)`
+  per `DURATION_LABELS` entry, colored via `onSurface.copy(alpha = ...)`),
+  **not** M3's `FilterChip`. `FilterChip`'s selected/unselected colors pull
+  from `secondaryContainer`/`primaryContainer`-family roles, which are not
+  customized per palette (see the `surfaceVariant` trap note in CLAUDE.md
+  and `mascot-marks/design.md`) — using it here would silently reintroduce
+  a fixed, non-palette-aware color, exactly the bug this file already
+  documents once. Replaces the old `NumberPicker`/`AndroidView` wheel
+  entirely; `selectedDurationIndex` (`1..8`, matching `DURATION_LABELS`)
+  lives in `MainScreen`'s own `remember` state instead of being read off an
+  `AndroidView` reference at click time.
+- **`SessionsChartCard`** — one `Surface(onClick = onHistory)` wrapping a
+  header row (streak text or `home_chart_label`, plus the `home_history_cta`
+  affordance text) and a `Row` of 7 `Box`es whose `fillMaxHeight(fraction)`
+  encodes `last7DayMinutes()` (private function, Calendar-based day
+  bucketing of `SessionRecord.effectiveMinutes`, oldest-to-newest, today
+  last — mirrors `SessionStreak`'s own `dayStart()` logic but is not shared
+  code with it, since `SessionStreak.dayStart()` is private). The whole
+  card is the History entry point now (`Modifier.alpha(0.6f)` when
+  `sessionActive`, instead of being hidden) — there is no separate History
+  button anymore.
+
+All of the above deliberately avoid every M3 color role except the eight
+that `CalmOtterTheme.kt` actually customizes per palette
+(`background`/`surface`/`onBackground`/`onSurface`/`primary`/`onPrimary`/
+`error`/`onError`) — see the `surfaceVariant` trap note in CLAUDE.md.
+`primary` appears in exactly one place in this whole scene: the active
+progress ring's sweep arc.

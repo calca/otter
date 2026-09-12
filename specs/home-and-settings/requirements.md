@@ -9,6 +9,13 @@ needed to start a pause) and a separate Settings screen (occasional,
 password-adjacent configuration) — see `specs/mascot-marks/` for the
 similarly-motivated visual-identity work from the same design pass.
 
+Home was later redesigned again as "Living Pond": the otter mark itself
+became the start-pause control (an ambient scene, not a form), and the
+separate streak text + History button were merged into one sessions-chart
+card. See "Living Pond redesign" below for that second pass; User Story 1
+and User Story 3 describe the *current* behavior, not the original
+flat-column one.
+
 ## User Story 1: A calm Home
 
 As the phone's user, I want the home screen to show only what I need to
@@ -17,17 +24,27 @@ buttons for things I rarely touch.
 
 ### Acceptance Criteria
 
-1. WHEN the home screen is shown THEN the system SHALL display, and only
-   display: the app name with a settings icon, the current status, the
-   duration picker (hidden once a session is active), the Start Pause
-   button, a streak indicator (shown only when the streak is ≥ 1 day), and
-   a History button.
-2. WHEN accessibility access, Do Not Disturb access, or default-Home status
+1. WHEN the home screen is shown AND no session is active THEN the system
+   SHALL display: the app name with a settings icon, ambient decorative
+   ripples around the otter mark, a horizontally-scrollable row of duration
+   chips (30 min through 4h in 30-minute steps), and the sessions-chart card
+   (see User Story 3).
+2. WHEN the otter mark is tapped AND accessibility access AND Do Not Disturb
+   access are both granted AND no session is active THEN the system SHALL
+   start a pause session for the currently-selected chip's duration — the
+   otter is the Start-Pause control, there is no separate "Start" button.
+3. WHEN accessibility access, Do Not Disturb access, or default-Home status
    is not yet granted/set THEN the system SHALL show the corresponding
-   prompt button, exactly as before this change — these are not "settings",
-   they gate the Start Pause action itself and must stay visible on Home
-   until resolved.
-3. WHEN the settings icon is tapped THEN the system SHALL open Settings.
+   prompt button above the pond scene, exactly as before this change (only
+   relocated, not removed) — these are not "settings", they gate the
+   start-pause action itself and must stay visible on Home until resolved;
+   while any permission is missing the otter mark is not tappable.
+4. WHEN a session is active THEN the system SHALL replace the ambient
+   ripples with a functional progress ring around the otter (fraction of
+   time elapsed) and replace the duration chips with a status readout
+   ("Paused" + minutes remaining); the duration chips and permission/Home
+   prompts are not shown while a session is active.
+5. WHEN the settings icon is tapped THEN the system SHALL open Settings.
 
 ## User Story 2: Settings holds the occasional stuff
 
@@ -56,6 +73,26 @@ enjoy, unlike changing the password.
 
 ### Acceptance Criteria
 
-1. History is NOT part of Settings — it keeps its own button directly on
-   Home, per an explicit choice made when this split was designed (checking
+1. History is NOT part of Settings — it stays reachable directly from Home,
+   per an explicit choice made when this split was designed (checking
    progress is frequent and rewarding, configuration is occasional).
+2. WHEN the home screen is shown THEN the system SHALL display a card
+   showing, for each of the last 7 calendar days (oldest to newest, today
+   last), a bar proportional to that day's total session minutes, today's
+   bar visually emphasized; the card's header shows the current streak
+   (`streak_days`) when it is ≥ 1 day, or a neutral "recent sessions" label
+   otherwise.
+3. WHEN the card is tapped (anywhere on it) THEN the system SHALL open
+   History — the card itself is the CTA, there is no separate button.
+4. WHILE a session is active THE card SHALL remain visible but visually
+   de-emphasized (reduced opacity), since it isn't the focus of that state.
+
+## Living Pond redesign
+
+The second Home redesign pass (see `specs/mascot-marks/` for the otter
+marks it reuses) deliberately keeps color use minimal, per explicit
+direction that saturated color on an idle screen is distracting: the otter
+mark, ambient ripples, duration chips, and chart bars are all neutral
+(`onSurface` at varying alpha), and the one color reintroduced — `primary`
+— appears only on the active-session progress ring, because there it
+carries real information (time elapsed) rather than being decorative.

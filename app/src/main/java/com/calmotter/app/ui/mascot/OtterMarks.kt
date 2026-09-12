@@ -147,3 +147,31 @@ fun PausePawsMark(modifier: Modifier = Modifier, markSize: Dp = 72.dp) {
         drawCircle(color = bg, radius = v(2.6f), center = Offset(v(133f), v(150f)))
     }
 }
+
+/**
+ * Lontra vista dall'alto, a galla: il pulsante principale della Home
+ * ("Living Pond", vedi specs/home-and-settings). Tinte neutre (onSurface) sia
+ * a riposo che durante una sessione attiva — il colore resta riservato
+ * all'anello di avanzamento che le viene disegnato intorno solo quando una
+ * sessione è in corso, l'unico punto in cui porta un'informazione reale
+ * (quanto tempo è passato) invece di essere decorazione.
+ */
+@Composable
+fun OtterFloatMark(modifier: Modifier = Modifier, markSize: Dp = 96.dp) {
+    val fur = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.55f)
+    val face = MaterialTheme.colorScheme.background
+    val ink = MaterialTheme.colorScheme.onSurface
+
+    Canvas(modifier = modifier.size(markSize)) {
+        val s = size.width / 108f
+        fun v(value: Float) = value * s
+
+        drawCircle(color = fur, radius = v(25f), center = Offset(v(54f), v(58f)))
+        drawCircle(color = fur, radius = v(10f), center = Offset(v(40f), v(42f)))
+        drawCircle(color = fur, radius = v(10f), center = Offset(v(68f), v(42f)))
+
+        drawOval(color = face, topLeft = Offset(v(40f), v(59.8f)), size = Size(v(12f), v(4.4f)))
+        drawOval(color = face, topLeft = Offset(v(56f), v(59.8f)), size = Size(v(12f), v(4.4f)))
+        drawCircle(color = ink, radius = v(2.5f), center = Offset(v(54f), v(72f)))
+    }
+}

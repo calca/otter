@@ -14,12 +14,15 @@
     <string name="session_active">Sessione di pausa attiva</string>
     <string name="session_active_with_time">Sessione di pausa attiva — circa %1$d min rimanenti</string>
     <string name="permissions_missing">Permessi mancanti: tocca \"Concedi permessi\"</string>
-    <string name="ready">Pronto per iniziare una pausa</string>
-    <string name="duration_label">Durata della pausa</string>
     <string name="grant_permissions">Concedi permessi</string>
     <string name="set_as_home">Imposta come Home (consigliato)</string>
     <string name="start_pause">Inizia pausa</string>
     <string name="session_started">Sessione di pausa avviata</string>
+    <string name="home_start_hint">Tocca l\'otter per iniziare</string>
+    <string name="home_active_label">In pausa</string>
+    <string name="home_time_remaining">%1$d min rimasti</string>
+    <string name="home_chart_label">Le tue ultime sessioni</string>
+    <string name="home_history_cta">Cronologia →</string>
     <string name="session_ended">Sessione terminata</string>
     <string name="block_title">Pausa in corso</string>
     <string name="block_message">Tutte le app sono bloccate, tranne il telefono. Solo chi conosce la password può terminare la pausa prima del tempo.</string>
