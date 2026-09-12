@@ -233,13 +233,54 @@ then a Home key press — confirmed `OnboardingActivity` appears (not a
 forward, not a blank/looping state), with exactly one `type=home` task in
 `dumpsys activity activities`.
 
+## Settings' "Home app" switch: two real bugs, both found via logcat
+
 `SettingsActivity.promptSetAsHome()` (moved here from `MainActivity`, see
-`home-and-settings/design.md`) disables then re-enables `MainActivity`'s
-own component (`COMPONENT_ENABLED_STATE_DISABLED` → `_ENABLED`) to force
-Android's Home-app chooser to reappear even if the user previously
-dismissed it, then fires a `CATEGORY_HOME` intent so the chooser shows
-immediately — see "One Activity, two roles" above for why this now
-targets `MainActivity` rather than a separate `HomeActivity`.
+`home-and-settings/design.md`) used to disable then re-enable
+`MainActivity`'s own component (`COMPONENT_ENABLED_STATE_DISABLED` →
+`_ENABLED`) to force Android's Home-app chooser to reappear even if the
+user previously dismissed it, then fired a `CATEGORY_HOME` intent so the
+chooser would show immediately.
+
+**Bug 1**: on Android 10+ (API 29+), the Home-app preference is owned by
+`RoleManager` (`android.app.role.HOME`), not the old `PackageManager`
+"always"/`IntentResolver` preferred-activity mechanism the disable/re-enable
+trick relies on. Disabling and re-enabling a component has zero effect on a
+`RoleManager`-held role — reported as "the button doesn't do anything", and
+confirmed via `adb logcat`: tapping it just silently re-resolved the
+`CATEGORY_HOME` intent straight back to the already-assigned launcher
+(`ActivityTaskManager: START ... cmp=<already-current-launcher>`), no
+chooser ever appeared. `RoleManager.createRequestRoleIntent(ROLE_HOME)` is
+the API meant for exactly this: it always shows the system's Home-role
+picker, even when a different app already holds the role.
+
+**Bug 2, found while fixing Bug 1**: `createRequestRoleIntent()`'s result
+must never be launched via a plain `startActivity()`. The system
+`RequestRoleActivity` that handles it determines the requesting
+package from the calling Activity's token, which Android only propagates
+when the intent is launched "for result" — a plain `startActivity()`
+produces `RequestRoleActivity: Package name cannot be null or empty: null`
+in logcat, and the activity finishes itself immediately with no UI shown at
+all, the exact same "nothing happens" symptom as Bug 1 but for a different
+reason. Fixed by launching it through a
+`registerForActivityResult(ActivityResultContracts.StartActivityForResult())`
+launcher instead (the result itself is unused — `onResume()`'s existing
+`resumeSignal` refresh already recomputes `isDefaultHome()` when the user
+returns).
+
+Below API 29, `RoleManager` doesn't exist and the Home preference really is
+governed by the old "always" mechanism, so the original disable/re-enable
+trick is kept for that range (`minSdk` is 26).
+
+Verified on-device end to end, both bugs reproduced and re-checked after
+each fix via `adb logcat` (the two distinct log signatures above): tapping
+the "Home app" switch now shows the real system "Set as default home app?"
+dialog listing Calm Otter alongside the current launcher; selecting Calm
+Otter and confirming correctly makes `dumpsys role` report
+`com.calmotter.app` as the `android.app.role.HOME` holder; pressing Home
+afterward with no session active forwards to the previous launcher as
+designed (see `LauncherManager` above), and with a session active shows
+`BlockScreen` instead — the full loop, not just the role assignment.
 
 ## Allowed-apps loading
 

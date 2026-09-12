@@ -230,10 +230,12 @@ with two separate, more targeted pieces of UI.
   from the new shared `PermissionChecks.kt` (see "What moved where, and
   why") rather than each Activity computing them independently.
 - **`isDefaultHome()`/`promptSetAsHome()`** moved to `SettingsActivity`
-  unchanged (same `ComponentName`/`PackageManager` dance documented in
-  `app-blocking-and-home-lock/design.md`) — `SettingsScreen` receives them
-  as `isDefaultHome: () -> Boolean` / `onSetHome: () -> Unit`, refreshed by
-  the same `resumeSignal` as the two permission checks.
+  unchanged at the time — `SettingsScreen` receives them as
+  `isDefaultHome: () -> Boolean` / `onSetHome: () -> Unit`, refreshed by the
+  same `resumeSignal` as the two permission checks. `promptSetAsHome()`'s
+  own implementation was later found broken on Android 10+ and rewritten
+  around `RoleManager` — see `app-blocking-and-home-lock/design.md`'s
+  "Settings' 'Home app' switch: two real bugs, both found via logcat".
 
 ## Tinted background: `Modifier.calmBackground()`
 

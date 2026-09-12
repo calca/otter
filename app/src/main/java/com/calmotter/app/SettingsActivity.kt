@@ -1,15 +1,18 @@
 package com.calmotter.app
 
+import android.app.role.RoleManager
 import android.content.ComponentName
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
+import android.os.Build
 import android.os.Bundle
 import android.provider.Settings
 import android.text.InputType
 import android.widget.EditText
 import android.widget.Toast
 import androidx.activity.compose.setContent
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -48,6 +51,18 @@ class SettingsActivity : BaseActivity() {
     private lateinit var launcherManager: LauncherManager
 
     private var resumeSignal by mutableIntStateOf(0)
+
+    // RequestRoleActivity (vedi promptSetAsHome()) determina il pacchetto
+    // richiedente dal token dell'Activity chiamante, che il sistema propaga
+    // solo quando l'intent parte da un lancio "for result" — un
+    // startActivity() semplice non basta: risulterebbe in "Package name
+    // cannot be null or empty: null" lato sistema, e l'Activity si
+    // chiuderebbe da sola senza mostrare alcun selettore (bug reale,
+    // osservato via logcat). Il risultato stesso non serve: onResume()
+    // ricalcola già isDefaultHome() al ritorno.
+    private val roleRequestLauncher = registerForActivityResult(
+        ActivityResultContracts.StartActivityForResult()
+    ) { /* onResume() già ricalcola isDefaultHome() */ }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -113,20 +128,56 @@ class SettingsActivity : BaseActivity() {
     }
 
     /**
-     * Forza la ricomparsa del selettore "App Home" di Android: disabilitare e
-     * riabilitare il componente azzera la preferenza già salvata dal sistema,
-     * così l'utente può scegliere/confermare CalmOtter come app Home.
+     * Forza la ricomparsa del selettore "App Home" di Android, così l'utente
+     * può scegliere/confermare CalmOtter come app Home.
      *
-     * MainActivity ora gestisce sia l'icona del launcher sia il ruolo Home
-     * (le due Activity separate sono state unificate, vedi MainActivity.kt),
-     * quindi questo toggle disabilita/riabilita momentaneamente anche
-     * l'icona del launcher, non solo l'ingresso Home — inevitabile una volta
-     * che sono lo stesso componente, ma DONT_KILL_APP + riabilitazione
-     * immediata lo rendono un flicker trascurabile, non un vero
-     * disallineamento visibile.
+     * Da Android 10 (API 29) in poi la preferenza Home è gestita da
+     * [RoleManager], non più dal vecchio meccanismo "always" di
+     * PackageManager — **primo bug reale**: il vecchio trick (disabilitare
+     * e riabilitare il componente per azzerare quella preferenza "always")
+     * non ha più alcun effetto su RoleManager. Il tap sul pulsante
+     * risolveva silenziosamente un intent Home generico sul launcher già
+     * impostato (verificato via log: nessun selettore mostrato, nessun
+     * cambio di titolare del ruolo), dando l'impressione che il pulsante
+     * non facesse nulla. `RoleManager.createRequestRoleIntent(ROLE_HOME)`
+     * è l'API pensata apposta per questo: mostra sempre il selettore di
+     * sistema per il ruolo Home, anche quando un altro titolare è già
+     * impostato.
+     *
+     * **Secondo bug reale, scoperto correggendo il primo**: quell'intent
+     * non deve MAI partire da un semplice `startActivity()` — l'Activity di
+     * sistema che lo gestisce (`RequestRoleActivity`) legge il pacchetto
+     * richiedente dal token dell'Activity chiamante, che Android propaga
+     * solo quando il lancio avviene "for result". Con `startActivity()`
+     * semplice si ottiene silenziosamente `"Package name cannot be null or
+     * empty: null"` lato sistema (visto in logcat) e l'attività si chiude
+     * da sola, di nuovo senza mostrare alcun selettore — stesso sintomo
+     * "il pulsante non fa nulla" del primo bug, causa diversa. Corretto
+     * lanciandolo tramite [roleRequestLauncher]
+     * (`registerForActivityResult`) invece di `startActivity()` diretto.
+     *
+     * Sotto Android 10 (minSdk 26: API 26-28) RoleManager non esiste
+     * ancora — lì la preferenza Home era davvero gestita dal vecchio
+     * meccanismo "always", quindi il trick disabilita/riabilita resta
+     * valido e viene mantenuto per quelle versioni. MainActivity ora
+     * gestisce sia l'icona del launcher sia il ruolo Home (le due Activity
+     * separate sono state unificate, vedi MainActivity.kt), quindi quel
+     * toggle disabilita/riabilita momentaneamente anche l'icona del
+     * launcher, non solo l'ingresso Home — inevitabile una volta che sono
+     * lo stesso componente, ma DONT_KILL_APP + riabilitazione immediata lo
+     * rendono un flicker trascurabile, non un vero disallineamento
+     * visibile.
      */
     private fun promptSetAsHome() {
         launcherManager.refreshOriginalLauncherPackage()
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            val roleManager = getSystemService(RoleManager::class.java)
+            if (roleManager != null && roleManager.isRoleAvailable(RoleManager.ROLE_HOME)) {
+                roleRequestLauncher.launch(roleManager.createRequestRoleIntent(RoleManager.ROLE_HOME))
+            }
+            return
+        }
 
         val componentName = ComponentName(this, MainActivity::class.java)
         packageManager.setComponentEnabledSetting(
