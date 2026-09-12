@@ -116,11 +116,19 @@ class SettingsActivity : BaseActivity() {
      * Forza la ricomparsa del selettore "App Home" di Android: disabilitare e
      * riabilitare il componente azzera la preferenza già salvata dal sistema,
      * così l'utente può scegliere/confermare CalmOtter come app Home.
+     *
+     * MainActivity ora gestisce sia l'icona del launcher sia il ruolo Home
+     * (le due Activity separate sono state unificate, vedi MainActivity.kt),
+     * quindi questo toggle disabilita/riabilita momentaneamente anche
+     * l'icona del launcher, non solo l'ingresso Home — inevitabile una volta
+     * che sono lo stesso componente, ma DONT_KILL_APP + riabilitazione
+     * immediata lo rendono un flicker trascurabile, non un vero
+     * disallineamento visibile.
      */
     private fun promptSetAsHome() {
         launcherManager.saveOriginalLauncherIfNeeded()
 
-        val componentName = ComponentName(this, HomeActivity::class.java)
+        val componentName = ComponentName(this, MainActivity::class.java)
         packageManager.setComponentEnabledSetting(
             componentName,
             PackageManager.COMPONENT_ENABLED_STATE_DISABLED,

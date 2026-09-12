@@ -8,7 +8,7 @@
 | `AllowedAppsManager.kt` | Plain-`SharedPreferences` set of extra allowed package names |
 | `AllowedAppsActivity.kt` / `ui/screens/AllowedAppsScreen.kt` | Password-gated editor; loads all launcher-intent activities off the main thread |
 | `BlockOverlayActivity.kt` | Hosts `BlockScreen` for the "blocked app" case |
-| `HomeActivity.kt` | Hosts the same `BlockScreen` for the "Home button" case, or forwards to the original launcher |
+| `MainActivity.kt` | Also hosts `BlockScreen`, for the "Home button pressed during an active session" case (see "One Activity, two roles" below) — a separate `HomeActivity` class used to own this, merged into `MainActivity` on request |
 | `LauncherManager.kt` | Remembers the device's pre-CalmOtter default launcher package |
 | `ui/screens/BlockScreen.kt` | Shared Composable for both block entry points |
 
@@ -21,18 +21,74 @@ Calm Otter's own package — unioned with
 is false, the service returns immediately without even computing the exempt
 set (cheap common case).
 
-## Why `BlockOverlayActivity` and `HomeActivity` share `BlockScreen`
+## One Activity, two roles: `MainActivity` merges the old `HomeActivity`
 
-Both entry points need identical behavior once shown (countdown, phrase,
-lock/unlock action, allowed-apps row) — the only differences are what happens *after*:
-`BlockOverlayActivity.finish()`s itself (returns to whatever was blocked);
-`HomeActivity` forwards to the original launcher on unlock/expiry via
-`LauncherManager.getOriginalLauncherPackage()`. These differences are
-injected as lambdas (`onExpiredImmediately`, `onExpiredNaturally`,
-`onUnlocked`) rather than duplicating the Composable. `BlockOverlayActivity`
-additionally shows a toast on natural expiry; `HomeActivity` does not (see
-each file's lambda wiring — this is the one behavioral difference between
-the two callers).
+`MainActivity` used to be purely `CATEGORY_LAUNCHER` (the app icon); a
+separate `HomeActivity` class was `CATEGORY_HOME` (shown when Calm Otter is
+set as the device's Home app — see `SettingsActivity.promptSetAsHome()`),
+hosting `BlockScreen` when a session was active or forwarding to the
+original launcher otherwise. Merged into a single `MainActivity` on
+request, at parity of behavior (not a redesign) — having two classes for
+what's conceptually one "Home surface" was the actual complaint, not
+anything about what each one did.
+
+- **`AndroidManifest.xml`** now declares **two `<intent-filter>` blocks on
+  the same `MainActivity` entry**: the original `LAUNCHER` one, plus the
+  `HOME`/`DEFAULT` one that used to belong to `HomeActivity`.
+  `android:launchMode="singleTask"` (new — plain `MainActivity` had no
+  explicit launchMode before, i.e. `standard`) keeps repeated Home-button
+  presses from stacking duplicate instances: a new `Intent` to an
+  already-running instance is delivered via `onNewIntent()` instead of
+  spawning another `onCreate()`. `themeVariant` stays `ThemeVariant.BASE`
+  unconditionally — `BASE` and `BLOCK` resolve to byte-for-byte identical
+  XML styles (see `multi-theme-system/design.md`; the `.Block` styles are
+  bare aliases with zero overrides), so there was never a need to compute
+  it dynamically based on how the Activity was invoked.
+- **`MainActivity.handleIntent(intent)`** (called from both `onCreate()`
+  and `onNewIntent()`) is the merge point: `intent.categories?.contains
+  (Intent.CATEGORY_HOME)` decides whether this launch came from the Home
+  button. If so and no session is active, it forwards to the original
+  launcher and finishes (`HomeActivity`'s old idle behavior) — `onCreate()`
+  checks `isFinishing` right after and skips `setContent {}` if so. If so
+  and a session *is* active, it sets `showBlockForHome = true` (a
+  `mutableStateOf<Boolean>`) and rolls a fresh phrase into
+  `blockPhraseText`; otherwise (opened via the launcher icon, any session
+  state) it's `false`. `setContent {}`'s single composition branches on
+  `showBlockForHome`: `BlockScreen` vs `MainScreen`. Because both are
+  `mutableStateOf`, flipping them from `onNewIntent()` on an already-live
+  instance recomposes the right content directly — no `recreate()` needed,
+  and none should be added; that would defeat the point of reusing the
+  instance and cause a visible flicker.
+- **Opening the app via its icon during an active session still shows
+  `MainScreen`'s "Paused" view, never `BlockScreen`** — `showBlockForHome`
+  is only ever set from the `CATEGORY_HOME` branch, so a `LAUNCHER` intent
+  can never trigger it regardless of session state. This was the one
+  behavior that had to survive the merge exactly as-is.
+- **The two behavioral differences between the two old callers survive
+  unchanged**, just now living in the one class: `BlockOverlayActivity`
+  shows a toast on natural session expiry, this path (via
+  `forwardToOriginalLauncher()`) does not; `BlockOverlayActivity.finish()`s
+  itself back to whatever was blocked, this path forwards to the original
+  launcher via `LauncherManager.getOriginalLauncherPackage()`. Both are
+  still injected into the shared `BlockScreen` as lambdas
+  (`onExpiredImmediately`, `onExpiredNaturally`, `onUnlocked`), not
+  duplicated Composable logic.
+- **Verified on-device, not just by reading the diff** (this touches
+  Android task/launchMode semantics, easy to get subtly wrong): icon-open
+  idle, icon-open with active session (Paused view, not block), Home-press
+  idle (forwards away), Home-press with active session (`BlockScreen`),
+  Home-press *again* while already showing `BlockScreen` (reuses the
+  instance via `onNewIntent`, fresh phrase, no duplicate/leaked instance),
+  unlocking from that screen, and normal Settings/History navigation
+  (`singleTask` doesn't break the ability to push child activities or
+  back-navigate out of them).
+- **`SettingsActivity.promptSetAsHome()`'s disable/re-enable trick** (see
+  below) now targets `MainActivity`'s component instead of a separate
+  `HomeActivity` one — since it's the same component that also owns the
+  launcher intent-filter, the brief disable/re-enable also momentarily
+  disables the app's launcher icon, not just its Home eligibility.
+  `PackageManager.DONT_KILL_APP` plus immediately re-enabling keeps this to
+  an imperceptible flicker in practice, not a real gap.
 
 ## `LauncherManager` detection
 
@@ -51,11 +107,12 @@ permission/Home-app status) is ever tapped.
 ## Setting Calm Otter as Home
 
 `SettingsActivity.promptSetAsHome()` (moved here from `MainActivity`, see
-`home-and-settings/design.md`) disables then re-enables `HomeActivity`'s
-component (`COMPONENT_ENABLED_STATE_DISABLED` → `_ENABLED`) to force
+`home-and-settings/design.md`) disables then re-enables `MainActivity`'s
+own component (`COMPONENT_ENABLED_STATE_DISABLED` → `_ENABLED`) to force
 Android's Home-app chooser to reappear even if the user previously
 dismissed it, then fires a `CATEGORY_HOME` intent so the chooser shows
-immediately.
+immediately — see "One Activity, two roles" above for why this now
+targets `MainActivity` rather than a separate `HomeActivity`.
 
 ## Allowed-apps loading
 
@@ -76,7 +133,7 @@ against the initial load.
 on Android 11+ package-visibility rules — added after this was flagged as a
 gap; don't remove it.
 
-## Launching an allowed app from `HomeActivity`: `BlockScreen.allowedApps`
+## Launching an allowed app from `MainActivity`: `BlockScreen.allowedApps`
 
 A gap found and closed after the fact: when Calm Otter *is* set as Home and
 a session is active, pressing Home shows `BlockScreen` with no launcher UI
@@ -95,8 +152,9 @@ never offered a way to launch one.
   reachable regardless — but the app icons within it are simply omitted
   when `allowedApps` is empty, and the row's caption switches to a plain
   "Unlock" instead of "Unlock or open an allowed app" in that case, so
-  `BlockOverlayActivity` (which never has any) and `HomeActivity` with no
-  configured allowed apps both read naturally as "just an unlock control",
+  `BlockOverlayActivity` (which never has any) and `MainActivity`'s
+  Home-invoked path with no configured allowed apps both read naturally as
+  "just an unlock control",
   not a broken empty list.
 - **`AllowedAppLaunchItem(label, packageName)`** (in `BlockScreen.kt`) went
   through three looks before landing here: text-only rows (too long/lost
@@ -108,7 +166,7 @@ never offered a way to launch one.
   below) rather than a distinct style for "app" vs "action". This also
   means no icon/`Bitmap` is loaded at all anymore — `AllowedAppLaunchItem`
   only carries what's needed to derive the initials and launch the app.
-- **`HomeActivity.loadAllowedAppLaunchItems()`** resolves labels only for
+- **`MainActivity.loadAllowedAppLaunchItems()`** resolves labels only for
   packages already in `AllowedAppsManager.getAllowedPackages()` — a
   handful of entries, unlike `AllowedAppsActivity.loadApps()`'s full
   installed-app enumeration — so it runs synchronously on the main thread
@@ -135,7 +193,7 @@ never offered a way to launch one.
   accepting it and truncating the display elsewhere) so the stored
   whitelist and what `BlockScreen` shows never disagree. The phone doesn't
   count against it (see above).
-- **`HomeActivity.launchAllowedApp()`** just calls
+- **`MainActivity.launchAllowedApp()`** just calls
   `packageManager.getLaunchIntentForPackage(packageName)` and starts it,
   swallowing a null/failed intent silently (package became unlaunchable
   between list-load and tap) rather than surfacing an error — the user

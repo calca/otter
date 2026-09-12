@@ -5,8 +5,9 @@ import android.content.Intent
 
 /**
  * Memorizza il pacchetto del launcher "vero" del telefono (quello usato
- * prima che CalmOtter diventasse l'app Home), così che HomeActivity possa
- * inoltrargli il tasto Home quando nessuna sessione di pausa è attiva.
+ * prima che CalmOtter diventasse l'app Home), così che MainActivity (quando
+ * invocata come app Home, vedi il suo handleIntent()) possa inoltrargli il
+ * tasto Home quando nessuna sessione di pausa è attiva.
  *
  * `queryIntentActivities` restituisce TUTTE le app che dichiarano di poter
  * gestire l'intent HOME, indipendentemente da quale sia il default attuale:

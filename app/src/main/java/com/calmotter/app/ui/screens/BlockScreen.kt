@@ -60,11 +60,13 @@ data class AllowedAppLaunchItem(val label: String, val packageName: String)
 
 /**
  * Schermata condivisa "sessione bloccata, inserisci la password per sbloccare",
- * usata sia da BlockOverlayActivity che da HomeActivity (stesso layout XML
- * precedente, stessa logica). Le due differenze di comportamento fra le due
- * activity (toast sì/no alla scadenza naturale del countdown, e formattazione
- * della frase opzionale) restano fuori da qui: sono decise dal chiamante
- * tramite [onExpiredNaturally] e tramite il parametro già formattato
+ * usata sia da BlockOverlayActivity che da MainActivity (quando invocata
+ * come app Home con una sessione attiva — vedi MainActivity.kt, che prima
+ * era una classe separata, HomeActivity, poi unificata). Le differenze di
+ * comportamento fra i due chiamanti (toast sì/no alla scadenza naturale del
+ * countdown, e formattazione della frase opzionale) restano fuori da qui:
+ * sono decise dal chiamante tramite [onExpiredNaturally] e tramite il
+ * parametro già formattato
  * [phraseText].
  */
 @Composable

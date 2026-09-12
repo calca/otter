@@ -1,11 +1,13 @@
 package com.calmotter.app
 
 import android.Manifest
+import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
 import android.provider.Settings
+import android.telecom.TelecomManager
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.runtime.getValue
@@ -13,16 +15,37 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.core.content.ContextCompat
+import com.calmotter.app.ui.screens.AllowedAppLaunchItem
+import com.calmotter.app.ui.screens.BlockScreen
 import com.calmotter.app.ui.screens.MainScreen
 import com.calmotter.app.ui.theme.CalmOtterTheme
 import com.google.android.material.color.MaterialColors
 
+/**
+ * Un'unica Activity per due ruoli: icona del launcher (CATEGORY_LAUNCHER,
+ * comportamento invariato — mostra sempre MainScreen, la Living Pond) e app
+ * Home (CATEGORY_HOME, quando l'utente la imposta come tale da Settings —
+ * vedi SettingsActivity.promptSetAsHome()). Prima erano due classi separate
+ * (questa e la ormai rimossa HomeActivity): unificate su richiesta esplicita
+ * — comportamento identico a prima, non un redesign — perché avere due
+ * Activity per quello che concettualmente è un solo "schermo Home" era
+ * percepito come inutilmente complicato.
+ *
+ * `launchMode="singleTask"` in AndroidManifest.xml (vedi lì) evita che
+ * pressioni ripetute del tasto Home impilino istanze duplicate — ogni nuovo
+ * Intent su un'istanza già viva arriva a [onNewIntent], non a un nuovo
+ * [onCreate]. `themeVariant` resta [ThemeVariant.BASE] sempre: BLOCK e BASE
+ * risolvono agli stessi identici stili XML (vedi values/themes.xml, gli
+ * alias `.Block` non aggiungono nulla), quindi non serve calcolarlo in modo
+ * dinamico in base a come l'Activity è stata invocata.
+ */
 class MainActivity : BaseActivity() {
 
     private lateinit var passwordManager: PasswordManager
     private lateinit var sessionManager: SessionManager
     private lateinit var sessionHistoryManager: SessionHistoryManager
     private lateinit var launcherManager: LauncherManager
+    private lateinit var phraseManager: PhraseManager
 
     // Incrementato a ogni onResume(): passato come parametro a MainScreen così
     // che il suo LaunchedEffect(resumeSignal) ricalcoli lo stato che dipende
@@ -41,6 +64,15 @@ class MainActivity : BaseActivity() {
     // ricompone subito l'intero albero con lo schema colore aggiornato.
     private var currentTheme by mutableStateOf(AppTheme.SAGE)
 
+    // true quando questa istanza è stata invocata come app Home (pressione
+    // del tasto Home, CATEGORY_HOME) CON una sessione attiva: in quel caso,
+    // e solo in quel caso, il contenuto mostrato è BlockScreen invece di
+    // MainScreen. Aperta dall'icona del launcher, anche a sessione attiva,
+    // mostra sempre MainScreen (nella sua vista "in pausa") — comportamento
+    // invariato rispetto a prima della fusione delle due Activity.
+    private var showBlockForHome by mutableStateOf(false)
+    private var blockPhraseText by mutableStateOf<String?>(null)
+
     private val notificationPermissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestPermission()
     ) { /* refreshUi non serve: il permesso non cambia il layout */ }
@@ -52,6 +84,7 @@ class MainActivity : BaseActivity() {
         sessionManager = SessionManager.getInstance(applicationContext)
         sessionHistoryManager = SessionHistoryManager.getInstance(applicationContext)
         launcherManager = LauncherManager.getInstance(applicationContext)
+        phraseManager = PhraseManager.getInstance(applicationContext)
         launcherManager.saveOriginalLauncherIfNeeded()
         currentTheme = ThemeManager.getTheme(this)
 
@@ -63,20 +96,76 @@ class MainActivity : BaseActivity() {
             }
         }
 
+        handleIntent(intent)
+        if (isFinishing) return // handleIntent ha già inoltrato al launcher originale e chiuso
+
         setContent {
             CalmOtterTheme(appTheme = currentTheme) {
-                MainScreen(
-                    resumeSignal = resumeSignal,
-                    sessionManager = sessionManager,
-                    sessionHistoryManager = sessionHistoryManager,
-                    isAccessibilityServiceEnabled = { isAccessibilityServiceEnabled(this) },
-                    isDndAccessGranted = { isDndAccessGranted(this) },
-                    onGrantAccessibility = { startActivity(Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS)) },
-                    onGrantDnd = { startActivity(Intent(Settings.ACTION_NOTIFICATION_POLICY_ACCESS_SETTINGS)) },
-                    onHistory = { startActivity(Intent(this, HistoryActivity::class.java)) },
-                    onSettings = { startActivity(Intent(this, SettingsActivity::class.java)) },
-                )
+                if (showBlockForHome) {
+                    BlockScreen(
+                        sessionManager = sessionManager,
+                        passwordManager = passwordManager,
+                        phraseText = blockPhraseText,
+                        onExpiredImmediately = { forwardToOriginalLauncher() },
+                        onExpiredNaturally = { forwardToOriginalLauncher() },
+                        onUnlocked = { forwardToOriginalLauncher() },
+                        // Solo quando invocata come Home: se non lo è, il
+                        // launcher originale resta comunque raggiungibile,
+                        // vedi AppBlockerAccessibilityService — qui invece
+                        // premere Home durante una sessione non porta più a
+                        // nessun launcher, quindi è l'unico caso senza questa
+                        // lista in cui un'app consentita non sarebbe
+                        // altrimenti avviabile.
+                        allowedApps = loadAllowedAppLaunchItems(),
+                        onLaunchApp = ::launchAllowedApp,
+                    )
+                } else {
+                    MainScreen(
+                        resumeSignal = resumeSignal,
+                        sessionManager = sessionManager,
+                        sessionHistoryManager = sessionHistoryManager,
+                        isAccessibilityServiceEnabled = { isAccessibilityServiceEnabled(this) },
+                        isDndAccessGranted = { isDndAccessGranted(this) },
+                        onGrantAccessibility = { startActivity(Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS)) },
+                        onGrantDnd = { startActivity(Intent(Settings.ACTION_NOTIFICATION_POLICY_ACCESS_SETTINGS)) },
+                        onHistory = { startActivity(Intent(this, HistoryActivity::class.java)) },
+                        onSettings = { startActivity(Intent(this, SettingsActivity::class.java)) },
+                    )
+                }
             }
+        }
+    }
+
+    // launchMode="singleTask" (AndroidManifest.xml): pressioni ripetute del
+    // tasto Home riconsegnano l'Intent a un'istanza già viva tramite questo
+    // metodo, non tramite un nuovo onCreate() — senza questo override
+    // continuerebbe a mostrare il contenuto con cui era stata creata
+    // l'ultima volta, ignorando il nuovo Intent. Non serve recreate(): la
+    // Composition creata in onCreate() è ancora viva, e handleIntent() già
+    // muta showBlockForHome/blockPhraseText (mutableStateOf), che basta a
+    // far ricomporre il contenuto giusto.
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        setIntent(intent)
+        handleIntent(intent)
+    }
+
+    /**
+     * Decide se questa istanza deve mostrare BlockScreen (Home + sessione
+     * attiva) invece di MainScreen, oppure se deve semplicemente sparire
+     * inoltrando al launcher originale (Home + nessuna sessione) — l'unico
+     * comportamento che HomeActivity aveva e MainActivity no.
+     */
+    private fun handleIntent(intent: Intent?) {
+        val cameViaHome = intent?.categories?.contains(Intent.CATEGORY_HOME) == true
+        if (cameViaHome && !sessionManager.isSessionActive()) {
+            forwardToOriginalLauncher()
+            return
+        }
+        showBlockForHome = cameViaHome && sessionManager.isSessionActive()
+        if (showBlockForHome) {
+            val phrase = phraseManager.randomPhrase()
+            blockPhraseText = phrase?.let { "“$it”" }
         }
     }
 
@@ -121,5 +210,74 @@ class MainActivity : BaseActivity() {
             android.graphics.Color.BLACK,
         )
         resumeSignal++
+    }
+
+    /**
+     * Il telefono (dialer di default) è sempre incluso per primo, a parte
+     * dal tetto di [AllowedAppsManager.MAX_ALLOWED_APPS] app configurabili —
+     * è sempre stato implicitamente consentito lato
+     * AppBlockerAccessibilityService, ma prima di questa lista non compariva
+     * mai in un punto da cui poterlo effettivamente *avviare* se non già
+     * aperto. Il resto risolve solo i pacchetti già in whitelist (non
+     * l'intero elenco app installate come fa AllowedAppsActivity) — pochi
+     * elementi, quindi va bene farlo in modo sincrono sul thread main invece
+     * di un dispatch IO. `.take(MAX_ALLOWED_APPS)` è una rete di sicurezza
+     * (il tetto vero è imposto all'aggiunta in AllowedAppsActivity.toggleApp,
+     * questo non dovrebbe mai tagliare nulla in pratica). Un pacchetto
+     * disinstallato dopo essere stato reso consentito viene scartato
+     * silenziosamente (getApplicationInfo lancia).
+     */
+    private fun loadAllowedAppLaunchItems(): List<AllowedAppLaunchItem> {
+        val phoneItem = resolveAppLaunchItem(dialerPackageName())
+        val allowed = AllowedAppsManager.getInstance(applicationContext).getAllowedPackages()
+        val allowedItems = allowed
+            .mapNotNull { resolveAppLaunchItem(it) }
+            .sortedBy { it.label.lowercase() }
+            .take(AllowedAppsManager.MAX_ALLOWED_APPS)
+
+        return listOfNotNull(phoneItem) + allowedItems.filter { it.packageName != phoneItem?.packageName }
+    }
+
+    private fun dialerPackageName(): String? =
+        (getSystemService(Context.TELECOM_SERVICE) as? TelecomManager)?.defaultDialerPackage
+
+    private fun resolveAppLaunchItem(pkg: String?): AllowedAppLaunchItem? {
+        if (pkg == null) return null
+        return try {
+            val label = packageManager.getApplicationInfo(pkg, 0).loadLabel(packageManager).toString()
+            AllowedAppLaunchItem(label = label, packageName = pkg)
+        } catch (e: Exception) {
+            null
+        }
+    }
+
+    private fun launchAllowedApp(packageName: String) {
+        val intent = packageManager.getLaunchIntentForPackage(packageName) ?: return
+        try {
+            startActivity(intent)
+        } catch (e: Exception) {
+            // Pacchetto diventato non avviabile (disinstallato, disabilitato)
+            // tra il caricamento della lista e il tap — nessuna azione, resta
+            // sulla schermata di blocco.
+        }
+    }
+
+    private fun forwardToOriginalLauncher() {
+        val originalPackage = launcherManager.getOriginalLauncherPackage()
+        val intent = Intent(Intent.ACTION_MAIN).apply {
+            addCategory(Intent.CATEGORY_HOME)
+            flags = Intent.FLAG_ACTIVITY_NEW_TASK
+            if (originalPackage != null) setPackage(originalPackage)
+        }
+        try {
+            startActivity(intent)
+        } catch (e: Exception) {
+            startActivity(
+                Intent(Intent.ACTION_MAIN)
+                    .addCategory(Intent.CATEGORY_HOME)
+                    .setFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            )
+        }
+        finish()
     }
 }

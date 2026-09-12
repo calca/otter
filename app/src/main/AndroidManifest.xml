@@ -33,12 +33,29 @@
             android:theme="@style/Theme.CalmOtter.WithActionBar">
         </activity>
 
+        <!--
+            Due intent-filter sulla stessa Activity: icona del launcher
+            (comportamento invariato) e app Home (quando impostata da
+            Settings, vedi SettingsActivity.promptSetAsHome()) — prima erano
+            due classi separate (questa e la ormai rimossa HomeActivity),
+            unificate su richiesta esplicita per ridurre la duplicazione, a
+            parità di comportamento. launchMode="singleTask": una pressione
+            del tasto Home mentre un'istanza è già viva le riconsegna
+            l'Intent tramite onNewIntent() invece di impilarne una nuova —
+            vedi MainActivity.kt.
+        -->
         <activity
             android:name=".MainActivity"
-            android:exported="true">
+            android:exported="true"
+            android:launchMode="singleTask">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.HOME" />
+                <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
         </activity>
 
@@ -48,19 +65,6 @@
             android:launchMode="singleInstance"
             android:excludeFromRecents="true"
             android:theme="@style/Theme.CalmOtter.Block" />
-
-        <activity
-            android:name=".HomeActivity"
-            android:exported="true"
-            android:launchMode="singleInstance"
-            android:excludeFromRecents="true"
-            android:theme="@style/Theme.CalmOtter.Block">
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-                <category android:name="android.intent.category.HOME" />
-                <category android:name="android.intent.category.DEFAULT" />
-            </intent-filter>
-        </activity>
 
         <activity
             android:name=".HistoryActivity"

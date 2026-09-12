@@ -52,8 +52,12 @@ Three variants per palette, chosen per-Activity via
 - `WITH_ACTION_BAR` — settings-style screens (`HistoryActivity`,
   `ChangePasswordActivity`, `AllowedAppsActivity`, `OnboardingActivity`) that
   use the native `supportActionBar` for a title + Up button
-- `BLOCK` — the full-bleed block screen (`BlockOverlayActivity`,
-  `HomeActivity`)
+- `BLOCK` — the full-bleed block screen (`BlockOverlayActivity`); `MainActivity`
+  stays on `BASE` even when it shows this same block screen (Home button
+  pressed during an active session — see
+  `app-blocking-and-home-lock/design.md`'s "One Activity, two roles"),
+  since `BASE` and `BLOCK` resolve to identical XML styles anyway (the
+  `.Block` aliases below add nothing)
 
 ## Material 3 Expressive
 
