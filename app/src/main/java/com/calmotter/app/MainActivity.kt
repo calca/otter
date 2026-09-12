@@ -262,22 +262,53 @@ class MainActivity : BaseActivity() {
         }
     }
 
+    /**
+     * Non deve MAI poter risolvere di nuovo su questa stessa app: se
+     * capitasse (valore salvato assente/corrotto, o il pacchetto salvato
+     * non più avviabile), il ramo di fallback lancerebbe un intent Home
+     * generico che — dato che CalmOtter è ancora l'app Home impostata in
+     * quel momento — tornerebbe a risolvere su MainActivity stessa, e ogni
+     * istanza ripeterebbe lo stesso forward, creando un loop di istanze che
+     * si rilanciano a vicenda (bug reale osservato con un valore corrotto
+     * in LauncherManager). Per questo ogni pacchetto bersaglio, incluso
+     * quello di [findAnyOtherHomePackage], viene sempre passato esplicitamente
+     * via `setPackage(...)` — mai un intent Home senza filtro pacchetto.
+     */
     private fun forwardToOriginalLauncher() {
         val originalPackage = launcherManager.getOriginalLauncherPackage()
-        val intent = Intent(Intent.ACTION_MAIN).apply {
-            addCategory(Intent.CATEGORY_HOME)
-            flags = Intent.FLAG_ACTIVITY_NEW_TASK
-            if (originalPackage != null) setPackage(originalPackage)
-        }
-        try {
-            startActivity(intent)
-        } catch (e: Exception) {
-            startActivity(
-                Intent(Intent.ACTION_MAIN)
-                    .addCategory(Intent.CATEGORY_HOME)
-                    .setFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-            )
+            ?.takeIf { it != packageName && it !in LauncherManager.EXCLUDED_PACKAGES }
+        val targetPackage = originalPackage ?: findAnyOtherHomePackage()
+
+        if (targetPackage != null) {
+            val intent = Intent(Intent.ACTION_MAIN).apply {
+                addCategory(Intent.CATEGORY_HOME)
+                flags = Intent.FLAG_ACTIVITY_NEW_TASK
+                setPackage(targetPackage)
+            }
+            try {
+                startActivity(intent)
+            } catch (e: Exception) {
+                // Il pacchetto risolto un attimo fa non è più avviabile
+                // (disinstallato, disabilitato) — nessun secondo tentativo
+                // con un intent senza filtro pacchetto: si rischierebbe di
+                // tornare su questa stessa app. Ci si ferma qui.
+            }
         }
         finish()
+    }
+
+    /**
+     * Ricerca "fresca" (non fidata dal valore salvato in LauncherManager,
+     * che potrebbe essere assente o corrotto) di un altro pacchetto in
+     * grado di gestire l'Home — sempre escludendo sé stessa e i fallback
+     * di sistema noti (vedi LauncherManager.EXCLUDED_PACKAGES). Se non
+     * trova nulla, restituisce null: meglio non lanciare nessun intent
+     * piuttosto che rischiare un intent Home senza filtro pacchetto.
+     */
+    private fun findAnyOtherHomePackage(): String? {
+        val intent = Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_HOME)
+        return packageManager.queryIntentActivities(intent, 0)
+            .map { it.activityInfo.packageName }
+            .firstOrNull { it != packageName && it !in LauncherManager.EXCLUDED_PACKAGES }
     }
 }

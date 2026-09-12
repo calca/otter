@@ -90,21 +90,71 @@ anything about what each one did.
   `PackageManager.DONT_KILL_APP` plus immediately re-enabling keeps this to
   an imperceptible flicker in practice, not a real gap.
 
-## `LauncherManager` detection
+## `LauncherManager` detection (hardened after a real forwarding-loop bug)
 
-`saveOriginalLauncherIfNeeded()` queries every activity that declares
-`ACTION_MAIN` + `CATEGORY_HOME` via `queryIntentActivities`, which returns
-**all** Home-capable apps regardless of which one is currently the actual
-default — this is why detection still works even if called after Calm Otter
-has already become the default Home app. It only writes once (`if
-(prefs.contains(KEY_PACKAGE)) return`), so it must be called before Calm
-Otter has become Home for the first time to capture the real original
-launcher; `MainActivity.onCreate()` calls it unconditionally, before the
-"Set as Home" row (now in Settings, see `home-and-settings/design.md`'s
-"Permissions off Home" — it moved off Home along with the rest of the
-permission/Home-app status) is ever tapped.
+`saveOriginalLauncherIfNeeded()` prefers `resolveActivity(intent,
+MATCH_DEFAULT_ONLY)` — the actual currently-active default Home resolution,
+reliable in the common case since `MainActivity.onCreate()` calls this
+unconditionally, well before "Set as Home" (now in Settings, see
+`home-and-settings/design.md`'s "Permissions off Home") is ever tapped, so
+Calm Otter usually isn't Home yet when this runs. If that resolves to Calm
+Otter itself (called late, after Calm Otter already became Home) or to
+nothing, it falls back to enumerating **all** Home-capable apps via
+`queryIntentActivities`, which works regardless of the current default. It
+only writes once (`if (prefs.contains(KEY_PACKAGE)) return`).
 
-## Setting Calm Otter as Home
+Both paths now exclude a fixed `EXCLUDED_PACKAGES` set (currently just
+`com.android.settings`) — **a real bug, found and fixed**: the plain
+enumeration approach has no concept of "which candidate is the real
+launcher", so on a device where the ordering happens to put
+`com.android.settings` (which owns `FallbackHome`, AOSP's system fallback
+Home activity, shown when no real launcher is enabled — not something
+meant to be launched directly) ahead of the actual launcher, the wrong
+package got saved as "original launcher". Once saved, this corrupted value
+made `MainActivity.forwardToOriginalLauncher()` fail (see below) — a
+saved-but-non-functional package is just as dangerous as no saved package
+at all, since either way the naive old fallback (an unrestricted `CATEGORY_HOME`
+intent, no `setPackage`) could resolve straight back to Calm Otter itself,
+which was still the active Home role holder, spawning a new instance that
+immediately repeated the same broken forward, indefinitely. Reproduced
+deliberately on-device by writing `com.android.settings` into
+`calm_otter_launcher.xml` and confirming the fix resolves to the real
+launcher instead of looping, before and after each part of the fix below.
+
+**A second, distinct bug surfaced while fixing the first one**: even with
+`com.android.settings` correctly excluded, the fallback search still found
+nothing — `com.google.android.apps.nexuslauncher` (unlike core AOSP
+packages like `com.android.settings`) is subject to Android 11+ package
+visibility rules, and `AndroidManifest.xml`'s `<queries>` block only
+declared visibility for `CATEGORY_LAUNCHER` (for `AllowedAppsActivity`),
+not `CATEGORY_HOME` — so `queryIntentActivities`/`resolveActivity` for Home
+intents couldn't see the real launcher from *this app's* visibility scope
+at all, even though an externally-issued `adb shell am start` to that exact
+package succeeded (shell isn't subject to the same visibility restrictions
+our app is). Fixed by adding a second `<intent>` entry to the same
+`<queries>` block for `ACTION_MAIN`/`CATEGORY_HOME`.
+
+## `forwardToOriginalLauncher()` can never target itself
+
+Even with the two fixes above, `LauncherManager`'s saved value could in
+principle be corrupted or refer to an app since uninstalled — the stored
+value is external state, and this method is the one place a wrong value
+becomes actively dangerous, not just cosmetically wrong. Hardened so the
+loop described above can't recur regardless of what's saved:
+
+- The saved package is only trusted if it's neither Calm Otter's own
+  package nor in `LauncherManager.EXCLUDED_PACKAGES`; otherwise a fresh
+  `findAnyOtherHomePackage()` lookup runs instead (same
+  self/excluded-package filtering as `LauncherManager`, done independently
+  here rather than trusting the saved value at all).
+- **Every intent this method sends now has an explicit `setPackage(...)`.**
+  The old version's exception-fallback branch sent a bare `CATEGORY_HOME`
+  intent with no package restriction — exactly the shape of intent that,
+  since Calm Otter is still the active Home role holder at the moment this
+  runs, can resolve straight back to itself. That fallback is gone; if no
+  safe target package can be found at all, the method simply calls
+  `finish()` without starting anything, rather than risk a self-targeting
+  intent as a last resort.
 
 `SettingsActivity.promptSetAsHome()` (moved here from `MainActivity`, see
 `home-and-settings/design.md`) disables then re-enables `MainActivity`'s

@@ -17,6 +17,18 @@
             <action android:name="android.intent.action.MAIN" />
             <category android:name="android.intent.category.LAUNCHER" />
         </intent>
+        <!-- Stesso motivo, ma per LauncherManager/MainActivity: senza questo,
+             il vero launcher del telefono (es. com.google.android.apps.
+             nexuslauncher, che a differenza di com.android.settings NON è
+             sempre visibile di default) può risultare invisibile a
+             queryIntentActivities/resolveActivity per CATEGORY_HOME,
+             facendo fallire sia il rilevamento del "launcher originale" sia
+             il forward di sicurezza in MainActivity.findAnyOtherHomePackage()
+             — bug reale osservato e corretto. -->
+        <intent>
+            <action android:name="android.intent.action.MAIN" />
+            <category android:name="android.intent.category.HOME" />
+        </intent>
     </queries>
 
     <application
