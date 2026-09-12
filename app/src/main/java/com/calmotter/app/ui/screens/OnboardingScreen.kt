@@ -66,7 +66,7 @@ fun OnboardingScreen(
     var password by remember { mutableStateOf("") }
     var passwordConfirm by remember { mutableStateOf("") }
 
-    Column(modifier = Modifier.fillMaxSize().safeDrawingPadding()) {
+    Column(modifier = Modifier.fillMaxSize().calmBackground().safeDrawingPadding()) {
         StepIndicator(
             stepCount = STEP_COUNT,
             activeIndex = currentStep,

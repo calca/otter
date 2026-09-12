@@ -147,6 +147,7 @@ fun MainScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
+            .calmBackground()
             .safeDrawingPadding()
             .padding(24.dp),
         horizontalAlignment = Alignment.CenterHorizontally

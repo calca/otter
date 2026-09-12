@@ -8,6 +8,7 @@
 | `ui/screens/OnboardingScreen.kt` | The 3-step wizard UI (Compose) |
 | `PasswordManager.kt` | Password hashing, storage (`EncryptedSharedPreferences`), verification |
 | `LockoutPolicy.kt` | Pure rate-limiting state machine (no Context/Keystore dependency) |
+| `ui/screens/CalmBackground.kt` | `Modifier.calmBackground()` — the same light `primary`-tinted background applied to `MainScreen.kt`'s root `Column`, applied here too; see `home-and-settings/design.md`'s "Tinted background" for why it's a low-alpha gradient and not `primary` as a solid fill |
 
 ## Flow
 

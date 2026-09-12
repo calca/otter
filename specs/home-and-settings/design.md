@@ -7,6 +7,7 @@
 | `MainActivity.kt` / `ui/screens/MainScreen.kt` | Home: session state, streak, tap-to-explain permission dialog, navigation to History and Settings |
 | `SettingsActivity.kt` / `ui/screens/SettingsScreen.kt` | Permission/Home-app status card, theme picker, change-password launch, password-gated allowed-apps launch, phrases toggle |
 | `PermissionChecks.kt` | Two top-level functions (`isAccessibilityServiceEnabled`, `isDndAccessGranted`) shared by `MainActivity` and `SettingsActivity` — previously identical private copies in each, plus a third copy in `OnboardingActivity` that was deleted outright (not switched to the shared function) when the permissions step left the onboarding wizard, see `onboarding-and-password/requirements.md`'s "3-step wizard" |
+| `ui/screens/CalmBackground.kt` | `Modifier.calmBackground()`, a `primary`-tinted vertical-gradient background applied to Home's and Onboarding's root `Column`s only — see "Tinted background" below |
 
 ## What moved where, and why
 
@@ -219,3 +220,43 @@ with two separate, more targeted pieces of UI.
   `app-blocking-and-home-lock/design.md`) — `SettingsScreen` receives them
   as `isDefaultHome: () -> Boolean` / `onSetHome: () -> Unit`, refreshed by
   the same `resumeSignal` as the two permission checks.
+
+## Tinted background: `Modifier.calmBackground()`
+
+A fifth pass gave Home and Onboarding (only — not Settings, History, or the
+block screen) a very light `primary`-tinted vertical gradient background,
+in place of the plain neutral `background` they inherited from the window
+theme before. `Modifier.calmBackground()` (`ui/screens/CalmBackground.kt`)
+is a `@Composable` `Modifier` extension:
+
+```kotlin
+this.background(
+    brush = Brush.verticalGradient(
+        colors = listOf(primary.copy(alpha = 0.09f), primary.copy(alpha = 0.02f))
+    )
+)
+```
+
+applied to the root `Column` right after `.fillMaxSize()` and before
+`.safeDrawingPadding()`/`.padding(...)` (so the tint fills the whole screen,
+including the system-bar insets, not just the safe-drawing area). It's a
+single shared function (not duplicated per-screen) because both callers
+want the exact same treatment; it lives in `ui/screens/` since both
+`MainScreen.kt` and `OnboardingScreen.kt` are in that package and can use
+an internal-visibility file directly, no export needed elsewhere.
+
+**Why a low-alpha gradient of `primary` and not `primary` itself as a solid
+fill** — the alternative was explicitly considered and rejected: `primary`
+at full intensity as the background would have broken `OtterFloatMark` on
+both screens, not just the text contrast. In the real implementation (see
+`mascot-marks/design.md`) the mark's fur is `primary` at low alpha, its
+"eyes" are drawn in the literal `background` color (meant to read as
+negative space against the screen), and its nose is `primary` at full
+strength — if `background` itself became `primary`, fur/eyes/nose would
+collapse toward the same hue and the mark would render as a near-featureless
+blob, on top of every `onSurface`/`onBackground` text needing to flip to a
+light color to stay legible on a dark/saturated fill. The chosen low-alpha
+gradient composites over the existing neutral `background` without
+changing what color role any other element already reads — `OtterFloatMark`,
+chips, the chart card, and every text color are completely unaffected,
+which is why this was a small, low-risk change instead of a redesign.
