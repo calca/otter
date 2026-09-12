@@ -10,6 +10,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Rect
+import androidx.compose.ui.geometry.RoundRect
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.StrokeCap
@@ -66,23 +67,28 @@ fun OtterAtRestIllustration(modifier: Modifier = Modifier) {
         }
         drawPath(waterLine, color = water, alpha = 0.35f, style = Stroke(width = v(3f), cap = StrokeCap.Round))
 
-        val tail = Path().apply {
+        // Coda, corpo e testa in un solo Path invece di quattro draw call
+        // separate: si sovrappongono a coppie (coda~corpo, corpo~testa,
+        // testa~orecchio), quindi disegnarle una per una farebbe sommare
+        // l'alpha dello stesso "body" semi-trasparente proprio nelle zone
+        // di sovrapposizione, scurendole — lo stesso artefatto già corretto
+        // in OtterFloatMark. Un solo Path viene riempito in un'unica
+        // passata, quindi l'alpha è applicata una sola volta ovunque.
+        val silhouette = Path().apply {
             moveTo(v(235f), v(95f))
             quadraticTo(v(292f), v(84f), v(306f), v(122f))
             quadraticTo(v(292f), v(158f), v(235f), v(155f))
             close()
+            addRoundRect(
+                RoundRect(
+                    rect = Rect(Offset(v(70f), v(90f)), Size(v(170f), v(80f))),
+                    cornerRadius = CornerRadius(v(40f), v(40f)),
+                )
+            )
+            addOval(Rect(center = Offset(v(60f), v(110f)), radius = v(34f)))
+            addOval(Rect(center = Offset(v(48f), v(86f)), radius = v(11f)))
         }
-        drawPath(tail, color = body)
-
-        drawRoundRect(
-            color = body,
-            topLeft = Offset(v(70f), v(90f)),
-            size = Size(v(170f), v(80f)),
-            cornerRadius = CornerRadius(v(40f), v(40f))
-        )
-
-        drawCircle(color = body, radius = v(34f), center = Offset(v(60f), v(110f)))
-        drawCircle(color = body, radius = v(11f), center = Offset(v(48f), v(86f)))
+        drawPath(silhouette, color = body)
 
         val eye = Path().apply {
             moveTo(v(46f), v(110f))
@@ -91,8 +97,14 @@ fun OtterAtRestIllustration(modifier: Modifier = Modifier) {
         drawPath(eye, color = ink, style = Stroke(width = v(5f), cap = StrokeCap.Round))
         drawOval(color = ink, topLeft = Offset(v(32f), v(116f)), size = Size(v(12f), v(8f)))
 
-        drawOval(color = paw, topLeft = Offset(v(82f), v(74f)), size = Size(v(30f), v(24f)))
-        drawOval(color = paw, topLeft = Offset(v(108f), v(74f)), size = Size(v(30f), v(24f)))
+        // Le due zampe si sovrappongono leggermente al centro: stesso
+        // motivo, un solo Path invece di due drawOval.
+        val paws = Path().apply {
+            addOval(Rect(Offset(v(82f), v(74f)), Size(v(30f), v(24f))))
+            addOval(Rect(Offset(v(108f), v(74f)), Size(v(30f), v(24f))))
+        }
+        drawPath(paws, color = paw)
+
         drawCircle(color = pebble, radius = v(10f), center = Offset(v(110f), v(78f)))
     }
 }
