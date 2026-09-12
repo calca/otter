@@ -59,7 +59,8 @@ that state or those callbacks belong to Home anymore. Added:
 `sessionHistoryManager` (for the streak) and `onSettings`. `ThemePicker`/
 `ThemeDot` (the AndroidView-wrapped theme-dot selector — see
 `multi-theme-system/design.md`) moved to `SettingsScreen.kt` as private
-composables, unchanged internally.
+composables at that time, unchanged internally — later replaced outright by
+`ThemeListCard`/`ThemeListRow`, see "Full list-card redesign" below.
 
 ## Living Pond: `PondScene` (`MainScreen.kt`)
 
@@ -295,3 +296,52 @@ somewhere to go.
   `app-blocking-and-home-lock/design.md`, which does need a `<queries>`
   entry since it enumerates *all* launchable apps, not one well-known
   implicit action).
+
+## Full list-card redesign: `ThemeListCard`, `HomeCard`, `PasswordCard`, `PhrasesCard`
+
+A seventh pass made every Settings section visually consistent — the same
+`Surface(shape = RoundedCornerShape(20.dp), color =
+MaterialTheme.colorScheme.primary.copy(alpha = 0.06f))` card, the same
+`SectionLabel` heading above it — replacing the old dot-based theme picker
+and plain checkbox with the same list-row/toggle idioms already used by
+`PermissionStatusCard`.
+
+- **`ThemeListCard`/`ThemeListRow`** replace `ThemePicker`/`ThemeDot`
+  outright (the AndroidView `StateListDrawable`-based 3-dot row mentioned
+  above, and the now-orphaned `drawable/theme_dot_{sage,lavender,terracotta}.xml`
+  it read, all deleted). Each row is a swatch circle (`colorResource(R.color.*_primary)`,
+  reactive to day/night — see `multi-theme-system/design.md` for why
+  `colorResource()` and not `MaterialTheme.colorScheme.primary` is what
+  makes each row show its *own* palette color regardless of which theme is
+  currently active) + label + a trailing `settings_theme_selected` ("Selected")
+  string on the active row instead of the old filled/outlined dot styling.
+  `ThemeListRow`'s tap target is the whole row (`Modifier.clickable`), not
+  just the swatch.
+- **`HomeCard`** — a single row, `permission_row_home` label + a `Switch`
+  bound to `homeOk`/`onSetHome`. Replaces the old "Set as Home" text button
+  inside `PermissionStatusCard`; Home-app status is no longer mixed in with
+  the two OS permission rows, it's its own section since it isn't a
+  system-level "grant" in the same sense.
+- **`PasswordCard`** — when `partnerName` is non-null/non-empty, a leading
+  read-only row (`settings_password_set_by`, e.g. "Set by Luca") above a
+  divider, then the existing `SettingsActionRow`s for "Change password" and
+  "Manage allowed apps" (both pre-existing, just relocated into this
+  specific card/section instead of loose rows). The name row is omitted
+  entirely (no empty "Set by" placeholder) when no partner name was
+  captured during onboarding or a plain `setPassword(password)` call was
+  used — see `onboarding-and-password/design.md` for where the name comes
+  from.
+- **`PhrasesCard`** — the "Show phrases during pause" preference moved from
+  a plain `Checkbox` + label row into the same card-with-`Switch` shape as
+  `HomeCard`, for visual consistency; behavior (`phraseManager.isEnabled()`/
+  `setEnabled()`) unchanged.
+- **`calmSwitchColors()`** (private, `SettingsScreen.kt`) — a shared
+  `SwitchDefaults.colors(...)` restricted to the same eight palette-safe
+  roles as everywhere else in this app (`primary`/`onPrimary`/`onSurface`
+  only, see the `surfaceVariant` trap note in CLAUDE.md), used by both
+  `HomeCard`'s and `PhrasesCard`'s `Switch`es so they look identical and
+  never accidentally pull in an uncustomized M3 role.
+- Net effect: every Settings section now reads as "a labeled card", with
+  `PermissionStatusCard` no longer the only one — `HomeCard`, `ThemeListCard`,
+  `PasswordCard`, `PhrasesCard`, and the pre-existing `InfoCard` all share
+  the same visual grammar.

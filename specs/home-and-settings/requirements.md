@@ -54,12 +54,17 @@ the screen I open every time I want a break.
 
 ### Acceptance Criteria
 
-1. WHEN Settings is opened THEN the system SHALL show: a permissions status
-   card (see "Permissions off Home"), the theme picker (Sage/Lavender/
-   Terracotta), a "Change password" button, a "Manage allowed apps" button,
-   the reflective-phrases toggle, and an "Info" section (see "Info section"
-   below) — every one of the first five previously lived on the home
-   screen; "Info" is new to Settings, not moved from anywhere.
+1. WHEN Settings is opened THEN the system SHALL show, each as its own
+   labeled section with a card in the same visual style (see "Full
+   list-card redesign" below): a permissions status card (see "Permissions
+   off Home"), a Home section (a single toggle for Home-app status), a
+   Theme section (a list of Sage/Lavender/Terracotta, each row showing its
+   own swatch color, with the active one marked "Selected"), a Password
+   section (who set it, if known; "Change password"; "Manage allowed
+   apps"), a reflective-phrases toggle section, and an "Info" section (see
+   "Info section" below) — every one of these except "Info" previously
+   lived on the home screen; "Info" is new to Settings, not moved from
+   anywhere.
 2. WHEN "Manage allowed apps" is tapped THEN the system SHALL require the
    correct password before opening the allowed-apps editor, exactly as
    before this change (see `app-blocking-and-home-lock/requirements.md`) —
@@ -191,9 +196,33 @@ the three: check them only at the moment the user actually needs them
    dialog. A permission already granted does not get a row — if the user
    granted one on a previous visit to this dialog, only the remaining one(s)
    show up next time.
-4. Settings SHALL show all three (accessibility, Do Not Disturb, "Home
-   app") as a single always-visible status card, each row reading either a
-   checkmark + "Done" or an empty ring + an action ("Grant" for the two
-   system permissions, "Set" for the Home app) — a place to check or fix
-   these deliberately, not a reminder that follows the user onto the
-   screen they open most often.
+4. Settings SHALL show the two system permissions (accessibility, Do Not
+   Disturb) as a single always-visible status card, each row reading either
+   a checkmark + "Done" or an empty ring + a "Grant" action that opens the
+   matching system settings screen — a place to check or fix these
+   deliberately, not a reminder that follows the user onto the screen they
+   open most often. "Home app" status is its own separate section (see
+   "Full list-card redesign" below), shown as a toggle rather than grouped
+   into this card, since setting it is an app-level preference, not a
+   system permission grant.
+
+## Full list-card redesign
+
+A later pass made every Settings section use the same labeled-card visual
+language, and changed two controls from their original form to match the
+rest of the screen.
+
+1. The Theme section SHALL be a list (one row per palette, each showing
+   that palette's own true color as a swatch and the active one marked
+   "Selected"), not the earlier row of selectable colored dots.
+2. The "Show phrases during pause" preference SHALL be a Switch, not a
+   checkbox.
+3. The Home-app status SHALL be a Switch in its own "Home" section (see
+   User Story 2, Acceptance Criteria 4), not a text row inside the
+   permissions card.
+4. The Password section SHALL show, above "Change password" and "Manage
+   allowed apps", the name of the accountability partner who set the
+   current password — if one was captured (see
+   `onboarding-and-password/requirements.md`) — and SHALL show nothing in
+   that spot if no name was ever captured, rather than an empty
+   placeholder.

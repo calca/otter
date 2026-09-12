@@ -28,12 +28,16 @@ setting a password.
    system SHALL show only informational content and a Next control — no
    permission grant buttons or status live here (see "3-step wizard").
 3. WHEN the user reaches step 2 (password) THEN the system SHALL require a
-   password and its confirmation to match before advancing.
+   password and its confirmation to match before advancing, and SHALL also
+   offer an optional "Your name" field for the accountability partner to
+   identify themselves (see "Partner name" below) — leaving it blank SHALL
+   NOT block advancing.
 4. IF the password and confirmation don't match, or the password is empty,
    WHEN the user tries to advance past step 2 THEN the system SHALL show an
    error and SHALL NOT advance or save anything.
 5. WHEN step 2 is passed validation THEN the system SHALL persist the
-   password via `PasswordManager.setPassword` and advance to step 3.
+   password (and the optional name, if provided) via
+   `PasswordManager.setPassword` and advance to step 3.
 6. WHEN the user finishes step 3 THEN the system SHALL start `MainActivity`
    and clear the onboarding activity from the back stack (so back-navigation
    cannot return to onboarding).
@@ -59,6 +63,22 @@ too many pages:
    separate welcome blurb and 4-paragraph "how it works" explanation.
 3. Steps 2 (password) and 3 (done) are otherwise unchanged in content —
    only their step index shifted (were 4 and 5).
+
+## Partner name
+
+A later pass added the optional "Your name" field described in User Story
+1's Acceptance Criteria 3, so Settings can later show who set the current
+password (see `home-and-settings/requirements.md`'s "Full list-card
+redesign").
+
+1. WHEN a name is entered in that field THEN the system SHALL store it
+   (trimmed) alongside the password hash and SHALL make it retrievable
+   independently of verifying the password itself (it is a display label,
+   not a secret).
+2. WHEN the password is later changed via `ChangePasswordScreen` (which
+   does not collect a name) THEN the system SHALL leave any previously
+   stored name untouched — changing the password does not imply the
+   accountability partner changed.
 
 ## User Story 2: Password storage and verification
 

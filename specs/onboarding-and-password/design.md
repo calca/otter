@@ -40,6 +40,25 @@ backgrounded. `OnboardingScreen` now takes only `passwordManager` and
 bytes (`SecureRandom`). Both salt and hash are Base64-encoded
 (`Base64.NO_WRAP`) before being written to `EncryptedSharedPreferences`.
 
+## Partner name
+
+The password step (`STEP_PASSWORD`) also has an optional "Your name"
+`OutlinedTextField` (`hint_partner_name`) above the password/confirm
+fields, captured because Settings later wants to show *who* set the
+password (see `home-and-settings/design.md`'s "Full list-card redesign").
+`setPassword(password: String, partnerName: String? = null)` gained the
+second parameter with a default, so `ChangePasswordScreen.kt`'s existing
+single-argument call still compiles unchanged; the trimmed name is only
+written to `KEY_PARTNER_NAME` when non-blank, and calling `setPassword`
+without a name (e.g. from Change Password) deliberately does **not** erase
+a previously-stored name — changing the password doesn't imply the
+accountability partner changed. `getPartnerName(): String?` is the read
+side, called from `SettingsActivity` and passed straight into
+`SettingsScreen` as `partnerName`. Like the password hash itself, the name
+lives in `EncryptedSharedPreferences` alongside it — it's not sensitive on
+its own, but it's already the same store and there's no reason to split it
+out.
+
 ## Lockout state machine
 
 `LockoutPolicy` is a pure `object` operating on `State(failedAttempts,

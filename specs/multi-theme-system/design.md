@@ -8,7 +8,7 @@
 | `BaseActivity.kt` | Calls `ThemeManager.applyTheme()` before `super.onCreate()` |
 | `res/values/themes.xml` (+ `values-night/themes.xml`) | 3 palettes × 3 variants of AppCompat/Material3 XML themes |
 | `res/values/colors.xml` | Color values referenced by `themes.xml` (`sage_*`, `lavender_*`, `terracotta_*`, plus shared `m3_*` structural colors) |
-| `res/values-night/colors.xml` | Overrides only `sage_primary`/`lavender_primary`/`terracotta_primary` with their dark-mode values — the one place any of `colors.xml` gets a night variant, added so the theme-picker dots (which read these 3 names) show the right swatch in dark mode |
+| `res/values-night/colors.xml` | Overrides only `sage_primary`/`lavender_primary`/`terracotta_primary` with their dark-mode values — the one place any of `colors.xml` gets a night variant, added so the theme-list swatches (`ThemeListRow`, which reads these 3 names via `colorResource()`) show the right color in dark mode |
 | `ui/theme/CalmOtterTheme.kt` | Independent Compose `MaterialExpressiveTheme` color schemes, one per palette × light/dark |
 
 ## Two parallel systems — this is intentional, keep them in sync manually
@@ -142,25 +142,27 @@ fixes the other:
    mandatory edge-to-edge makes the status bar transparent (no strip to
    color) on 15+ regardless, per CLAUDE.md.
 
-**Related, separately fixed**: the theme-picker's three dots
-(`ThemeDot`/`theme_dot_*.xml`, see "Theme picker UI" below) always showed
-each palette's *light* `colorPrimary` swatch (from `@color/*_primary` in
-`colors.xml`, which had no night variant), even when the app was in dark
-mode and that palette's actual dark `colorPrimary` is a different color
-(e.g. Sage's dot showed `#0F5238` in dark mode, but selecting it applies
-`#6BBFA0`) — noticed while verifying the fix above across both light and
-dark mode. Fixed the same way Android resource qualifiers are meant to be
-used: a new `values-night/colors.xml` overrides just the 3 `*_primary`
-color names with their dark-mode values (`#6BBFA0`/`#A99ED0`/`#C4927A`,
-matching `values-night/themes.xml`'s own `colorPrimary` for each palette).
-`theme_dot_*.xml` itself is untouched — it already referenced
-`@color/{sage,lavender,terracotta}_primary`, so it automatically resolves
-against whichever `colors.xml` (default or `-night`) matches the current
-mode, same as any other Android resource lookup. No other consumer of
-these 3 color names exists outside the dot drawables (checked directly),
-so this override is safe — it doesn't touch `values/themes.xml` (light
-mode; unaffected) or `values-night/themes.xml` (doesn't read `@color/*` at
-all, uses its own inline hex — see "Two parallel systems" above).
+**Related, separately fixed**: the old theme-picker's three dots
+(`ThemeDot`/`theme_dot_*.xml`, since replaced — see "Theme picker UI"
+below) always showed each palette's *light* `colorPrimary` swatch (from
+`@color/*_primary` in `colors.xml`, which had no night variant), even when
+the app was in dark mode and that palette's actual dark `colorPrimary` is a
+different color (e.g. Sage's dot showed `#0F5238` in dark mode, but
+selecting it applies `#6BBFA0`) — noticed while verifying the fix above
+across both light and dark mode. Fixed the same way Android resource
+qualifiers are meant to be used: a new `values-night/colors.xml` overrides
+just the 3 `*_primary` color names with their dark-mode values
+(`#6BBFA0`/`#A99ED0`/`#C4927A`, matching `values-night/themes.xml`'s own
+`colorPrimary` for each palette). At the time, the dot drawables already
+referenced `@color/{sage,lavender,terracotta}_primary`, so they
+automatically resolved against whichever `colors.xml` (default or
+`-night`) matched the current mode; today the same 3 names are read
+directly in Compose via `colorResource()` (see "Theme picker UI" below),
+which resolves day/night the same automatic way. No other consumer of
+these 3 color names exists (checked directly), so this override remains
+safe — it doesn't touch `values/themes.xml` (light mode; unaffected) or
+`values-night/themes.xml` (doesn't read `@color/*` at all, uses its own
+inline hex — see "Two parallel systems" above).
 
 Every other Activity this app has is either recreated on the one path that
 changes the theme (`SettingsActivity`) or is always freshly `startActivity`'d
@@ -170,9 +172,22 @@ after any theme change rather than resumed from the back stack
 
 ## Theme picker UI
 
-`SettingsScreen`'s `ThemePicker`/`ThemeDot` (moved there from `MainScreen`
-by the Home/Settings split, see `specs/home-and-settings/design.md`) wrap
-the existing `theme_dot_*.xml` `StateListDrawable`s (selection ring) via
-`AndroidView` rather than reproducing the ring in Compose — this was a
-deliberate choice to stay pixel-identical to the pre-Compose version rather
-than risk a subtly different visual.
+`SettingsScreen`'s theme section was originally `ThemePicker`/`ThemeDot`
+(moved there from `MainScreen` by the Home/Settings split, see
+`specs/home-and-settings/design.md`), which wrapped the `theme_dot_*.xml`
+`StateListDrawable`s (selection ring) via `AndroidView` rather than
+reproducing the ring in Compose — a deliberate choice at the time to stay
+pixel-identical to the pre-Compose version rather than risk a subtly
+different visual.
+
+A later "full list-card redesign" pass (see
+`specs/home-and-settings/design.md`) replaced this outright with
+`ThemeListCard`/`ThemeListRow`, a plain Compose list matching the visual
+style used everywhere else in Settings: each row is a `colorResource(R.color.*_primary)`
+swatch circle (reactive to day/night, same 3 names as above — no
+`AndroidView`, no `StateListDrawable`) plus a label plus a "Selected" text
+on the active row, in place of the dot's selection-ring styling.
+`theme_dot_*.xml` and the `ThemeDot`/`ThemePicker` composables were deleted
+outright once nothing referenced them, rather than left orphaned — the
+selection-ring visual (dot-based) is gone; the active row is now indicated
+by the "Selected" label alone.
