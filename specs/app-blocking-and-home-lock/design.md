@@ -155,7 +155,7 @@ loop described above can't recur regardless of what's saved:
 
 - The saved package is only trusted if it's neither Calm Otter's own
   package nor in `LauncherManager.EXCLUDED_PACKAGES`; otherwise a fresh
-  `findAnyOtherHomePackage()` lookup runs instead (same
+  `findOtherHomePackages()` lookup runs instead (same
   self/excluded-package filtering as `LauncherManager`, done independently
   here rather than trusting the saved value at all).
 - **Every intent this method sends now has an explicit `setPackage(...)`.**
@@ -166,6 +166,72 @@ loop described above can't recur regardless of what's saved:
   safe target package can be found at all, the method simply calls
   `finish()` without starting anything, rather than risk a self-targeting
   intent as a last resort.
+
+## Multiple installed launchers: chooser instead of a guess
+
+`resolveActivity(MATCH_DEFAULT_ONLY)` only reflects "the real launcher"
+reliably when a single default was already chosen at some point. With the
+saved value unusable (missing/corrupted/excluded) and two or more
+launchers installed with no prior default, plain enumeration
+(`queryIntentActivities`) has no ordering tied to "which one the user
+actually wants" — picking `firstOrNull` would be an arbitrary guess, same
+class of problem as the `com.android.settings` bug above, just with a
+legitimate launcher this time instead of a system fallback.
+
+`findOtherHomePackages()` (renamed from the old single-result
+`findAnyOtherHomePackage()`) now returns **all** matching candidates
+instead of just the first. `forwardToOriginalLauncher()` branches on the
+count: zero → nothing to launch, just `finish()`; exactly one → launch it
+directly via `setPackage(...)` as before (this remains the common case in
+practice — verified on-device, unchanged); two or more → `launchHomeChooser()`
+shows an Android chooser dialog restricted to just those candidates, letting
+the user pick instead of guessing on their behalf.
+
+The chooser is built with **`Intent.EXTRA_INITIAL_INTENTS`**, deliberately
+*not* `Intent.createChooser(genericHomeIntent, title)`: a generic
+`CATEGORY_HOME` intent as the chooser's primary target would be re-resolved
+by the system from scratch, and Calm Otter — which also declares
+`CATEGORY_HOME` — would reappear as an option in its own disambiguation
+dialog. Instead, the target intent passed to `createChooser` is an empty,
+action-less `Intent()` that resolves to nothing on its own, and the actual
+options come entirely from `EXTRA_INITIAL_INTENTS`: one explicit
+`ACTION_MAIN`/`CATEGORY_HOME` intent per already-filtered candidate, each
+with its own `setPackage(...)`. Only the pre-vetted candidates are ever
+shown; Calm Otter can't reappear because it was never in that list to begin
+with (same `it != packageName` filter as everywhere else in this file).
+
+Not verified live on-device: this emulator image ships exactly one real
+launcher (`com.google.android.apps.nexuslauncher`), so the 2+-candidate
+branch couldn't be exercised end-to-end without installing a second
+launcher app. The single-candidate path (the common real-world case) was
+re-verified after this change and behaves identically to before.
+
+## Home-forward must not bypass onboarding
+
+Edge case: Android's "Default apps → Home" picker lists every app
+declaring `CATEGORY_HOME` regardless of whether it's ever been launched, so
+it's possible to set Calm Otter as the Home app from system Settings
+*before ever opening the app once* — skipping `OnboardingActivity` and the
+password setup it gates entirely. In that case the very first
+`MainActivity.onCreate()` is triggered by the Home button itself, with no
+session ever started, so `handleIntent()`'s home-and-no-session branch
+would call `forwardToOriginalLauncher()` and `finish()` before
+`onResume()` ever gets a chance to run its own
+`passwordManager.isPasswordSet()` redirect — the user would land on
+whatever other launcher is installed, having never set a password.
+
+Fixed by adding `passwordManager.isPasswordSet()` to the forwarding
+condition in `handleIntent()`. When it's false, the forward is skipped
+entirely (not replaced with a duplicate onboarding-redirect call here) and
+`onCreate()`'s normal flow continues into `setContent { MainScreen(...) }`
+— `onResume()`'s pre-existing redirect (see above) then takes over
+immediately after, exactly as it already does for the ordinary
+launcher-icon entry point. Reproduced deliberately on-device: fresh
+install (no password set), `cmd role add-role-holder
+android.app.role.HOME com.calmotter.app` *without ever launching the app*,
+then a Home key press — confirmed `OnboardingActivity` appears (not a
+forward, not a blank/looping state), with exactly one `type=home` task in
+`dumpsys activity activities`.
 
 `SettingsActivity.promptSetAsHome()` (moved here from `MainActivity`, see
 `home-and-settings/design.md`) disables then re-enables `MainActivity`'s

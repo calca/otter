@@ -155,10 +155,23 @@ class MainActivity : BaseActivity() {
      * attiva) invece di MainScreen, oppure se deve semplicemente sparire
      * inoltrando al launcher originale (Home + nessuna sessione) — l'unico
      * comportamento che HomeActivity aveva e MainActivity no.
+     *
+     * Il forward è condizionato anche a `passwordManager.isPasswordSet()`:
+     * caso limite possibile se CalmOtter viene impostata come app Home dalle
+     * Impostazioni di sistema prima di essere mai stata aperta una volta —
+     * in quel caso questo sarebbe il primissimo onCreate() in assoluto, con
+     * onboarding mai completato. Senza questo controllo, il forward
+     * chiuderebbe subito l'istanza (vedi onCreate) prima che onResume()
+     * abbia mai la possibilità di reindirizzare a OnboardingActivity, e
+     * l'utente finirebbe su un altro launcher senza aver mai impostato una
+     * password. Quando l'onboarding non è completo si salta semplicemente
+     * il forward: il normale flusso di onCreate() prosegue (mostra
+     * MainScreen), e la ridirezione già esistente in onResume() se ne
+     * occupa comunque, subito dopo.
      */
     private fun handleIntent(intent: Intent?) {
         val cameViaHome = intent?.categories?.contains(Intent.CATEGORY_HOME) == true
-        if (cameViaHome && !sessionManager.isSessionActive()) {
+        if (cameViaHome && !sessionManager.isSessionActive() && passwordManager.isPasswordSet()) {
             forwardToOriginalLauncher()
             return
         }
@@ -265,50 +278,96 @@ class MainActivity : BaseActivity() {
     /**
      * Non deve MAI poter risolvere di nuovo su questa stessa app: se
      * capitasse (valore salvato assente/corrotto, o il pacchetto salvato
-     * non più avviabile), il ramo di fallback lancerebbe un intent Home
-     * generico che — dato che CalmOtter è ancora l'app Home impostata in
-     * quel momento — tornerebbe a risolvere su MainActivity stessa, e ogni
-     * istanza ripeterebbe lo stesso forward, creando un loop di istanze che
-     * si rilanciano a vicenda (bug reale osservato con un valore corrotto
-     * in LauncherManager). Per questo ogni pacchetto bersaglio, incluso
-     * quello di [findAnyOtherHomePackage], viene sempre passato esplicitamente
-     * via `setPackage(...)` — mai un intent Home senza filtro pacchetto.
+     * non più avviabile), un intent Home generico risolverebbe di nuovo su
+     * MainActivity stessa — dato che CalmOtter è ancora l'app Home impostata
+     * in quel momento — e ogni istanza ripeterebbe lo stesso forward,
+     * creando un loop di istanze che si rilanciano a vicenda (bug reale
+     * osservato con un valore corrotto in LauncherManager). Per questo ogni
+     * pacchetto bersaglio, incluso ciascuno di [findOtherHomePackages], viene
+     * sempre passato esplicitamente via `setPackage(...)` — mai un intent
+     * Home senza filtro pacchetto.
+     *
+     * Se il valore salvato non è utilizzabile e la ricerca fresca trova più
+     * di un candidato (più launcher installati, nessun default già scelto:
+     * [PackageManager.resolveActivity] non può dire in modo affidabile
+     * "quale sia quello giusto"), si mostra un chooser invece di sceglierne
+     * uno arbitrariamente — vedi [launchHomeChooser].
      */
     private fun forwardToOriginalLauncher() {
         val originalPackage = launcherManager.getOriginalLauncherPackage()
             ?.takeIf { it != packageName && it !in LauncherManager.EXCLUDED_PACKAGES }
-        val targetPackage = originalPackage ?: findAnyOtherHomePackage()
+        val candidates = if (originalPackage != null) listOf(originalPackage) else findOtherHomePackages()
 
-        if (targetPackage != null) {
-            val intent = Intent(Intent.ACTION_MAIN).apply {
-                addCategory(Intent.CATEGORY_HOME)
-                flags = Intent.FLAG_ACTIVITY_NEW_TASK
-                setPackage(targetPackage)
-            }
-            try {
-                startActivity(intent)
-            } catch (e: Exception) {
-                // Il pacchetto risolto un attimo fa non è più avviabile
-                // (disinstallato, disabilitato) — nessun secondo tentativo
-                // con un intent senza filtro pacchetto: si rischierebbe di
-                // tornare su questa stessa app. Ci si ferma qui.
-            }
+        when (candidates.size) {
+            0 -> { /* nessun candidato utilizzabile: nessun intent, si chiude soltanto */ }
+            1 -> launchHomePackage(candidates[0])
+            else -> launchHomeChooser(candidates)
         }
         finish()
     }
 
+    private fun launchHomePackage(pkg: String) {
+        val intent = Intent(Intent.ACTION_MAIN).apply {
+            addCategory(Intent.CATEGORY_HOME)
+            flags = Intent.FLAG_ACTIVITY_NEW_TASK
+            setPackage(pkg)
+        }
+        try {
+            startActivity(intent)
+        } catch (e: Exception) {
+            // Il pacchetto risolto un attimo fa non è più avviabile
+            // (disinstallato, disabilitato) — nessun secondo tentativo
+            // con un intent senza filtro pacchetto: si rischierebbe di
+            // tornare su questa stessa app. Ci si ferma qui.
+        }
+    }
+
+    /**
+     * Chooser limitato esplicitamente ai [candidates] già filtrati, tramite
+     * [Intent.EXTRA_INITIAL_INTENTS] — MAI `Intent.createChooser(intent
+     * Home generico, ...)`: un intent Home generico come bersaglio primario
+     * verrebbe ri-risolto da zero dal sistema, e CalmOtter (che dichiara
+     * anch'essa CATEGORY_HOME) ricomparirebbe come opzione nel proprio
+     * stesso chooser. L'intent bersaglio passato a createChooser qui è
+     * volutamente "vuoto" (nessuna action): non risolve nulla di suo, quindi
+     * le uniche opzioni mostrate sono i candidati elencati esplicitamente.
+     */
+    private fun launchHomeChooser(candidates: List<String>) {
+        val initialIntents = candidates.map { pkg ->
+            Intent(Intent.ACTION_MAIN).apply {
+                addCategory(Intent.CATEGORY_HOME)
+                setPackage(pkg)
+            }
+        }.toTypedArray()
+
+        val chooser = Intent.createChooser(Intent(), getString(R.string.home_launcher_chooser_title)).apply {
+            putExtra(Intent.EXTRA_INITIAL_INTENTS, initialIntents)
+            flags = Intent.FLAG_ACTIVITY_NEW_TASK
+        }
+        try {
+            startActivity(chooser)
+        } catch (e: Exception) {
+            // Nessuna azione: si preferisce non lanciare nulla piuttosto
+            // che rischiare un fallback senza filtro pacchetto.
+        }
+    }
+
     /**
      * Ricerca "fresca" (non fidata dal valore salvato in LauncherManager,
-     * che potrebbe essere assente o corrotto) di un altro pacchetto in
-     * grado di gestire l'Home — sempre escludendo sé stessa e i fallback
-     * di sistema noti (vedi LauncherManager.EXCLUDED_PACKAGES). Se non
-     * trova nulla, restituisce null: meglio non lanciare nessun intent
-     * piuttosto che rischiare un intent Home senza filtro pacchetto.
+     * che potrebbe essere assente o corrotto) di TUTTI gli altri pacchetti
+     * in grado di gestire l'Home — sempre escludendo sé stessa e i fallback
+     * di sistema noti (vedi LauncherManager.EXCLUDED_PACKAGES). L'elenco
+     * completo (non solo il primo trovato) serve a [forwardToOriginalLauncher]
+     * per decidere se lanciare direttamente l'unico candidato o mostrare un
+     * chooser quando ce n'è più di uno, invece di sceglierne uno a caso in
+     * base al solo ordine di enumerazione — che non riflette affatto quale
+     * sia "quello giusto".
      */
-    private fun findAnyOtherHomePackage(): String? {
+    private fun findOtherHomePackages(): List<String> {
         val intent = Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_HOME)
         return packageManager.queryIntentActivities(intent, 0)
             .map { it.activityInfo.packageName }
-            .firstOrNull { it != packageName && it !in LauncherManager.EXCLUDED_PACKAGES }
+            .filter { it != packageName && it !in LauncherManager.EXCLUDED_PACKAGES }
+            .distinct()
     }
 }

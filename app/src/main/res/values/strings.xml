@@ -13,6 +13,7 @@
     <string name="permission_action_grant">Concedi</string>
     <string name="permission_action_done">Fatto</string>
     <string name="home_permission_dialog_title">Permessi necessari</string>
+    <string name="home_launcher_chooser_title">Scegli il launcher da usare</string>
     <string name="permission_reason_accessibility">🔍 Accessibilità — per rilevare quale app è aperta e mostrare la schermata di blocco.</string>
     <string name="permission_reason_dnd">🔔 Non disturbare — per silenziare le notifiche durante la pausa, lasciando passare solo le chiamate.</string>
     <string name="close">Chiudi</string>
