@@ -115,6 +115,7 @@
     <string name="allowed_apps_empty_filtered">Nessuna app trovata</string>
     <string name="save">Salva</string>
     <string name="allowed_apps_saved">Elenco aggiornato</string>
+    <string name="allowed_apps_limit_reached">Massimo %1$d app consentite</string>
 
     <string name="widget_description">Avvia una sessione di pausa in un tap</string>
     <string name="widget_label_idle">Pausa</string>

@@ -20,6 +20,12 @@ class AllowedAppsManager private constructor(context: Context) {
     }
 
     companion object {
+        // Tetto alle app configurabili dall'utente (il telefono resta sempre
+        // raggiungibile a parte, vedi HomeActivity/BlockScreen — non conta in
+        // questo limite): una row di icone in BlockScreen deve restare corta
+        // e leggibile a colpo d'occhio, non diventare un mini app-drawer.
+        const val MAX_ALLOWED_APPS = 5
+
         private const val PREFS_NAME = "calm_otter_allowed_apps"
         private const val KEY_PACKAGES = "allowed_packages"
 

@@ -1,9 +1,12 @@
 package com.calmotter.app
 
+import android.content.Context
 import android.content.Intent
 import android.os.Bundle
+import android.telecom.TelecomManager
 import androidx.activity.OnBackPressedCallback
 import androidx.activity.compose.setContent
+import androidx.core.graphics.drawable.toBitmap
 import com.calmotter.app.ui.screens.AllowedAppLaunchItem
 import com.calmotter.app.ui.screens.BlockScreen
 import com.calmotter.app.ui.theme.CalmOtterTheme
@@ -58,22 +61,46 @@ class HomeActivity : BaseActivity() {
     }
 
     /**
-     * Risolve solo i pacchetti già in whitelist (non l'intero elenco app
-     * installate come fa AllowedAppsActivity) — pochi elementi, quindi va
-     * bene farlo in modo sincrono sul thread main invece di un dispatch IO.
-     * Un pacchetto disinstallato dopo essere stato reso consentito viene
-     * scartato silenziosamente (getApplicationInfo lancia).
+     * Il telefono (dialer di default) è sempre incluso per primo, a parte
+     * dal tetto di [AllowedAppsManager.MAX_ALLOWED_APPS] app configurabili —
+     * è sempre stato implicitamente consentito lato
+     * AppBlockerAccessibilityService, ma prima di questa lista non compariva
+     * mai in un punto da cui poterlo effettivamente *avviare* se non già
+     * aperto. Il resto risolve solo i pacchetti già in whitelist (non
+     * l'intero elenco app installate come fa AllowedAppsActivity) — pochi
+     * elementi, quindi va bene farlo in modo sincrono sul thread main invece
+     * di un dispatch IO. `.take(MAX_ALLOWED_APPS)` è una rete di sicurezza
+     * (il tetto vero è imposto all'aggiunta in AllowedAppsActivity.toggleApp,
+     * questo non dovrebbe mai tagliare nulla in pratica). Un pacchetto
+     * disinstallato dopo essere stato reso consentito viene scartato
+     * silenziosamente (getApplicationInfo lancia).
      */
     private fun loadAllowedAppLaunchItems(): List<AllowedAppLaunchItem> {
+        val phoneItem = resolveAppLaunchItem(dialerPackageName())
         val allowed = AllowedAppsManager.getInstance(applicationContext).getAllowedPackages()
-        return allowed.mapNotNull { pkg ->
-            try {
-                val label = packageManager.getApplicationInfo(pkg, 0).loadLabel(packageManager).toString()
-                AllowedAppLaunchItem(label = label, packageName = pkg)
-            } catch (e: Exception) {
-                null
-            }
-        }.sortedBy { it.label.lowercase() }
+        val allowedItems = allowed
+            .mapNotNull { resolveAppLaunchItem(it) }
+            .sortedBy { it.label.lowercase() }
+            .take(AllowedAppsManager.MAX_ALLOWED_APPS)
+
+        return listOfNotNull(phoneItem) + allowedItems.filter { it.packageName != phoneItem?.packageName }
+    }
+
+    private fun dialerPackageName(): String? =
+        (getSystemService(Context.TELECOM_SERVICE) as? TelecomManager)?.defaultDialerPackage
+
+    private fun resolveAppLaunchItem(pkg: String?): AllowedAppLaunchItem? {
+        if (pkg == null) return null
+        return try {
+            val info = packageManager.getApplicationInfo(pkg, 0)
+            AllowedAppLaunchItem(
+                label = info.loadLabel(packageManager).toString(),
+                packageName = pkg,
+                icon = info.loadIcon(packageManager).toBitmap(),
+            )
+        } catch (e: Exception) {
+            null
+        }
     }
 
     private fun launchAllowedApp(packageName: String) {

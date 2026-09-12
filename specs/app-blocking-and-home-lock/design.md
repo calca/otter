@@ -94,20 +94,41 @@ never offered a way to launch one.
   `if (allowedApps.isNotEmpty())`, so `BlockOverlayActivity` — and
   `HomeActivity` on a session with no allowed apps configured — render
   identically to before.
-- **`AllowedAppLaunchItem(label, packageName)`** (in `BlockScreen.kt`) is
-  deliberately just those two fields — no icon, unlike `AppItem` in
-  `AllowedAppsScreen.kt` — per explicit direction that this list should
-  read as plain text to consult, not a mini app-drawer to browse: reducing
-  visual pull is the point, since this sits on the same screen whose whole
-  purpose is discouraging phone use.
-- **`HomeActivity.loadAllowedAppLaunchItems()`** resolves labels only for
-  packages already in `AllowedAppsManager.getAllowedPackages()` — a
+- **`AllowedAppLaunchItem(label, packageName, icon: Bitmap)`** (in
+  `BlockScreen.kt`) started out text-only (no icon) on the theory that
+  plain text would read as more low-key than icons; revised after seeing
+  it on-device to icons after all, but **desaturated** at draw time
+  (`ColorFilter.colorMatrix(ColorMatrix().apply { setToSaturation(0f) })`)
+  and laid out in a single `Row`, not a vertical list — recognizable at a
+  glance without the visual pull of full-color icons or the length of a
+  text list. `icon` is loaded the same way `AppItem.icon` is in
+  `AllowedAppsScreen.kt` (`loadIcon(packageManager).toBitmap()`), converted
+  to `ImageBitmap` only at draw time via `.asImageBitmap()`.
+- **`HomeActivity.loadAllowedAppLaunchItems()`** resolves labels/icons only
+  for packages already in `AllowedAppsManager.getAllowedPackages()` — a
   handful of entries, unlike `AllowedAppsActivity.loadApps()`'s full
   installed-app enumeration — so it runs synchronously on the main thread
   rather than dispatching to `Dispatchers.IO`. A package that was allowed
   but has since been uninstalled is dropped silently
   (`getApplicationInfo()` throwing is caught and mapped to `null`, filtered
-  out via `mapNotNull`).
+  out via `mapNotNull`). The list is also `.take(AllowedAppsManager.MAX_ALLOWED_APPS)`
+  as a safety net — the real cap is enforced at write time (see below), this
+  should never actually trim anything in practice.
+- **The phone is always the first item, outside the 5-app cap.** Resolved
+  separately via `TelecomManager.defaultDialerPackage` (the same call
+  `AppBlockerAccessibilityService.allowedPackages()` already uses to exempt
+  it from blocking) rather than reading it from
+  `AllowedAppsManager` — it was always implicitly allowed, but before this
+  list existed there was nowhere to actually *launch* it from when Calm
+  Otter is Home. Deduplicated against the configurable list by package name
+  in case a user had also explicitly whitelisted their dialer.
+- **`AllowedAppsManager.MAX_ALLOWED_APPS = 5`** is the single source of
+  truth for the cap, enforced where an app is actually *added*
+  (`AllowedAppsActivity.toggleApp()` — attempting a 6th shows a
+  `allowed_apps_limit_reached` toast and does nothing, rather than
+  accepting it and truncating the display elsewhere) so the stored
+  whitelist and what `BlockScreen` shows never disagree. The phone doesn't
+  count against it (see above).
 - **`HomeActivity.launchAllowedApp()`** just calls
   `packageManager.getLaunchIntentForPackage(packageName)` and starts it,
   swallowing a null/failed intent silently (package became unlaunchable

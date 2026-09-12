@@ -115,6 +115,7 @@
     <string name="allowed_apps_empty_filtered">No apps found</string>
     <string name="save">Save</string>
     <string name="allowed_apps_saved">List updated</string>
+    <string name="allowed_apps_limit_reached">Maximum %1$d allowed apps</string>
 
     <string name="widget_description">Start a pause session in one tap</string>
     <string name="widget_label_idle">Pause</string>

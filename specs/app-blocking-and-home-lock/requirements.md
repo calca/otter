@@ -60,6 +60,9 @@ all-or-nothing.
 6. WHEN a search yields no matching app THEN the system SHALL show an empty
    state instead of a blank list; the search field offers a clear (×)
    button once non-empty.
+7. WHEN the allowed-set already has 5 apps THEN toggling on a 6th SHALL be
+   rejected (brief message shown, toggle stays off) — see User Story 4 for
+   why (the block screen's icon row needs to stay short).
 
 ## User Story 3: Home-button interception
 
@@ -93,15 +96,25 @@ Home shows the block screen instead of any launcher — otherwise being
 1. WHEN Calm Otter is set as Home, a session is active, and at least one
    package is in the allowed-apps list THEN the block screen (Home-button
    case only — see design.md for why not the regular app-block case too)
-   SHALL show that list below the Unlock button, as plain text rows (no
-   icons) — deliberately understated, not a mini launcher to browse.
-2. WHEN one of those rows is tapped THEN the system SHALL launch that
+   SHALL show that list below the Unlock button, as a single row of
+   desaturated app icons — deliberately understated (no full-color icons,
+   no vertical list), not a mini launcher to browse.
+2. WHEN one of those icons is tapped THEN the system SHALL launch that
    app directly.
 3. WHEN the allowed-apps list is empty THEN this section SHALL NOT render
    at all — no empty-state placeholder.
 4. WHEN an allowed package can no longer be resolved or launched (e.g.
    uninstalled since being allowed) THEN the system SHALL drop it from the
    list (or silently no-op the tap) rather than showing an error.
+5. The phone (device's default dialer) SHALL always appear as the first
+   icon, regardless of the configurable allowed-apps list's contents — it
+   was already always exempt from blocking, this just makes it launchable
+   from this screen too, same as the configured apps.
+6. The user-configurable allowed-apps list SHALL be capped at 5 apps
+   (the phone from criterion 5 doesn't count against this cap): attempting
+   to allow a 6th app in the editor SHALL be rejected with a brief message,
+   not silently accepted and trimmed elsewhere — this keeps the icon row
+   short enough to read at a glance.
 
 ## Known limits (do not misrepresent in code/UI)
 

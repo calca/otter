@@ -97,12 +97,29 @@ class AllowedAppsActivity : BaseActivity() {
      * Salvataggio immediato ad ogni toggle, e aggiornamento della lista in
      * memoria (nuova lista con l'item copiato/aggiornato, dato che AppItem è
      * immutabile) così la riga si ridisegna con lo stato corretto.
+     *
+     * Tetto di [AllowedAppsManager.MAX_ALLOWED_APPS]: tentare di aggiungerne
+     * una in più non fa nulla (a parte il Toast) invece di accettarla e
+     * troncare altrove — così l'elenco mostrato qui resta sempre coerente
+     * con quello che finisce effettivamente in whitelist.
      */
     private fun toggleApp(item: AppItem) {
         val newIsAllowed = !item.isAllowed
 
         val current = allowedAppsManager.getAllowedPackages().toMutableSet()
-        if (newIsAllowed) current.add(item.packageName) else current.remove(item.packageName)
+        if (newIsAllowed) {
+            if (current.size >= AllowedAppsManager.MAX_ALLOWED_APPS) {
+                Toast.makeText(
+                    this,
+                    getString(R.string.allowed_apps_limit_reached, AllowedAppsManager.MAX_ALLOWED_APPS),
+                    Toast.LENGTH_SHORT
+                ).show()
+                return
+            }
+            current.add(item.packageName)
+        } else {
+            current.remove(item.packageName)
+        }
         allowedAppsManager.setAllowedPackages(current)
 
         allApps = allApps.map {
