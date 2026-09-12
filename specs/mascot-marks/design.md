@@ -9,7 +9,7 @@
 | `res/drawable/ic_launcher_monochrome.xml` | Head+ears silhouette only, no eyes/nose — themed/Material You icon (Android 13+); simplified further than the color foreground on purpose |
 | `res/drawable/ic_otter_widget.xml` | Same silhouette as the foreground, tones inverted (dark head, light details) for the widget's light background — see below |
 | `res/mipmap-anydpi-v26/ic_launcher.xml` + `ic_launcher_round.xml` | `<adaptive-icon>` wiring background+foreground+monochrome. minSdk is 26 (the API level adaptive icons shipped in), so there's no legacy PNG fallback to maintain |
-| `ui/mascot/OtterMarks.kt` | `OtterFloatMark()` and `PausePawsMark()` — the two marks drawn live via Compose `Canvas`, since both only ever appear inside Compose screens. `OtterFloatMark` is used in both `MainScreen.kt` (Home, "Living Pond") and `OnboardingScreen.kt` (step 1) — the same composable, not two copies |
+| `ui/mascot/OtterMarks.kt` | `OtterFloatMark()`, `PausePawsMark()`, `PactPawsMark()`, `SprigMark()` — all four drawn live via Compose `Canvas`, since none of them ever appear outside a Compose screen. `OtterFloatMark` is used in both `MainScreen.kt` (Home, "Living Pond") and `OnboardingScreen.kt` (step 1) — the same composable, not two copies |
 
 ## Why one mark is a vector drawable and the rest are Compose `Canvas`
 
@@ -108,6 +108,45 @@ its torso) are unaffected by this — only same-color overlaps need
 merging. If you add a mark with more than one shape in the same fill
 color, check for overlaps and merge them into one `Path` up front rather
 than discovering the seam on-device.
+
+## Replacing onboarding's emoji icons: `PactPawsMark` and `SprigMark`
+
+Onboarding's password step ("Choose the password together") and final step
+("All set") originally used plain system emoji (`🔒`, `🌿`) as their
+72sp-text "icon", the only two spots in onboarding that didn't share the
+flat, hand-drawn `Canvas` style the rest of the app's marks use (step 1
+already reused `OtterFloatMark`). Replaced with two new marks in the same
+file, each proposed alongside alternatives in an HTML mockup and picked by
+the project owner before implementing (see git history for that
+conversation) rather than guessed at directly:
+
+- **`PactPawsMark`** — reuses `PausePawsMark`'s exact badge construction
+  (circle in `primary`, shapes in `onPrimary`) and its rounded-bar "paw"
+  shape, just tilted toward each other (±18°, via `DrawScope.rotate`)
+  instead of upright and side-by-side, reading as a handshake/pact instead
+  of "pause". Deliberately reuses an existing shape vocabulary instead of
+  introducing a new one (a padlock, an otter-plus-key — both considered and
+  rejected in the mockup) so the two badge-style marks in the app
+  (`PausePawsMark`, `PactPawsMark`) stay visually related.
+- **`SprigMark`** — a two-leaf sprig built from two closed `Path`s (each a
+  pair of `cubicTo` curves forming a leaf) plus a stroked stem `Path`,
+  replacing the `🌿` emoji with the same motif redrawn in the app's own
+  flat style: stem in `primary` (full strength, `Stroke` with rounded cap,
+  mirroring how `OtterFloatMark`'s nose is the one full-strength accent on
+  an otherwise translucent mark), leaves in `primary.copy(alpha = 0.32f)`
+  (the same fur-density used by `OtterFloatMark`). No badge/circle
+  background, unlike `PactPawsMark` — a badge read as too heavy for a
+  closing/"all set" moment against the two considered alternatives
+  (reusing `OtterFloatMark` a third time in one wizard, or a checkmark
+  badge matching `PactPawsMark`'s construction).
+- Both keep the same `surfaceVariant`-trap discipline as every other mark
+  here: only `primary`/`onPrimary` (customized per palette) are read, never
+  an uncustomized M3 role.
+- The inline `🌿` inside the `onb5_title` *string* ("All set 🌿") was left
+  untouched — that's ordinary decorative text-emoji usage, the same
+  pattern used throughout the app's strings (`streak_days`'s `🔥`,
+  `history_empty`'s `🌿`), not a standalone "icon" replacing an
+  illustration, so it wasn't in scope for this fix.
 
 ## Why the widget needed its own drawable
 

@@ -12,6 +12,7 @@ import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.drawscope.rotate
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 
@@ -126,5 +127,88 @@ fun OtterFloatMark(modifier: Modifier = Modifier, markSize: Dp = 96.dp) {
         drawOval(color = face, topLeft = Offset(v(40f), v(59.8f)), size = Size(v(12f), v(4.4f)))
         drawOval(color = face, topLeft = Offset(v(56f), v(59.8f)), size = Size(v(12f), v(4.4f)))
         drawCircle(color = nose, radius = v(2.5f), center = Offset(v(54f), v(72f)))
+    }
+}
+
+/**
+ * "Pact Paws": le due zampe di [PausePawsMark], stesso badge circolare,
+ * ma inclinate l'una verso l'altra come una stretta di mano invece che
+ * verticali e affiancate — usata nello step "Scegli la password insieme"
+ * dell'onboarding al posto dell'emoji 🔒 di sistema, per legare l'icona al
+ * significato di quello step (un patto tra due persone) invece che a un
+ * generico simbolo di sicurezza. Vedi specs/mascot-marks/ per il confronto
+ * con le altre proposte scartate.
+ */
+@Composable
+fun PactPawsMark(modifier: Modifier = Modifier, markSize: Dp = 96.dp) {
+    val bg = MaterialTheme.colorScheme.primary
+    val paw = MaterialTheme.colorScheme.onPrimary
+    val knuckle = MaterialTheme.colorScheme.primary
+
+    Canvas(modifier = modifier.size(markSize)) {
+        val s = size.width / 80f
+        fun v(value: Float) = value * s
+
+        drawCircle(color = bg, radius = size.width / 2f, center = center)
+
+        rotate(degrees = -18f, pivot = Offset(v(28f), v(41f))) {
+            drawRoundRect(
+                color = paw,
+                topLeft = Offset(v(21f), v(24f)),
+                size = Size(v(14f), v(34f)),
+                cornerRadius = CornerRadius(v(7f), v(7f)),
+            )
+        }
+        rotate(degrees = 18f, pivot = Offset(v(52f), v(41f))) {
+            drawRoundRect(
+                color = paw,
+                topLeft = Offset(v(45f), v(24f)),
+                size = Size(v(14f), v(34f)),
+                cornerRadius = CornerRadius(v(7f), v(7f)),
+            )
+        }
+        drawCircle(color = knuckle, radius = v(1.4f), center = Offset(v(32f), v(30f)))
+        drawCircle(color = knuckle, radius = v(1.4f), center = Offset(v(48f), v(30f)))
+    }
+}
+
+/**
+ * "Sprig": un rametto a due foglie disegnato a mano (Path piatto, non
+ * un'emoji di sistema) — usato nell'ultimo step dell'onboarding ("Tutto
+ * pronto") al posto dell'emoji 🌿. Stesso motivo del testo/emoji originale
+ * (un rametto rigoglioso), ma nello stile Canvas del resto delle mascotte:
+ * stelo "primary" pieno, foglie "primary" a bassa opacità come il pelo di
+ * [OtterFloatMark].
+ */
+@Composable
+fun SprigMark(modifier: Modifier = Modifier, markSize: Dp = 96.dp) {
+    val leaf = MaterialTheme.colorScheme.primary.copy(alpha = 0.32f)
+    val stem = MaterialTheme.colorScheme.primary
+
+    Canvas(modifier = modifier.size(markSize)) {
+        val s = size.width / 80f
+        fun v(value: Float) = value * s
+
+        val stemPath = Path().apply {
+            moveTo(v(40f), v(62f))
+            cubicTo(v(40f), v(45f), v(40f), v(30f), v(30f), v(20f))
+        }
+        drawPath(stemPath, color = stem, style = Stroke(width = v(2.4f), cap = StrokeCap.Round))
+
+        val leafOne = Path().apply {
+            moveTo(v(40f), v(50f))
+            cubicTo(v(30f), v(46f), v(24f), v(36f), v(26f), v(26f))
+            cubicTo(v(36f), v(28f), v(44f), v(36f), v(42f), v(48f))
+            close()
+        }
+        drawPath(leafOne, color = leaf)
+
+        val leafTwo = Path().apply {
+            moveTo(v(40f), v(38f))
+            cubicTo(v(50f), v(34f), v(56f), v(24f), v(54f), v(14f))
+            cubicTo(v(44f), v(16f), v(36f), v(24f), v(38f), v(36f))
+            close()
+        }
+        drawPath(leafTwo, color = leaf)
     }
 }

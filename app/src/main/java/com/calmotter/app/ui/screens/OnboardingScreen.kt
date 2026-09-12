@@ -40,6 +40,8 @@ import androidx.compose.ui.unit.sp
 import com.calmotter.app.PasswordManager
 import com.calmotter.app.R
 import com.calmotter.app.ui.mascot.OtterFloatMark
+import com.calmotter.app.ui.mascot.PactPawsMark
+import com.calmotter.app.ui.mascot.SprigMark
 
 private const val STEP_COUNT = 3
 private const val STEP_PASSWORD = 1
@@ -96,7 +98,7 @@ fun OnboardingScreen(
                 )
                 STEP_PASSWORD -> {
                     StepBody(
-                        emoji = "🔒",
+                        illustration = { PactPawsMark(markSize = 96.dp) },
                         titleRes = R.string.onb4_title,
                         bodyRes = R.string.onb4_body,
                         bodyBottomPadding = 24.dp
@@ -145,7 +147,11 @@ fun OnboardingScreen(
                         )
                     }
                 }
-                else -> StepBody(emoji = "🌿", titleRes = R.string.onb5_title, bodyRes = R.string.onb5_body)
+                else -> StepBody(
+                    illustration = { SprigMark(markSize = 96.dp) },
+                    titleRes = R.string.onb5_title,
+                    bodyRes = R.string.onb5_body
+                )
             }
         }
 
@@ -252,20 +258,11 @@ private fun StepIndicator(
 private fun StepBody(
     titleRes: Int,
     bodyRes: Int,
-    emoji: String? = null,
-    illustration: @Composable (() -> Unit)? = null,
+    illustration: @Composable () -> Unit,
     bodyBottomPadding: Dp = 0.dp,
 ) {
-    if (illustration != null) {
-        illustration()
-        Spacer(modifier = Modifier.height(24.dp))
-    } else {
-        Text(
-            text = emoji.orEmpty(),
-            fontSize = 72.sp,
-            modifier = Modifier.padding(bottom = 24.dp)
-        )
-    }
+    illustration()
+    Spacer(modifier = Modifier.height(24.dp))
     Text(
         text = stringResource(titleRes),
         fontSize = 26.sp,

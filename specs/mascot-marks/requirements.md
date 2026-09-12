@@ -39,16 +39,25 @@ the app's design.
    Pond" mark — see `home-and-settings/design.md`) instead of an emoji, so
    the very first thing a new user sees is the mascot they'll meet again
    every time they open the app.
-2. WHEN the user has selected a palette (Sage/Lavender/Terracotta) or a
-   light/dark mode THEN the mark's colors SHALL follow that choice — it
-   must not be fixed to one hardcoded color set.
-3. Every other onboarding step keeps its existing plain-emoji `StepBody`
-   behavior unchanged (🤝 🔑 🔒 🌿) — this feature only touches step 1.
+2. WHEN the password step ("Choose the password together") is shown THEN
+   the system SHALL render `PactPawsMark` (two paws tilted toward each
+   other in a circular badge) instead of the `🔒` emoji.
+3. WHEN the final step ("All set") is shown THEN the system SHALL render
+   `SprigMark` (a hand-drawn two-leaf sprig) instead of the `🌿` emoji used
+   as that step's illustration — the same emoji still appears inline in
+   that step's title *string* ("All set 🌿"), which is ordinary decorative
+   text and out of scope here (see design.md).
+4. WHEN the user has selected a palette (Sage/Lavender/Terracotta) or a
+   light/dark mode THEN every mark's colors SHALL follow that choice — none
+   are fixed to one hardcoded color set.
 
 This step originally showed a dedicated "Otter at Rest" illustration
 (floating on its back, holding a stone), later removed in favor of reusing
 `OtterFloatMark` — one fewer mark to keep visually consistent, and a more
-deliberate first impression (see "Superseded marks" below).
+deliberate first impression (see "Superseded marks" below). The password
+and final steps originally used plain emoji instead of a mark at all; both
+were replaced once the same "not on-brand" problem was reported for them
+too (see design.md's "Replacing onboarding's emoji icons").
 
 ## User Story 3: Widget idle state
 
