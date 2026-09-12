@@ -30,6 +30,10 @@ Terracotta), so the app matches my preference.
    (settings-style screens) or the full-bleed block screen — THEN the
    system SHALL apply the matching palette+variant combination, not just
    the base palette.
+5. WHEN the device is in dark mode THEN each palette's picker swatch (the
+   three dots in Settings) SHALL show that palette's actual dark-mode
+   accent color, matching what selecting it applies — not the light-mode
+   color regardless of system theme.
 
 ## Out of scope
 

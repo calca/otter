@@ -8,6 +8,7 @@
 | `BaseActivity.kt` | Calls `ThemeManager.applyTheme()` before `super.onCreate()` |
 | `res/values/themes.xml` (+ `values-night/themes.xml`) | 3 palettes × 3 variants of AppCompat/Material3 XML themes |
 | `res/values/colors.xml` | Color values referenced by `themes.xml` (`sage_*`, `lavender_*`, `terracotta_*`, plus shared `m3_*` structural colors) |
+| `res/values-night/colors.xml` | Overrides only `sage_primary`/`lavender_primary`/`terracotta_primary` with their dark-mode values — the one place any of `colors.xml` gets a night variant, added so the theme-picker dots (which read these 3 names) show the right swatch in dark mode |
 | `ui/theme/CalmOtterTheme.kt` | Independent Compose `MaterialExpressiveTheme` color schemes, one per palette × light/dark |
 
 ## Two parallel systems — this is intentional, keep them in sync manually
@@ -33,10 +34,13 @@ specifically so this can be checked at a glance.
 by the "Desing.md" M3 redesign; the night file still uses the pre-redesign
 MaterialComponents attributes (`colorPrimaryVariant`,
 `android:textColorPrimary/Secondary`) with hardcoded hex values, not
-`@color/*` references into a `values-night/colors.xml` (that file doesn't
-exist — the one that used to exist held only unrelated dead `pause_*`
-colors and was removed). Don't assume light and dark hex values for the
-same palette should look like tint/shade variants of each other; they were
+`@color/*` references — `values-night/colors.xml` now exists (see "Key
+files" above and the theme-picker-dots fix below), but only as a narrow,
+separate override for 3 color names the dot drawables read; the dead
+`pause_*`-only version of this file that used to exist was removed earlier
+and `values-night/themes.xml` still doesn't reference it or any other
+`@color/*` name. Don't assume light and dark hex values for the same
+palette should look like tint/shade variants of each other; they were
 authored separately. `CalmOtterTheme.kt`'s light/dark schemes correctly
 mirror this split (`*Light` from `values/`, `*Dark` from `values-night/`).
 
@@ -138,14 +142,25 @@ fixes the other:
    mandatory edge-to-edge makes the status bar transparent (no strip to
    color) on 15+ regardless, per CLAUDE.md.
 
-**Known separate gap, not fixed here**: the theme-picker's three dots
-(`ThemeDot`/`theme_dot_*.xml`, see "Theme picker UI" below) always show
+**Related, separately fixed**: the theme-picker's three dots
+(`ThemeDot`/`theme_dot_*.xml`, see "Theme picker UI" below) always showed
 each palette's *light* `colorPrimary` swatch (from `@color/*_primary` in
-`colors.xml`, which has no night variant), even when the app is in dark
+`colors.xml`, which had no night variant), even when the app was in dark
 mode and that palette's actual dark `colorPrimary` is a different color
-(e.g. Sage's dot shows `#0F5238` in dark mode, but selecting it applies
-`#6BBFA0`). Pre-existing, not introduced by this fix — noticed while
-verifying the fix above across both light and dark mode.
+(e.g. Sage's dot showed `#0F5238` in dark mode, but selecting it applies
+`#6BBFA0`) — noticed while verifying the fix above across both light and
+dark mode. Fixed the same way Android resource qualifiers are meant to be
+used: a new `values-night/colors.xml` overrides just the 3 `*_primary`
+color names with their dark-mode values (`#6BBFA0`/`#A99ED0`/`#C4927A`,
+matching `values-night/themes.xml`'s own `colorPrimary` for each palette).
+`theme_dot_*.xml` itself is untouched — it already referenced
+`@color/{sage,lavender,terracotta}_primary`, so it automatically resolves
+against whichever `colors.xml` (default or `-night`) matches the current
+mode, same as any other Android resource lookup. No other consumer of
+these 3 color names exists outside the dot drawables (checked directly),
+so this override is safe — it doesn't touch `values/themes.xml` (light
+mode; unaffected) or `values-night/themes.xml` (doesn't read `@color/*` at
+all, uses its own inline hex — see "Two parallel systems" above).
 
 Every other Activity this app has is either recreated on the one path that
 changes the theme (`SettingsActivity`) or is always freshly `startActivity`'d

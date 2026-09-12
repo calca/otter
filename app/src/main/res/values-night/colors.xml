@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Override dei soli 3 colori "primary" letti dai pallini del
+         selettore tema (theme_dot_*.xml, vedi ui/screens/SettingsScreen.kt)
+         — così lo swatch selezionato mostra il colorPrimary scuro
+         realmente applicato in dark mode (values-night/themes.xml), non
+         quello chiaro di values/colors.xml. Nessun altro colore qui:
+         solo questi 3 nomi sono referenziati da un drawable @color/*, il
+         resto di values/colors.xml continua a valere anche in dark mode
+         (values-night/themes.xml ha i propri valori scuri inline, non
+         passa da colors.xml — vedi specs/multi-theme-system/design.md). -->
+    <color name="sage_primary">#6BBFA0</color>
+    <color name="lavender_primary">#A99ED0</color>
+    <color name="terracotta_primary">#C4927A</color>
+</resources>
