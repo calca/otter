@@ -126,7 +126,7 @@ class SettingsActivity : BaseActivity() {
      * disallineamento visibile.
      */
     private fun promptSetAsHome() {
-        launcherManager.saveOriginalLauncherIfNeeded()
+        launcherManager.refreshOriginalLauncherPackage()
 
         val componentName = ComponentName(this, MainActivity::class.java)
         packageManager.setComponentEnabledSetting(

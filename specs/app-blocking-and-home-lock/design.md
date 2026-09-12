@@ -92,16 +92,27 @@ anything about what each one did.
 
 ## `LauncherManager` detection (hardened after a real forwarding-loop bug)
 
-`saveOriginalLauncherIfNeeded()` prefers `resolveActivity(intent,
+`refreshOriginalLauncherPackage()` prefers `resolveActivity(intent,
 MATCH_DEFAULT_ONLY)` — the actual currently-active default Home resolution,
-reliable in the common case since `MainActivity.onCreate()` calls this
-unconditionally, well before "Set as Home" (now in Settings, see
-`home-and-settings/design.md`'s "Permissions off Home") is ever tapped, so
-Calm Otter usually isn't Home yet when this runs. If that resolves to Calm
-Otter itself (called late, after Calm Otter already became Home) or to
-nothing, it falls back to enumerating **all** Home-capable apps via
-`queryIntentActivities`, which works regardless of the current default. It
-only writes once (`if (prefs.contains(KEY_PACKAGE)) return`).
+reliable whenever Calm Otter isn't the currently-active Home app itself.
+Unlike the original version, this now runs and can overwrite the saved value
+on **every** call (`MainActivity.onCreate()` on every launch, plus
+`SettingsActivity.promptSetAsHome()` right before the disable/re-enable
+toggle) rather than writing once and freezing — the user can switch their
+default launcher at any time (install a new one, uninstall the old one,
+change it in system Settings), and the saved "original launcher" needs to
+track that instead of staying pinned to whatever was detected the very
+first time. If `resolveActivity` resolves to Calm Otter itself (this call
+happened while Calm Otter is already the active Home app — the common case
+on every subsequent Home-press once it's been set) or to nothing, the saved
+value is left untouched rather than overwritten from the unreliable
+enumeration fallback described below. That fallback only ever runs once,
+bootstrapping the very first save when nothing is stored yet (covering the
+edge case where Calm Otter becomes the Home app, via system Settings,
+before it has ever been opened once) — it's deliberately never repeated on
+later calls, since its ordering isn't tied to "which one is the real
+launcher" and re-running it every time would risk clobbering a
+already-known-good saved value with an arbitrary pick.
 
 Both paths now exclude a fixed `EXCLUDED_PACKAGES` set (currently just
 `com.android.settings`) — **a real bug, found and fixed**: the plain

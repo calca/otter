@@ -32,17 +32,30 @@ class LauncherManager private constructor(private val context: Context) {
 
     fun getOriginalLauncherPackage(): String? = prefs.getString(KEY_PACKAGE, null)
 
-    fun saveOriginalLauncherIfNeeded() {
-        if (prefs.contains(KEY_PACKAGE)) return
-
+    /**
+     * Aggiorna il launcher "originale" salvato con il default Home
+     * attualmente attivo, se rilevabile in modo affidabile. Va chiamata ad
+     * ogni avvio (non solo la prima volta): l'utente può cambiare launcher
+     * di default in qualunque momento (impostarne uno nuovo, disinstallare
+     * quello vecchio...), e il valore salvato deve seguirlo, non restare
+     * congelato al primo rilevamento.
+     *
+     * `resolveActivity` è affidabile solo quando CalmOtter non è già l'app
+     * Home corrente — se lo è (l'utente ha appena premuto Home, o questa
+     * chiamata arriva da MainActivity.onCreate() mentre CalmOtter è
+     * impostata come Home), restituirebbe CalmOtter stessa, ed è quindi
+     * ignorato: si mantiene il valore già salvato invece di sovrascriverlo.
+     * L'enumerazione via `queryIntentActivities` (ordine non affidabile,
+     * vedi il commento di classe) resta un fallback usato SOLO per il
+     * primo salvataggio in assoluto (nessun valore salvato ancora), per
+     * coprire il caso limite in cui CalmOtter diventi l'app Home dalle
+     * Impostazioni di sistema prima di essere mai stata aperta una volta —
+     * non viene mai ripetuta sulle chiamate successive, per non rischiare
+     * di rimpiazzare un valore buono già noto con una scelta arbitraria.
+     */
+    fun refreshOriginalLauncherPackage() {
         val intent = Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_HOME)
 
-        // Se CalmOtter non è ancora l'app Home (il caso comune: questo viene
-        // chiamato da MainActivity.onCreate() ben prima che "Imposta come
-        // Home" sia mai stato toccato), resolveActivity restituisce il vero
-        // default attualmente attivo — un segnale affidabile, a differenza
-        // di enumerare tutti i candidati e sperare che il primo non-CalmOtter
-        // sia quello giusto.
         val resolved = context.packageManager
             .resolveActivity(intent, PackageManager.MATCH_DEFAULT_ONLY)
             ?.activityInfo?.packageName
@@ -51,10 +64,8 @@ class LauncherManager private constructor(private val context: Context) {
             return
         }
 
-        // Fallback per quando viene chiamata tardi (CalmOtter è già l'app
-        // Home: resolveActivity sopra restituirebbe CalmOtter stesso) —
-        // enumera tutti i candidati escludendo sia CalmOtter sia i fallback
-        // di sistema noti in [EXCLUDED_PACKAGES].
+        if (prefs.contains(KEY_PACKAGE)) return
+
         val detected = context.packageManager.queryIntentActivities(intent, 0)
             .map { it.activityInfo.packageName }
             .firstOrNull { it != context.packageName && it !in EXCLUDED_PACKAGES }

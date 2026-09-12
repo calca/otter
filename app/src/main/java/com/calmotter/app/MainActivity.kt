@@ -85,7 +85,7 @@ class MainActivity : BaseActivity() {
         sessionHistoryManager = SessionHistoryManager.getInstance(applicationContext)
         launcherManager = LauncherManager.getInstance(applicationContext)
         phraseManager = PhraseManager.getInstance(applicationContext)
-        launcherManager.saveOriginalLauncherIfNeeded()
+        launcherManager.refreshOriginalLauncherPackage()
         currentTheme = ThemeManager.getTheme(this)
 
         // Su Android 13+ chiediamo il permesso per le notifiche al primo avvio
