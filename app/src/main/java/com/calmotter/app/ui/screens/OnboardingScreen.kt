@@ -40,7 +40,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.calmotter.app.PasswordManager
 import com.calmotter.app.R
-import com.calmotter.app.ui.mascot.OtterAtRestIllustration
+import com.calmotter.app.ui.mascot.OtterFloatMark
 
 private const val STEP_COUNT = 5
 private const val STEP_PERMISSIONS = 2
@@ -106,7 +106,11 @@ fun OnboardingScreen(
         ) {
             when (currentStep) {
                 0 -> StepBody(
-                    illustration = { OtterAtRestIllustration() },
+                    // Stessa mascotte della Home ("Living Pond", vedi
+                    // MainScreen.kt) invece di un'illustrazione dedicata:
+                    // la prima cosa che l'utente vede in assoluto è così
+                    // già l'otter che ritroverà a ogni apertura dell'app.
+                    illustration = { OtterFloatMark(markSize = 120.dp) },
                     titleRes = R.string.onb1_title,
                     bodyRes = R.string.onb1_body
                 )

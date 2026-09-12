@@ -9,15 +9,15 @@
 | `res/drawable/ic_launcher_monochrome.xml` | Head+ears silhouette only, no eyes/nose — themed/Material You icon (Android 13+); simplified further than the color foreground on purpose |
 | `res/drawable/ic_otter_widget.xml` | Same silhouette as the foreground, tones inverted (dark head, light details) for the widget's light background — see below |
 | `res/mipmap-anydpi-v26/ic_launcher.xml` + `ic_launcher_round.xml` | `<adaptive-icon>` wiring background+foreground+monochrome. minSdk is 26 (the API level adaptive icons shipped in), so there's no legacy PNG fallback to maintain |
-| `ui/mascot/OtterMarks.kt` | `OtterAtRestIllustration()` and `PausePawsMark()` — the two marks drawn live via Compose `Canvas`, since both only ever appear inside Compose screens |
+| `ui/mascot/OtterMarks.kt` | `OtterFloatMark()` and `PausePawsMark()` — the two marks drawn live via Compose `Canvas`, since both only ever appear inside Compose screens. `OtterFloatMark` is used in both `MainScreen.kt` (Home, "Living Pond") and `OnboardingScreen.kt` (step 1) — the same composable, not two copies |
 
-## Why one mark is a vector drawable and two are Compose `Canvas`
+## Why one mark is a vector drawable and the rest are Compose `Canvas`
 
 "Still Otter" needs to exist as a plain Android resource because two of its
 consumers aren't Compose at all: the adaptive-icon XML the launcher reads,
 and the Glance widget (`PauseWidgetProvider.kt`), which renders via
 `Image(provider = ImageProvider(...))` rather than arbitrary drawing calls.
-"Otter at Rest" and "Paws Together" only ever appear inside a screen this
+`OtterFloatMark` and `PausePawsMark` only ever appear inside a screen this
 app already renders with Compose, so they're plain `Canvas` draw calls —
 no path-data hand-conversion, and (unlike the vector drawables) they can
 read `MaterialTheme.colorScheme` and stay palette-adaptive.
@@ -58,8 +58,9 @@ and silently fall back to Compose Material3's stock baseline scheme —
 which is a fixed violet-gray, regardless of which of Sage/Lavender/
 Terracotta is active.
 
-`OtterAtRestIllustration` originally used `surfaceVariant` for the body and
-`primaryContainer` for the paws. Two bugs followed directly from this:
+The now-removed `OtterAtRestIllustration` originally used `surfaceVariant`
+for the body and `primaryContainer` for the paws. Two bugs followed
+directly from this:
 1. Under the Sage theme, the otter's body rendered lavender-ish anyway
    (the uncustomized default leaking through), defeating the entire point
    of drawing with `MaterialTheme.colorScheme` instead of fixed hex.
@@ -72,14 +73,41 @@ Terracotta is active.
    compiling is not the same as that role actually meaning something in
    this app's theme.
 
-Fixed version: `body = primary.copy(alpha = 0.14f)`, `paw = primary.copy(alpha
-= 0.32f)` — two densities of the one role that *is* customized per palette,
-so both the tint and the paw-vs-body contrast survive a theme switch.
-`PausePawsMark` was written against `primary`/`onPrimary` from the start
-and didn't have this problem — if you add a fourth mark, stay inside that
-customized set (`specs/multi-theme-system/design.md` lists the two "two
-parallel systems" this project juggles) or add the new role explicitly to
-every `*Light`/`*Dark` scheme in `CalmOtterTheme.kt` first.
+Fixed at the time as `body = primary.copy(alpha = 0.14f)`, `paw =
+primary.copy(alpha = 0.32f)` — two densities of the one role that *is*
+customized per palette. `OtterFloatMark` (which absorbed this illustration's
+onboarding job — see requirements.md's "Superseded marks") uses the same
+recipe (`fur = primary.copy(alpha = 0.32f)`, `nose = primary` at full
+strength). `PausePawsMark` was written against `primary`/`onPrimary` from
+the start and never had this problem. If you add another mark, stay inside
+the customized set (`specs/multi-theme-system/design.md` lists the two
+"two parallel systems" this project juggles) or add the new role
+explicitly to every `*Light`/`*Dark` scheme in `CalmOtterTheme.kt` first.
+
+## One `Path` per fill color (read before adding overlapping shapes)
+
+A second, unrelated bug hit both `OtterAtRestIllustration` and
+`OtterFloatMark`: several of each mark's shapes are meant to read as one
+silhouette (body + ears, or tail + torso + head + ear) and are drawn in the
+*same* semi-transparent color, but as **separate** `drawCircle`/
+`drawRoundRect`/`drawOval`/`drawPath` calls. Where two such shapes overlap
+on screen, each call composites its own alpha independently, so the
+overlap region ends up visibly darker/more saturated than the rest of the
+silhouette — a compositing artifact, not an intentional color difference.
+It's easy to miss in code review (every individual draw call looks
+correct) and only shows up once rendered.
+
+The fix in both marks: build one `Path` per fill color containing every
+sub-shape that should look like a single flat tint (`Path().apply {
+addOval(...); addOval(...); addRoundRect(...) }`), then a single
+`drawPath(path, color = ...)` call. Compose fills a `Path` with all its
+contours in one rasterization pass, so overlapping contours composite
+once, not once per contour. Shapes that are *deliberately* layered at
+different colors/alphas (e.g. `OtterAtRestIllustration`'s paws on top of
+its torso) are unaffected by this — only same-color overlaps need
+merging. If you add a mark with more than one shape in the same fill
+color, check for overlaps and merge them into one `Path` up front rather
+than discovering the seam on-device.
 
 ## Why the widget needed its own drawable
 
