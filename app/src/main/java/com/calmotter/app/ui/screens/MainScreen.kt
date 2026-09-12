@@ -176,18 +176,18 @@ fun MainScreen(
 
         // Il titolo sopra e la card sotto restano alla loro dimensione
         // naturale; questa Column intermedia si prende tutto lo spazio che
-        // avanza e vi centra lo stagno — così l'otter finisce vicino al vero
-        // centro dello schermo invece che subito sotto l'header, e la card
-        // statistiche resta ancorata in fondo invece di seguire a ruota lo
-        // stagno.
+        // avanza. Al suo interno, PondScene si prende a sua volta tutto lo
+        // spazio sopra ai chip di durata (vedi il suo Modifier.weight(1f) più
+        // sotto) e vi centra l'otter — così l'otter risulta centrato tra il
+        // titolo e i chip, non tra il titolo e la card statistiche in fondo.
         Column(
             modifier = Modifier
                 .weight(1f)
                 .fillMaxWidth(),
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center,
         ) {
             PondScene(
+                modifier = Modifier.weight(1f),
                 sessionActive = sessionActive,
                 remainingMillis = remainingMillis,
                 totalMillis = totalMillis,
@@ -310,6 +310,7 @@ private fun PermissionReasonRow(reason: String, actionLabel: String, onGrant: ()
  */
 @Composable
 private fun PondScene(
+    modifier: Modifier = Modifier,
     sessionActive: Boolean,
     remainingMillis: Long,
     totalMillis: Long,
@@ -318,43 +319,53 @@ private fun PondScene(
     onStart: () -> Unit,
 ) {
     Column(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = modifier.fillMaxWidth(),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
+        // Lo stagno (increspature/anello + otter) occupa tutto lo spazio che
+        // avanza sopra la riga dei chip e si centra al suo interno — così
+        // l'otter risulta centrato tra il titolo e i chip di durata (i
+        // "bottoni"), non tra il titolo e la card statistiche in fondo, che
+        // lascerebbe l'otter visibilmente più in alto rispetto ai chip.
         Box(
-            modifier = Modifier.size(260.dp),
+            modifier = Modifier.weight(1f).fillMaxWidth(),
             contentAlignment = Alignment.Center,
         ) {
-            if (!sessionActive) {
-                AmbientRipples(modifier = Modifier.matchParentSize())
-            } else {
-                val fraction = if (totalMillis > 0) {
-                    (1f - remainingMillis.toFloat() / totalMillis.toFloat()).coerceIn(0f, 1f)
-                } else {
-                    0f
-                }
-                ProgressRing(fraction = fraction, modifier = Modifier.size(176.dp))
-            }
-
-            val floatTransition = rememberInfiniteTransition(label = "otterFloat")
-            val floatOffset by floatTransition.animateFloat(
-                initialValue = -5f,
-                targetValue = 5f,
-                animationSpec = infiniteRepeatable(
-                    animation = tween(if (sessionActive) 5200 else 3200, easing = FastOutSlowInEasing),
-                    repeatMode = RepeatMode.Reverse,
-                ),
-                label = "otterFloatY",
-            )
-
             Box(
-                modifier = Modifier
-                    .offset(y = floatOffset.dp)
-                    .clip(CircleShape)
-                    .clickable(enabled = !sessionActive, onClick = onStart),
+                modifier = Modifier.size(260.dp),
                 contentAlignment = Alignment.Center,
             ) {
-                OtterFloatMark(markSize = 124.dp)
+                if (!sessionActive) {
+                    AmbientRipples(modifier = Modifier.matchParentSize())
+                } else {
+                    val fraction = if (totalMillis > 0) {
+                        (1f - remainingMillis.toFloat() / totalMillis.toFloat()).coerceIn(0f, 1f)
+                    } else {
+                        0f
+                    }
+                    ProgressRing(fraction = fraction, modifier = Modifier.size(176.dp))
+                }
+
+                val floatTransition = rememberInfiniteTransition(label = "otterFloat")
+                val floatOffset by floatTransition.animateFloat(
+                    initialValue = -5f,
+                    targetValue = 5f,
+                    animationSpec = infiniteRepeatable(
+                        animation = tween(if (sessionActive) 5200 else 3200, easing = FastOutSlowInEasing),
+                        repeatMode = RepeatMode.Reverse,
+                    ),
+                    label = "otterFloatY",
+                )
+
+                Box(
+                    modifier = Modifier
+                        .offset(y = floatOffset.dp)
+                        .clip(CircleShape)
+                        .clickable(enabled = !sessionActive, onClick = onStart),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    OtterFloatMark(markSize = 124.dp)
+                }
             }
         }
 
