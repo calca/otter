@@ -17,6 +17,7 @@ everything described is live in `main` today.
 - [`multi-theme-system/`](multi-theme-system/requirements.md) — three-palette theming across XML window chrome and Compose content
 - [`home-screen-widget/`](home-screen-widget/requirements.md) — the Glance 1×1 widget
 - [`mascot-marks/`](mascot-marks/requirements.md) — the app icon and the two in-app otter illustrations
+- [`home-and-settings/`](home-and-settings/requirements.md) — the calm-Home / Settings split
 
 Each feature has:
 - `requirements.md` — user stories with EARS-style acceptance criteria (WHEN/THE SYSTEM SHALL), matching current behavior

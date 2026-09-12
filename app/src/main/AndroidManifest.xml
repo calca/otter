@@ -80,6 +80,12 @@
             android:label="@string/allowed_apps_title"
             android:theme="@style/Theme.CalmOtter.WithActionBar" />
 
+        <activity
+            android:name=".SettingsActivity"
+            android:exported="false"
+            android:label="@string/settings_title"
+            android:theme="@style/Theme.CalmOtter.WithActionBar" />
+
         <!--
             RECEIVE_BOOT_COMPLETED: al riavvio del telefono, se una sessione
             era in corso, ripristina il blocco e il DND.

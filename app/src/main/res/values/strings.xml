@@ -1,5 +1,7 @@
 <resources>
     <string name="app_name">Calm Otter</string>
+    <string name="settings_title">Impostazioni</string>
+    <string name="settings_theme_label">Tema</string>
 
     <string name="setup_password_info">Imposta la password che SOLO un\'altra persona conoscerà: servirà per terminare le sessioni di pausa.</string>
     <string name="hint_new_password">Nuova password</string>
@@ -81,6 +83,8 @@
     <string name="allowed_apps_title">App consentite durante la pausa</string>
     <string name="allowed_apps_intro">Le app selezionate resteranno utilizzabili durante una sessione. Le consentite appaiono in cima.</string>
     <string name="allowed_apps_search">Cerca app</string>
+    <string name="allowed_apps_clear_search">Cancella ricerca</string>
+    <string name="allowed_apps_empty_filtered">Nessuna app trovata</string>
     <string name="save">Salva</string>
     <string name="allowed_apps_saved">Elenco aggiornato</string>
 

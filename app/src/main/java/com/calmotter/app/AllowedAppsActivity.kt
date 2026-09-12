@@ -4,6 +4,7 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Bundle
 import android.view.MenuItem
+import android.widget.Toast
 import androidx.activity.compose.setContent
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -14,6 +15,7 @@ import com.calmotter.app.ui.screens.AllowedAppsScreen
 import com.calmotter.app.ui.screens.AppItem
 import com.calmotter.app.ui.theme.CalmOtterTheme
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
@@ -37,6 +39,7 @@ class AllowedAppsActivity : BaseActivity() {
 
     private var isLoading by mutableStateOf(true)
     private var allApps by mutableStateOf<List<AppItem>>(emptyList())
+    private var loadJob: Job? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -54,23 +57,40 @@ class AllowedAppsActivity : BaseActivity() {
                     isLoading = isLoading,
                     apps = allApps,
                     onToggle = ::toggleApp,
+                    onRefresh = { refreshApps(showConfirmation = true) },
                 )
             }
         }
 
-        // Caricamento asincrono su thread IO
-        lifecycleScope.launch {
-            val allowed = allowedAppsManager.getAllowedPackages()
-            val apps = withContext(Dispatchers.IO) { loadApps(allowed) }
-
-            allApps = apps
-            isLoading = false
-        }
+        refreshApps(showConfirmation = false)
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         if (item.itemId == android.R.id.home) { finish(); return true }
         return super.onOptionsItemSelected(item)
+    }
+
+    /**
+     * Ricarica l'elenco delle app dal PackageManager (thread IO, come il
+     * caricamento iniziale). Chiamata sia da onCreate() sia dal
+     * pull-to-refresh in AllowedAppsScreen — un'app installata o
+     * disinstallata mentre questa schermata era già aperta non
+     * comparirebbe/scomparirebbe altrimenti finché non la si riapre.
+     * [showConfirmation] evita un Toast ridondante al primissimo caricamento.
+     */
+    private fun refreshApps(showConfirmation: Boolean) {
+        loadJob?.cancel()
+        isLoading = true
+        loadJob = lifecycleScope.launch {
+            val allowed = allowedAppsManager.getAllowedPackages()
+            val apps = withContext(Dispatchers.IO) { loadApps(allowed) }
+
+            allApps = apps
+            isLoading = false
+            if (showConfirmation) {
+                Toast.makeText(this@AllowedAppsActivity, R.string.allowed_apps_saved, Toast.LENGTH_SHORT).show()
+            }
+        }
     }
 
     /**

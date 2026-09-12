@@ -56,15 +56,20 @@ chooser shows immediately.
 
 ## Allowed-apps loading
 
-`AllowedAppsActivity.loadApps()` runs on `Dispatchers.IO` via
+`AllowedAppsActivity.refreshApps()` runs on `Dispatchers.IO` via
 `lifecycleScope.launch`, converting each app icon `Drawable` to a `Bitmap`
 up front (`AppItem.icon`) since Compose needs a stable value, not a
 lazily-decoded drawable, for list rendering. Toggling a row saves
 immediately (`allowedAppsManager.setAllowedPackages`) and rebuilds the
 in-memory list with `.map { it.copy(...) }` since `AppItem` is immutable.
+`refreshApps()` is called from `onCreate()` (initial load, no confirmation
+toast) and from `AllowedAppsScreen`'s `PullToRefreshBox` `onRefresh`
+callback (subsequent reloads, `allowed_apps_saved` toast on completion) —
+it cancels any in-flight `loadJob` first so a pull mid-load can't race
+against the initial load.
 
-**Manifest gap**: no `<queries>` element declares visibility into other
-apps' `ACTION_MAIN`/`CATEGORY_LAUNCHER` activities. Under Android 11+
-package visibility rules this can silently truncate the list `loadApps()`
-builds — see requirements.md "Known limits" before changing targetSdk
+`AndroidManifest.xml` declares a `<queries>` element (`ACTION_MAIN` /
+`CATEGORY_LAUNCHER`) specifically so `loadApps()` sees every installed app
+on Android 11+ package-visibility rules — added after this was flagged as a
+gap; don't remove it.
 behavior around this.

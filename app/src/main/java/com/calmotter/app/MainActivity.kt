@@ -9,12 +9,8 @@ import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
 import android.provider.Settings
-import android.text.InputType
-import android.widget.EditText
-import android.widget.Toast
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.appcompat.app.AlertDialog
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.setValue
@@ -26,8 +22,8 @@ class MainActivity : BaseActivity() {
 
     private lateinit var passwordManager: PasswordManager
     private lateinit var sessionManager: SessionManager
+    private lateinit var sessionHistoryManager: SessionHistoryManager
     private lateinit var launcherManager: LauncherManager
-    private lateinit var phraseManager: PhraseManager
 
     // Incrementato a ogni onResume(): passato come parametro a MainScreen così
     // che il suo LaunchedEffect(resumeSignal) ricalcoli lo stato che dipende
@@ -45,8 +41,8 @@ class MainActivity : BaseActivity() {
 
         passwordManager = PasswordManager.getInstance(applicationContext)
         sessionManager = SessionManager.getInstance(applicationContext)
+        sessionHistoryManager = SessionHistoryManager.getInstance(applicationContext)
         launcherManager = LauncherManager.getInstance(applicationContext)
-        phraseManager = PhraseManager.getInstance(applicationContext)
         launcherManager.saveOriginalLauncherIfNeeded()
 
         // Su Android 13+ chiediamo il permesso per le notifiche al primo avvio
@@ -62,8 +58,7 @@ class MainActivity : BaseActivity() {
                 MainScreen(
                     resumeSignal = resumeSignal,
                     sessionManager = sessionManager,
-                    phraseManager = phraseManager,
-                    currentTheme = ThemeManager.getTheme(this),
+                    sessionHistoryManager = sessionHistoryManager,
                     isAccessibilityServiceEnabled = { isAccessibilityServiceEnabled() },
                     isDndAccessGranted = {
                         (getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager)
@@ -73,10 +68,8 @@ class MainActivity : BaseActivity() {
                     onGrantAccessibility = { startActivity(Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS)) },
                     onGrantDnd = { startActivity(Intent(Settings.ACTION_NOTIFICATION_POLICY_ACCESS_SETTINGS)) },
                     onSetHome = { promptSetAsHome() },
-                    onManageApps = { promptPasswordThenOpenAllowedApps() },
-                    onChangePassword = { startActivity(Intent(this, ChangePasswordActivity::class.java)) },
                     onHistory = { startActivity(Intent(this, HistoryActivity::class.java)) },
-                    onPickTheme = { theme -> pickTheme(theme) },
+                    onSettings = { startActivity(Intent(this, SettingsActivity::class.java)) },
                 )
             }
         }
@@ -97,13 +90,6 @@ class MainActivity : BaseActivity() {
         }
 
         resumeSignal++
-    }
-
-    private fun pickTheme(theme: AppTheme) {
-        if (ThemeManager.getTheme(this) == theme) return
-        ThemeManager.setTheme(this, theme)
-        // Ricrea l'activity per applicare il nuovo tema immediatamente
-        recreate()
     }
 
     private fun isDefaultHome(): Boolean {
@@ -137,40 +123,6 @@ class MainActivity : BaseActivity() {
             flags = Intent.FLAG_ACTIVITY_NEW_TASK
         }
         startActivity(intent)
-    }
-
-    /**
-     * L'elenco delle app extra consentite durante una pausa può essere
-     * modificato solo da chi conosce la password: la verifica avviene qui,
-     * prima di aprire AllowedAppsActivity.
-     */
-    private fun promptPasswordThenOpenAllowedApps() {
-        val input = EditText(this).apply {
-            inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_PASSWORD
-            hint = getString(R.string.hint_unlock_password)
-        }
-
-        AlertDialog.Builder(this)
-            .setTitle(R.string.manage_allowed_apps)
-            .setMessage(R.string.manage_allowed_apps_password_prompt)
-            .setView(input)
-            .setPositiveButton(R.string.confirm) { _, _ ->
-                if (passwordManager.isLockedOut()) {
-                    // Dialog "usa e getta": niente countdown live, mostriamo
-                    // solo quanto manca al termine del lockout in questo momento.
-                    Toast.makeText(
-                        this,
-                        getString(R.string.password_locked_out, passwordManager.lockoutRemainingSeconds()),
-                        Toast.LENGTH_SHORT
-                    ).show()
-                } else if (passwordManager.verify(input.text.toString())) {
-                    startActivity(Intent(this, AllowedAppsActivity::class.java))
-                } else {
-                    Toast.makeText(this, getString(R.string.wrong_password), Toast.LENGTH_SHORT).show()
-                }
-            }
-            .setNegativeButton(android.R.string.cancel, null)
-            .show()
     }
 
     private fun isAccessibilityServiceEnabled(): Boolean {

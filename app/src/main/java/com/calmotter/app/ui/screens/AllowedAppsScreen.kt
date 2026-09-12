@@ -14,13 +14,18 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Clear
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Checkbox
-import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -30,6 +35,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -56,11 +62,12 @@ data class AppItem(
 
 /**
  * Elenco delle app extra consentite durante una pausa (step 5 della
- * migrazione a Compose). Riproduce esattamente il comportamento della
- * precedente AllowedAppsActivity XML/View:
- * - spinner mentre [isLoading] è true, poi la lista (il caricamento vero e
- *   proprio resta nell'Activity, su Dispatchers.IO, per non bloccare la UI,
- *   dato che può richiedere qualche secondo su telefoni con molte app);
+ * migrazione a Compose). Riproduce il comportamento della precedente
+ * AllowedAppsActivity XML/View:
+ * - spinner (in cima, via pull-to-refresh) mentre [isLoading] è true, poi
+ *   la lista (il caricamento vero e proprio resta nell'Activity, su
+ *   Dispatchers.IO, per non bloccare la UI, dato che può richiedere qualche
+ *   secondo su telefoni con molte app);
  * - filtro live per sottostringa del nome (case-insensitive) sulla lista
  *   già caricata, senza ri-interrogare il PackageManager a ogni carattere;
  * - salvataggio immediato ad ogni toggle tramite [onToggle], nessun
@@ -69,12 +76,17 @@ data class AppItem(
  *   riflettere lo stato (onCheckedChange = null) esattamente come
  *   clickable="false"/focusable="false" nell'item XML originale — è la riga
  *   nel suo complesso a gestire il click, non la Checkbox.
+ *
+ * [onRefresh] ricarica l'elenco delle app installate da PackageManager: un
+ * app appena installata/disinstallata mentre questa schermata era già
+ * aperta non compare/scompare altrimenti finché non la si riapre.
  */
 @Composable
 fun AllowedAppsScreen(
     isLoading: Boolean,
     apps: List<AppItem>,
     onToggle: (AppItem) -> Unit,
+    onRefresh: () -> Unit,
 ) {
     var searchQuery by remember { mutableStateOf("") }
 
@@ -89,6 +101,19 @@ fun AllowedAppsScreen(
             onValueChange = { searchQuery = it },
             label = { Text(stringResource(R.string.allowed_apps_search)) },
             singleLine = true,
+            leadingIcon = {
+                Icon(imageVector = Icons.Default.Search, contentDescription = null)
+            },
+            trailingIcon = {
+                if (searchQuery.isNotEmpty()) {
+                    IconButton(onClick = { searchQuery = "" }) {
+                        Icon(
+                            imageVector = Icons.Default.Clear,
+                            contentDescription = stringResource(R.string.allowed_apps_clear_search)
+                        )
+                    }
+                }
+            },
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(16.dp)
@@ -104,22 +129,35 @@ fun AllowedAppsScreen(
                 .padding(bottom = 8.dp)
         )
 
-        if (isLoading) {
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = 48.dp),
-                contentAlignment = Alignment.TopCenter
-            ) {
-                CircularProgressIndicator()
-            }
-        } else {
-            LazyColumn(
-                modifier = Modifier.fillMaxSize(),
-                contentPadding = PaddingValues(bottom = 8.dp)
-            ) {
-                items(filteredApps, key = { it.packageName }) { item ->
-                    AppRow(item = item, onToggle = onToggle)
+        PullToRefreshBox(
+            isRefreshing = isLoading,
+            onRefresh = onRefresh,
+            modifier = Modifier
+                .fillMaxWidth()
+                .weight(1f)
+        ) {
+            if (!isLoading && filteredApps.isEmpty()) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(32.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = stringResource(R.string.allowed_apps_empty_filtered),
+                        color = MaterialTheme.colorScheme.onSurface,
+                        textAlign = TextAlign.Center,
+                        fontSize = 15.sp,
+                    )
+                }
+            } else {
+                LazyColumn(
+                    modifier = Modifier.fillMaxSize(),
+                    contentPadding = PaddingValues(bottom = 8.dp)
+                ) {
+                    items(filteredApps, key = { it.packageName }) { item ->
+                        AppRow(item = item, onToggle = onToggle)
+                    }
                 }
             }
         }
@@ -137,7 +175,13 @@ private fun AppRow(
             .fillMaxWidth()
             .padding(horizontal = 12.dp, vertical = 4.dp),
         shape = RoundedCornerShape(12.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+        colors = CardDefaults.cardColors(
+            containerColor = if (item.isAllowed) {
+                MaterialTheme.colorScheme.primary.copy(alpha = 0.08f)
+            } else {
+                MaterialTheme.colorScheme.surface
+            }
+        ),
         elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
     ) {
         Row(

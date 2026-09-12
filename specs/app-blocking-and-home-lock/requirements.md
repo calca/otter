@@ -40,8 +40,10 @@ all-or-nothing.
 
 ### Acceptance Criteria
 
-1. WHEN opening the allowed-apps editor from the main screen THEN the
-   system SHALL first require the correct password.
+1. WHEN opening the allowed-apps editor from Settings (see
+   `home-and-settings/requirements.md` — this used to be reachable directly
+   from the home screen) THEN the system SHALL first require the correct
+   password.
 2. WHEN the editor is open THEN the system SHALL list every launchable app
    on the device except Calm Otter itself, with already-allowed apps sorted
    to the top.
@@ -50,6 +52,14 @@ all-or-nothing.
 4. WHEN `AppBlockerAccessibilityService` decides whether to block an app
    THEN the system SHALL treat the current allowed-set as part of the
    always-exempt list, alongside the dialer/systemUI/self exemptions.
+5. WHEN the user pulls down to refresh THEN the system SHALL reload the
+   installed-app list from `PackageManager` (an app installed/uninstalled
+   while the editor was already open otherwise wouldn't appear/disappear
+   until the screen is reopened) and confirm completion with a brief
+   message.
+6. WHEN a search yields no matching app THEN the system SHALL show an empty
+   state instead of a blank list; the search field offers a clear (×)
+   button once non-empty.
 
 ## User Story 3: Home-button interception
 
@@ -83,7 +93,8 @@ app icons) isn't an easier escape route than switching apps.
 - On Android 11+ (API 30+), enumerating "every launchable app" is subject to
   package-visibility restrictions unless the app declares a `<queries>`
   element or holds the (Play-Store-gated) `QUERY_ALL_PACKAGES` permission.
-  As of this writing, `AndroidManifest.xml` declares neither, so
-  `AllowedAppsActivity.loadApps()` likely under-lists installed apps on
-  Android 11+ — confirmed absent from the manifest, not verified against a
-  real API 30+ device. Re-check the manifest before treating this as fixed.
+  **Fixed**: `AndroidManifest.xml` now declares a `<queries>` element for
+  `ACTION_MAIN`/`CATEGORY_LAUNCHER`, so `AllowedAppsActivity.loadApps()`
+  sees every installed app on Android 11+. This was previously a gap in
+  this same list — verify the manifest still has it before assuming this
+  point is moot.

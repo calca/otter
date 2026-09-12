@@ -1,26 +1,26 @@
 package com.calmotter.app.ui.screens
 
-import android.view.View
 import android.widget.NumberPicker
 import android.widget.Toast
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawingPadding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Button
-import androidx.compose.material3.Checkbox
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -32,10 +32,10 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
-import com.calmotter.app.AppTheme
-import com.calmotter.app.PhraseManager
 import com.calmotter.app.R
+import com.calmotter.app.SessionHistoryManager
 import com.calmotter.app.SessionManager
+import com.calmotter.app.SessionStreak
 
 // Indice 1 = 30 min, indice 2 = 60 min, ... fino a 4 ore, a passi di 30 minuti
 // (stessa tabella usata da MainActivity prima della migrazione a Compose).
@@ -44,34 +44,32 @@ private val DURATION_LABELS = arrayOf(
 )
 
 /**
- * Schermata home/dashboard (pilota #3 della migrazione a Compose).
- * Riproduce esattamente il comportamento della precedente bindMainScreen()
- * XML/View: stessa priorità di visibilità/enabled dei controlli, stesso
- * NumberPicker (nessun equivalente Compose, avvolto via AndroidView), stesso
- * selettore tema con i drawable esistenti (stroke di selezione pixel-identico
- * via AndroidView anziché una riproduzione nativa).
+ * Schermata home: ridotta al solo avvio di una pausa ("design calmo" —
+ * tema, cambio password, gestione app consentite e frasi riflessive sono
+ * stati spostati su SettingsScreen, raggiungibile dall'icona ingranaggio,
+ * perché sono azioni occasionali, non quelle compiute ogni volta che si
+ * apre l'app). La Cronologia resta qui (bottone + anteprima streak):
+ * controllare i propri progressi è un'azione frequente e gratificante,
+ * non una configurazione.
  *
- * Diversi valori (stato accessibilità/DND/home, sessione attiva) dipendono da
- * stato del sistema operativo che Compose non osserva automaticamente: vanno
- * ricalcolati manualmente a ogni onResume() dell'Activity tramite
+ * Diversi valori (stato accessibilità/DND/home, sessione attiva, streak)
+ * dipendono da stato esterno che Compose non osserva automaticamente:
+ * vanno ricalcolati manualmente a ogni onResume() dell'Activity tramite
  * [resumeSignal] (vedi MainActivity).
  */
 @Composable
 fun MainScreen(
     resumeSignal: Int,
     sessionManager: SessionManager,
-    phraseManager: PhraseManager,
-    currentTheme: AppTheme,
+    sessionHistoryManager: SessionHistoryManager,
     isAccessibilityServiceEnabled: () -> Boolean,
     isDndAccessGranted: () -> Boolean,
     isDefaultHome: () -> Boolean,
     onGrantAccessibility: () -> Unit,
     onGrantDnd: () -> Unit,
     onSetHome: () -> Unit,
-    onManageApps: () -> Unit,
-    onChangePassword: () -> Unit,
     onHistory: () -> Unit,
-    onPickTheme: (AppTheme) -> Unit,
+    onSettings: () -> Unit,
 ) {
     val context = LocalContext.current
 
@@ -80,7 +78,7 @@ fun MainScreen(
     var homeOk by remember { mutableStateOf(false) }
     var sessionActive by remember { mutableStateOf(false) }
     var remainingMillis by remember { mutableStateOf(0L) }
-    var phrasesEnabled by remember { mutableStateOf(phraseManager.isEnabled()) }
+    var streakDays by remember { mutableIntStateOf(0) }
 
     fun refreshDerivedState() {
         accessibilityOk = isAccessibilityServiceEnabled()
@@ -88,7 +86,7 @@ fun MainScreen(
         homeOk = isDefaultHome()
         sessionActive = sessionManager.isSessionActive()
         remainingMillis = sessionManager.remainingMillis()
-        phrasesEnabled = phraseManager.isEnabled()
+        streakDays = SessionStreak.currentStreakDays(sessionHistoryManager.getAll())
     }
 
     // Rieseguito a ogni onResume() dell'Activity (resumeSignal incrementato
@@ -120,15 +118,27 @@ fun MainScreen(
             .padding(24.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Text(
-            text = stringResource(R.string.app_name),
-            fontSize = 24.sp,
-            fontWeight = FontWeight.Bold,
-            color = MaterialTheme.colorScheme.onBackground,
-            modifier = Modifier.padding(bottom = 24.dp)
-        )
-
-        ThemePicker(currentTheme = currentTheme, onPickTheme = onPickTheme)
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(bottom = 24.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = stringResource(R.string.app_name),
+                fontSize = 24.sp,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.onBackground,
+                modifier = Modifier.weight(1f)
+            )
+            IconButton(onClick = onSettings) {
+                Icon(
+                    imageVector = Icons.Default.Settings,
+                    contentDescription = stringResource(R.string.settings_title),
+                    tint = MaterialTheme.colorScheme.onBackground
+                )
+            }
+        }
 
         Text(
             text = statusText,
@@ -199,116 +209,22 @@ fun MainScreen(
             Text(stringResource(R.string.start_pause))
         }
 
-        Button(
-            onClick = onManageApps,
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(top = 24.dp)
-        ) {
-            Text(stringResource(R.string.manage_allowed_apps))
-        }
-
-        Button(
-            onClick = onChangePassword,
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(top = 8.dp)
-        ) {
-            Text(stringResource(R.string.change_password))
+        if (streakDays >= 1) {
+            Text(
+                text = stringResource(R.string.streak_days, streakDays),
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.padding(top = 24.dp)
+            )
         }
 
         Button(
             onClick = onHistory,
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(top = 8.dp)
+                .padding(top = if (streakDays >= 1) 8.dp else 24.dp)
         ) {
             Text(stringResource(R.string.history_title))
         }
-
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.padding(top = 16.dp)
-        ) {
-            Checkbox(
-                checked = phrasesEnabled,
-                onCheckedChange = { checked ->
-                    phrasesEnabled = checked
-                    phraseManager.setEnabled(checked)
-                }
-            )
-            Text(
-                text = stringResource(R.string.phrases_toggle_label),
-                color = MaterialTheme.colorScheme.onBackground
-            )
-        }
-    }
-}
-
-/**
- * Selettore tema a 3 pallini (Salvia/Lavanda/Terracotta): riusa i drawable
- * StateListDrawable esistenti (theme_dot_*.xml, con anello di selezione)
- * tramite AndroidView, pixel-identici alla versione XML — non c'è un
- * componente Material3 equivalente e riprodurre da zero l'anello di
- * selezione rischierebbe di introdurre differenze visive sottili.
- */
-@Composable
-private fun ThemePicker(
-    currentTheme: AppTheme,
-    onPickTheme: (AppTheme) -> Unit,
-) {
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.Center
-    ) {
-        ThemeDot(
-            drawableRes = R.drawable.theme_dot_sage,
-            labelRes = R.string.theme_sage,
-            selected = currentTheme == AppTheme.SAGE,
-            onClick = { onPickTheme(AppTheme.SAGE) },
-            modifier = Modifier.weight(1f)
-        )
-        ThemeDot(
-            drawableRes = R.drawable.theme_dot_lavender,
-            labelRes = R.string.theme_lavender,
-            selected = currentTheme == AppTheme.LAVENDER,
-            onClick = { onPickTheme(AppTheme.LAVENDER) },
-            modifier = Modifier.weight(1f)
-        )
-        ThemeDot(
-            drawableRes = R.drawable.theme_dot_terracotta,
-            labelRes = R.string.theme_terracotta,
-            selected = currentTheme == AppTheme.TERRACOTTA,
-            onClick = { onPickTheme(AppTheme.TERRACOTTA) },
-            modifier = Modifier.weight(1f)
-        )
-    }
-}
-
-@Composable
-private fun ThemeDot(
-    drawableRes: Int,
-    labelRes: Int,
-    selected: Boolean,
-    onClick: () -> Unit,
-    modifier: Modifier = Modifier,
-) {
-    Column(
-        modifier = modifier
-            .clickable(onClick = onClick)
-            .padding(8.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        AndroidView(
-            factory = { ctx -> View(ctx).apply { setBackgroundResource(drawableRes) } },
-            update = { view -> view.isSelected = selected },
-            modifier = Modifier.size(36.dp)
-        )
-        Text(
-            text = stringResource(labelRes),
-            fontSize = 12.sp,
-            color = MaterialTheme.colorScheme.onSurface,
-            modifier = Modifier.padding(top = 6.dp)
-        )
     }
 }

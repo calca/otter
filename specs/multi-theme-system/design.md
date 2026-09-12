@@ -78,8 +78,9 @@ still needed) at that point.
 
 ## Theme picker UI
 
-`MainScreen`'s `ThemePicker`/`ThemeDot` wrap the existing
-`theme_dot_*.xml` `StateListDrawable`s (selection ring) via `AndroidView`
-rather than reproducing the ring in Compose — see the doc comment in
-`MainScreen.kt`: this was a deliberate choice to stay pixel-identical to the
-pre-Compose version rather than risk a subtly different visual.
+`SettingsScreen`'s `ThemePicker`/`ThemeDot` (moved there from `MainScreen`
+by the Home/Settings split, see `specs/home-and-settings/design.md`) wrap
+the existing `theme_dot_*.xml` `StateListDrawable`s (selection ring) via
+`AndroidView` rather than reproducing the ring in Compose — this was a
+deliberate choice to stay pixel-identical to the pre-Compose version rather
+than risk a subtly different visual.
