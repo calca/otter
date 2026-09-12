@@ -76,6 +76,52 @@ Expressive) ships stable, and consider moving back to the stable
 `compose-bom` (and re-evaluating whether the AGP/Gradle/compileSdk bump is
 still needed) at that point.
 
+## Applying a new theme without `recreate()`: `MainActivity`
+
+`SettingsActivity.pickTheme()` calls `recreate()` on itself after
+`ThemeManager.setTheme()`, so Settings always shows the new palette
+immediately — but `MainActivity` is never recreated when the user backs out
+of Settings, it's only resumed. That used to mean Home kept showing the
+*old* palette (Compose content **and** the status bar) until the whole
+process was killed and relaunched — a real bug, not just a cosmetic delay,
+since `CalmOtterTheme(appTheme = ThemeManager.getTheme(this))` was a plain
+function call evaluated once when `setContent {}`'s composition tree was
+first built; nothing downstream of it read a state that would cause it to
+re-run on resume.
+
+Fixed with two independent pieces, since the Compose content and the status
+bar are the two-parallel-systems split described above and neither one
+fixes the other:
+
+1. **Compose content**: `MainActivity` now holds `currentTheme` as
+   `mutableStateOf(AppTheme)` instead of calling `ThemeManager.getTheme(this)`
+   inline inside `setContent {}`. It's set once in `onCreate()` and
+   reassigned in `onResume()` (alongside the existing `resumeSignal++`).
+   Because `CalmOtterTheme(appTheme = currentTheme)` reads this state
+   directly at its own call site, reassigning it now correctly invalidates
+   and recomposes that scope with the new `ColorScheme` — no `recreate()`
+   needed, just a normal Compose recomposition.
+2. **Status bar**: `window.statusBarColor` is a plain Android window
+   property applied once, by the system, when `super.onCreate()` builds the
+   window (from the XML theme `BaseActivity`/`ThemeManager.applyTheme()`
+   set right before it) — `setTheme(styleId)` after that point (which is
+   all `ThemeManager.applyTheme()` does) has no retroactive effect on
+   already-applied window attributes. `MainActivity.onResume()` now also
+   sets `window.statusBarColor` explicitly, resolved from the exact same
+   `@color/{sage,lavender,terracotta}_primary` resources `themes.xml` itself
+   uses (not `ThemeManager.accentColor()` — that function's hardcoded
+   Lavender/Terracotta hex values have drifted from `colors.xml` and don't
+   match; it's currently unused anywhere else, so the drift was silent).
+   This line only matters on Android <15 — targetSdk 37's mandatory
+   edge-to-edge makes the status bar transparent (no strip to color) on 15+
+   regardless, per CLAUDE.md.
+
+Every other Activity this app has is either recreated on the one path that
+changes the theme (`SettingsActivity`) or is always freshly `startActivity`'d
+after any theme change rather than resumed from the back stack
+(`HistoryActivity`, `ChangePasswordActivity`, `AllowedAppsActivity`) — so
+`MainActivity` was the only place this bug could actually manifest.
+
 ## Theme picker UI
 
 `SettingsScreen`'s `ThemePicker`/`ThemeDot` (moved there from `MainScreen`

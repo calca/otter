@@ -10,6 +10,7 @@ import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.core.content.ContextCompat
 import com.calmotter.app.ui.screens.MainScreen
@@ -29,6 +30,16 @@ class MainActivity : BaseActivity() {
     // non ha altrimenti modo di accorgersi di questi cambi di stato esterni.
     private var resumeSignal by mutableIntStateOf(0)
 
+    // Letto una sola volta da ThemeManager in onCreate() non basterebbe:
+    // MainActivity non viene mai ricreata al ritorno da Settings (a
+    // differenza di SettingsActivity, che chiama recreate() su se stessa
+    // dopo un cambio tema), quindi senza questo stato la Home continuerebbe
+    // a mostrare la palette vecchia finché il processo non viene killato.
+    // Aggiornato in onResume() insieme a resumeSignal: essendo letto qui,
+    // proprio nel punto in cui CalmOtterTheme lo usa, il suo cambiamento
+    // ricompone subito l'intero albero con lo schema colore aggiornato.
+    private var currentTheme by mutableStateOf(AppTheme.SAGE)
+
     private val notificationPermissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestPermission()
     ) { /* refreshUi non serve: il permesso non cambia il layout */ }
@@ -41,6 +52,7 @@ class MainActivity : BaseActivity() {
         sessionHistoryManager = SessionHistoryManager.getInstance(applicationContext)
         launcherManager = LauncherManager.getInstance(applicationContext)
         launcherManager.saveOriginalLauncherIfNeeded()
+        currentTheme = ThemeManager.getTheme(this)
 
         // Su Android 13+ chiediamo il permesso per le notifiche al primo avvio
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
@@ -51,7 +63,7 @@ class MainActivity : BaseActivity() {
         }
 
         setContent {
-            CalmOtterTheme(appTheme = ThemeManager.getTheme(this)) {
+            CalmOtterTheme(appTheme = currentTheme) {
                 MainScreen(
                     resumeSignal = resumeSignal,
                     sessionManager = sessionManager,
@@ -81,6 +93,20 @@ class MainActivity : BaseActivity() {
             return
         }
 
+        currentTheme = ThemeManager.getTheme(this)
+        // Il colore di sistema della barra di stato (impostato dal tema XML
+        // una sola volta, quando super.onCreate() crea la finestra) non
+        // segue currentTheme da solo come fa Compose: va riapplicato qui a
+        // mano. Nessun effetto sotto Android 15+ (edge-to-edge imposto da
+        // targetSdk 37 rende la barra di stato trasparente, vedi CLAUDE.md),
+        // ma resta visibile sulle versioni precedenti.
+        window.statusBarColor = ContextCompat.getColor(this, statusBarColorRes(currentTheme))
         resumeSignal++
+    }
+
+    private fun statusBarColorRes(theme: AppTheme): Int = when (theme) {
+        AppTheme.SAGE -> R.color.sage_primary
+        AppTheme.LAVENDER -> R.color.lavender_primary
+        AppTheme.TERRACOTTA -> R.color.terracotta_primary
     }
 }
