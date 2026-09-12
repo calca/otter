@@ -76,15 +76,21 @@ enjoy, unlike changing the password.
 1. History is NOT part of Settings — it stays reachable directly from Home,
    per an explicit choice made when this split was designed (checking
    progress is frequent and rewarding, configuration is occasional).
-2. WHEN the home screen is shown THEN the system SHALL display a card
-   showing, for each of the last 7 calendar days (oldest to newest, today
-   last), a bar proportional to that day's total session minutes, today's
-   bar visually emphasized; the card's header shows the current streak
-   (`streak_days`) when it is ≥ 1 day, or a neutral "recent sessions" label
-   otherwise.
-3. WHEN the card is tapped (anywhere on it) THEN the system SHALL open
+2. WHEN the home screen is shown AND at least one session exists in history
+   THEN the system SHALL display a card showing, for each of the last 7
+   days (oldest to newest, today last), a bar proportional to that day's
+   total session minutes with its weekday initial underneath (today's bar
+   and initial visually emphasized); the card's header shows the current
+   streak (`streak_days`) when it is ≥ 1 day, or a neutral "recent
+   sessions" label otherwise.
+3. WHEN no session has ever been recorded THEN the system SHALL replace the
+   bars with a single "no pauses yet" line instead of seven flattened,
+   identical bars — at the minimum-height floor every bar renders the same
+   regardless of the (all-zero) data, which reads as a rendering bug more
+   than as "zero sessions", especially for a brand-new user.
+4. WHEN the card is tapped (anywhere on it) THEN the system SHALL open
    History — the card itself is the CTA, there is no separate button.
-4. WHILE a session is active THE card SHALL remain visible but visually
+5. WHILE a session is active THE card SHALL remain visible but visually
    de-emphasized (reduced opacity), since it isn't the focus of that state.
 
 ## Living Pond redesign
@@ -102,3 +108,31 @@ progress ring (because there it carries real information — time elapsed —
 rather than being decorative) and the otter's nose, a small fixed accent
 mirroring the pebble in `OtterAtRestIllustration` (see
 `specs/mascot-marks/`).
+
+## Anchored layout ("the home is a bit empty")
+
+A third pass addressed Home reading as top-heavy: title, permission
+prompts, chips, and card all sat one under the next starting from the top,
+leaving the bottom third of the screen empty on most phones (worse on
+taller ones). Fixed without adding new content by redistributing what
+already existed:
+
+1. WHEN the home screen is shown THEN the system SHALL keep the title row
+   at the top and the sessions-chart card at the bottom, and SHALL let the
+   space between them (permission prompts if any, then the pond scene)
+   expand to fill whatever room is left, vertically centering the pond
+   scene within that space — so the otter sits near the true center of the
+   screen rather than immediately below the header, and the card stays
+   anchored to the bottom edge rather than trailing directly under the
+   pond.
+2. WHEN no session is active THEN the otter mark and the ring/ripple ring
+   around it SHALL render at a larger fixed size than before (124dp otter,
+   up from 96dp) — the pond scene is now the dominant visual element of an
+   otherwise mostly-empty middle region, not one element among several
+   competing for a cramped top section.
+3. WHEN no session is active THEN the system SHALL show a one-line rolling
+   weekly summary (reusing the exact `weekly_summary_none`/`_one`/`_many`
+   strings and the "last 7 days" window already used by
+   `session-history-and-stats` — not a calendar week) directly below the
+   pond scene, giving the enlarged empty space a second piece of real
+   content instead of bare padding.

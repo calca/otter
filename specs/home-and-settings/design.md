@@ -97,15 +97,30 @@ marks since it's reused nowhere outside Home but is thematically a mark).
   being read off an `AndroidView` reference at click time.
 - **`SessionsChartCard`** — one `Surface(onClick = onHistory)` wrapping a
   header row (streak text or `home_chart_label`, plus the `home_history_cta`
-  affordance text, both `onSurface`) and a `Row` of 7 `Box`es whose
-  `fillMaxHeight(fraction)` encodes `last7DayMinutes()` (private function,
-  Calendar-based day bucketing of `SessionRecord.effectiveMinutes`,
-  oldest-to-newest, today last — mirrors `SessionStreak`'s own `dayStart()`
-  logic but is not shared code with it, since `SessionStreak.dayStart()` is
-  private); bars are `primary.copy(alpha = 0.18f)`, today's bar
-  `primary.copy(alpha = 0.55f)`. The whole card is the History entry point
-  now (`Modifier.alpha(0.6f)` when `sessionActive`, instead of being
-  hidden) — there is no separate History button anymore.
+  affordance text, both `onSurface`) and, when `hasHistory` is true, a `Row`
+  of 7 `Box`es whose `fillMaxHeight(fraction)` encodes
+  `weekSummary.dailyMinutes` plus a second `Row` of 7 `Text` initials below
+  it (`weekSummary.weekdayIndices` indexed into the `weekday_initials`
+  string-array, today's bolded/darker); bars are `primary.copy(alpha =
+  0.18f)`, today's bar `primary.copy(alpha = 0.55f)`. When `hasHistory` is
+  false (no session ever recorded) the bars/labels are replaced by one
+  `home_chart_empty` line instead — otherwise every bar sits at the
+  `0.04f` minimum-height floor and seven identical slivers read as a
+  rendering bug, not as "zero sessions" (see requirements.md). The whole
+  card is the History entry point (`Modifier.alpha(0.6f)` when
+  `sessionActive`, instead of being hidden) — there is no separate History
+  button anymore.
+- **`WeekSummary`** (private data class) — `dailyMinutes`, `weekdayIndices`,
+  `totalSessions`, `totalMinutes` for the rolling last-7-days window,
+  computed together in one pass by `weekSummaryOf()` (replaces the earlier
+  `last7DayMinutes()`). `weekdayIndices[i]` is `Calendar.DAY_OF_WEEK - 1`
+  for that slot (`0`=Sunday), matching `weekday_initials`' index order.
+  `weeklySummaryText()` (a small `@Composable` returning `String`) picks
+  `weekly_summary_none`/`_one`/`_many` from `totalSessions`, formatted via a
+  private `formatMinutes()` — both are a deliberate duplicate of
+  `HistoryScreen.kt`'s own `weeklyChartData()`/`formatMinutes()` (same
+  rolling-7-day semantics, same string family), not shared code, following
+  the same precedent as `SessionStreak.dayStart()` documented above.
 
 Every neutral-looking surface in this scene (ripples, chip backgrounds,
 chart bars, the otter's fur) is actually `primary` at low alpha, not
@@ -121,3 +136,21 @@ color role — only the eight that `CalmOtterTheme.kt` actually customizes
 per palette (`background`/`surface`/`onBackground`/`onSurface`/`primary`/
 `onPrimary`/`error`/`onError`) are ever used — see the `surfaceVariant`
 trap note in CLAUDE.md.
+
+## Anchored layout: the middle `Column` carries `weight(1f)`
+
+A third pass gave `MainScreen`'s root `Column` three regions instead of one
+flat top-aligned flow: the title row and permission prompts (fixed height,
+top), a middle `Column(Modifier.weight(1f), verticalArrangement =
+Arrangement.Center)` wrapping `PondScene` plus the weekly-summary line (this
+region expands to fill whatever space is left and centers its content
+inside it), and `SessionsChartCard` (fixed height, bottom — falls naturally
+below the weighted region instead of trailing right under the pond). The
+root `Column` also dropped its `.verticalScroll(...)`: nothing here is a
+form, so there's no keyboard to dodge, and a `weight(1f)` child needs a
+bounded-height parent to center within, which an indefinitely-tall
+scrolling parent isn't. `PondScene`'s pond `Box` grew from 200dp to 260dp
+(otter 96dp→124dp, active-session ring 136dp→176dp) — with the extra
+vertical room now going to the pond instead of empty space below the card,
+a larger otter reads as the deliberate focal point rather than one element
+sized for a cramped top section.

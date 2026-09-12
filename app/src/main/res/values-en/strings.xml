@@ -23,6 +23,16 @@
     <string name="home_time_remaining">%1$d min left</string>
     <string name="home_chart_label">Your recent sessions</string>
     <string name="home_history_cta">History →</string>
+    <string name="home_chart_empty">No pauses yet — start your first</string>
+    <string-array name="weekday_initials">
+        <item>S</item>
+        <item>M</item>
+        <item>T</item>
+        <item>W</item>
+        <item>T</item>
+        <item>F</item>
+        <item>S</item>
+    </string-array>
     <string name="session_ended">Session ended</string>
     <string name="block_title">Pause in progress</string>
     <string name="block_message">All apps are blocked, except the phone. Only the person who knows the password can end the pause early.</string>

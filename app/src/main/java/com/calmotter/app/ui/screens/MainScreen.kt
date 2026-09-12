@@ -28,7 +28,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Button
@@ -53,8 +52,11 @@ import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringArrayResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.calmotter.app.R
@@ -110,7 +112,8 @@ fun MainScreen(
     var remainingMillis by remember { mutableStateOf(0L) }
     var totalMillis by remember { mutableStateOf(0L) }
     var streakDays by remember { mutableIntStateOf(0) }
-    var dailyMinutes by remember { mutableStateOf(List(7) { 0 }) }
+    var hasHistory by remember { mutableStateOf(false) }
+    var weekSummary by remember { mutableStateOf(WeekSummary(List(7) { 0 }, List(7) { 0 }, 0, 0)) }
     var selectedDurationIndex by remember { mutableIntStateOf(1) }
 
     fun refreshDerivedState() {
@@ -122,7 +125,8 @@ fun MainScreen(
         totalMillis = sessionManager.totalMillis()
         val history = sessionHistoryManager.getAll()
         streakDays = SessionStreak.currentStreakDays(history)
-        dailyMinutes = last7DayMinutes(history)
+        hasHistory = history.isNotEmpty()
+        weekSummary = weekSummaryOf(history)
     }
 
     // Rieseguito a ogni onResume() dell'Activity (resumeSignal incrementato
@@ -139,7 +143,6 @@ fun MainScreen(
         modifier = Modifier
             .fillMaxSize()
             .safeDrawingPadding()
-            .verticalScroll(rememberScrollState())
             .padding(24.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
@@ -194,26 +197,49 @@ fun MainScreen(
             }
         }
 
-        PondScene(
-            sessionActive = sessionActive,
-            remainingMillis = remainingMillis,
-            totalMillis = totalMillis,
-            canStart = canStart,
-            selectedDurationIndex = selectedDurationIndex,
-            onSelectDuration = { selectedDurationIndex = it },
-            onStart = {
-                val durationMinutes = selectedDurationIndex * 30
-                sessionManager.startSession(durationMinutes)
-                Toast.makeText(context, sessionStartedText, Toast.LENGTH_SHORT).show()
-                refreshDerivedState()
-            }
-        )
+        // Il riquadro sopra (titolo, eventuali richieste di permessi) e la
+        // card sotto restano alla loro dimensione naturale; questa Column
+        // intermedia si prende tutto lo spazio che avanza e vi centra lo
+        // stagno — così l'otter finisce vicino al vero centro dello schermo
+        // invece che subito sotto l'header, e la card statistiche resta
+        // ancorata in fondo invece di seguire a ruota lo stagno.
+        Column(
+            modifier = Modifier
+                .weight(1f)
+                .fillMaxWidth(),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center,
+        ) {
+            PondScene(
+                sessionActive = sessionActive,
+                remainingMillis = remainingMillis,
+                totalMillis = totalMillis,
+                canStart = canStart,
+                selectedDurationIndex = selectedDurationIndex,
+                onSelectDuration = { selectedDurationIndex = it },
+                onStart = {
+                    val durationMinutes = selectedDurationIndex * 30
+                    sessionManager.startSession(durationMinutes)
+                    Toast.makeText(context, sessionStartedText, Toast.LENGTH_SHORT).show()
+                    refreshDerivedState()
+                }
+            )
 
-        Spacer(modifier = Modifier.height(24.dp))
+            if (!sessionActive) {
+                Text(
+                    text = weeklySummaryText(weekSummary),
+                    style = MaterialTheme.typography.labelSmall,
+                    fontFamily = FontFamily.Monospace,
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.55f),
+                    modifier = Modifier.padding(top = 20.dp)
+                )
+            }
+        }
 
         SessionsChartCard(
             streakDays = streakDays,
-            dailyMinutes = dailyMinutes,
+            hasHistory = hasHistory,
+            weekSummary = weekSummary,
             dimmed = sessionActive,
             onHistory = onHistory,
         )
@@ -240,7 +266,7 @@ private fun PondScene(
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         Box(
-            modifier = Modifier.size(200.dp),
+            modifier = Modifier.size(260.dp),
             contentAlignment = Alignment.Center,
         ) {
             if (!sessionActive) {
@@ -251,7 +277,7 @@ private fun PondScene(
                 } else {
                     0f
                 }
-                ProgressRing(fraction = fraction, modifier = Modifier.size(136.dp))
+                ProgressRing(fraction = fraction, modifier = Modifier.size(176.dp))
             }
 
             val floatTransition = rememberInfiniteTransition(label = "otterFloat")
@@ -272,7 +298,7 @@ private fun PondScene(
                     .clickable(enabled = canStart, onClick = onStart),
                 contentAlignment = Alignment.Center,
             ) {
-                OtterFloatMark(markSize = 96.dp)
+                OtterFloatMark(markSize = 124.dp)
             }
         }
 
@@ -417,20 +443,28 @@ private fun DurationChipRow(selectedIndex: Int, onSelect: (Int) -> Unit) {
 }
 
 /**
- * Card con streak/ultime sessioni (barre degli ultimi 7 giorni) e CTA verso
- * la Cronologia — l'intera card è cliccabile. Sfondo e barre in "primary" a
- * bassa opacità (segue la palette scelta restando tenue); testo "onSurface"
- * per la leggibilità. Attenuata (non nascosta) durante una sessione attiva:
- * resta consultabile ma non è il focus.
+ * Card con streak/ultime sessioni (barre degli ultimi 7 giorni, con le
+ * iniziali del giorno sotto ciascuna) e CTA verso la Cronologia — l'intera
+ * card è cliccabile. Sfondo e barre in "primary" a bassa opacità (segue la
+ * palette scelta restando tenue); testo "onSurface" per la leggibilità.
+ * Attenuata (non nascosta) durante una sessione attiva: resta consultabile
+ * ma non è il focus.
+ *
+ * Quando [hasHistory] è falso (nessuna sessione mai registrata) le barre —
+ * tutte appiattite sul minimo dello 0.04f — vengono sostituite da una riga
+ * di invito: sette trattini identici somigliano a un errore di rendering
+ * più che a "zero sessioni", specialmente al primissimo avvio.
  */
 @Composable
 private fun SessionsChartCard(
     streakDays: Int,
-    dailyMinutes: List<Int>,
+    hasHistory: Boolean,
+    weekSummary: WeekSummary,
     dimmed: Boolean,
     onHistory: () -> Unit,
 ) {
-    val maxMinutes = (dailyMinutes.maxOrNull() ?: 0).coerceAtLeast(1)
+    val maxMinutes = (weekSummary.dailyMinutes.maxOrNull() ?: 0).coerceAtLeast(1)
+    val weekdayInitials = stringArrayResource(R.array.weekday_initials)
 
     Surface(
         onClick = onHistory,
@@ -461,34 +495,74 @@ private fun SessionsChartCard(
                 )
             }
 
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = 12.dp)
-                    .height(48.dp),
-                horizontalArrangement = Arrangement.spacedBy(6.dp),
-                verticalAlignment = Alignment.Bottom,
-            ) {
-                dailyMinutes.forEachIndexed { index, minutes ->
-                    val isToday = index == dailyMinutes.lastIndex
-                    val fraction = (minutes.toFloat() / maxMinutes).coerceIn(0.04f, 1f)
-                    Box(
-                        modifier = Modifier
-                            .weight(1f)
-                            .fillMaxHeight(fraction)
-                            .background(
-                                color = MaterialTheme.colorScheme.primary.copy(alpha = if (isToday) 0.55f else 0.18f),
-                                shape = RoundedCornerShape(4.dp),
-                            )
-                    )
+            if (!hasHistory) {
+                Text(
+                    text = stringResource(R.string.home_chart_empty),
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 20.dp, bottom = 4.dp),
+                )
+            } else {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 12.dp)
+                        .height(48.dp),
+                    horizontalArrangement = Arrangement.spacedBy(6.dp),
+                    verticalAlignment = Alignment.Bottom,
+                ) {
+                    weekSummary.dailyMinutes.forEachIndexed { index, minutes ->
+                        val isToday = index == weekSummary.dailyMinutes.lastIndex
+                        val fraction = (minutes.toFloat() / maxMinutes).coerceIn(0.04f, 1f)
+                        Box(
+                            modifier = Modifier
+                                .weight(1f)
+                                .fillMaxHeight(fraction)
+                                .background(
+                                    color = MaterialTheme.colorScheme.primary.copy(alpha = if (isToday) 0.55f else 0.18f),
+                                    shape = RoundedCornerShape(4.dp),
+                                )
+                        )
+                    }
+                }
+
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 6.dp),
+                    horizontalArrangement = Arrangement.spacedBy(6.dp),
+                ) {
+                    weekSummary.weekdayIndices.forEachIndexed { index, weekdayIndex ->
+                        val isToday = index == weekSummary.weekdayIndices.lastIndex
+                        Text(
+                            text = weekdayInitials.getOrElse(weekdayIndex) { "" },
+                            textAlign = TextAlign.Center,
+                            style = MaterialTheme.typography.labelSmall,
+                            fontWeight = if (isToday) FontWeight.SemiBold else FontWeight.Normal,
+                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = if (isToday) 0.7f else 0.38f),
+                            modifier = Modifier.weight(1f),
+                        )
+                    }
                 }
             }
         }
     }
 }
 
-/** Minuti totali per ciascuno degli ultimi 7 giorni (oggi per ultimo). */
-private fun last7DayMinutes(records: List<SessionRecord>): List<Int> {
+/** Riassunto degli ultimi 7 giorni: barre giornaliere, giorno della
+ * settimana di ciascuna (per le etichette) e totale sessioni/minuti (per
+ * riusare le stringhe weekly_summary_* già scritte per la Cronologia,
+ * vedi HistoryScreen.kt — stessa finestra "ultimi 7 giorni", non settimana
+ * di calendario). */
+private data class WeekSummary(
+    val dailyMinutes: List<Int>,
+    val weekdayIndices: List<Int>,
+    val totalSessions: Int,
+    val totalMinutes: Int,
+)
+
+private fun weekSummaryOf(records: List<SessionRecord>): WeekSummary {
     fun dayStart(timeMs: Long): Long = Calendar.getInstance().apply {
         timeInMillis = timeMs
         set(Calendar.HOUR_OF_DAY, 0)
@@ -498,16 +572,47 @@ private fun last7DayMinutes(records: List<SessionRecord>): List<Int> {
     }.timeInMillis
 
     val minutesByDay = HashMap<Long, Int>()
+    val sessionsByDay = HashMap<Long, Int>()
     for (record in records) {
         val day = dayStart(record.startTimeMs)
         minutesByDay[day] = (minutesByDay[day] ?: 0) + record.effectiveMinutes
+        sessionsByDay[day] = (sessionsByDay[day] ?: 0) + 1
     }
 
     val cursor = Calendar.getInstance().apply { timeInMillis = dayStart(System.currentTimeMillis()) }
     cursor.add(Calendar.DATE, -6)
-    return (0 until 7).map {
-        val minutes = minutesByDay[cursor.timeInMillis] ?: 0
+
+    val dailyMinutes = mutableListOf<Int>()
+    val weekdayIndices = mutableListOf<Int>()
+    var totalSessions = 0
+    var totalMinutes = 0
+    repeat(7) {
+        val day = cursor.timeInMillis
+        dailyMinutes += minutesByDay[day] ?: 0
+        weekdayIndices += cursor.get(Calendar.DAY_OF_WEEK) - 1
+        totalSessions += sessionsByDay[day] ?: 0
+        totalMinutes += minutesByDay[day] ?: 0
         cursor.add(Calendar.DATE, 1)
-        minutes
+    }
+    return WeekSummary(dailyMinutes, weekdayIndices, totalSessions, totalMinutes)
+}
+
+@Composable
+private fun weeklySummaryText(summary: WeekSummary): String = when {
+    summary.totalSessions == 0 -> stringResource(R.string.weekly_summary_none)
+    summary.totalSessions == 1 -> stringResource(R.string.weekly_summary_one, formatMinutes(summary.totalMinutes))
+    else -> stringResource(R.string.weekly_summary_many, summary.totalSessions, formatMinutes(summary.totalMinutes))
+}
+
+/** Duplica HistoryScreen.kt's formatMinutes(): stessa resa "1h 30m", non
+ * condivisa perché entrambe le funzioni sono private ai rispettivi file
+ * (stesso pattern di last7DayMinutes/dayStart già documentato altrove). */
+private fun formatMinutes(minutes: Int): String {
+    val h = minutes / 60
+    val m = minutes % 60
+    return when {
+        h == 0 -> "${m}m"
+        m == 0 -> "${h}h"
+        else -> "${h}h ${m}m"
     }
 }
