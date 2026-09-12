@@ -38,14 +38,31 @@ class PasswordManager private constructor(context: Context) {
 
     fun isPasswordSet(): Boolean = prefs.contains(KEY_HASH)
 
-    fun setPassword(password: String) {
+    /**
+     * @param partnerName nome facoltativo di chi sta impostando la password
+     * (raccolto durante l'onboarding, vedi OnboardingScreen.kt), mostrato poi
+     * in Settings ("Impostata da …"). Salvato in chiaro nello stesso
+     * EncryptedSharedPreferences della password — non è un segreto, è solo
+     * un'etichetta — ma non viene mai sovrascritto con un valore vuoto: un
+     * cambio password successivo senza fornirlo (es. da
+     * ChangePasswordScreen, che non ha questo campo) lascia il nome
+     * esistente invariato invece di cancellarlo.
+     */
+    fun setPassword(password: String, partnerName: String? = null) {
         val salt = ByteArray(16).also { SecureRandom().nextBytes(it) }
         val hash = hash(password, salt)
-        prefs.edit()
+        val editor = prefs.edit()
             .putString(KEY_SALT, Base64.encodeToString(salt, Base64.NO_WRAP))
             .putString(KEY_HASH, Base64.encodeToString(hash, Base64.NO_WRAP))
-            .apply()
+        val trimmedName = partnerName?.trim()
+        if (!trimmedName.isNullOrEmpty()) {
+            editor.putString(KEY_PARTNER_NAME, trimmedName)
+        }
+        editor.apply()
     }
+
+    /** Nome di chi ha impostato la password, o null se non fornito. */
+    fun getPartnerName(): String? = prefs.getString(KEY_PARTNER_NAME, null)
 
     /**
      * Verifica la password. Se è attivo un lockout (troppi tentativi errati
@@ -103,6 +120,7 @@ class PasswordManager private constructor(context: Context) {
     companion object {
         private const val KEY_SALT = "password_salt"
         private const val KEY_HASH = "password_hash"
+        private const val KEY_PARTNER_NAME = "partner_name"
         private const val KEY_FAILED_ATTEMPTS = "failed_attempts"
         private const val KEY_LOCKOUT_UNTIL = "lockout_until"
         private const val ITERATIONS = 120_000

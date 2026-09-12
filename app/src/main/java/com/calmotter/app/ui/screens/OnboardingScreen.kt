@@ -63,6 +63,7 @@ fun OnboardingScreen(
     var currentStep by remember { mutableIntStateOf(0) }
 
     var passwordError by remember { mutableStateOf<String?>(null) }
+    var partnerName by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var passwordConfirm by remember { mutableStateOf("") }
 
@@ -99,6 +100,16 @@ fun OnboardingScreen(
                         titleRes = R.string.onb4_title,
                         bodyRes = R.string.onb4_body,
                         bodyBottomPadding = 24.dp
+                    )
+
+                    OutlinedTextField(
+                        value = partnerName,
+                        onValueChange = { partnerName = it },
+                        label = { Text(stringResource(R.string.hint_partner_name)) },
+                        singleLine = true,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(bottom = 12.dp)
                     )
 
                     OutlinedTextField(
@@ -174,7 +185,7 @@ fun OnboardingScreen(
                             passwordError = error
                             return@Button
                         }
-                        passwordManager.setPassword(password)
+                        passwordManager.setPassword(password, partnerName)
                         passwordError = null
                     }
 

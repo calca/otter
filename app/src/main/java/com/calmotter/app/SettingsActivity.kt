@@ -65,6 +65,7 @@ class SettingsActivity : BaseActivity() {
             CalmOtterTheme(appTheme = ThemeManager.getTheme(this)) {
                 SettingsScreen(
                     currentTheme = ThemeManager.getTheme(this),
+                    partnerName = passwordManager.getPartnerName(),
                     phraseManager = phraseManager,
                     resumeSignal = resumeSignal,
                     isAccessibilityServiceEnabled = { isAccessibilityServiceEnabled(this) },

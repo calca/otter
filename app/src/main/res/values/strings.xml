@@ -2,12 +2,15 @@
     <string name="app_name">Calm Otter</string>
     <string name="settings_title">Impostazioni</string>
     <string name="settings_permissions_label">Permessi</string>
+    <string name="settings_home_label">Home</string>
     <string name="settings_theme_label">Tema</string>
+    <string name="settings_theme_selected">Selezionato</string>
+    <string name="settings_password_label">Password</string>
+    <string name="settings_password_set_by">Impostata da %1$s</string>
     <string name="permission_row_accessibility">Accessibilità</string>
     <string name="permission_row_dnd">Non disturbare</string>
     <string name="permission_row_home">App Home</string>
     <string name="permission_action_grant">Concedi</string>
-    <string name="permission_action_set">Imposta</string>
     <string name="permission_action_done">Fatto</string>
     <string name="home_permission_dialog_title">Permessi necessari</string>
     <string name="permission_reason_accessibility">🔍 Accessibilità — per rilevare quale app è aperta e mostrare la schermata di blocco.</string>
@@ -19,6 +22,7 @@
     <string name="settings_info_developer">Sviluppatore — @calca</string>
 
     <string name="setup_password_info">Imposta la password che SOLO un\'altra persona conoscerà: servirà per terminare le sessioni di pausa.</string>
+    <string name="hint_partner_name">Il tuo nome (opzionale)</string>
     <string name="hint_new_password">Nuova password</string>
     <string name="hint_confirm_password">Conferma password</string>
     <string name="save_password">Salva password</string>

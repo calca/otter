@@ -1,12 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- Override dei soli 3 colori "primary" letti dai pallini del
-         selettore tema (theme_dot_*.xml, vedi ui/screens/SettingsScreen.kt)
-         — così lo swatch selezionato mostra il colorPrimary scuro
-         realmente applicato in dark mode (values-night/themes.xml), non
-         quello chiaro di values/colors.xml. Nessun altro colore qui:
-         solo questi 3 nomi sono referenziati da un drawable @color/*, il
-         resto di values/colors.xml continua a valere anche in dark mode
+    <!-- Override dei soli 3 colori "primary" letti dallo swatch di ogni
+         riga del selettore tema (ThemeListCard/ThemeListRow via
+         colorResource(), vedi ui/screens/SettingsScreen.kt) — così ogni
+         pallino mostra il colorPrimary scuro realmente applicato in dark
+         mode (values-night/themes.xml), non quello chiaro di
+         values/colors.xml. Nessun altro colore qui: solo questi 3 nomi
+         sono letti con colorResource() nell'app, il resto di
+         values/colors.xml continua a valere anche in dark mode
          (values-night/themes.xml ha i propri valori scuri inline, non
          passa da colors.xml — vedi specs/multi-theme-system/design.md). -->
     <color name="sage_primary">#6BBFA0</color>
