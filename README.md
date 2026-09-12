@@ -113,3 +113,7 @@ insufficient in real-world use.
 - Session history / usage statistics.
 - Remote unlock (requires a small backend) instead of only local.
 - Configurable whitelist instead of just the phone (e.g., maps, family messages).
+
+## License
+
+MIT — see [LICENSE](LICENSE).

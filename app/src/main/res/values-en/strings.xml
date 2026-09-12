@@ -13,6 +13,10 @@
     <string name="permission_reason_accessibility">🔍 Accessibility — to detect which app is open and show the lock screen.</string>
     <string name="permission_reason_dnd">🔔 Do Not Disturb — to silence notifications during the pause, allowing only calls.</string>
     <string name="close">Close</string>
+    <string name="settings_info_label">About</string>
+    <string name="settings_info_github">Source code on GitHub</string>
+    <string name="settings_info_license">License — MIT</string>
+    <string name="settings_info_developer">Developer — @calca</string>
 
     <string name="setup_password_info">Set a password that ONLY your trusted person will know: it will be used to end pause sessions.</string>
     <string name="hint_new_password">New password</string>

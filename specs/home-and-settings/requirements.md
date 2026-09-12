@@ -57,8 +57,9 @@ the screen I open every time I want a break.
 1. WHEN Settings is opened THEN the system SHALL show: a permissions status
    card (see "Permissions off Home"), the theme picker (Sage/Lavender/
    Terracotta), a "Change password" button, a "Manage allowed apps" button,
-   and the reflective-phrases toggle — every one of these previously lived
-   on the home screen.
+   the reflective-phrases toggle, and an "Info" section (see "Info section"
+   below) — every one of the first five previously lived on the home
+   screen; "Info" is new to Settings, not moved from anywhere.
 2. WHEN "Manage allowed apps" is tapped THEN the system SHALL require the
    correct password before opening the allowed-apps editor, exactly as
    before this change (see `app-blocking-and-home-lock/requirements.md`) —
@@ -70,6 +71,26 @@ the screen I open every time I want a break.
    THEN the permissions status card SHALL reflect the new state — Settings
    now refreshes this OS-level state on every resume, the same way Home
    always has (see "Permissions off Home").
+
+## Info section
+
+As anyone using the app, I want to find the project's source, its license,
+and who made it without having to search for it outside the app.
+
+### Acceptance Criteria
+
+1. WHEN Settings is opened THEN the system SHALL show an "Info" section
+   with three rows: a link to the project's GitHub repository, the
+   project's license (MIT), and the developer's GitHub handle.
+2. WHEN any of the three rows is tapped THEN the system SHALL open that
+   row's URL in the device's browser (or app of the user's choice for that
+   link) — this is the only place in the app that opens anything external;
+   every other screen stays fully local, per CLAUDE.md's "no network
+   calls" constraint (opening a browser is the user leaving the app, not
+   the app itself making a network call).
+3. The license shown SHALL match a real `LICENSE` file committed at the
+   repository root — the in-app text is not a standalone claim independent
+   of the actual repository.
 
 ## User Story 3: History stays on Home
 

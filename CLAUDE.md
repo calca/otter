@@ -140,6 +140,11 @@ for the convention to follow when adding specs for new features.
   Match existing language per-file rather than mixing.
 - No external network calls, no analytics/telemetry — this is a hard
   constraint from CONTRIBUTING.md's contribution policy, not an oversight.
+  The one intentional exception: Settings' "Info" section (see
+  `specs/home-and-settings/design.md`) opens GitHub/license links in the
+  device's browser via `ACTION_VIEW` — that's the user leaving the app
+  through an explicit tap, not the app itself calling out or transmitting
+  anything, so it doesn't conflict with this constraint.
 - New UI strings need entries in both `values/strings.xml` and
   `values-en/strings.xml`; `values-en/` also doubles as the reference file
   translators copy for new locales (see CONTRIBUTING.md for the full i18n

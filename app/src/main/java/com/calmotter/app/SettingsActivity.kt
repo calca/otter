@@ -3,6 +3,7 @@ package com.calmotter.app
 import android.content.ComponentName
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.net.Uri
 import android.os.Bundle
 import android.provider.Settings
 import android.text.InputType
@@ -17,14 +18,20 @@ import androidx.compose.runtime.setValue
 import com.calmotter.app.ui.screens.SettingsScreen
 import com.calmotter.app.ui.theme.CalmOtterTheme
 
+// Repo pubblico su GitHub — unica fonte per link "codice sorgente",
+// "licenza" (file LICENSE nello stesso repo) e "sviluppatore" in Settings.
+private const val GITHUB_REPO_URL = "https://github.com/calca/otter"
+private const val GITHUB_DEVELOPER_URL = "https://github.com/calca"
+
 /**
  * Configurazione: personalizzazione (palette), stato di accessibilità/DND/
  * Home predefinita (spostati qui dalla Home — vedi MainScreen.kt — perché
  * non bloccano l'avvio di una pausa, solo la sua applicazione più rigorosa,
  * e controllarli ogni volta che si apre l'app era percepito come fastidioso,
- * vedi home-and-settings/requirements.md) e le due azioni protette da
- * password (cambio password, elenco app consentite) più le preferenze non
- * critiche.
+ * vedi home-and-settings/requirements.md), le due azioni protette da
+ * password (cambio password, elenco app consentite), le preferenze non
+ * critiche, e una sezione "Info" con link esterni (repo GitHub, licenza,
+ * sviluppatore) — l'unico punto dell'app che apre un browser esterno.
  *
  * A differenza della versione precedente di questa Activity, ora HA un
  * resumeSignal: lo stato di accessibilità/DND/Home può cambiare mentre
@@ -69,6 +76,9 @@ class SettingsActivity : BaseActivity() {
                     onPickTheme = { theme -> pickTheme(theme) },
                     onManageApps = { promptPasswordThenOpenAllowedApps() },
                     onChangePassword = { startActivity(Intent(this, ChangePasswordActivity::class.java)) },
+                    onOpenGitHub = { openUrl(GITHUB_REPO_URL) },
+                    onOpenLicense = { openUrl("$GITHUB_REPO_URL/blob/main/LICENSE") },
+                    onOpenDeveloper = { openUrl(GITHUB_DEVELOPER_URL) },
                 )
             }
         }
@@ -89,6 +99,10 @@ class SettingsActivity : BaseActivity() {
         ThemeManager.setTheme(this, theme)
         // Ricrea l'activity per applicare il nuovo tema immediatamente
         recreate()
+    }
+
+    private fun openUrl(url: String) {
+        startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url)))
     }
 
     private fun isDefaultHome(): Boolean {

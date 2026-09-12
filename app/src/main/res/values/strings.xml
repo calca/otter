@@ -13,6 +13,10 @@
     <string name="permission_reason_accessibility">🔍 Accessibilità — per rilevare quale app è aperta e mostrare la schermata di blocco.</string>
     <string name="permission_reason_dnd">🔔 Non disturbare — per silenziare le notifiche durante la pausa, lasciando passare solo le chiamate.</string>
     <string name="close">Chiudi</string>
+    <string name="settings_info_label">Info</string>
+    <string name="settings_info_github">Codice sorgente su GitHub</string>
+    <string name="settings_info_license">Licenza — MIT</string>
+    <string name="settings_info_developer">Sviluppatore — @calca</string>
 
     <string name="setup_password_info">Imposta la password che SOLO un\'altra persona conoscerà: servirà per terminare le sessioni di pausa.</string>
     <string name="hint_new_password">Nuova password</string>

@@ -46,9 +46,10 @@ import com.calmotter.app.R
  * Configurazione: stato di accessibilità/DND/Home predefinita (spostati qui
  * dalla Home, vedi MainScreen.kt e home-and-settings/requirements.md — non
  * bloccano l'avvio di una pausa in sé, quindi controllarli a ogni apertura
- * dell'app era percepito come fastidioso), personalizzazione (palette) e le
- * azioni protette da password (cambio password, elenco app consentite), più
- * le preferenze non critiche (frasi riflessive).
+ * dell'app era percepito come fastidioso), personalizzazione (palette), le
+ * azioni protette da password (cambio password, elenco app consentite), le
+ * preferenze non critiche (frasi riflessive), e una sezione "Info" con link
+ * esterni (repo GitHub, licenza, sviluppatore).
  *
  * Diversi valori (stato accessibilità/DND/Home) dipendono da stato esterno
  * che Compose non osserva automaticamente: vanno ricalcolati manualmente a
@@ -69,6 +70,9 @@ fun SettingsScreen(
     onPickTheme: (AppTheme) -> Unit,
     onManageApps: () -> Unit,
     onChangePassword: () -> Unit,
+    onOpenGitHub: () -> Unit,
+    onOpenLicense: () -> Unit,
+    onOpenDeveloper: () -> Unit,
 ) {
     var accessibilityOk by remember { mutableStateOf(false) }
     var dndOk by remember { mutableStateOf(false) }
@@ -150,6 +154,71 @@ fun SettingsScreen(
                 color = MaterialTheme.colorScheme.onBackground
             )
         }
+
+        Text(
+            text = stringResource(R.string.settings_info_label),
+            fontSize = 13.sp,
+            color = MaterialTheme.colorScheme.onSurface,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(top = 32.dp, bottom = 8.dp)
+        )
+        InfoCard(
+            onOpenGitHub = onOpenGitHub,
+            onOpenLicense = onOpenLicense,
+            onOpenDeveloper = onOpenDeveloper,
+        )
+    }
+}
+
+/**
+ * Link esterni (repo GitHub, licenza, sviluppatore) — l'unica sezione di
+ * Settings che lascia l'app. Stessa card neutra a bassa opacità delle altre
+ * sezioni (PermissionStatusCard sopra, SessionsChartCard su Home): un
+ * riquadro di stato/informazione, non un'azione da spingere con un colore
+ * pieno come i pulsanti "Change password"/"Manage allowed apps".
+ */
+@Composable
+private fun InfoCard(
+    onOpenGitHub: () -> Unit,
+    onOpenLicense: () -> Unit,
+    onOpenDeveloper: () -> Unit,
+) {
+    Surface(
+        shape = RoundedCornerShape(20.dp),
+        color = MaterialTheme.colorScheme.primary.copy(alpha = 0.06f),
+        modifier = Modifier.fillMaxWidth(),
+    ) {
+        Column(modifier = Modifier.padding(horizontal = 16.dp)) {
+            InfoLinkRow(label = stringResource(R.string.settings_info_github), onClick = onOpenGitHub)
+            HorizontalDivider(color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.08f))
+            InfoLinkRow(label = stringResource(R.string.settings_info_license), onClick = onOpenLicense)
+            HorizontalDivider(color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.08f))
+            InfoLinkRow(label = stringResource(R.string.settings_info_developer), onClick = onOpenDeveloper)
+        }
+    }
+}
+
+@Composable
+private fun InfoLinkRow(label: String, onClick: () -> Unit) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onClick)
+            .padding(vertical = 14.dp),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Text(
+            text = label,
+            color = MaterialTheme.colorScheme.onSurface,
+            modifier = Modifier.weight(1f),
+        )
+        Text(
+            text = "↗",
+            color = MaterialTheme.colorScheme.primary,
+            fontWeight = FontWeight.SemiBold,
+        )
     }
 }
 

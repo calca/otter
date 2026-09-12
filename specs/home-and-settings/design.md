@@ -260,3 +260,38 @@ gradient composites over the existing neutral `background` without
 changing what color role any other element already reads — `OtterFloatMark`,
 chips, the chart card, and every text color are completely unaffected,
 which is why this was a small, low-risk change instead of a redesign.
+
+## Info section: `InfoCard`/`InfoLinkRow` (`SettingsScreen.kt`)
+
+A sixth pass added an "Info" section at the bottom of Settings — the only
+UI in the whole app that opens something external (a browser). Same visual
+language as `PermissionStatusCard` above (`Surface` at `primary.copy(alpha
+= 0.06f)`, `HorizontalDivider` between rows), for consistency between
+Settings' two status/info cards, not styled as buttons like "Change
+password"/"Manage allowed apps" — there's nothing to *do* here, just
+somewhere to go.
+
+- **`InfoCard`** wraps three `InfoLinkRow`s: GitHub repo, license, developer.
+- **`InfoLinkRow`** — a label (`Modifier.weight(1f)`, so a long label
+  doesn't push the trailing glyph off-screen) plus a trailing "↗" in
+  `primary`, the whole row `Modifier.clickable`. No icons anywhere else in
+  Settings, so none here either — consistent with the rest of the screen.
+- **URLs live in `SettingsActivity.kt`** as two top-level `private const
+  val`s (`GITHUB_REPO_URL`, `GITHUB_DEVELOPER_URL`), not in `SettingsScreen.kt`
+  — the screen only receives `onOpenGitHub`/`onOpenLicense`/`onOpenDeveloper`
+  lambdas, each just `startActivity(Intent(ACTION_VIEW, Uri.parse(url)))`
+  via a shared private `openUrl()` helper. The license URL is derived from
+  the same `GITHUB_REPO_URL` (`"$GITHUB_REPO_URL/blob/main/LICENSE"`) rather
+  than being its own constant, so the two never drift apart.
+- **The `LICENSE` file the license row links to is a real file** at the
+  repository root (MIT, added alongside this feature) — the in-app string
+  and the link both point at an actual license grant, not a claim with
+  nothing backing it. `README.md` gained a one-line `## License` section
+  linking the same file, so it's discoverable without opening the app too.
+- No `<queries>` manifest entry was needed for the `ACTION_VIEW`
+  `http`/`https` intent — that's one of Android's automatically-exempted
+  implicit-intent signatures under package-visibility rules (unlike
+  `AllowedAppsActivity`'s `ACTION_MAIN`/`CATEGORY_LAUNCHER` query, see
+  `app-blocking-and-home-lock/design.md`, which does need a `<queries>`
+  entry since it enumerates *all* launchable apps, not one well-known
+  implicit action).
