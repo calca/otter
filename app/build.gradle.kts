@@ -51,6 +51,7 @@ android {
     buildFeatures {
         viewBinding = false
         compose = true
+        buildConfig = true
     }
 
     // Il Compose Compiler è configurato dal plugin org.jetbrains.kotlin.plugin.compose

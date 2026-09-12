@@ -199,8 +199,21 @@ with two separate, more targeted pieces of UI.
   unlike a hand-drawn mascot mark; only the row content is a place this
   design chooses `onSurface` deliberately, not left to a default.
   `MainScreen`'s `onStart` lambda passed into `PondScene` is what decides
-  which behavior a tap gets: `if (accessibilityOk && dndOk) startSession()
-  else showPermissionDialog = true`.
+  which behavior a tap gets: `if (BuildConfig.DEBUG || (accessibilityOk &&
+  dndOk)) startSession() else showPermissionDialog = true` — the
+  `BuildConfig.DEBUG ||` short-circuits the whole check in debug builds
+  (including CI's `assembleDebug`), so a session can be started for manual
+  testing without actually granting Accessibility/DND first. Release builds
+  are unaffected (`BuildConfig.DEBUG` is `false` there, same check as
+  before). This doesn't fake the underlying OS permissions — the real
+  service still won't run if Accessibility genuinely isn't enabled, and
+  `SessionManager.setOnlyCallsAllowed()` already no-ops silently when DND
+  access isn't granted (see `app-blocking-and-home-lock/design.md`) — it
+  only skips the *app-level* gate that would otherwise stop you from
+  starting a session at all while iterating on everything else (Settings,
+  History, the block screen). Requires `buildFeatures.buildConfig = true`
+  in `app/build.gradle.kts` (off by default on modern AGP) to generate the
+  `BuildConfig` class at all.
 - **`PermissionStatusCard`** (private composable, `SettingsScreen.kt`) — a
   `Surface` (same `primary.copy(alpha = 0.06f)` tint as `SessionsChartCard`
   on Home, for visual consistency between the app's two card-shaped

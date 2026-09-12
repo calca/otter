@@ -61,6 +61,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.calmotter.app.BuildConfig
 import com.calmotter.app.R
 import com.calmotter.app.SessionHistoryManager
 import com.calmotter.app.SessionManager
@@ -194,7 +195,17 @@ fun MainScreen(
                 selectedDurationIndex = selectedDurationIndex,
                 onSelectDuration = { selectedDurationIndex = it },
                 onStart = {
-                    if (accessibilityOk && dndOk) {
+                    // In debug (incluso quello prodotto in CI) i permessi
+                    // Accessibilità/DND non bloccano l'avvio di una sessione,
+                    // per poter testare il resto del flusso (Settings,
+                    // History, schermata di blocco...) senza doverli
+                    // concedere davvero a ogni installazione pulita — vedi
+                    // SessionManager.setOnlyCallsAllowed(), che già ignora
+                    // silenziosamente il DND se non concesso, quindi questo
+                    // bypass non nasconde un crash, solo il blocco vero e
+                    // proprio non scatta. In release il controllo resta
+                    // invariato.
+                    if (BuildConfig.DEBUG || (accessibilityOk && dndOk)) {
                         val durationMinutes = selectedDurationIndex * 30
                         sessionManager.startSession(durationMinutes)
                         Toast.makeText(context, sessionStartedText, Toast.LENGTH_SHORT).show()
