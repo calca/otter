@@ -80,6 +80,22 @@ redesign").
    stored name untouched — changing the password does not imply the
    accountability partner changed.
 
+## Password step: short and keyboard-safe
+
+Reported directly: with the name field, the password step had grown long
+enough that the Next/Back controls could become unreachable once the
+on-screen keyboard was up, and the intro text above the form felt too long
+to get to the fields.
+
+1. WHEN the on-screen keyboard is shown while filling in the password step
+   THEN the Back/Next controls SHALL remain reachable (either still visible
+   or reachable by scrolling the step's content), never fully hidden behind
+   the keyboard requiring it to be dismissed first.
+2. The password step's intro copy SHALL be a single short paragraph, not
+   multiple separated paragraphs — same meaning (hand the phone over, the
+   trusted person picks and keeps the password, you don't need to know it),
+   less vertical space.
+
 ## User Story 2: Password storage and verification
 
 As the accountability partner, I want my password never stored in a way

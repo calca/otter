@@ -59,6 +59,37 @@ lives in `EncryptedSharedPreferences` alongside it — it's not sensitive on
 its own, but it's already the same store and there's no reason to split it
 out.
 
+## Keeping the password step short and keyboard-safe
+
+The password step is the one step with a form, so it's the one place this
+wizard can get too tall or have its controls hidden by the keyboard — both
+reported directly.
+
+- **`.imePadding()` on the whole root `Column`** (not just the scrollable
+  inner one): without it, the Back/Next `Row` — a fixed-height sibling
+  *below* the scrollable middle `Column`, not inside it — stayed at its
+  laid-out position while the keyboard covered it from below, since nothing
+  told the layout to shrink for the keyboard. The symptom was that Back/Next
+  became genuinely unreachable while typing a password, forcing the keyboard
+  to be dismissed first to proceed. `imePadding()` on the root adds bottom
+  padding equal to the keyboard's height, which both frees room for
+  Back/Next above it and shrinks the scrollable middle `Column` enough that
+  it can still scroll the currently-focused field into view.
+- **`onb4_body` was cut from three short paragraphs to one** (see
+  requirements.md) — same information, far less vertical space.
+- **`PactPawsMark` is smaller on this step specifically** (72dp vs the
+  120dp/96dp used on the other two steps) and `bodyBottomPadding` dropped
+  from 24dp to 16dp — this step has three text fields below the intro
+  content, so the intro itself is given less room on purpose, unlike the
+  other two steps which have nothing else competing for vertical space.
+- Field-to-field padding was trimmed from 12dp to 10dp — minor on its own,
+  meaningful stacked across three fields.
+
+None of this touches the other two steps' spacing (they had no reported
+problem and still fit comfortably without scrolling), so `StepBody`'s
+shared 24dp illustration-to-title spacer was left alone; only this step's
+own values were tightened.
+
 ## Lockout state machine
 
 `LockoutPolicy` is a pure `object` operating on `State(failedAttempts,

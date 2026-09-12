@@ -125,7 +125,7 @@
     <string name="onb1_title">Benvenuto in Calm Otter</string>
     <string name="onb1_body">Calm Otter ti aiuta a prenderti delle pause vere dal telefono: scegli quanto tempo, e per quella durata tutte le app restano bloccate — solo le chiamate passano.\n\nLa pausa finisce da sola allo scadere del tempo, oppure prima se una persona di fiducia inserisce la password: è un patto tra te e chi ti vuole bene.</string>
     <string name="onb4_title">Scegli la password insieme</string>
-    <string name="onb4_body">Passa il telefono alla persona di fiducia.\n\nSarà lei a scegliere la password — e a tenerla per sé. Solo lei potrà terminare una sessione prima del tempo.\n\nNon devi sapere la password: è parte del patto.</string>
+    <string name="onb4_body">Passa il telefono alla persona di fiducia: sceglierà lei la password e la terrà per sé — solo lei potrà terminare una sessione in anticipo. Tu non devi conoscerla: è parte del patto.</string>
     <string name="onb5_title">Tutto pronto 🌿</string>
     <string name="onb5_body">Calm Otter è configurato.\n\nQuando sei pronto per una pausa, apri l\'app, scegli la durata e inizia.\n\nPrenditi cura di te.</string>
     <string name="onb_next">Avanti</string>

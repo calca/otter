@@ -125,7 +125,7 @@
     <string name="onb1_title">Welcome to Calm Otter</string>
     <string name="onb1_body">Calm Otter helps you take real breaks from your phone: choose how long, and for that time every app stays blocked — only calls get through.\n\nThe pause ends on its own when the time is up, or earlier if a trusted person enters the password: it\'s a pact between you and someone who cares about you.</string>
     <string name="onb4_title">Choose the password together</string>
-    <string name="onb4_body">Hand the phone to your trusted person.\n\nThey will choose the password — and keep it to themselves. Only they can end a session early.\n\nYou don\'t need to know the password: it\'s part of the pact.</string>
+    <string name="onb4_body">Hand the phone to your trusted person: they\'ll choose the password and keep it to themselves — only they can end a session early. You don\'t need to know it: it\'s part of the pact.</string>
     <string name="onb5_title">All set 🌿</string>
     <string name="onb5_body">Calm Otter is configured.\n\nWhenever you\'re ready for a break, open the app, choose a duration and start.\n\nTake care of yourself.</string>
     <string name="onb_next">Next</string>

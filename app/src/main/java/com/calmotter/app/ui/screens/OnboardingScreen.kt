@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.layout.size
@@ -69,7 +70,12 @@ fun OnboardingScreen(
     var password by remember { mutableStateOf("") }
     var passwordConfirm by remember { mutableStateOf("") }
 
-    Column(modifier = Modifier.fillMaxSize().calmBackground().safeDrawingPadding()) {
+    // .imePadding() sull'intera colonna (non solo sull'area scrollabile
+    // interna) è ciò che tiene la riga Back/Next sopra la tastiera: senza,
+    // sull'unico step con campi di testo (password) la tastiera copriva
+    // Back/Next senza ridimensionare il layout, costringendo a chiuderla a
+    // mano per proseguire — il "si perde il focus" segnalato.
+    Column(modifier = Modifier.fillMaxSize().calmBackground().safeDrawingPadding().imePadding()) {
         StepIndicator(
             stepCount = STEP_COUNT,
             activeIndex = currentStep,
@@ -98,10 +104,10 @@ fun OnboardingScreen(
                 )
                 STEP_PASSWORD -> {
                     StepBody(
-                        illustration = { PactPawsMark(markSize = 96.dp) },
+                        illustration = { PactPawsMark(markSize = 72.dp) },
                         titleRes = R.string.onb4_title,
                         bodyRes = R.string.onb4_body,
-                        bodyBottomPadding = 24.dp
+                        bodyBottomPadding = 16.dp
                     )
 
                     OutlinedTextField(
@@ -111,7 +117,7 @@ fun OnboardingScreen(
                         singleLine = true,
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(bottom = 12.dp)
+                            .padding(bottom = 10.dp)
                     )
 
                     OutlinedTextField(
@@ -123,7 +129,7 @@ fun OnboardingScreen(
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(bottom = 12.dp)
+                            .padding(bottom = 10.dp)
                     )
 
                     OutlinedTextField(
