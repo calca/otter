@@ -81,6 +81,28 @@ app icons) isn't an easier escape route than switching apps.
    in the previous criterion has somewhere to go.
 4. The Home-lock back button is swallowed the same way the app-block screen's is (criterion 1's screen is the same Composable).
 
+## User Story 4: Launching an allowed app from the Home-lock block screen
+
+As the phone's user, I want to be able to actually open an app I'm allowed
+to use during a session, even when Calm Otter is set as Home and pressing
+Home shows the block screen instead of any launcher — otherwise being
+"allowed" only helps for an app already open, not one I want to start.
+
+### Acceptance Criteria
+
+1. WHEN Calm Otter is set as Home, a session is active, and at least one
+   package is in the allowed-apps list THEN the block screen (Home-button
+   case only — see design.md for why not the regular app-block case too)
+   SHALL show that list below the Unlock button, as plain text rows (no
+   icons) — deliberately understated, not a mini launcher to browse.
+2. WHEN one of those rows is tapped THEN the system SHALL launch that
+   app directly.
+3. WHEN the allowed-apps list is empty THEN this section SHALL NOT render
+   at all — no empty-state placeholder.
+4. WHEN an allowed package can no longer be resolved or launched (e.g.
+   uninstalled since being allowed) THEN the system SHALL drop it from the
+   list (or silently no-op the tap) rather than showing an error.
+
 ## Known limits (do not misrepresent in code/UI)
 
 - The user can disable the Accessibility service from system Settings at

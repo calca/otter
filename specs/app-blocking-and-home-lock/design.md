@@ -75,4 +75,45 @@ against the initial load.
 `CATEGORY_LAUNCHER`) specifically so `loadApps()` sees every installed app
 on Android 11+ package-visibility rules — added after this was flagged as a
 gap; don't remove it.
-behavior around this.
+
+## Launching an allowed app from `HomeActivity`: `BlockScreen.allowedApps`
+
+A gap found and closed after the fact: when Calm Otter *is* set as Home and
+a session is active, pressing Home shows `BlockScreen` with no launcher UI
+at all — unlike the "not set as Home" case, where the real launcher is
+still reachable (see User Story/requirements). An allowed app you hadn't
+already opened before the session started had no way to be *started* at
+all in that state; the whitelist only stopped `AppBlockerAccessibilityService`
+from redirecting away from an allowed app already in the foreground, it
+never offered a way to launch one.
+
+- **`BlockScreen` gained two optional parameters**, both defaulting to
+  "nothing" so `BlockOverlayActivity` (which never passes them) is
+  unaffected: `allowedApps: List<AllowedAppLaunchItem> = emptyList()` and
+  `onLaunchApp: (String) -> Unit = {}`. The section they drive only renders
+  `if (allowedApps.isNotEmpty())`, so `BlockOverlayActivity` — and
+  `HomeActivity` on a session with no allowed apps configured — render
+  identically to before.
+- **`AllowedAppLaunchItem(label, packageName)`** (in `BlockScreen.kt`) is
+  deliberately just those two fields — no icon, unlike `AppItem` in
+  `AllowedAppsScreen.kt` — per explicit direction that this list should
+  read as plain text to consult, not a mini app-drawer to browse: reducing
+  visual pull is the point, since this sits on the same screen whose whole
+  purpose is discouraging phone use.
+- **`HomeActivity.loadAllowedAppLaunchItems()`** resolves labels only for
+  packages already in `AllowedAppsManager.getAllowedPackages()` — a
+  handful of entries, unlike `AllowedAppsActivity.loadApps()`'s full
+  installed-app enumeration — so it runs synchronously on the main thread
+  rather than dispatching to `Dispatchers.IO`. A package that was allowed
+  but has since been uninstalled is dropped silently
+  (`getApplicationInfo()` throwing is caught and mapped to `null`, filtered
+  out via `mapNotNull`).
+- **`HomeActivity.launchAllowedApp()`** just calls
+  `packageManager.getLaunchIntentForPackage(packageName)` and starts it,
+  swallowing a null/failed intent silently (package became unlaunchable
+  between list-load and tap) rather than surfacing an error — the user
+  stays on `BlockScreen`, same as if they'd tapped nothing.
+- Placed in `BlockScreen` *after* the Unlock button, not above the
+  countdown/phrase — it's a secondary affordance, the primary one being
+  either waiting out the session or having the accountability partner
+  unlock it.

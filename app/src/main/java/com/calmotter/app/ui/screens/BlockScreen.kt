@@ -1,6 +1,7 @@
 package com.calmotter.app.ui.screens
 
 import android.widget.Toast
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -11,6 +12,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
@@ -39,6 +41,13 @@ import com.calmotter.app.ui.mascot.PausePawsMark
 import kotlinx.coroutines.delay
 
 /**
+ * Un'app in whitelist ([com.calmotter.app.AllowedAppsManager]) risolta a un
+ * nome leggibile — solo quanto serve per mostrarla in [BlockScreen] come
+ * riga di solo testo, niente icona (vedi il parametro [BlockScreen.allowedApps]).
+ */
+data class AllowedAppLaunchItem(val label: String, val packageName: String)
+
+/**
  * Schermata condivisa "sessione bloccata, inserisci la password per sbloccare",
  * usata sia da BlockOverlayActivity che da HomeActivity (stesso layout XML
  * precedente, stessa logica). Le due differenze di comportamento fra le due
@@ -55,6 +64,8 @@ fun BlockScreen(
     onExpiredImmediately: () -> Unit,
     onExpiredNaturally: () -> Unit,
     onUnlocked: () -> Unit,
+    allowedApps: List<AllowedAppLaunchItem> = emptyList(),
+    onLaunchApp: (String) -> Unit = {},
 ) {
     val context = LocalContext.current
 
@@ -212,6 +223,33 @@ fun BlockScreen(
                 .padding(top = 20.dp)
         ) {
             Text(stringResource(R.string.unlock))
+        }
+
+        // Solo testo, niente icone: un elenco "da consultare", non da
+        // sfogliare — vedi specs/app-blocking-and-home-lock/design.md per
+        // perché questa sezione esiste solo quando Calm Otter è l'app Home
+        // (altrove il launcher originale resta comunque raggiungibile).
+        if (allowedApps.isNotEmpty()) {
+            Text(
+                text = stringResource(R.string.block_allowed_apps_label),
+                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.55f),
+                fontSize = 13.sp,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 40.dp, bottom = 8.dp)
+            )
+            allowedApps.forEach { app ->
+                Text(
+                    text = app.label,
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
+                    fontSize = 15.sp,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable { onLaunchApp(app.packageName) }
+                        .padding(vertical = 8.dp)
+                )
+                HorizontalDivider(color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.08f))
+            }
         }
     }
 }

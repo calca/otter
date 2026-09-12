@@ -4,6 +4,7 @@ import android.content.Intent
 import android.os.Bundle
 import androidx.activity.OnBackPressedCallback
 import androidx.activity.compose.setContent
+import com.calmotter.app.ui.screens.AllowedAppLaunchItem
 import com.calmotter.app.ui.screens.BlockScreen
 import com.calmotter.app.ui.theme.CalmOtterTheme
 
@@ -43,8 +44,46 @@ class HomeActivity : BaseActivity() {
                     onExpiredImmediately = { forwardToOriginalLauncher() },
                     onExpiredNaturally = { forwardToOriginalLauncher() },
                     onUnlocked = { forwardToOriginalLauncher() },
+                    // Solo qui (Calm Otter come app Home): se non lo è, il
+                    // launcher originale resta comunque raggiungibile, vedi
+                    // AppBlockerAccessibilityService/HomeActivity — qui invece
+                    // premere Home durante una sessione non porta più a nessun
+                    // launcher, quindi è l'unico punto senza questa lista in
+                    // cui un'app consentita non sarebbe altrimenti avviabile.
+                    allowedApps = loadAllowedAppLaunchItems(),
+                    onLaunchApp = ::launchAllowedApp,
                 )
             }
+        }
+    }
+
+    /**
+     * Risolve solo i pacchetti già in whitelist (non l'intero elenco app
+     * installate come fa AllowedAppsActivity) — pochi elementi, quindi va
+     * bene farlo in modo sincrono sul thread main invece di un dispatch IO.
+     * Un pacchetto disinstallato dopo essere stato reso consentito viene
+     * scartato silenziosamente (getApplicationInfo lancia).
+     */
+    private fun loadAllowedAppLaunchItems(): List<AllowedAppLaunchItem> {
+        val allowed = AllowedAppsManager.getInstance(applicationContext).getAllowedPackages()
+        return allowed.mapNotNull { pkg ->
+            try {
+                val label = packageManager.getApplicationInfo(pkg, 0).loadLabel(packageManager).toString()
+                AllowedAppLaunchItem(label = label, packageName = pkg)
+            } catch (e: Exception) {
+                null
+            }
+        }.sortedBy { it.label.lowercase() }
+    }
+
+    private fun launchAllowedApp(packageName: String) {
+        val intent = packageManager.getLaunchIntentForPackage(packageName) ?: return
+        try {
+            startActivity(intent)
+        } catch (e: Exception) {
+            // Pacchetto diventato non avviabile (disinstallato, disabilitato)
+            // tra il caricamento della lista e il tap — nessuna azione, resta
+            // sulla schermata di blocco.
         }
     }
 
