@@ -6,7 +6,7 @@
 |---|---|
 | `MainActivity.kt` / `ui/screens/MainScreen.kt` | Home: session state, streak, tap-to-explain permission dialog, navigation to History and Settings |
 | `SettingsActivity.kt` / `ui/screens/SettingsScreen.kt` | Permission/Home-app status card, theme picker, change-password launch, password-gated allowed-apps launch, phrases toggle |
-| `PermissionChecks.kt` | Two top-level functions (`isAccessibilityServiceEnabled`, `isDndAccessGranted`) shared by `MainActivity`, `OnboardingActivity`, and `SettingsActivity` — previously identical private copies in each |
+| `PermissionChecks.kt` | Two top-level functions (`isAccessibilityServiceEnabled`, `isDndAccessGranted`) shared by `MainActivity` and `SettingsActivity` — previously identical private copies in each, plus a third copy in `OnboardingActivity` that was deleted outright (not switched to the shared function) when the permissions step left the onboarding wizard, see `onboarding-and-password/requirements.md`'s "3-step wizard" |
 
 ## What moved where, and why
 
@@ -25,11 +25,13 @@ otter, not a banner, is what surfaces them now.
 `ChangePasswordActivity`/`AllowedAppsActivity`: `WITH_ACTION_BAR` theme
 variant, `onSupportNavigateUp()` finishes. Unlike those, and unlike its own
 earlier version, it now **does** carry a `resumeSignal` (incremented in
-`onResume()`, same pattern as `MainActivity`/`OnboardingActivity`) — once
-the permissions/Home-app status card moved here, this screen gained
-exactly the kind of OS-level state that can change while backgrounded
-(user taps a status row, goes to system settings, comes back) that used to
-be the reason it *didn't* need one.
+`onResume()`, same pattern `MainActivity` uses) — once the permissions/
+Home-app status card moved here, this screen gained exactly the kind of
+OS-level state that can change while backgrounded (user taps a status row,
+goes to system settings, comes back) that used to be the reason it
+*didn't* need one. (`OnboardingActivity` used to carry the same pattern
+too, for its own now-removed permissions step — see
+`onboarding-and-password/design.md`, which no longer has one either.)
 `promptPasswordThenOpenAllowedApps()` and `pickTheme()` were moved here
 verbatim from `MainActivity` in an earlier pass — same logic, same
 `PasswordManager`/`ThemeManager` calls, just relocated with their

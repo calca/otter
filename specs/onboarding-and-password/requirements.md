@@ -4,39 +4,61 @@
 
 Calm Otter's lock model assumes the password is set by someone other than
 the phone's user (the "accountability partner"). First run walks whoever
-sets the phone up through why, then through granting permissions, then
-through choosing that password.
+sets the phone up through why, then through choosing that password.
+
+The wizard originally had 5 steps and included a dedicated permissions
+step. It was cut to 3 (see "3-step wizard" below) once permission requests
+moved off Home entirely and became purely tap-triggered instead (see
+`home-and-settings/requirements.md`'s "Permissions off Home") — at that
+point, asking for them a second time during onboarding was pure
+redundancy, and cutting the step got the wizard under the explicit 3-page
+target on its own, without needing to also trim the remaining content.
 
 ## User Story 1: First-run wizard
 
 As a person setting up Calm Otter on someone else's phone, I want a guided
 multi-step introduction, so that I understand the app's purpose before
-granting permissions or setting a password.
+setting a password.
 
 ### Acceptance Criteria
 
 1. WHEN the app has no password set THEN the system SHALL show
-   `OnboardingActivity` (a 5-step wizard) instead of the main screen.
-2. WHEN the user is on steps 1–2 (intro, accountability-partner explanation)
-   THEN the system SHALL show only informational content and a Next control.
-3. WHEN the user reaches step 3 (permissions) THEN the system SHALL show the
-   live grant status of the Accessibility service and Do Not Disturb access,
-   each with its own "grant" button that opens the relevant system settings
-   screen.
-4. WHEN the user returns to the app from system settings (any `onResume`)
-   WHILE step 3 is the visible step THEN the system SHALL re-check both
-   permissions and update their displayed status, without requiring the user
-   to leave and re-enter the step.
-5. WHEN the user reaches step 4 (password) THEN the system SHALL require a
+   `OnboardingActivity` (a 3-step wizard) instead of the main screen.
+2. WHEN the user is on step 1 (welcome + how it works, combined) THEN the
+   system SHALL show only informational content and a Next control — no
+   permission grant buttons or status live here (see "3-step wizard").
+3. WHEN the user reaches step 2 (password) THEN the system SHALL require a
    password and its confirmation to match before advancing.
-6. IF the password and confirmation don't match, or the password is empty,
-   WHEN the user tries to advance past step 4 THEN the system SHALL show an
+4. IF the password and confirmation don't match, or the password is empty,
+   WHEN the user tries to advance past step 2 THEN the system SHALL show an
    error and SHALL NOT advance or save anything.
-7. WHEN step 4 is passed validation THEN the system SHALL persist the
-   password via `PasswordManager.setPassword` and advance to step 5.
-8. WHEN the user finishes step 5 THEN the system SHALL start `MainActivity`
+5. WHEN step 2 is passed validation THEN the system SHALL persist the
+   password via `PasswordManager.setPassword` and advance to step 3.
+6. WHEN the user finishes step 3 THEN the system SHALL start `MainActivity`
    and clear the onboarding activity from the back stack (so back-navigation
    cannot return to onboarding).
+
+## 3-step wizard
+
+Cut down from the original 5 steps on explicit feedback that the wizard had
+too many pages:
+
+1. **Removed the permissions step entirely** (previously step 3: live
+   Accessibility/Do Not Disturb grant status with a button each,
+   re-checked via `resumeSignal` on every `onResume` while that step was
+   visible). Accessibility and Do Not Disturb are no longer requested
+   proactively anywhere — the first time either is still missing, tapping
+   the otter on Home shows `PermissionExplainerDialog` with the same
+   reasoning, contextually, instead. `OnboardingActivity` lost its
+   `resumeSignal` entirely as a result: nothing left in the wizard depends
+   on OS-level state that can change while backgrounded.
+2. **Merged the original steps 1 and 2** (welcome, and "how it works") into
+   one step: one intro paragraph plus a tightened 2-sentence mechanic
+   summary (choose a duration → everything blocks except calls → ends on
+   timer or on the trusted person's password), replacing the original's
+   separate welcome blurb and 4-paragraph "how it works" explanation.
+3. Steps 2 (password) and 3 (done) are otherwise unchanged in content —
+   only their step index shifted (were 4 and 5).
 
 ## User Story 2: Password storage and verification
 

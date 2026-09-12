@@ -20,7 +20,6 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -42,46 +41,26 @@ import com.calmotter.app.PasswordManager
 import com.calmotter.app.R
 import com.calmotter.app.ui.mascot.OtterFloatMark
 
-private const val STEP_COUNT = 5
-private const val STEP_PERMISSIONS = 2
-private const val STEP_PASSWORD = 3
+private const val STEP_COUNT = 3
+private const val STEP_PASSWORD = 1
 
 /**
- * Wizard di onboarding a 5 step (pilota #4 della migrazione a Compose).
- * Riproduce esattamente il comportamento della precedente OnboardingActivity
- * XML/View: stessa navigazione, stessa validazione password solo all'uscita
- * dallo step 4, stesso refresh dei permessi (vedi step 3) sia all'ingresso
- * nello step sia al ritorno dalle Impostazioni tramite [resumeSignal] —
- * stesso pattern usato da MainScreen/MainActivity, dato che setContent {}
- * viene invocato una sola volta e Compose non osserva da solo lo stato
- * permessi del sistema operativo.
+ * Wizard di onboarding a 3 step: benvenuto+funzionamento (uniti in un solo
+ * step), password, fatto. Ridotto da 5 step — lo step dei permessi è stato
+ * rimosso perché ormai ridondante: i permessi si chiedono, con spiegazione,
+ * al primo tap sull'otter in Home se ancora mancanti (vedi
+ * PermissionExplainerDialog in MainScreen.kt e
+ * specs/home-and-settings/requirements.md "Permissions off Home"), non c'è
+ * più bisogno di chiederli anche qui. Di conseguenza questo screen non ha
+ * più bisogno di un resumeSignal: nessuno stato di sistema osservabile
+ * dall'esterno resta da ricalcolare al ritorno da un'altra schermata.
  */
 @Composable
 fun OnboardingScreen(
-    resumeSignal: Int,
     passwordManager: PasswordManager,
-    isAccessibilityServiceEnabled: () -> Boolean,
-    isDndAccessGranted: () -> Boolean,
-    onGrantAccessibility: () -> Unit,
-    onGrantDnd: () -> Unit,
     onFinished: () -> Unit,
 ) {
     var currentStep by remember { mutableIntStateOf(0) }
-
-    var accessibilityOk by remember { mutableStateOf(false) }
-    var dndOk by remember { mutableStateOf(false) }
-
-    // Rieseguito quando si entra nello step 3 (cambio di currentStep) e a
-    // ogni onResume() dell'Activity (resumeSignal incrementato lì, vedi
-    // OnboardingActivity) — ma solo mentre lo step 3 è quello visibile,
-    // esattamente come il vecchio updatePermissionsStatus() chiamato da
-    // showStep(2) e da onResume().
-    LaunchedEffect(resumeSignal, currentStep) {
-        if (currentStep == STEP_PERMISSIONS) {
-            accessibilityOk = isAccessibilityServiceEnabled()
-            dndOk = isDndAccessGranted()
-        }
-    }
 
     var passwordError by remember { mutableStateOf<String?>(null) }
     var password by remember { mutableStateOf("") }
@@ -114,48 +93,6 @@ fun OnboardingScreen(
                     titleRes = R.string.onb1_title,
                     bodyRes = R.string.onb1_body
                 )
-                1 -> StepBody(emoji = "🤝", titleRes = R.string.onb2_title, bodyRes = R.string.onb2_body)
-                STEP_PERMISSIONS -> {
-                    StepBody(
-                        emoji = "🔑",
-                        titleRes = R.string.onb3_title,
-                        bodyRes = R.string.onb3_body,
-                        bodyBottomPadding = 24.dp
-                    )
-
-                    Button(
-                        onClick = onGrantAccessibility,
-                        enabled = !accessibilityOk,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(bottom = 8.dp)
-                    ) {
-                        Text(stringResource(R.string.onb3_btn_accessibility))
-                    }
-
-                    Button(
-                        onClick = onGrantDnd,
-                        enabled = !dndOk,
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        Text(stringResource(R.string.onb3_btn_dnd))
-                    }
-
-                    val statusRes = when {
-                        accessibilityOk && dndOk -> R.string.onb3_permissions_ok
-                        accessibilityOk -> R.string.onb3_missing_dnd
-                        dndOk -> R.string.onb3_missing_accessibility
-                        else -> R.string.onb3_missing_both
-                    }
-                    Text(
-                        text = stringResource(statusRes),
-                        color = MaterialTheme.colorScheme.primary,
-                        textAlign = TextAlign.Center,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(top = 16.dp)
-                    )
-                }
                 STEP_PASSWORD -> {
                     StepBody(
                         emoji = "🔒",
@@ -225,8 +162,8 @@ fun OnboardingScreen(
 
             Button(
                 onClick = {
-                    // Step 4 (indice 3, password): validazione obbligatoria solo
-                    // all'uscita dallo step, non a ogni carattere digitato.
+                    // Step password: validazione obbligatoria solo all'uscita
+                    // dallo step, non a ogni carattere digitato.
                     if (currentStep == STEP_PASSWORD) {
                         val error = when {
                             password.length < 4 -> passwordTooShortText

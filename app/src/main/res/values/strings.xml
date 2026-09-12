@@ -115,17 +115,7 @@
 
     <!-- Onboarding -->
     <string name="onb1_title">Benvenuto in Calm Otter</string>
-    <string name="onb1_body">Calm Otter ti aiuta a prenderti delle pause vere dal telefono — senza distrazioni, senza notifiche. Solo tu e il momento presente.</string>
-    <string name="onb2_title">Come funziona</string>
-    <string name="onb2_body">Quando vuoi fare una pausa, scegli quanto tempo e avvii la sessione.\n\nTutte le app vengono bloccate, tranne il telefono per le chiamate.\n\nLa sessione termina da sola allo scadere del tempo, oppure prima — ma solo se una persona di fiducia inserisce la password.\n\nÈ un patto tra te e qualcuno che ti vuole bene.</string>
-    <string name="onb3_title">Due permessi necessari</string>
-    <string name="onb3_body">Per funzionare, Calm Otter ha bisogno di:\n\n🔍 Accessibilità — per rilevare quale app è aperta e mostrare la schermata di blocco.\n\n🔔 Non disturbare — per silenziare le notifiche durante la pausa, lasciando passare solo le chiamate.\n\nNessun dato viene condiviso o trasmesso.</string>
-    <string name="onb3_btn_accessibility">Concedi accesso Accessibilità</string>
-    <string name="onb3_btn_dnd">Concedi accesso Non disturbare</string>
-    <string name="onb3_permissions_ok">✓ Tutti i permessi concessi</string>
-    <string name="onb3_missing_dnd">✓ Accessibilità ok · In attesa di Non disturbare</string>
-    <string name="onb3_missing_accessibility">✓ Non disturbare ok · In attesa di Accessibilità</string>
-    <string name="onb3_missing_both">Entrambi i permessi sono necessari per continuare</string>
+    <string name="onb1_body">Calm Otter ti aiuta a prenderti delle pause vere dal telefono: scegli quanto tempo, e per quella durata tutte le app restano bloccate — solo le chiamate passano.\n\nLa pausa finisce da sola allo scadere del tempo, oppure prima se una persona di fiducia inserisce la password: è un patto tra te e chi ti vuole bene.</string>
     <string name="onb4_title">Scegli la password insieme</string>
     <string name="onb4_body">Passa il telefono alla persona di fiducia.\n\nSarà lei a scegliere la password — e a tenerla per sé. Solo lei potrà terminare una sessione prima del tempo.\n\nNon devi sapere la password: è parte del patto.</string>
     <string name="onb5_title">Tutto pronto 🌿</string>

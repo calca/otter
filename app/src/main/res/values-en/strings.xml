@@ -115,17 +115,7 @@
 
     <!-- Onboarding -->
     <string name="onb1_title">Welcome to Calm Otter</string>
-    <string name="onb1_body">Calm Otter helps you take real breaks from your phone — no distractions, no notifications. Just you and the present moment.</string>
-    <string name="onb2_title">How it works</string>
-    <string name="onb2_body">When you want a break, choose how long and start the session.\n\nAll apps are blocked, except the phone for calls.\n\nThe session ends automatically when the time is up, or earlier — but only if a trusted person enters the password.\n\nIt\'s a pact between you and someone who cares about you.</string>
-    <string name="onb3_title">Two permissions needed</string>
-    <string name="onb3_body">To work, Calm Otter needs:\n\n🔍 Accessibility — to detect which app is open and show the lock screen.\n\n🔔 Do Not Disturb — to silence notifications during the pause, allowing only calls.\n\nNo data is shared or transmitted.</string>
-    <string name="onb3_btn_accessibility">Grant Accessibility access</string>
-    <string name="onb3_btn_dnd">Grant Do Not Disturb access</string>
-    <string name="onb3_permissions_ok">✓ All permissions granted</string>
-    <string name="onb3_missing_dnd">✓ Accessibility ok · Waiting for Do Not Disturb</string>
-    <string name="onb3_missing_accessibility">✓ Do Not Disturb ok · Waiting for Accessibility</string>
-    <string name="onb3_missing_both">Both permissions are required to continue</string>
+    <string name="onb1_body">Calm Otter helps you take real breaks from your phone: choose how long, and for that time every app stays blocked — only calls get through.\n\nThe pause ends on its own when the time is up, or earlier if a trusted person enters the password: it\'s a pact between you and someone who cares about you.</string>
     <string name="onb4_title">Choose the password together</string>
     <string name="onb4_body">Hand the phone to your trusted person.\n\nThey will choose the password — and keep it to themselves. Only they can end a session early.\n\nYou don\'t need to know the password: it\'s part of the pact.</string>
     <string name="onb5_title">All set 🌿</string>
