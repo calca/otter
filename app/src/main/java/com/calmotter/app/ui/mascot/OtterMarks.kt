@@ -9,6 +9,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.StrokeCap
@@ -170,9 +171,20 @@ fun OtterFloatMark(modifier: Modifier = Modifier, markSize: Dp = 96.dp) {
         val s = size.width / 108f
         fun v(value: Float) = value * s
 
-        drawCircle(color = fur, radius = v(25f), center = Offset(v(54f), v(58f)))
-        drawCircle(color = fur, radius = v(10f), center = Offset(v(40f), v(42f)))
-        drawCircle(color = fur, radius = v(10f), center = Offset(v(68f), v(42f)))
+        // Corpo e orecchie in un solo Path, non tre drawCircle separate: il
+        // corpo e le orecchie si sovrappongono (i loro centri sono più
+        // vicini della somma dei raggi), quindi tre disegni separati dello
+        // stesso colore semi-trasparente si sommerebbero lì dove si
+        // sovrappongono, facendo apparire le orecchie più scure del resto
+        // del corpo per puro artefatto di compositing — non un colore
+        // diverso voluto. Un solo Path viene invece riempito in un'unica
+        // passata, quindi l'alpha è applicata una sola volta ovunque.
+        val silhouette = Path().apply {
+            addOval(Rect(center = Offset(v(54f), v(58f)), radius = v(25f)))
+            addOval(Rect(center = Offset(v(40f), v(42f)), radius = v(10f)))
+            addOval(Rect(center = Offset(v(68f), v(42f)), radius = v(10f)))
+        }
+        drawPath(silhouette, color = fur)
 
         drawOval(color = face, topLeft = Offset(v(40f), v(59.8f)), size = Size(v(12f), v(4.4f)))
         drawOval(color = face, topLeft = Offset(v(56f), v(59.8f)), size = Size(v(12f), v(4.4f)))
