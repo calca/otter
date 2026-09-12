@@ -211,13 +211,14 @@ fun BlockScreen(
             },
             color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.55f),
             fontSize = 13.sp,
+            textAlign = TextAlign.Center,
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(top = 40.dp, bottom = 12.dp)
         )
         Row(
             modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(20.dp),
+            horizontalArrangement = Arrangement.spacedBy(20.dp, Alignment.CenterHorizontally),
             verticalAlignment = Alignment.CenterVertically,
         ) {
             allowedApps.forEach { app ->
