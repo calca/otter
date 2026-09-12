@@ -6,7 +6,6 @@ import android.os.Bundle
 import android.telecom.TelecomManager
 import androidx.activity.OnBackPressedCallback
 import androidx.activity.compose.setContent
-import androidx.core.graphics.drawable.toBitmap
 import com.calmotter.app.ui.screens.AllowedAppLaunchItem
 import com.calmotter.app.ui.screens.BlockScreen
 import com.calmotter.app.ui.theme.CalmOtterTheme
@@ -92,12 +91,8 @@ class HomeActivity : BaseActivity() {
     private fun resolveAppLaunchItem(pkg: String?): AllowedAppLaunchItem? {
         if (pkg == null) return null
         return try {
-            val info = packageManager.getApplicationInfo(pkg, 0)
-            AllowedAppLaunchItem(
-                label = info.loadLabel(packageManager).toString(),
-                packageName = pkg,
-                icon = info.loadIcon(packageManager).toBitmap(),
-            )
+            val label = packageManager.getApplicationInfo(pkg, 0).loadLabel(packageManager).toString()
+            AllowedAppLaunchItem(label = label, packageName = pkg)
         } catch (e: Exception) {
             null
         }

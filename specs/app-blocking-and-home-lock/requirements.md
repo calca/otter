@@ -95,27 +95,31 @@ Home shows the block screen instead of any launcher — otherwise being
 ### Acceptance Criteria
 
 1. WHEN the block screen is shown THEN the system SHALL display a single
-   actions row containing an Unlock control (a lock-icon badge) plus,
-   WHEN Calm Otter is set as Home, a session is active, and at least one
-   package is in the allowed-apps list (Home-button case only — see
-   design.md for why not the regular app-block case too), that list as
-   desaturated app icons in the same row — deliberately understated (no
-   full-color icons, no vertical list), not a mini launcher to browse.
-2. WHEN the Unlock icon is tapped THEN the system SHALL open a dialog with
+   actions row containing, WHEN Calm Otter is set as Home, a session is
+   active, and at least one package is in the allowed-apps list
+   (Home-button case only — see design.md for why not the regular
+   app-block case too), that list as 2-letter initial badges, followed
+   last by an Unlock control (a lock-icon badge, same round shape/fill as
+   the app badges) — deliberately understated (no full-color icons, no
+   vertical list, no visually distinct "primary action" styling setting
+   Unlock apart from the app badges beyond its content), not a mini
+   launcher to browse.
+2. WHEN the Unlock badge is tapped THEN the system SHALL open a dialog with
    a password field and Unlock/Cancel actions, rather than keeping a
    password field permanently visible on the block screen.
-3. WHEN one of the allowed-app icons is tapped THEN the system SHALL
+3. WHEN one of the allowed-app badges is tapped THEN the system SHALL
    launch that app directly, without opening the Unlock dialog.
-4. WHEN the allowed-apps list is empty THEN only the Unlock icon SHALL
+4. WHEN the allowed-apps list is empty THEN only the Unlock badge SHALL
    show in the row (caption reads plain "Unlock") — no empty-state
    placeholder for the apps portion.
 5. WHEN an allowed package can no longer be resolved or launched (e.g.
    uninstalled since being allowed) THEN the system SHALL drop it from the
    list (or silently no-op the tap) rather than showing an error.
 6. The phone (device's default dialer) SHALL always appear as the first
-   app icon, regardless of the configurable allowed-apps list's contents —
-   it was already always exempt from blocking, this just makes it
-   launchable from this screen too, same as the configured apps.
+   app badge (before the Unlock badge and before the configurable
+   allowed-apps list), regardless of the configurable allowed-apps list's
+   contents — it was already always exempt from blocking, this just makes
+   it launchable from this screen too, same as the configured apps.
 7. The user-configurable allowed-apps list SHALL be capped at 5 apps
    (the phone from criterion 6 doesn't count against this cap): attempting
    to allow a 6th app in the editor SHALL be rejected with a brief message,

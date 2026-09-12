@@ -98,33 +98,28 @@ never offered a way to launch one.
   `BlockOverlayActivity` (which never has any) and `HomeActivity` with no
   configured allowed apps both read naturally as "just an unlock control",
   not a broken empty list.
-- **`AllowedAppLaunchItem(label, packageName, icon: Bitmap)`** (in
-  `BlockScreen.kt`) started out text-only (no icon) on the theory that
-  plain text would read as more low-key than icons; revised after seeing
-  it on-device to icons after all, laid out in a single `Row`, not a
-  vertical list — recognizable at a glance without the length of a text
-  list. Colored via `ColorFilter.tint(MaterialTheme.colorScheme.primary,
-  BlendMode.Color)` rather than a flat grayscale desaturation
-  (`ColorMatrix().setToSaturation(0f)`, the first attempt): `BlendMode.Color`
-  takes hue+saturation from the tint and luminance from the source icon —
-  the standard Android duotone trick — so the icons read as muted/low-key
-  like a plain desaturation would, but tinted toward whichever palette
-  (Sage/Lavender/Terracotta) is active instead of a fixed neutral gray,
-  consistent with every other mark in the app reading from `primary`
-  rather than an uncustomized/neutral role. `icon` is loaded the same way
-  `AppItem.icon` is in `AllowedAppsScreen.kt`
-  (`loadIcon(packageManager).toBitmap()`), converted to `ImageBitmap` only
-  at draw time via `.asImageBitmap()`.
-- **`HomeActivity.loadAllowedAppLaunchItems()`** resolves labels/icons only
-  for packages already in `AllowedAppsManager.getAllowedPackages()` — a
+- **`AllowedAppLaunchItem(label, packageName)`** (in `BlockScreen.kt`) went
+  through three looks before landing here: text-only rows (too long/lost
+  focus), then real app icons desaturated via
+  `ColorFilter.tint(primary, BlendMode.Color)` (a duotone effect), and
+  finally **2-letter initial badges** — `app.label.trim().take(2).uppercase()`
+  rendered in a solid `primary`-filled circle with `onPrimary` text,
+  the exact same badge construction as the Unlock control next to it (see
+  below) rather than a distinct style for "app" vs "action". This also
+  means no icon/`Bitmap` is loaded at all anymore — `AllowedAppLaunchItem`
+  only carries what's needed to derive the initials and launch the app.
+- **`HomeActivity.loadAllowedAppLaunchItems()`** resolves labels only for
+  packages already in `AllowedAppsManager.getAllowedPackages()` — a
   handful of entries, unlike `AllowedAppsActivity.loadApps()`'s full
   installed-app enumeration — so it runs synchronously on the main thread
-  rather than dispatching to `Dispatchers.IO`. A package that was allowed
-  but has since been uninstalled is dropped silently
-  (`getApplicationInfo()` throwing is caught and mapped to `null`, filtered
-  out via `mapNotNull`). The list is also `.take(AllowedAppsManager.MAX_ALLOWED_APPS)`
-  as a safety net — the real cap is enforced at write time (see below), this
-  should never actually trim anything in practice.
+  rather than dispatching to `Dispatchers.IO` (and, since there's no icon
+  to load either, doesn't touch `PackageManager.loadIcon()`/`toBitmap()`
+  at all). A package that was allowed but has since been uninstalled is
+  dropped silently (`getApplicationInfo()` throwing is caught and mapped
+  to `null`, filtered out via `mapNotNull`). The list is also
+  `.take(AllowedAppsManager.MAX_ALLOWED_APPS)` as a safety net — the real
+  cap is enforced at write time (see below), this should never actually
+  trim anything in practice.
 - **The phone is always the first item, outside the 5-app cap.** Resolved
   separately via `TelecomManager.defaultDialerPackage` (the same call
   `AppBlockerAccessibilityService.allowedPackages()` already uses to exempt
@@ -154,13 +149,17 @@ never offered a way to launch one.
 Originally `BlockScreen` had an always-visible `OutlinedTextField` +
 `Button("Unlock")` sitting in the main flow, with the allowed-apps row (if
 any) below it. Reworked so Unlock lives in the *same* row as the allowed
-apps, as a solid-`primary`-badge lock icon (same circular badge
-construction as `PausePawsMark`/`PactPawsMark` — filled `primary` circle,
-`onPrimary` icon — deliberately more visually prominent than the
-desaturated app icons next to it, since it's the primary action, not a
-utility) — tapping it opens a Compose `AlertDialog` containing the
-password field, error/lockout text, and the actual "Unlock"/"Cancel"
-buttons, instead of keeping that content permanently on-screen.
+apps, **last** (rightmost) rather than first — the allowed-app badges are
+listed first, Unlock always trails them — as a solid-`primary`-badge lock
+icon, the same circular badge construction as `PausePawsMark`/`PactPawsMark`
+(filled `primary` circle, `onPrimary` content) and now also the same
+construction the allowed-app initial badges use (see above) — the whole
+row reads as one consistent set of round action badges, distinguished by
+their content (a lock glyph vs. 2 letters), not by a different visual
+treatment for "the important one". Tapping the lock badge opens a Compose
+`AlertDialog` containing the password field, error/lockout text, and the
+actual "Unlock"/"Cancel" buttons, instead of keeping that content
+permanently on-screen.
 
 - **`showUnlockDialog` (`mutableStateOf(false)`)** gates the dialog;
   `password`/`statusText`/`isLockedOut`/`lockoutSecondsRemaining` are

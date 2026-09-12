@@ -1,8 +1,6 @@
 package com.calmotter.app.ui.screens
 
-import android.graphics.Bitmap
 import android.widget.Toast
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -35,9 +33,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.BlendMode
-import androidx.compose.ui.graphics.ColorFilter
-import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontStyle
@@ -57,11 +52,11 @@ import kotlinx.coroutines.delay
 /**
  * Un'app in whitelist ([com.calmotter.app.AllowedAppsManager]), o il
  * telefono (sempre presente, vedi [BlockScreen.allowedApps]), risolta al
- * minimo che serve per mostrarla in [BlockScreen]: icona (desaturata al
- * disegno, per restare defilata) e nome per l'accessibilità/tap-target,
- * niente altro.
+ * minimo che serve per mostrarla in [BlockScreen]: solo il nome, da cui si
+ * derivano le iniziali per il badge (stesso stile del badge di Unlock, vedi
+ * più sotto) — nessuna icona reale caricata, niente da desaturare.
  */
-data class AllowedAppLaunchItem(val label: String, val packageName: String, val icon: Bitmap)
+data class AllowedAppLaunchItem(val label: String, val packageName: String)
 
 /**
  * Schermata condivisa "sessione bloccata, inserisci la password per sbloccare",
@@ -193,16 +188,14 @@ fun BlockScreen(
                 .padding(bottom = 40.dp)
         )
 
-        // Un'unica row di azioni: lo sblocco (badge pieno, per restare
-        // l'azione principale e distinguersi dalle icone delle app) apre un
-        // dialog con il campo password invece di tenerlo sempre visibile in
-        // pagina — la row resta comunque compatta anche senza app consentite
-        // configurate (l'icona di sblocco è l'unico elemento sempre
-        // presente). Le icone delle app sono desaturate tingendole con
-        // primary (BlendMode.Color: prende tonalità/saturazione dal tint,
-        // luminosità dall'icona originale — trucco duotone) invece di un
-        // grigio neutro, così restano riconoscibili ma defilate e seguono
-        // comunque la palette (Sage/Lavender/Terracotta) — vedi
+        // Un'unica row di azioni, tutte con lo stesso badge circolare pieno
+        // (primary + contenuto onPrimary): le app consentite mostrano le
+        // prime 2 lettere del nome al posto di un'icona reale (nessuna
+        // icona da caricare/desaturare), e lo sblocco — ultimo a destra,
+        // non il primo elemento — apre un dialog con il campo password
+        // invece di tenerlo sempre visibile in pagina. La row resta
+        // comunque compatta anche senza app consentite configurate (il
+        // badge di sblocco è l'unico elemento sempre presente) — vedi
         // specs/app-blocking-and-home-lock/design.md per perché questa row
         // esiste solo quando Calm Otter è l'app Home e per il telefono
         // sempre incluso/il tetto di 5 app configurabili.
@@ -227,6 +220,24 @@ fun BlockScreen(
             horizontalArrangement = Arrangement.spacedBy(20.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
+            allowedApps.forEach { app ->
+                Box(
+                    modifier = Modifier
+                        .size(40.dp)
+                        .clip(CircleShape)
+                        .background(MaterialTheme.colorScheme.primary)
+                        .clickable { onLaunchApp(app.packageName) },
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Text(
+                        text = app.label.trim().take(2).uppercase(),
+                        color = MaterialTheme.colorScheme.onPrimary,
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.SemiBold,
+                    )
+                }
+            }
+
             Box(
                 modifier = Modifier
                     .size(40.dp)
@@ -240,18 +251,6 @@ fun BlockScreen(
                     contentDescription = stringResource(R.string.unlock),
                     tint = MaterialTheme.colorScheme.onPrimary,
                     modifier = Modifier.size(20.dp)
-                )
-            }
-
-            val allowedAppTint = MaterialTheme.colorScheme.primary
-            allowedApps.forEach { app ->
-                Image(
-                    bitmap = app.icon.asImageBitmap(),
-                    contentDescription = app.label,
-                    colorFilter = ColorFilter.tint(allowedAppTint, BlendMode.Color),
-                    modifier = Modifier
-                        .size(40.dp)
-                        .clickable { onLaunchApp(app.packageName) }
                 )
             }
         }
