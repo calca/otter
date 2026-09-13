@@ -16,13 +16,19 @@ import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.RadioButtonDefaults
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -99,7 +105,12 @@ fun HistoryScreen(
     }
 
     Column(modifier = Modifier.fillMaxSize().safeDrawingPadding()) {
-        StatsBar(sessions = sessions)
+        StatsBar(
+            sessions = sessions,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp, vertical = 12.dp)
+        )
 
         // Tutto il resto in scroll — equivalente del NestedScrollView.
         Column(
@@ -108,42 +119,16 @@ fun HistoryScreen(
                 .fillMaxWidth()
                 .verticalScroll(rememberScrollState())
         ) {
-            if (streak >= 1) {
-                Text(
-                    text = stringResource(R.string.streak_days, streak),
-                    fontSize = 14.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.primary,
-                    textAlign = TextAlign.Center,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(start = 16.dp, top = 16.dp, end = 16.dp)
-                )
-            }
-
-            WeeklyChart(
-                data = minutesByDay,
-                modifier = Modifier.padding(top = 16.dp, start = 8.dp, end = 8.dp)
-            )
-
-            Text(
-                text = summaryText,
-                fontSize = 14.sp,
-                color = MaterialTheme.colorScheme.onSurface,
-                textAlign = TextAlign.Center,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(start = 16.dp, top = 4.dp, end = 16.dp, bottom = 16.dp)
-            )
-
-            WeeklyGoalSection(
+            WeekOverviewCard(
+                streak = streak,
+                minutesByDay = minutesByDay,
+                summaryText = summaryText,
                 goal = goal,
                 weekSessions = weekSessions,
                 weekMinutes = weekMinutes,
                 onEditGoal = onEditGoal,
+                modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp)
             )
-
-            HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
 
             Text(
                 text = stringResource(R.string.history_all_sessions),
@@ -152,7 +137,7 @@ fun HistoryScreen(
                 color = MaterialTheme.colorScheme.onSurface,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(start = 16.dp, top = 12.dp, end = 16.dp, bottom = 4.dp)
+                    .padding(start = 16.dp, top = 20.dp, end = 16.dp, bottom = 4.dp)
             )
 
             sessions.forEach { session ->
@@ -167,32 +152,37 @@ fun HistoryScreen(
 // ── Statistiche totali ──────────────────────────────────────────────────
 
 @Composable
-private fun StatsBar(sessions: List<SessionRecord>) {
+private fun StatsBar(sessions: List<SessionRecord>, modifier: Modifier = Modifier) {
     val total = sessions.size
     val totalMinutes = sessions.sumOf { it.effectiveMinutes }
     val completedCount = sessions.count { it.completedNaturally }
 
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .background(MaterialTheme.colorScheme.surface)
-            .padding(16.dp)
+    // Card tinta invece della precedente barra piatta su colorScheme.surface
+    // (coincide con background nella palette chiara, vedi CalmOtterTheme.kt —
+    // la stessa "trappola" già corretta in AllowedAppsScreen.kt) — stesso
+    // linguaggio a card delle sezioni di SettingsScreen.kt.
+    Surface(
+        shape = RoundedCornerShape(20.dp),
+        color = MaterialTheme.colorScheme.primary.copy(alpha = 0.06f),
+        modifier = modifier,
     ) {
-        StatColumn(
-            value = total.toString(),
-            label = stringResource(R.string.stat_sessions),
-            modifier = Modifier.weight(1f)
-        )
-        StatColumn(
-            value = formatMinutes(totalMinutes),
-            label = stringResource(R.string.stat_minutes),
-            modifier = Modifier.weight(1f)
-        )
-        StatColumn(
-            value = stringResource(R.string.stat_completed_fraction, completedCount, total),
-            label = stringResource(R.string.stat_completed),
-            modifier = Modifier.weight(1f)
-        )
+        Row(modifier = Modifier.fillMaxWidth().padding(16.dp)) {
+            StatColumn(
+                value = total.toString(),
+                label = stringResource(R.string.stat_sessions),
+                modifier = Modifier.weight(1f)
+            )
+            StatColumn(
+                value = formatMinutes(totalMinutes),
+                label = stringResource(R.string.stat_minutes),
+                modifier = Modifier.weight(1f)
+            )
+            StatColumn(
+                value = stringResource(R.string.stat_completed_fraction, completedCount, total),
+                label = stringResource(R.string.stat_completed),
+                modifier = Modifier.weight(1f)
+            )
+        }
     }
 }
 
@@ -216,7 +206,73 @@ private fun StatColumn(value: String, label: String, modifier: Modifier = Modifi
     }
 }
 
-// ── Obiettivo settimanale ────────────────────────────────────────────────
+// ── Streak + grafico settimanale + obiettivo (card unica) ────────────────
+
+/**
+ * Streak, grafico settimanale, sommario e obiettivo raggruppati in un'unica
+ * card tinta — stesso linguaggio delle sezioni di SettingsScreen.kt (Surface
+ * arrotondata + divisore tenue tra sottosezioni) invece di lasciarli sciolti
+ * sulla pagina come prima di questo redesign.
+ */
+@Composable
+private fun WeekOverviewCard(
+    streak: Int,
+    minutesByDay: IntArray,
+    summaryText: String,
+    goal: WeeklyGoal?,
+    weekSessions: Int,
+    weekMinutes: Int,
+    onEditGoal: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Surface(
+        shape = RoundedCornerShape(20.dp),
+        color = MaterialTheme.colorScheme.primary.copy(alpha = 0.06f),
+        modifier = modifier.fillMaxWidth(),
+    ) {
+        Column(modifier = Modifier.padding(vertical = 8.dp)) {
+            if (streak >= 1) {
+                Text(
+                    text = stringResource(R.string.streak_days, streak),
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.primary,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp, vertical = 8.dp)
+                )
+            }
+
+            WeeklyChart(
+                data = minutesByDay,
+                modifier = Modifier.padding(top = 8.dp, start = 16.dp, end = 16.dp)
+            )
+
+            Text(
+                text = summaryText,
+                fontSize = 14.sp,
+                color = MaterialTheme.colorScheme.onSurface,
+                textAlign = TextAlign.Center,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 4.dp)
+            )
+
+            HorizontalDivider(
+                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.08f),
+                modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
+            )
+
+            WeeklyGoalSection(
+                goal = goal,
+                weekSessions = weekSessions,
+                weekMinutes = weekMinutes,
+                onEditGoal = onEditGoal,
+            )
+        }
+    }
+}
 
 @Composable
 private fun WeeklyGoalSection(
@@ -228,7 +284,7 @@ private fun WeeklyGoalSection(
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(start = 16.dp, end = 16.dp, bottom = 16.dp),
+            .padding(horizontal = 16.dp, vertical = 8.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         if (goal != null) {
@@ -257,7 +313,19 @@ private fun WeeklyGoalSection(
             )
         }
 
-        TextButton(onClick = onEditGoal) {
+        // FilledTonalButton, non TextButton: azione con più peso visivo,
+        // coerente con le altre call-to-action dell'app. Colori espliciti:
+        // ButtonDefaults.filledTonalButtonColors() di default userebbe
+        // secondaryContainer/onSecondaryContainer, ruoli NON personalizzati
+        // per palette in CalmOtterTheme.kt (stessa trappola di
+        // surfaceVariant/onSurfaceVariant già documentata altrove).
+        FilledTonalButton(
+            onClick = onEditGoal,
+            colors = ButtonDefaults.filledTonalButtonColors(
+                containerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.14f),
+                contentColor = MaterialTheme.colorScheme.primary,
+            ),
+        ) {
             Text(
                 text = stringResource(
                     if (goal == null) R.string.weekly_goal_set_button else R.string.weekly_goal_edit_button
@@ -271,55 +339,69 @@ private fun WeeklyGoalSection(
 
 @Composable
 private fun SessionRow(session: SessionRecord) {
-    Row(
+    // Card tinta invece di background(colorScheme.surface): nella palette
+    // chiara surface coincide con background (vedi CalmOtterTheme.kt), quindi
+    // ogni riga era visivamente indistinguibile dalla pagina — stessa
+    // "trappola" già corretta in AllowedAppsScreen.kt.
+    Card(
         modifier = Modifier
             .fillMaxWidth()
-            .background(MaterialTheme.colorScheme.surface)
-            .padding(16.dp),
-        verticalAlignment = Alignment.CenterVertically
+            .padding(horizontal = 16.dp, vertical = 4.dp),
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.04f)
+        ),
+        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
     ) {
-        // Indicatore esito: cerchio colorato — riproduzione nativa degli
-        // shape drawable dot_active/dot_early (oval piatte statiche, stesso
-        // precedente di StepIndicator in OnboardingScreen), niente AndroidView.
-        Box(
+        Row(
             modifier = Modifier
-                .size(10.dp)
-                .clip(CircleShape)
-                .background(
-                    if (session.completedNaturally) MaterialTheme.colorScheme.primary
-                    else MaterialTheme.colorScheme.error
-                )
-        )
-
-        Column(
-            modifier = Modifier
-                .weight(1f)
-                .padding(start = 14.dp)
+                .fillMaxWidth()
+                .padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            val rawDate = historyDateFormat.format(Date(session.startTimeMs))
-            Text(
-                text = rawDate.replaceFirstChar { it.uppercase() },
-                fontSize = 15.sp,
-                fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.onBackground
+            // Indicatore esito: cerchio colorato — riproduzione nativa degli
+            // shape drawable dot_active/dot_early (oval piatte statiche, stesso
+            // precedente di StepIndicator in OnboardingScreen), niente AndroidView.
+            Box(
+                modifier = Modifier
+                    .size(10.dp)
+                    .clip(CircleShape)
+                    .background(
+                        if (session.completedNaturally) MaterialTheme.colorScheme.primary
+                        else MaterialTheme.colorScheme.error
+                    )
             )
+
+            Column(
+                modifier = Modifier
+                    .weight(1f)
+                    .padding(start = 14.dp)
+            ) {
+                val rawDate = historyDateFormat.format(Date(session.startTimeMs))
+                Text(
+                    text = rawDate.replaceFirstChar { it.uppercase() },
+                    fontSize = 15.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onBackground
+                )
+                Text(
+                    text = if (session.completedNaturally)
+                        stringResource(R.string.history_item_natural)
+                    else
+                        stringResource(R.string.history_item_early, session.plannedMinutes),
+                    fontSize = 13.sp,
+                    color = MaterialTheme.colorScheme.onSurface,
+                    modifier = Modifier.padding(top = 2.dp)
+                )
+            }
+
             Text(
-                text = if (session.completedNaturally)
-                    stringResource(R.string.history_item_natural)
-                else
-                    stringResource(R.string.history_item_early, session.plannedMinutes),
-                fontSize = 13.sp,
-                color = MaterialTheme.colorScheme.onSurface,
-                modifier = Modifier.padding(top = 2.dp)
+                text = formatMinutes(session.effectiveMinutes),
+                fontSize = 16.sp,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.primary
             )
         }
-
-        Text(
-            text = formatMinutes(session.effectiveMinutes),
-            fontSize = 16.sp,
-            fontWeight = FontWeight.Bold,
-            color = MaterialTheme.colorScheme.primary
-        )
     }
 }
 

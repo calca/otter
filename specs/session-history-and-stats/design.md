@@ -96,3 +96,40 @@ group rather than leaving a two-native-one-Compose split:
   itself is unavoidably a platform `Menu`/`MenuItem`, `WITH_ACTION_BAR`
   `themeVariant`, not something to convert to Compose) — only what each
   trigger *shows* changed, not how it's reached.
+
+## Card-based visual redesign
+
+Before this pass, `HistoryScreen` was the one remaining screen not using
+the tinted-card language established everywhere else (`SettingsScreen.kt`:
+`Surface(shape = RoundedCornerShape(20.dp), color = primary.copy(alpha =
+0.06f))` sections with `onSurface.copy(alpha = 0.08f)` dividers between
+subsections). Requested directly ("fai una proposta migliore di UI/UX
+coerente con il resto dell'app"):
+
+- **`StatsBar`** (sessions/total time/completed) is now that same tinted
+  `Surface` instead of a flat `Row.background(colorScheme.surface)` bar —
+  it stays the non-scrolling top bar it always was (see the class doc for
+  why: mirrors the old `NestedScrollView` layout), just re-skinned.
+- **`WeekOverviewCard`** (new) groups streak text + `WeeklyChart` + weekly
+  summary + `WeeklyGoalSection` into one tinted card with a divider before
+  the goal section — previously these floated directly on the page as
+  separate elements.
+- **`SessionRow`** is now a `Card` tinted `primary.copy(alpha = 0.04f)`,
+  not `Row.background(colorScheme.surface)` — the same contrast bug just
+  fixed in `AllowedAppsScreen.kt` (`surface` equals `background` in every
+  light palette per `CalmOtterTheme.kt`, so a "plain surface" row was
+  indistinguishable from the page itself in light mode).
+- **"Set goal"/"Edit goal"** is now a `FilledTonalButton` instead of a
+  `TextButton`, with explicit `containerColor`/`contentColor` (`primary`
+  at 0.14f alpha / `primary`) rather than
+  `ButtonDefaults.filledTonalButtonColors()`'s default, which reads
+  `secondaryContainer`/`onSecondaryContainer` — roles `CalmOtterTheme.kt`
+  never customizes per palette, the same "surfaceVariant trap" documented
+  in CLAUDE.md and fixed for `Switch`/`Checkbox` elsewhere in the app.
+- **Deliberately not touched: `Modifier.calmBackground()`.** It was
+  briefly considered for this screen too, but `CalmBackground.kt`'s own
+  doc comment already rules it out on purpose: it's reserved for
+  Home/Onboarding/BlockScreen — "opening" or active-session screens — and
+  explicitly *not* Settings/History, which stay navigation/administration
+  screens. Applying it here would have contradicted that documented
+  boundary rather than extended it.
