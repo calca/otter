@@ -186,10 +186,9 @@ with two separate, more targeted pieces of UI.
   was a View-based `androidx.appcompat.app.AlertDialog.Builder` invoked
   imperatively from an `Activity`, not a good fit here since this dialog's
   state (`showPermissionDialog`) and content both live in `MainScreen`
-  itself; the password prompt was converted to Compose too in a later
-  pass, on request — see `session-history-and-stats/design.md`'s
-  "Non-Compose dialogs" — while `HistoryActivity`'s two stayed native by
-  deliberate choice). It renders one `PermissionReasonRow` per *currently missing*
+  itself; all three of the others were converted to Compose too in later
+  passes, on request — see `session-history-and-stats/design.md`'s "From
+  non-Compose dialogs to Compose Material3"). It renders one `PermissionReasonRow` per *currently missing*
   permission only (`if (!accessibilityOk) ... if (!dndOk) ...` — a
   permission already granted gets no row, so a second tap after granting
   one shows only what's left, or doesn't open at all if nothing's left).

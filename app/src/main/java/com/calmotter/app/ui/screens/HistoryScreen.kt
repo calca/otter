@@ -12,19 +12,31 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.RadioButton
+import androidx.compose.material3.RadioButtonDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -375,4 +387,133 @@ private fun formatMinutes(minutes: Int): String {
         m == 0 -> "${h}h"
         else -> "${h}h ${m}m"
     }
+}
+
+// ── Dialog dell'obiettivo settimanale e di conferma svuotamento ──────────
+//
+// Prima costruiti in HistoryActivity con AlertDialog.Builder + View native
+// (RadioGroup, EditText, LinearLayout) — non Material, uniformati agli
+// altri dialog Compose dell'app (vedi PasswordVerifyDialog.kt) su richiesta
+// esplicita, dopo che lo stesso era già stato fatto per il prompt password
+// di Settings. HistoryActivity ora possiede solo i due booleani
+// "show dialog" e cosa fare a salvataggio/conferma riusciti — tutto lo
+// stato del form (tipo obiettivo, testo del target, errore di validazione)
+// vive qui dentro, non hoisted, per lo stesso motivo di PasswordVerifyDialog:
+// essendo invocati solo dentro un `if (show) { ... }`, Compose distrugge il
+// loro `remember` alla chiusura, quindi riaprirli parte sempre pulito senza
+// reset manuali.
+
+/**
+ * Editor dell'obiettivo settimanale: tipo (sessioni/minuti) via due
+ * `RadioButton` affiancati, target numerico via `OutlinedTextField`. Colori
+ * del RadioButton ristretti a `primary`/`onSurface` — `RadioButtonDefaults`
+ * userebbe altrimenti `onSurfaceVariant` per lo stato non selezionato, un
+ * ruolo non personalizzato per palette (stessa trappola documentata in
+ * CLAUDE.md/specs/mascot-marks per altri componenti).
+ */
+@Composable
+fun WeeklyGoalDialog(
+    currentGoal: WeeklyGoal?,
+    onDismiss: () -> Unit,
+    onSave: (GoalType, Int) -> Unit,
+) {
+    var selectedType by remember { mutableStateOf(currentGoal?.type ?: GoalType.SESSIONS) }
+    var targetText by remember { mutableStateOf(currentGoal?.target?.toString() ?: "") }
+    var errorText by remember { mutableStateOf("") }
+
+    val invalidText = stringResource(R.string.weekly_goal_invalid)
+    val radioColors = RadioButtonDefaults.colors(
+        selectedColor = MaterialTheme.colorScheme.primary,
+        unselectedColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
+    )
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(stringResource(R.string.weekly_goal_dialog_title)) },
+        text = {
+            Column {
+                Row(modifier = Modifier.fillMaxWidth()) {
+                    listOf(
+                        GoalType.SESSIONS to stringResource(R.string.weekly_goal_type_sessions),
+                        GoalType.MINUTES to stringResource(R.string.weekly_goal_type_minutes),
+                    ).forEach { (type, label) ->
+                        Row(
+                            modifier = Modifier
+                                .weight(1f)
+                                .selectable(
+                                    selected = selectedType == type,
+                                    onClick = { selectedType = type },
+                                    role = Role.RadioButton,
+                                ),
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            RadioButton(selected = selectedType == type, onClick = null, colors = radioColors)
+                            Text(label)
+                        }
+                    }
+                }
+                OutlinedTextField(
+                    value = targetText,
+                    onValueChange = {
+                        targetText = it
+                        errorText = ""
+                    },
+                    label = { Text(stringResource(R.string.weekly_goal_target_hint)) },
+                    singleLine = true,
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 12.dp)
+                )
+                if (errorText.isNotBlank()) {
+                    Text(
+                        text = errorText,
+                        color = MaterialTheme.colorScheme.error,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(top = 6.dp)
+                    )
+                }
+            }
+        },
+        confirmButton = {
+            TextButton(
+                onClick = {
+                    val target = targetText.toIntOrNull()
+                    if (target == null || target <= 0) {
+                        errorText = invalidText
+                    } else {
+                        onSave(selectedType, target)
+                    }
+                }
+            ) {
+                Text(stringResource(R.string.save))
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text(stringResource(android.R.string.cancel))
+            }
+        },
+    )
+}
+
+/** Conferma prima di svuotare la cronologia — operazione non reversibile. */
+@Composable
+fun ClearHistoryConfirmDialog(onDismiss: () -> Unit, onConfirm: () -> Unit) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(stringResource(R.string.history_clear)) },
+        text = { Text(stringResource(R.string.history_clear_confirm)) },
+        confirmButton = {
+            TextButton(onClick = onConfirm) {
+                Text(stringResource(R.string.confirm))
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text(stringResource(android.R.string.cancel))
+            }
+        },
+    )
 }

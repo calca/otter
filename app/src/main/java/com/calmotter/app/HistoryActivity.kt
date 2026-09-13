@@ -2,22 +2,17 @@ package com.calmotter.app
 
 import android.content.Intent
 import android.os.Bundle
-import android.text.InputType
 import android.view.Menu
 import android.view.MenuItem
-import android.view.View
-import android.widget.EditText
-import android.widget.LinearLayout
-import android.widget.RadioButton
-import android.widget.RadioGroup
 import android.widget.Toast
 import androidx.activity.compose.setContent
-import androidx.appcompat.app.AlertDialog
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.core.content.FileProvider
+import com.calmotter.app.ui.screens.ClearHistoryConfirmDialog
 import com.calmotter.app.ui.screens.HistoryScreen
+import com.calmotter.app.ui.screens.WeeklyGoalDialog
 import com.calmotter.app.ui.theme.CalmOtterTheme
 import java.io.File
 
@@ -25,12 +20,12 @@ import java.io.File
  * Cronologia sessioni (ultimo step della migrazione a Compose).
  *
  * Il corpo della schermata (statistiche, streak, grafico, obiettivo, lista)
- * vive in HistoryScreen.kt/WeeklyChart.kt; qui restano solo la chrome
- * dell'ActionBar (menu opzioni) e i due dialog costruiti con
- * AlertDialog.Builder — quello dell'obiettivo settimanale (RadioGroup +
- * EditText numerico, misto) e quello di conferma svuotamento — stesso
- * pattern già usato da MainActivity/AllowedAppsActivity per i dialog non
- * convertiti a Compose.
+ * vive in HistoryScreen.kt/WeeklyChart.kt; qui restano la chrome
+ * dell'ActionBar (menu opzioni) e lo stato "mostra dialog" per i due dialog
+ * che vivono in HistoryScreen.kt (`WeeklyGoalDialog`, `ClearHistoryConfirmDialog`)
+ * — entrambi Compose Material3 ora, non più `AlertDialog.Builder` + View
+ * native (RadioGroup/EditText/LinearLayout), uniformati al resto dell'app
+ * su richiesta esplicita.
  *
  * Nessun resumeSignal: a differenza di MainScreen/OnboardingScreen, questa
  * schermata non dipende da stato del sistema operativo che può cambiare
@@ -47,6 +42,8 @@ class HistoryActivity : BaseActivity() {
 
     private var sessions by mutableStateOf<List<SessionRecord>>(emptyList())
     private var goal by mutableStateOf<WeeklyGoal?>(null)
+    private var showGoalDialog by mutableStateOf(false)
+    private var showClearConfirmDialog by mutableStateOf(false)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -67,8 +64,31 @@ class HistoryActivity : BaseActivity() {
                 HistoryScreen(
                     sessions = sessions,
                     goal = goal,
-                    onEditGoal = { showGoalDialog(goal) },
+                    onEditGoal = { showGoalDialog = true },
                 )
+
+                if (showGoalDialog) {
+                    WeeklyGoalDialog(
+                        currentGoal = goal,
+                        onDismiss = { showGoalDialog = false },
+                        onSave = { type, target ->
+                            weeklyGoalManager.setGoal(WeeklyGoal(type, target))
+                            goal = weeklyGoalManager.getGoal()
+                            showGoalDialog = false
+                        },
+                    )
+                }
+
+                if (showClearConfirmDialog) {
+                    ClearHistoryConfirmDialog(
+                        onDismiss = { showClearConfirmDialog = false },
+                        onConfirm = {
+                            historyManager.clear()
+                            sessions = historyManager.getAll()
+                            showClearConfirmDialog = false
+                        },
+                    )
+                }
             }
         }
     }
@@ -84,64 +104,9 @@ class HistoryActivity : BaseActivity() {
     override fun onOptionsItemSelected(item: MenuItem): Boolean = when (item.itemId) {
         android.R.id.home -> { finish(); true }
         MENU_EXPORT       -> { exportHistory(); true }
-        MENU_CLEAR        -> { confirmClear(); true }
+        MENU_CLEAR        -> { showClearConfirmDialog = true; true }
         else              -> super.onOptionsItemSelected(item)
     }
-
-    // ── Obiettivo settimanale ────────────────────────────────────────────
-
-    private fun showGoalDialog(current: WeeklyGoal?) {
-        val density = resources.displayMetrics.density
-        val padding = (16 * density).toInt()
-
-        val typeGroup = RadioGroup(this).apply {
-            orientation = RadioGroup.HORIZONTAL
-        }
-        val sessionsRadio = RadioButton(this).apply {
-            id = View.generateViewId()
-            text = getString(R.string.weekly_goal_type_sessions)
-        }
-        val minutesRadio = RadioButton(this).apply {
-            id = View.generateViewId()
-            text = getString(R.string.weekly_goal_type_minutes)
-        }
-        typeGroup.addView(sessionsRadio)
-        typeGroup.addView(minutesRadio)
-
-        val defaultType = current?.type ?: GoalType.SESSIONS
-        if (defaultType == GoalType.SESSIONS) sessionsRadio.isChecked = true else minutesRadio.isChecked = true
-
-        val targetInput = EditText(this).apply {
-            inputType = InputType.TYPE_CLASS_NUMBER
-            hint = getString(R.string.weekly_goal_target_hint)
-            if (current != null) setText(current.target.toString())
-        }
-
-        val container = LinearLayout(this).apply {
-            orientation = LinearLayout.VERTICAL
-            setPadding(padding, padding, padding, padding)
-            addView(typeGroup)
-            addView(targetInput)
-        }
-
-        AlertDialog.Builder(this)
-            .setTitle(R.string.weekly_goal_dialog_title)
-            .setView(container)
-            .setPositiveButton(R.string.save) { _, _ ->
-                val target = targetInput.text.toString().toIntOrNull()
-                if (target == null || target <= 0) {
-                    Toast.makeText(this, R.string.weekly_goal_invalid, Toast.LENGTH_SHORT).show()
-                } else {
-                    val type = if (sessionsRadio.isChecked) GoalType.SESSIONS else GoalType.MINUTES
-                    weeklyGoalManager.setGoal(WeeklyGoal(type, target))
-                    goal = weeklyGoalManager.getGoal()
-                }
-            }
-            .setNegativeButton(android.R.string.cancel, null)
-            .show()
-    }
-
-    // ── Utility ───────────────────────────────────────────────────────────
 
     private fun exportHistory() {
         val current = historyManager.getAll()
@@ -163,18 +128,6 @@ class HistoryActivity : BaseActivity() {
         }
 
         startActivity(Intent.createChooser(sendIntent, getString(R.string.history_export)))
-    }
-
-    private fun confirmClear() {
-        AlertDialog.Builder(this)
-            .setTitle(R.string.history_clear)
-            .setMessage(R.string.history_clear_confirm)
-            .setPositiveButton(R.string.confirm) { _, _ ->
-                historyManager.clear()
-                sessions = historyManager.getAll()
-            }
-            .setNegativeButton(android.R.string.cancel, null)
-            .show()
     }
 
     companion object {
