@@ -14,7 +14,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -26,8 +25,6 @@ import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.RadioButton
-import androidx.compose.material3.RadioButtonDefaults
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -40,7 +37,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -506,18 +502,17 @@ private fun goalPresetsFor(type: GoalType) =
     if (type == GoalType.SESSIONS) SESSION_GOAL_PRESETS else MINUTE_GOAL_PRESETS
 
 /**
- * Editor dell'obiettivo settimanale: tipo (sessioni/minuti) via due
- * `RadioButton` affiancati, target via chip preset — non un campo numerico
- * libero: stesso pattern a pillole di [DurationChipRow] in MainScreen.kt
- * (Home usa lo stesso linguaggio per scegliere la durata della pausa),
- * scelto al posto della tastiera numerica su richiesta diretta. I preset
- * partono da 3 sessioni / 2h, non da 1, anche questo su richiesta ("un
- * minimo di sfida!") — un obiettivo "1 sessione a settimana" sarebbe banale
- * da centrare comunque. Colori del RadioButton ristretti a
- * `primary`/`onSurface` — `RadioButtonDefaults` userebbe altrimenti
- * `onSurfaceVariant` per lo stato non selezionato, un ruolo non
- * personalizzato per palette (stessa trappola documentata in
- * CLAUDE.md/specs/mascot-marks per altri componenti).
+ * Editor dell'obiettivo settimanale: tipo (sessioni/minuti) e target sono
+ * entrambi righe di chip pillola — un solo idioma di selezione in tutto il
+ * dialog, invece di RadioButton per il tipo e chip per il target. Le
+ * `RadioButton` iniziali sono state sostituite su richiesta diretta
+ * ("invece dei radio button, si può fare di meglio?"): due cerchietti +
+ * etichetta pesano visivamente di più di una pillola, e mischiavano due
+ * idiomi di selezione diversi nello stesso dialog. Stesso pattern a pillole
+ * di [DurationChipRow] in MainScreen.kt (Home usa lo stesso linguaggio per
+ * scegliere la durata della pausa). I preset del target partono da 3
+ * sessioni / 2h, non da 1, su richiesta ("un minimo di sfida!") — un
+ * obiettivo "1 sessione a settimana" sarebbe banale da centrare comunque.
  */
 @Composable
 fun WeeklyGoalDialog(
@@ -531,44 +526,32 @@ fun WeeklyGoalDialog(
             ?: goalPresetsFor(selectedType).first())
     }
 
-    val radioColors = RadioButtonDefaults.colors(
-        selectedColor = MaterialTheme.colorScheme.primary,
-        unselectedColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
-    )
-
     AlertDialog(
         onDismissRequest = onDismiss,
         title = { Text(stringResource(R.string.weekly_goal_dialog_title)) },
         text = {
             Column {
-                Row(modifier = Modifier.fillMaxWidth()) {
-                    listOf(
+                GoalChipRow(
+                    items = listOf(
                         GoalType.SESSIONS to stringResource(R.string.weekly_goal_type_sessions),
                         GoalType.MINUTES to stringResource(R.string.weekly_goal_type_minutes),
-                    ).forEach { (type, label) ->
-                        Row(
-                            modifier = Modifier
-                                .weight(1f)
-                                .selectable(
-                                    selected = selectedType == type,
-                                    onClick = {
-                                        selectedType = type
-                                        val presets = goalPresetsFor(type)
-                                        if (selectedTarget !in presets) selectedTarget = presets.first()
-                                    },
-                                    role = Role.RadioButton,
-                                ),
-                            verticalAlignment = Alignment.CenterVertically,
-                        ) {
-                            RadioButton(selected = selectedType == type, onClick = null, colors = radioColors)
-                            Text(label)
-                        }
-                    }
-                }
-                GoalTargetChipRow(
-                    type = selectedType,
-                    selectedTarget = selectedTarget,
+                    ),
+                    selected = selectedType,
+                    onSelect = { type ->
+                        selectedType = type
+                        val presets = goalPresetsFor(type)
+                        if (selectedTarget !in presets) selectedTarget = presets.first()
+                    },
+                    scrollable = false,
+                )
+                GoalChipRow(
+                    items = goalPresetsFor(selectedType).map { target ->
+                        val label = if (selectedType == GoalType.SESSIONS) target.toString() else formatMinutes(target)
+                        target to label
+                    },
+                    selected = selectedTarget,
                     onSelect = { selectedTarget = it },
+                    scrollable = true,
                     modifier = Modifier.padding(top = 16.dp)
                 )
             }
@@ -587,37 +570,39 @@ fun WeeklyGoalDialog(
 }
 
 /**
- * Riga di chip preset per il target dell'obiettivo — stesso stile pillola
- * di `DurationChipRow` in MainScreen.kt (privata a quel file, da qui la
- * duplicazione): sfondo `primary` a bassa opacità invece di `FilterChip` di
- * M3, i cui colori di stato leggono ruoli non personalizzati per palette.
+ * Riga di chip pillola generica, riusata sia per il tipo (2 voci, non
+ * scorrevole) sia per il target (5 preset, scorrevole in orizzontale) — vedi
+ * doc di [WeeklyGoalDialog]. Stesso stile di `DurationChipRow` in
+ * MainScreen.kt (privata a quel file, da qui la duplicazione): sfondo
+ * `primary` a bassa opacità invece di `FilterChip` di M3, i cui colori di
+ * stato leggono ruoli non personalizzati per palette.
  */
 @Composable
-private fun GoalTargetChipRow(
-    type: GoalType,
-    selectedTarget: Int,
-    onSelect: (Int) -> Unit,
+private fun <T> GoalChipRow(
+    items: List<Pair<T, String>>,
+    selected: T,
+    onSelect: (T) -> Unit,
+    scrollable: Boolean,
     modifier: Modifier = Modifier,
 ) {
     Row(
         modifier = modifier
             .fillMaxWidth()
-            .horizontalScroll(rememberScrollState()),
+            .let { if (scrollable) it.horizontalScroll(rememberScrollState()) else it },
         horizontalArrangement = Arrangement.spacedBy(8.dp),
     ) {
-        goalPresetsFor(type).forEach { target ->
-            val selected = target == selectedTarget
-            val label = if (type == GoalType.SESSIONS) target.toString() else formatMinutes(target)
+        items.forEach { (value, label) ->
+            val isSelected = value == selected
             Surface(
-                onClick = { onSelect(target) },
+                onClick = { onSelect(value) },
                 shape = RoundedCornerShape(50),
-                color = MaterialTheme.colorScheme.primary.copy(alpha = if (selected) 0.22f else 0.08f),
+                color = MaterialTheme.colorScheme.primary.copy(alpha = if (isSelected) 0.22f else 0.08f),
             ) {
                 Text(
                     text = label,
                     modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
-                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = if (selected) 1f else 0.65f),
-                    fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Normal,
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = if (isSelected) 1f else 0.65f),
+                    fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Normal,
                 )
             }
         }

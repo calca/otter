@@ -61,19 +61,12 @@ consistent) were converted the same way right after, closing out the
 group rather than leaving a two-native-one-Compose split:
 
 - **`WeeklyGoalDialog`** (`HistoryScreen.kt`) — the `RadioGroup` (goal
-  type: sessions/minutes) becomes two Material3 `RadioButton`s in a `Row`,
-  each wrapped in `Modifier.selectable(role = Role.RadioButton)` so tapping
-  the label selects it too, not just the small circle (`RadioButton`'s
-  own `onClick = null`, the wrapping `Row` handles the click — the
-  standard Compose pattern for this). Colors are restricted to
-  `primary`/`onSurface` via `RadioButtonDefaults.colors(...)`, not the
-  default (which reads `onSurfaceVariant` for the unselected state — an
-  uncustomized-per-palette role, the same trap documented for `Switch` in
-  `home-and-settings/design.md` and for the mascot marks in
-  `mascot-marks/design.md`). The `EditText` numeric target field originally
-  became an `OutlinedTextField` with `KeyboardType.Number` — later replaced
-  entirely (see "Preset target chips" below) with a preset chip row, no
-  free-form number entry at all.
+  type: sessions/minutes) first became two Material3 `RadioButton`s, then
+  was replaced again by a pill-chip row (see "Preset target chips" below —
+  both the type and the target ended up as chip rows, one shared idiom).
+  The `EditText` numeric target field originally became an
+  `OutlinedTextField` with `KeyboardType.Number` — also later replaced
+  entirely with a preset chip row, no free-form number entry at all.
 - **`ClearHistoryConfirmDialog`** (`HistoryScreen.kt`) — a plain
   title+message+confirm/cancel `AlertDialog`, no state of its own.
 - **`HistoryActivity` now owns only two booleans**
@@ -135,7 +128,7 @@ coerente con il resto dell'app"):
   reads `surfaceVariant`, rendering a fixed lavender track regardless of
   the selected palette. Same trap, one more instance of it.
 
-## Preset target chips (`WeeklyGoalDialog`)
+## Preset target chips + chip type selector (`WeeklyGoalDialog`)
 
 Requested directly ("invece della input box cosa possiamo inserire?"):
 the numeric target `OutlinedTextField` + keyboard was replaced with a row
@@ -144,9 +137,7 @@ of preset chips, one per `GoalType`, using the exact same pill style as
 `Surface(shape = RoundedCornerShape(50), color = primary.copy(alpha =
 0.22f selected / 0.08f unselected))`, not `FilterChip`, whose default
 colors read the same uncustomized `secondaryContainer`/`surfaceVariant`
-roles as everything else in this trap. `GoalTargetChipRow` (private to
-`HistoryScreen.kt`) duplicates that style rather than importing it, since
-`DurationChipRow` is private to `MainScreen.kt`.
+roles as everything else in this trap.
 
 Presets: `SESSION_GOAL_PRESETS = [3, 5, 7, 10, 14]`,
 `MINUTE_GOAL_PRESETS = [120, 180, 300, 420, 600]` (2h/3h/5h/7h/10h, labeled
@@ -162,3 +153,14 @@ change the selection). No validation state exists anymore — every preset
 is by construction a valid target, so `weekly_goal_invalid` and
 `weekly_goal_target_hint` were deleted from both `strings.xml` files as
 dead resources rather than left unused.
+
+Immediately after ("invece dei radio button, si può fare di meglio?"),
+the type selector (sessions/minutes) was converted from two
+`RadioButton`s to a second chip row using the exact same pill style —
+one selection idiom for the whole dialog instead of two. Both rows are
+now `GoalChipRow<T>` (private, generic over the chip's value type: `T =
+GoalType` for the 2-item non-scrolling type row, `T = Int` for the
+5-item horizontally-scrolling target row) instead of two separate
+near-duplicate composables. `RadioButton`/`RadioButtonDefaults`/
+`Modifier.selectable`/`Role.RadioButton` were removed from this file
+entirely along with their now-unneeded imports.
