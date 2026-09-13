@@ -44,6 +44,7 @@ import com.calmotter.app.R
 import com.calmotter.app.SessionRecord
 import com.calmotter.app.SessionStreak
 import com.calmotter.app.WeeklyGoal
+import com.calmotter.app.ui.mascot.OtterFloatMark
 import com.calmotter.app.ui.mascot.OtterHistoryIcon
 import java.text.SimpleDateFormat
 import java.util.Calendar
@@ -85,7 +86,7 @@ fun HistoryScreen(
     onEditGoal: () -> Unit,
 ) {
     if (sessions.isEmpty()) {
-        EmptyHistory()
+        EmptyHistory(goal = goal, onEditGoal = onEditGoal)
         return
     }
 
@@ -423,22 +424,46 @@ private fun SessionOutcomeIcon(isGroupSession: Boolean, completedNaturally: Bool
 
 // ── Stato vuoto ──────────────────────────────────────────────────────────
 
+/**
+ * Prima ancora di avere sessioni, l'obiettivo settimanale resta comunque
+ * impostabile: [WeeklyGoalSection] (con `weekSessions`/`weekMinutes` a 0,
+ * un dato onesto — l'obiettivo esiste già, il progresso parte da zero)
+ * viene riusata qui invece di sparire del tutto come prima di questa
+ * revisione, su richiesta esplicita ("il set goal dovrebbe essere sempre
+ * visibile"). L'Otter (lo stesso mascotte di Home) sostituisce la pagina
+ * altrimenti spoglia di solo testo centrato.
+ */
 @Composable
-private fun EmptyHistory() {
-    Box(
+private fun EmptyHistory(goal: WeeklyGoal?, onEditGoal: () -> Unit) {
+    Column(
         modifier = Modifier
             .fillMaxSize()
             .safeDrawingPadding()
-            .padding(48.dp),
-        contentAlignment = Alignment.Center
+            .padding(32.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center,
     ) {
+        OtterFloatMark(markSize = 100.dp)
         Text(
             text = stringResource(R.string.history_empty),
             fontSize = 16.sp,
             lineHeight = 24.sp,
             color = MaterialTheme.colorScheme.onSurface,
-            textAlign = TextAlign.Center
+            textAlign = TextAlign.Center,
+            modifier = Modifier.padding(top = 20.dp, bottom = 28.dp)
         )
+        Surface(
+            shape = RoundedCornerShape(20.dp),
+            color = MaterialTheme.colorScheme.primary.copy(alpha = 0.06f),
+            modifier = Modifier.fillMaxWidth(),
+        ) {
+            WeeklyGoalSection(
+                goal = goal,
+                weekSessions = 0,
+                weekMinutes = 0,
+                onEditGoal = onEditGoal,
+            )
+        }
     }
 }
 
