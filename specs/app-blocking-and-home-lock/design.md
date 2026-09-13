@@ -508,3 +508,11 @@ text repeated every time it appears:
   finita" had a trailing emoji) was found and removed while touching this
   exact file for the fraction calculation above — unrelated to the visual
   redesign itself, just noticed in passing.
+- **A follow-up pass added `Modifier.calmBackground()`** (the same
+  `primary`-tinted vertical gradient Home and Onboarding already used — see
+  `home-and-settings/design.md`'s "Tinted background") to `BlockScreen`'s
+  root `Column` too, on request to align its background with the rest of
+  the redesign rather than the plain neutral `background` it kept
+  inheriting from the window theme. `CalmBackground.kt`'s doc comment,
+  which used to explicitly call out the block screen as one of the
+  screens deliberately excluded, is updated accordingly.

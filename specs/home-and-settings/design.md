@@ -239,8 +239,8 @@ with two separate, more targeted pieces of UI.
 
 ## Tinted background: `Modifier.calmBackground()`
 
-A fifth pass gave Home and Onboarding (only — not Settings, History, or the
-block screen) a very light `primary`-tinted vertical gradient background,
+A fifth pass gave Home and Onboarding (only — not Settings or History) a
+very light `primary`-tinted vertical gradient background,
 in place of the plain neutral `background` they inherited from the window
 theme before. `Modifier.calmBackground()` (`ui/screens/CalmBackground.kt`)
 is a `@Composable` `Modifier` extension:
@@ -256,15 +256,17 @@ this.background(
 applied to the root `Column` right after `.fillMaxSize()` and before
 `.safeDrawingPadding()`/`.padding(...)` (so the tint fills the whole screen,
 including the system-bar insets, not just the safe-drawing area). It's a
-single shared function (not duplicated per-screen) because both callers
-want the exact same treatment; it lives in `ui/screens/` since both
-`MainScreen.kt` and `OnboardingScreen.kt` are in that package and can use
-an internal-visibility file directly, no export needed elsewhere.
+single shared function (not duplicated per-screen) because every caller
+wants the exact same treatment; it lives in `ui/screens/` since
+`MainScreen.kt`, `OnboardingScreen.kt`, and (added later, see
+`app-blocking-and-home-lock/design.md`'s "BlockScreen redesign")
+`BlockScreen.kt` are all in that package and can use an
+internal-visibility file directly, no export needed elsewhere.
 
 **Why a low-alpha gradient of `primary` and not `primary` itself as a solid
 fill** — the alternative was explicitly considered and rejected: `primary`
-at full intensity as the background would have broken `OtterFloatMark` on
-both screens, not just the text contrast. In the real implementation (see
+at full intensity as the background would have broken `OtterFloatMark`
+everywhere it's drawn, not just the text contrast. In the real implementation (see
 `mascot-marks/design.md`) the mark's fur is `primary` at low alpha, its
 "eyes" are drawn in the literal `background` color (meant to read as
 negative space against the screen), and its nose is `primary` at full

@@ -8,14 +8,17 @@ import androidx.compose.ui.graphics.Brush
 
 /**
  * Velo tenue di "primary" sullo sfondo (più percepibile in alto, sfuma verso
- * il neutro scendendo) — usato solo dalle due schermate "di apertura"
- * dell'app, Home e Onboarding. Dà un accenno di identità di marca (segue la
+ * il neutro scendendo). Dà un accenno di identità di marca (segue la
  * palette Sage/Lavender/Terracotta scelta) senza introdurre un blocco di
  * colore saturo: coerente con la scelta di tenere il resto della UI su
  * tinte tenui (vedi specs/home-and-settings "Living Pond redesign").
  *
- * Deliberatamente NON usato su Settings/Cronologia/schermata di blocco: è
- * una prima impressione, non un tema di sfondo applicato ovunque.
+ * Usato da Home, Onboarding, e BlockScreen — le tre schermate a cui questo
+ * redesign visivo si applica (vedi il commento di classe di BlockScreen su
+ * come le tre schermate di blocco ora condividano il linguaggio visivo della
+ * Home). Deliberatamente NON usato su Settings/Cronologia: quelle restano
+ * schermate di navigazione/amministrazione, non "schermate di apertura" o
+ * di sessione attiva.
  */
 @Composable
 fun Modifier.calmBackground(): Modifier {

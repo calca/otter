@@ -150,6 +150,7 @@ fun BlockScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
+            .calmBackground()
             .safeDrawingPadding()
             .verticalScroll(rememberScrollState())
             .padding(40.dp),
