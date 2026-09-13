@@ -1,12 +1,16 @@
 package com.calmotter.app.ui.screens
 
 import android.widget.Toast
+import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
@@ -49,6 +53,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.StrokeCap
@@ -324,6 +329,17 @@ private fun PermissionReasonRow(reason: String, actionLabel: String, onGrant: ()
  * L'otter è sempre toccabile quando non c'è una sessione attiva: [onStart]
  * (in MainScreen) decide se questo significhi avviare la pausa o spiegare
  * quali permessi mancano ancora.
+ *
+ * Il tap che avvia la pausa ha un'animazione di conferma propria (richiesta
+ * esplicita — prima [onStart] scattava all'istante, un salto secco verso
+ * BlockScreen senza alcun feedback sul tap stesso): [isStarting] blocca
+ * ulteriori tap, fa "saltare" l'otter con una molla rimbalzante
+ * ([otterScale]) e fa partire un impulso che si espande e sfuma
+ * ([TapConfirmBurst], più marcato delle [AmbientRipples] continue di
+ * sfondo) — solo al termine di quell'animazione [onStart] viene invocata
+ * davvero, quindi lo scambio con BlockScreen avviene a gesto già "visto",
+ * non a scapito della reattività (la sessione parte comunque in meno di
+ * mezzo secondo).
  */
 @Composable
 private fun PondScene(
@@ -335,6 +351,24 @@ private fun PondScene(
     onSelectDuration: (Int) -> Unit,
     onStart: () -> Unit,
 ) {
+    var isStarting by remember { mutableStateOf(false) }
+    val otterScale by animateFloatAsState(
+        targetValue = if (isStarting) 1.18f else 1f,
+        animationSpec = spring(
+            dampingRatio = Spring.DampingRatioMediumBouncy,
+            stiffness = Spring.StiffnessMedium,
+        ),
+        label = "otterTapScale",
+    )
+    val burstProgress = remember { Animatable(0f) }
+    LaunchedEffect(isStarting) {
+        if (isStarting) {
+            burstProgress.snapTo(0f)
+            burstProgress.animateTo(1f, animationSpec = tween(380, easing = FastOutSlowInEasing))
+            onStart()
+        }
+    }
+
     Column(
         modifier = modifier.fillMaxWidth(),
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -354,6 +388,9 @@ private fun PondScene(
             ) {
                 if (!sessionActive) {
                     AmbientRipples(modifier = Modifier.matchParentSize())
+                    if (isStarting) {
+                        TapConfirmBurst(progress = burstProgress.value, modifier = Modifier.matchParentSize())
+                    }
                 } else {
                     val fraction = if (totalMillis > 0) {
                         (1f - remainingMillis.toFloat() / totalMillis.toFloat()).coerceIn(0f, 1f)
@@ -368,8 +405,9 @@ private fun PondScene(
                 Box(
                     modifier = Modifier
                         .offset(y = floatOffset.dp)
+                        .scale(otterScale)
                         .clip(CircleShape)
-                        .clickable(enabled = !sessionActive, onClick = onStart),
+                        .clickable(enabled = !sessionActive && !isStarting, onClick = { isStarting = true }),
                     contentAlignment = Alignment.Center,
                 ) {
                     OtterFloatMark(markSize = 124.dp)
@@ -439,6 +477,35 @@ private fun AmbientRipples(modifier: Modifier = Modifier) {
                 style = Stroke(width = strokeWidth),
             )
         }
+    }
+}
+
+/**
+ * Impulso "a tocco": un anello che si espande e sfuma più un lampo pieno al
+ * centro che sfuma ancora più in fretta — un solo passaggio (non in loop
+ * come [AmbientRipples]), guidato da [progress] (0f→1f, animato dal
+ * chiamante). Dà peso visivo al tap di avvio invece del salto secco che
+ * c'era prima verso BlockScreen.
+ */
+@Composable
+private fun TapConfirmBurst(progress: Float, modifier: Modifier = Modifier) {
+    val ringColor = MaterialTheme.colorScheme.primary
+
+    Canvas(modifier = modifier) {
+        val baseRadius = size.minDimension / 5f
+        val maxExtra = size.minDimension / 2f
+
+        drawCircle(
+            color = ringColor,
+            radius = baseRadius + progress * maxExtra,
+            alpha = (1f - progress) * 0.5f,
+            style = Stroke(width = 3.dp.toPx()),
+        )
+        drawCircle(
+            color = ringColor,
+            radius = baseRadius * (1f + progress * 0.3f),
+            alpha = (1f - progress) * (1f - progress) * 0.25f,
+        )
     }
 }
 

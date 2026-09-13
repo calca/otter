@@ -100,6 +100,26 @@ marks since it's reused nowhere outside Home but is thematically a mark).
   Start-Pause control**, and it is *always* enabled while idle (never
   `canStart`-gated on permissions — see "Permissions off Home" below for
   what `onStart` does when something's still missing).
+- **Tap-to-start confirmation animation** — requested directly ("vorrei
+  un'animazione quando tappo su otter per avviare la sessione"): before this,
+  tapping the otter called `onStart` (and therefore
+  `sessionManager.startSession()`/`onSessionStarted()`, which swaps straight
+  to `BlockScreen`) synchronously, an instant cut with no feedback on the tap
+  itself. `PondScene` now holds its own `isStarting` (`mutableStateOf(false)`)
+  gate: on tap it (a) disables further taps
+  (`clickable(enabled = !sessionActive && !isStarting, ...)`), (b) springs the
+  otter up to 1.18× scale (`animateFloatAsState` with
+  `Spring.DampingRatioMediumBouncy`/`Spring.StiffnessMedium` — an overshooting
+  "pop", not a linear scale), and (c) plays a one-shot `TapConfirmBurst` — an
+  expanding-and-fading ring plus a quicker-fading center flash, driven by an
+  `Animatable(0f)` animated to `1f` over 380ms (`FastOutSlowInEasing`) — layered
+  over the continuous `AmbientRipples`, more pronounced than them since this
+  one has to read as "confirmed", not merely ambient. `onStart` (the real
+  session-start callback) is only invoked once that 380ms animation
+  completes, not on the tap itself — the whole gesture still resolves in
+  well under half a second, so responsiveness isn't traded away, but the tap
+  now has a visible acknowledgment before the screen swap instead of a bare
+  cut.
 - **`DurationChipRow`** — a hand-drawn chip row (`Surface(onClick = ...)`
   per `DURATION_LABELS` entry, background colored via
   `primary.copy(alpha = 0.08f/0.22f)` for unselected/selected — a soft tint
