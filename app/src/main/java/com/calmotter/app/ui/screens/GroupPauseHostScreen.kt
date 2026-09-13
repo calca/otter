@@ -34,25 +34,26 @@ import com.calmotter.app.GroupPauseRecipe
 import com.calmotter.app.R
 import com.calmotter.app.encode
 import com.calmotter.app.generateQrCodeBitmap
+import com.calmotter.app.ui.mascot.OtterFloatMark
 import kotlin.random.Random
 
 private val DURATION_OPTIONS = listOf(15, 30, 60, 90, 120)
 private val DELAY_OPTIONS = listOf(1, 2, 5)
 
-private enum class PairingMode { QR_CODE, BLUETOOTH }
-
 private sealed class HostFlowStep {
     data object Setup : HostFlowStep()
     data class BluetoothLobby(val durationMinutes: Int) : HostFlowStep()
+    data class QrDelayPicker(val durationMinutes: Int) : HostFlowStep()
     data class Countdown(val recipe: GroupPauseRecipe, val showShareHeader: Boolean) : HostFlowStep()
 }
 
 /**
- * Crea una pausa di gruppo: sceglie modalità di abbinamento, durata (+ tra
- * quanto iniziare, solo per QR/codice) poi mostra o il QR/codice da
- * condividere (QR/codice) o la lobby dal vivo (Bluetooth, Fase 2 — vedi
- * specs/group-pause/design.md), infine il conto alla rovescia condiviso
- * (GroupPauseCountdownScreen). Nessuno stato persistito prima che il conto
+ * Prepara il Tempo Insieme lato host: durata → lobby dal vivo (Bluetooth+NFC,
+ * predefinita — vedi GroupPauseBluetoothLobbyHostScreen) → conto alla
+ * rovescia condiviso. Chi preferisce QR/codice invece del vivo può tornare
+ * indietro dalla lobby stessa ("Preferisci un codice o un QR?") verso
+ * [GroupPauseQrDelayScreen], che chiede solo il "tra quanto iniziare" che il
+ * percorso dal vivo non usa. Nessuno stato persistito prima che il conto
  * alla rovescia arrivi a zero: uscire da questa schermata prima (onCancel)
  * non lascia nulla in sospeso.
  */
@@ -62,22 +63,26 @@ fun GroupPauseHostScreen(onStarted: (durationMinutes: Int) -> Unit, onCancel: ()
 
     when (val current = step) {
         HostFlowStep.Setup -> GroupPauseSetupScreen(
-            onCreateQr = { durationMinutes, delayMinutes ->
+            onContinue = { durationMinutes -> step = HostFlowStep.BluetoothLobby(durationMinutes) },
+            onCancel = onCancel,
+        )
+        is HostFlowStep.BluetoothLobby -> GroupPauseBluetoothLobbyHostScreen(
+            durationMinutes = current.durationMinutes,
+            onRecipeReady = { recipe -> step = HostFlowStep.Countdown(recipe, showShareHeader = false) },
+            onWantCodeInstead = { step = HostFlowStep.QrDelayPicker(current.durationMinutes) },
+            onCancel = onCancel,
+        )
+        is HostFlowStep.QrDelayPicker -> GroupPauseQrDelayScreen(
+            onCreate = { delayMinutes ->
                 step = HostFlowStep.Countdown(
                     recipe = GroupPauseRecipe(
-                        durationMinutes = durationMinutes,
+                        durationMinutes = current.durationMinutes,
                         startAtEpochMillis = System.currentTimeMillis() + delayMinutes * 60_000L,
                         groupTag = Random.nextInt(0, 65536),
                     ),
                     showShareHeader = true,
                 )
             },
-            onCreateBluetooth = { durationMinutes -> step = HostFlowStep.BluetoothLobby(durationMinutes) },
-            onCancel = onCancel,
-        )
-        is HostFlowStep.BluetoothLobby -> GroupPauseBluetoothLobbyHostScreen(
-            durationMinutes = current.durationMinutes,
-            onRecipeReady = { recipe -> step = HostFlowStep.Countdown(recipe, showShareHeader = false) },
             onCancel = onCancel,
         )
         is HostFlowStep.Countdown -> GroupPauseCountdownScreen(
@@ -94,12 +99,73 @@ fun GroupPauseHostScreen(onStarted: (durationMinutes: Int) -> Unit, onCancel: ()
 
 @Composable
 private fun GroupPauseSetupScreen(
-    onCreateQr: (durationMinutes: Int, delayMinutes: Int) -> Unit,
-    onCreateBluetooth: (durationMinutes: Int) -> Unit,
+    onContinue: (durationMinutes: Int) -> Unit,
     onCancel: () -> Unit,
 ) {
-    var pairingMode by remember { mutableStateOf(PairingMode.QR_CODE) }
     var selectedDuration by remember { mutableIntStateOf(30) }
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .calmBackground()
+            .safeDrawingPadding()
+            .padding(32.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center,
+    ) {
+        OtterFloatMark(markSize = 88.dp)
+        Text(
+            text = stringResource(R.string.group_pause_host_title),
+            fontSize = 22.sp,
+            fontWeight = FontWeight.Bold,
+            color = MaterialTheme.colorScheme.primary,
+            textAlign = TextAlign.Center,
+            modifier = Modifier.padding(top = 12.dp, bottom = 8.dp)
+        )
+        Text(
+            text = stringResource(R.string.group_pause_host_intro),
+            color = MaterialTheme.colorScheme.onSurface,
+            textAlign = TextAlign.Center,
+            modifier = Modifier.padding(bottom = 28.dp)
+        )
+
+        SetupLabel(stringResource(R.string.group_pause_duration_label))
+        MinutePillRow(
+            options = DURATION_OPTIONS,
+            selected = selectedDuration,
+            onSelect = { selectedDuration = it },
+            labelFor = { minutesLabel(it) },
+        )
+
+        Row(modifier = Modifier.fillMaxWidth().padding(top = 32.dp)) {
+            OutlinedButton(
+                onClick = onCancel,
+                modifier = Modifier.weight(1f).padding(end = 8.dp)
+            ) {
+                Text(stringResource(android.R.string.cancel))
+            }
+            Button(
+                onClick = { onContinue(selectedDuration) },
+                modifier = Modifier.weight(1f)
+            ) {
+                Text(stringResource(R.string.group_pause_host_continue_button))
+            }
+        }
+    }
+}
+
+/**
+ * Ripiego per chi preferisce un codice/QR invece della lobby dal vivo —
+ * raggiunta dal link "Preferisci un codice o un QR?" dentro
+ * [GroupPauseBluetoothLobbyHostScreen]. Chiede solo il "tra quanto
+ * iniziare", l'unico dato che il percorso dal vivo non usa (lì l'avvio è
+ * un'azione dell'host, non pianificata).
+ */
+@Composable
+private fun GroupPauseQrDelayScreen(
+    onCreate: (delayMinutes: Int) -> Unit,
+    onCancel: () -> Unit,
+) {
     var selectedDelay by remember { mutableIntStateOf(1) }
 
     Column(
@@ -112,50 +178,21 @@ private fun GroupPauseSetupScreen(
         verticalArrangement = Arrangement.Center,
     ) {
         Text(
-            text = stringResource(R.string.group_pause_host_title),
-            fontSize = 22.sp,
+            text = stringResource(R.string.group_pause_qr_delay_title),
+            fontSize = 20.sp,
             fontWeight = FontWeight.Bold,
             color = MaterialTheme.colorScheme.primary,
             textAlign = TextAlign.Center,
-            modifier = Modifier.padding(bottom = 12.dp)
-        )
-        Text(
-            text = stringResource(R.string.group_pause_host_intro),
-            color = MaterialTheme.colorScheme.onSurface,
-            textAlign = TextAlign.Center,
-            modifier = Modifier.padding(bottom = 20.dp)
+            modifier = Modifier.padding(bottom = 24.dp)
         )
 
-        Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.padding(bottom = 20.dp)) {
-            PairingModePill(
-                label = stringResource(R.string.group_pause_pairing_mode_qr),
-                selected = pairingMode == PairingMode.QR_CODE,
-                onClick = { pairingMode = PairingMode.QR_CODE },
-            )
-            PairingModePill(
-                label = stringResource(R.string.group_pause_pairing_mode_bluetooth),
-                selected = pairingMode == PairingMode.BLUETOOTH,
-                onClick = { pairingMode = PairingMode.BLUETOOTH },
-            )
-        }
-
-        SetupLabel(stringResource(R.string.group_pause_duration_label))
+        SetupLabel(stringResource(R.string.group_pause_start_in_label))
         MinutePillRow(
-            options = DURATION_OPTIONS,
-            selected = selectedDuration,
-            onSelect = { selectedDuration = it },
+            options = DELAY_OPTIONS,
+            selected = selectedDelay,
+            onSelect = { selectedDelay = it },
             labelFor = { minutesLabel(it) },
         )
-
-        if (pairingMode == PairingMode.QR_CODE) {
-            SetupLabel(stringResource(R.string.group_pause_start_in_label), topPadding = 24.dp)
-            MinutePillRow(
-                options = DELAY_OPTIONS,
-                selected = selectedDelay,
-                onSelect = { selectedDelay = it },
-                labelFor = { minutesLabel(it) },
-            )
-        }
 
         Row(modifier = Modifier.fillMaxWidth().padding(top = 32.dp)) {
             OutlinedButton(
@@ -165,42 +202,12 @@ private fun GroupPauseSetupScreen(
                 Text(stringResource(android.R.string.cancel))
             }
             Button(
-                onClick = {
-                    if (pairingMode == PairingMode.QR_CODE) {
-                        onCreateQr(selectedDuration, selectedDelay)
-                    } else {
-                        onCreateBluetooth(selectedDuration)
-                    }
-                },
+                onClick = { onCreate(selectedDelay) },
                 modifier = Modifier.weight(1f)
             ) {
-                Text(
-                    stringResource(
-                        if (pairingMode == PairingMode.QR_CODE) {
-                            R.string.group_pause_create_button
-                        } else {
-                            R.string.group_pause_bt_open_lobby_button
-                        }
-                    )
-                )
+                Text(stringResource(R.string.group_pause_create_button))
             }
         }
-    }
-}
-
-@Composable
-private fun PairingModePill(label: String, selected: Boolean, onClick: () -> Unit) {
-    Surface(
-        onClick = onClick,
-        shape = RoundedCornerShape(50),
-        color = MaterialTheme.colorScheme.primary.copy(alpha = if (selected) 0.22f else 0.08f),
-    ) {
-        Text(
-            text = label,
-            modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
-            color = MaterialTheme.colorScheme.onSurface.copy(alpha = if (selected) 1f else 0.65f),
-            fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Normal,
-        )
     }
 }
 

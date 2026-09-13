@@ -54,86 +54,87 @@ import com.google.zxing.NotFoundException
 import com.google.zxing.PlanarYUVLuminanceSource
 import com.google.zxing.common.HybridBinarizer
 
-private enum class JoinMode { SCAN, MANUAL, BLUETOOTH }
+private enum class JoinMode { SCAN, MANUAL }
+
+private sealed class JoinFlowStep {
+    data object Live : JoinFlowStep()
+    data object QrOrCode : JoinFlowStep()
+    data class Countdown(val recipe: GroupPauseRecipe) : JoinFlowStep()
+}
 
 /**
- * Unisciti a una pausa di gruppo: scansiona il QR o inserisci il codice
- * manuale, poi lo stesso conto alla rovescia condiviso di
- * GroupPauseHostScreen (GroupPauseCountdownScreen) — vedi
- * specs/group-pause/design.md.
+ * Unisciti al Tempo Insieme: la lobby dal vivo (Bluetooth+NFC — vedi
+ * GroupPauseBluetoothLobbyJoinScreen) è il punto di ingresso predefinito;
+ * chi preferisce un codice/QR può passare a [GroupPauseCodeEntryScreen]
+ * tramite il link "Ho un codice o un QR" dentro alla lobby stessa. Stesso
+ * conto alla rovescia condiviso alla fine di entrambi i percorsi.
  */
 @Composable
 fun GroupPauseJoinScreen(onJoined: (durationMinutes: Int) -> Unit, onCancel: () -> Unit) {
-    var recipe by remember { mutableStateOf<GroupPauseRecipe?>(null) }
-    val current = recipe
+    var step by remember { mutableStateOf<JoinFlowStep>(JoinFlowStep.Live) }
 
-    if (current == null) {
-        GroupPauseEntryScreen(onRecipeReady = { recipe = it }, onCancel = onCancel)
-    } else {
-        GroupPauseCountdownScreen(
-            durationMinutes = current.durationMinutes,
-            startAtEpochMillis = current.startAtEpochMillis,
-            onReady = { onJoined(current.durationMinutes) },
+    when (val current = step) {
+        JoinFlowStep.Live -> GroupPauseBluetoothLobbyJoinScreen(
+            onRecipeReady = { recipe -> step = JoinFlowStep.Countdown(recipe) },
+            onWantCodeInstead = { step = JoinFlowStep.QrOrCode },
+            onCancel = onCancel,
+        )
+        JoinFlowStep.QrOrCode -> GroupPauseCodeEntryScreen(
+            onRecipeReady = { recipe -> step = JoinFlowStep.Countdown(recipe) },
+            onCancel = onCancel,
+        )
+        is JoinFlowStep.Countdown -> GroupPauseCountdownScreen(
+            durationMinutes = current.recipe.durationMinutes,
+            startAtEpochMillis = current.recipe.startAtEpochMillis,
+            onReady = { onJoined(current.recipe.durationMinutes) },
             onCancel = onCancel,
         )
     }
 }
 
+/** Ripiego QR/codice manuale — invariato rispetto alla Fase 1, solo raggiunto diversamente. */
 @Composable
-private fun GroupPauseEntryScreen(onRecipeReady: (GroupPauseRecipe) -> Unit, onCancel: () -> Unit) {
+private fun GroupPauseCodeEntryScreen(onRecipeReady: (GroupPauseRecipe) -> Unit, onCancel: () -> Unit) {
     var mode by remember { mutableStateOf(JoinMode.SCAN) }
 
-    if (mode == JoinMode.BLUETOOTH) {
-        // Schermata a parte (Fase 2, vedi specs/group-pause/design.md): ha
-        // già il proprio sfondo/padding/pulsante Annulla, non va incapsulata
-        // nella Column qui sotto pensata per le due modalità di Fase 1.
-        GroupPauseBluetoothLobbyJoinScreen(onRecipeReady = onRecipeReady, onCancel = onCancel)
-    } else {
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .calmBackground()
-                .safeDrawingPadding()
-                .padding(32.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center,
-        ) {
-            Text(
-                text = stringResource(R.string.group_pause_join_title),
-                fontSize = 22.sp,
-                fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.primary,
-                textAlign = TextAlign.Center,
-                modifier = Modifier.padding(bottom = 20.dp)
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .calmBackground()
+            .safeDrawingPadding()
+            .padding(32.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center,
+    ) {
+        Text(
+            text = stringResource(R.string.group_pause_join_title),
+            fontSize = 22.sp,
+            fontWeight = FontWeight.Bold,
+            color = MaterialTheme.colorScheme.primary,
+            textAlign = TextAlign.Center,
+            modifier = Modifier.padding(bottom = 20.dp)
+        )
+
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.padding(bottom = 20.dp)) {
+            JoinModePill(
+                label = stringResource(R.string.group_pause_join_scan_tab),
+                selected = mode == JoinMode.SCAN,
+                onClick = { mode = JoinMode.SCAN },
             )
+            JoinModePill(
+                label = stringResource(R.string.group_pause_join_manual_tab),
+                selected = mode == JoinMode.MANUAL,
+                onClick = { mode = JoinMode.MANUAL },
+            )
+        }
 
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.padding(bottom = 20.dp)) {
-                JoinModePill(
-                    label = stringResource(R.string.group_pause_join_scan_tab),
-                    selected = mode == JoinMode.SCAN,
-                    onClick = { mode = JoinMode.SCAN },
-                )
-                JoinModePill(
-                    label = stringResource(R.string.group_pause_join_manual_tab),
-                    selected = mode == JoinMode.MANUAL,
-                    onClick = { mode = JoinMode.MANUAL },
-                )
-                JoinModePill(
-                    label = stringResource(R.string.group_pause_pairing_mode_bluetooth),
-                    selected = false,
-                    onClick = { mode = JoinMode.BLUETOOTH },
-                )
-            }
+        when (mode) {
+            JoinMode.SCAN -> ScanTab(onRecipeReady)
+            JoinMode.MANUAL -> ManualCodeTab(onRecipeReady)
+        }
 
-            when (mode) {
-                JoinMode.SCAN -> ScanTab(onRecipeReady)
-                JoinMode.MANUAL -> ManualCodeTab(onRecipeReady)
-                JoinMode.BLUETOOTH -> Unit // gestito sopra, prima della Column
-            }
-
-            OutlinedButton(onClick = onCancel, modifier = Modifier.padding(top = 24.dp)) {
-                Text(stringResource(android.R.string.cancel))
-            }
+        OutlinedButton(onClick = onCancel, modifier = Modifier.fillMaxWidth().padding(top = 24.dp)) {
+            Text(stringResource(android.R.string.cancel))
         }
     }
 }

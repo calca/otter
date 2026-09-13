@@ -1,5 +1,19 @@
 # Group Pause — Design
 
+## Naming: "Tempo Insieme" / "Time Together"
+
+A later UI/UX refinement pass renamed everything the user sees — the Home
+entry button, the Create/Join dialog, screen titles, `BlockScreen`'s
+indicator — from "Pausa di gruppo"/"Group pause" to **"Tempo
+Insieme"/"Time Together"**, on request, for a warmer tone consistent with
+the rest of the app's copy. **Nothing internal was renamed**: the
+`specs/group-pause/` directory, `GroupPauseRecipe`/`GroupPauseHostScreen`/
+etc. class and file names, `isGroupSession`, and every other code
+identifier are unchanged — only `strings.xml`/`strings-en.xml` values
+changed. This file keeps using the original technical names throughout,
+since they still match the code; treat "Group Pause" here as the
+implementation's name and "Tempo Insieme" as its current display name.
+
 ## Architecture: handshake-then-autonomy
 
 The QR/text code is a **one-time, self-contained recipe**, not a live
@@ -25,8 +39,8 @@ data class GroupPauseRecipe(
 |---|---|
 | `GroupPauseRecipe.kt` | `GroupPauseRecipe` data class + `encode()`/`decodeGroupPauseRecipe()`. Pure Kotlin, no `Context` — directly unit-testable (`GroupPauseRecipeTest.kt`), same "pure state machine" shape as `LockoutPolicy.kt`. |
 | `QrCodeGenerator.kt` | `generateQrCodeBitmap(content, sizePx)` — wraps `com.google.zxing.qrcode.QRCodeWriter`, paints the result into a `Bitmap.Config.RGB_565` manually. |
-| `ui/screens/GroupPauseHostScreen.kt` | Duration + start-delay pickers → generates a recipe → shows QR + text code + the shared countdown. |
-| `ui/screens/GroupPauseJoinScreen.kt` | Scan (CameraX + zxing) or manual-code entry → decodes a recipe → the shared countdown. |
+| `ui/screens/GroupPauseHostScreen.kt` | Duration picker → the live Bluetooth/NFC lobby by default (`GroupPauseBluetoothLobbyHostScreen`), or (via its "Prefer a code or a QR?" link) a private `GroupPauseQrDelayScreen` step asking only the start-delay → generates a recipe → shows QR + text code + the shared countdown. See "UI/UX refinement pass" below for why the delay picker moved here. |
+| `ui/screens/GroupPauseJoinScreen.kt` | The live Bluetooth/NFC lobby by default (`GroupPauseBluetoothLobbyJoinScreen`), or (via its "I have a code or a QR" link) a private `GroupPauseCodeEntryScreen` with Scan (CameraX + zxing) or manual-code entry → decodes a recipe → the shared countdown. |
 | `ui/screens/GroupPauseCountdownScreen.kt` | Shared by both flows — ticks "starting in mm:ss", calls back once at zero. |
 | `GroupPauseHostActivity.kt` / `GroupPauseJoinActivity.kt` | Thin `BaseActivity` wrappers: on the countdown reaching zero, call `sessionManager.startSession(durationMinutes, isGroupSession = true)` and `finish()`. |
 
@@ -114,12 +128,13 @@ if (sessionManager.isSessionActive() && !showBlockScreen) {
   the primary tap-the-otter gesture) opens a Create/Join chooser
   `AlertDialog`, the same shape already used for `PermissionExplainerDialog`.
 - `BlockScreen.kt` — when `sessionManager.isGroupSession()` is true, shows
-  one extra line under "Paused": `block_group_indicator` ("Part of a group
-  pause"). Deliberately generic — see the "no participant count" limitation
-  in requirements.md.
-- `HistoryScreen.kt`'s `SessionRow` — a small `history_group_tag` line
-  ("Group pause") under the existing outcome text, shown when
-  `session.isGroupSession`. Same "no names" scoping as above.
+  one extra line under "Paused": `block_group_indicator` ("You're having
+  time together"). Deliberately generic — see the "no participant count"
+  limitation in requirements.md.
+- `HistoryScreen.kt`'s `SessionRow` — originally a small `history_group_tag`
+  text line ("Group pause") under the outcome text; replaced in the later
+  UI/UX refinement pass by `OtterHistoryIcon` inside a tinted chip — see
+  that section below, no text label at all any more.
 - `CalmBackground.kt` — its doc comment previously scoped `calmBackground()`
   to Home/Onboarding/BlockScreen only (deliberately not Settings/History).
   Extended to include the three new group-pause screens, since they're the
@@ -159,12 +174,18 @@ New dependencies: `com.google.zxing:core:3.5.3`,
 
 ## Phase 2: live Bluetooth lobby + NFC tap-to-connect
 
-Built as a second pairing mode alongside Phase 1's QR/manual code (which
-is unchanged and still the default — Phase 2 is additive, selected via a
-"QR/Codice" vs "Bluetooth" pill in `GroupPauseHostScreen`/
-`GroupPauseJoinScreen`'s setup screens). Solves Phase 1's core limitation:
-with a live channel, the host can now see who has joined before starting,
-and gates "Start" on at least one participant being present.
+Built as a second pairing mode alongside Phase 1's QR/manual code, which
+is unchanged and still available as a fallback. **As first shipped**,
+Phase 2 was a "QR/Codice" vs "Bluetooth" pill on the setup screen, both
+options at equal visual weight; **a later UI/UX refinement pass (see its
+own section below) flattened this** so the live lobby is the default
+screen for both creating and joining, with QR/manual-code reachable one
+tap away via a secondary link — the pill selector described in the rest
+of this section's original text no longer exists in the code, only the
+underlying Bluetooth/NFC transport it describes does. Solves Phase 1's
+core limitation: with a live channel, the host can now see who has joined
+before starting, and gates "Start" on at least one participant being
+present.
 
 **Transport: classic Bluetooth (`android.bluetooth.*`), not Nearby
 Connections.** Same reasoning Phase 1 already applied when it picked
@@ -236,9 +257,12 @@ the first match automatically).
 Host Card Emulation (HCE), not classic Android Beam/NFC P2P (`NdefPush`) —
 deprecated and unreliable since Android 10, not a sound foundation here.
 
-- `nfc/GroupPauseHceService.kt` — a `HostApduService`. Before the host
-  enables the "Avvicina i telefoni" toggle, the lobby screen sets a
-  `@Volatile` companion field (`pendingMarker`) to the marker string;
+- `nfc/GroupPauseHceService.kt` — a `HostApduService`. As first shipped,
+  the host had to flip an explicit "Avvicina i telefoni" toggle to arm it;
+  the later UI/UX refinement pass removed that toggle — the host's lobby
+  screen now sets the `@Volatile` companion field (`pendingMarker`) to the
+  marker string automatically whenever `NfcAdapter.getDefaultAdapter()` is
+  non-null, no user action needed (see "UI/UX refinement pass" below).
   `processCommandApdu()` responds to any incoming command with that
   marker's UTF-8 bytes plus the success status word (`90 00`) — a
   deliberate simplification, since this protocol only ever has one
@@ -284,16 +308,128 @@ permission-check helpers (`isAccessibilityServiceEnabled`,
 ### What Phase 2 still doesn't do
 
 - **Named participants elsewhere in the app.** The live lobby shows real
-  connected names, but `BlockScreen`'s `block_group_indicator` and
-  `HistoryScreen`'s `history_group_tag` are unchanged from Phase 1 —
-  still generic ("part of a group pause"), not "with Marco and Giulia."
-  Nothing in `SessionRecord`/`GroupPauseRecipe` carries participant names
-  forward past the lobby; wiring that through was judged out of scope for
-  this pass and would be a natural next increment.
+  connected names, but `BlockScreen`'s `block_group_indicator` is
+  unchanged — still generic ("you're having time together"), not "with
+  Marco and Giulia." Nothing in `SessionRecord`/`GroupPauseRecipe` carries
+  participant names forward past the lobby; wiring that through was
+  judged out of scope for this pass and would be a natural next
+  increment. (`HistoryScreen`'s old text tag is gone entirely, replaced by
+  an icon — see "UI/UX refinement pass" below — so this limitation no
+  longer applies there, only to `BlockScreen`.)
 - **Verification is code-level only for the live paths.** See
   "Verification performed" below — an actual two-device Bluetooth
   handshake or NFC tap was not observed in this session, since only one
   adb-connected device was available.
+
+## UI/UX refinement pass
+
+After Phase 2 first shipped, the project owner reviewed it against
+mockups (an HTML artifact iterated over two rounds) and asked for a
+second pass — fewer steps, more use of the otter mascot, warmer copy, and
+a couple of outright confusing spots fixed. Everything below was decided
+via that mockup review, not guessed at directly.
+
+**Naming** — see the dedicated section at the top of this file.
+
+**Flattened navigation, no more pairing-mode pill.** The original setup
+screen asked for pairing mode (QR/Codice vs Bluetooth) *and* duration *and*
+(for QR) start-delay, all before doing anything — "too confusionaria," per
+the request. Now:
+- `GroupPauseHostScreen`'s `GroupPauseSetupScreen` asks only for duration,
+  with the app's `OtterFloatMark` shown above the title (the same mark
+  Home uses) instead of no illustration at all, then always continues into
+  `GroupPauseBluetoothLobbyHostScreen` (the live lobby) — QR/manual code is
+  now a fallback reached via that lobby's "Prefer a code or a QR?" link,
+  which opens the private `GroupPauseQrDelayScreen` (just the start-delay
+  picker, since duration was already chosen) before generating the code.
+- `GroupPauseJoinScreen` mirrors this: `GroupPauseBluetoothLobbyJoinScreen`
+  is the default screen (no more three-way Scan/Manual/Bluetooth pill up
+  front), with an "I have a code or a QR" link opening the private
+  `GroupPauseCodeEntryScreen` (the original Scan/Manual pill screen,
+  unchanged, just reached differently).
+
+**No more dedicated permission/Bluetooth-off/discoverable screens.** The
+original Phase 2 had the host and joiner lobby screens gate on three
+sequential full-screen steps (`HostLobbyStep`/`JoinLobbyStep`:
+`PERMISSIONS` → `ENABLE_BLUETOOTH` → `DISCOVERABLE`) before showing
+anything else — "la pagina intera è pessima," per the request. Both
+`GroupPauseBluetoothLobbyHostScreen` and
+`GroupPauseBluetoothLobbyJoinScreen` now show their real content (the
+otter, the participant ring or NFC/search hero) immediately regardless of
+readiness, with a single non-blocking `GentleBanner`/
+`GentleReadinessBanner` shown inline above the action buttons whenever
+`!hasPermissions || !bluetoothEnabled` — its text and tap action switch
+between "grant permissions" and "turn on Bluetooth" depending on which is
+missing. The primary action button (`Iniziamo`/"Let's go" on the host,
+implicitly gated the same way on the joiner) stays enabled/disabled by the
+real underlying state rather than by which "step" is showing. Discoverable
+mode (`ACTION_REQUEST_DISCOVERABLE`) is requested automatically, once, via
+a `DisposableEffect` as soon as permissions+Bluetooth are both ready — no
+banner or screen for that step at all, since it's a single one-shot system
+dialog rather than a persistent state to nudge about.
+
+**NFC-first on the join side.** `GroupPauseBluetoothLobbyJoinScreen` used
+to present NFC and manual Bluetooth search as two equal buttons
+(`JoinLobbyState.ChoosingMode`). It's now state-driven by
+`nfcAvailable`: if the device has NFC, the screen lands directly on the
+NFC hero state (`OtterTapMark` illustration, reader mode started
+automatically via `DisposableEffect`, no toggle or extra tap needed) with
+"Cerca un amico nelle vicinanze"/"Look for a nearby friend" and "Ho un
+codice o un QR"/"I have a code or a QR" as secondary text links below; if
+the device has no NFC, it lands on the search-hero state instead
+(`group_pause_join_search_hero_title`), same secondary code/QR link, no
+NFC option shown. The host's NFC advertising (`GroupPauseHceService
+.pendingMarker`) is likewise now automatic — set whenever
+`NfcAdapter.getDefaultAdapter()` is non-null and the lobby is ready, no
+user-facing toggle any more.
+
+**Otter mascot throughout, not just Home.** `ui/mascot/OtterMarks.kt`
+gained three new marks for this feature specifically:
+- `OtterSatelliteMark` — the same 3-circle silhouette construction as
+  `OtterFloatMark`, flattened to one flat fill with no face detail (same
+  "more reduced than the color version" precedent the monochrome app icon
+  already established). `GroupPauseBluetoothLobbyHostScreen`'s
+  `ParticipantRing` places one per connected participant (up to 6 shown
+  explicitly) around the central `OtterFloatMark`, at even angles computed
+  with `cos`/`sin` over `Dp` radius — the ring itself is a dashed stroke
+  while empty, a solid one once someone's joined.
+- `OtterTapMark` — two of that same silhouette, tilted toward each other
+  (same rotation technique as `PactPawsMark`, applied to whole otters
+  instead of paw shapes) with a small arc between them where they'd touch —
+  the join screen's NFC hero illustration, explaining "tap phones
+  together" visually rather than through text alone.
+- `OtterHistoryIcon` — see "History icon system" below.
+- `TogetherMark` — `PactPawsMark`'s two paws without its circular badge
+  background, sized for inline use next to text; `MainScreen.kt`'s
+  "Tempo insieme" entry button now leads with this icon (the button was
+  "a bit anonymous," per the request) instead of being bare text.
+
+**History icon system, replacing the colored dot + text tag.** The old
+`SessionRow` drew a plain green/red `Box` circle (outcome) plus, for group
+sessions, a separate `history_group_tag` text line ("Group pause") — two
+different signaling mechanisms stacked in one row. Replaced by a single
+`SessionOutcomeIcon`: a rounded chip (`Surface`, tint `primary` if
+completed naturally, `error`/amber-family if ended early — the same
+tinted-chip language `HistoryScreen`/`AllowedAppsScreen` already use
+elsewhere) containing `OtterHistoryIcon`, which draws the plain otter
+silhouette for a solo session or the silhouette plus two concentric
+"signal" arcs above the head (same arc shapes as `OtterTapMark`'s) for a
+`isGroupSession` one. Two independent signals (chip color, icon shape), no
+text label needed for either — `history_group_tag` was deleted from both
+locale files once nothing referenced it any more.
+
+**Gentler copy throughout**, matching the mockup review — a sample of the
+renames (full list in each string's own key, `values/strings.xml`):
+"Crea"/"Create" (host primary button) → "Crea il codice"/"Create the
+code" (QR path) or removed entirely (live path, no separate "open lobby"
+tap any more); "Avvia"/"Start" → "Iniziamo"/"Let's go" (reusing the same
+word onboarding's last step already uses, `onb_finish`, for consistency —
+not the same string resource, a separate key with identical text, kept
+independent since the two contexts are unrelated); "Ricerca dispositivi in
+corso…"/"Searching for devices…" → "Alla ricerca di un amico…"/"Looking
+for a friend…" (the join screen is looking for a *person*, not a
+*device*, even though the underlying mechanism is a Bluetooth device
+scan).
 
 ## Verification performed (single device)
 
@@ -343,3 +479,34 @@ permission-check helpers (`isAccessibilityServiceEnabled`,
   remain code-reviewed only, not exercised. Beyond that, this code is
   reviewed, not empirically connection-verified — the same honesty bar
   Phase 1's camera-scan path was already held to.
+
+**UI/UX refinement pass:**
+- `./gradlew lintDebug testDebugUnitTest assembleDebug` clean after the
+  restructuring (0 lint errors, all unit tests green, including the
+  existing `GroupPauseRecipeTest`/`GroupPauseBluetoothProtocolTest` suites
+  untouched by this pass).
+- On-device, full re-walk of both flattened flows: Home's new
+  icon+"Tempo insieme" button → Create/Join dialog (new copy) → duration-
+  only setup (with `OtterFloatMark`) → live lobby (dashed ring, gentle
+  banner, disabled "Let's go") → "Prefer a code or a QR?" → delay picker
+  → generated code + countdown, all screenshotted with no crashes. Then
+  the reverse for Join: NFC-unavailable fallback confirmed landing
+  directly on the search-hero state (this emulator has no NFC hardware,
+  exercising exactly the fallback path the code is meant to handle) →
+  "I have a code or a QR" → Scan/Manual pill screen (unchanged) →
+  manual-code entry.
+- A genuine round-trip re-verification after the rewrite: generated a
+  fresh code as host, cancelled out, pasted that exact code into the
+  Join screen's manual-entry field, confirmed the shared countdown showed
+  the correct duration and ticked down correctly — confirms the
+  restructuring didn't silently break the underlying recipe/countdown
+  machinery it now reaches by a different navigation path.
+- History icon system verified against three seeded rows (solo/completed,
+  group/interrupted, group/completed, inserted directly via
+  `sqlite3`/cleaned up after) — confirmed the tinted chip color and the
+  presence/absence of the signal arcs both render distinctly and
+  correctly for all three combinations actually reachable in practice.
+- Still not verified: an actual live Bluetooth/NFC connection between two
+  devices — same limitation as the initial Phase 2 pass, unchanged by
+  this refinement (it touched navigation, copy, and static illustrations,
+  not the transport code).

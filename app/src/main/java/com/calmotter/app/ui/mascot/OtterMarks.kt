@@ -9,6 +9,7 @@ import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
@@ -161,5 +162,152 @@ fun SprigMark(modifier: Modifier = Modifier, markSize: Dp = 96.dp) {
             close()
         }
         drawPath(leafTwo, color = leaf)
+    }
+}
+
+/**
+ * Silhouette dell'otter ridotta all'osso (stessa unione di 3 cerchi di
+ * [OtterFloatMark]/[OtterHistoryIcon], nessun dettaglio del viso — stessa
+ * scelta già fatta per l'icona monocromatica dell'app, "più ridotta della
+ * versione a colori" invece di una semplice ricolorazione) — usata come
+ * "otter satellite" nella lobby di Tempo Insieme (Fase 2): un'istanza per
+ * partecipante collegato, disposta sull'anello attorno a [OtterFloatMark]
+ * da chi la chiama (`GroupPauseBluetoothLobbyHostScreen`), non da questo
+ * composable, che disegna solo la singola sagoma.
+ */
+@Composable
+fun OtterSatelliteMark(modifier: Modifier = Modifier, markSize: Dp = 32.dp, tint: Color = MaterialTheme.colorScheme.primary) {
+    Canvas(modifier = modifier.size(markSize)) {
+        val s = size.width / 40f
+        fun v(value: Float) = value * s
+
+        val silhouette = Path().apply {
+            addOval(Rect(center = Offset(v(20f), v(22f)), radius = v(13f)))
+            addOval(Rect(center = Offset(v(10f), v(13f)), radius = v(6f)))
+            addOval(Rect(center = Offset(v(30f), v(13f)), radius = v(6f)))
+        }
+        drawPath(silhouette, color = tint)
+    }
+}
+
+/**
+ * Due otter (stessa sagoma di [OtterSatelliteMark]) inclinati l'uno verso
+ * l'altro con un piccolo arco "segnale" nel punto in cui si toccano — stessa
+ * idea di inclinazione di [PactPawsMark], applicata a due otter interi
+ * invece che a due zampe, per illustrare "avvicina i telefoni" nelle
+ * schermate NFC di Tempo Insieme senza bisogno di testo per capirlo.
+ */
+@Composable
+fun OtterTapMark(modifier: Modifier = Modifier, markSize: Dp = 96.dp) {
+    val furA = MaterialTheme.colorScheme.primary.copy(alpha = 0.4f)
+    val furB = MaterialTheme.colorScheme.primary
+    val signal = MaterialTheme.colorScheme.primary
+
+    Canvas(modifier = modifier.size(markSize)) {
+        val s = size.width / 96f
+        fun v(value: Float) = value * s
+
+        fun otterSilhouette(cx: Float, cy: Float): Path = Path().apply {
+            addOval(Rect(center = Offset(v(cx), v(cy)), radius = v(13f)))
+            addOval(Rect(center = Offset(v(cx - 10f), v(cy - 9f)), radius = v(6f)))
+            addOval(Rect(center = Offset(v(cx + 10f), v(cy - 9f)), radius = v(6f)))
+        }
+
+        rotate(degrees = -14f, pivot = Offset(v(26f), v(48f))) {
+            drawPath(otterSilhouette(26f, 48f), color = furA)
+        }
+        rotate(degrees = 14f, pivot = Offset(v(70f), v(48f))) {
+            drawPath(otterSilhouette(70f, 48f), color = furB)
+        }
+        drawArc(
+            color = signal,
+            startAngle = 200f,
+            sweepAngle = 140f,
+            useCenter = false,
+            topLeft = Offset(v(38f), v(30f)),
+            size = Size(v(20f), v(20f)),
+            style = Stroke(width = v(2.2f), cap = StrokeCap.Round),
+        )
+    }
+}
+
+/**
+ * Icona compatta per la Cronologia (vedi HistoryScreen.kt, sostituisce il
+ * vecchio pallino verde/rosso + etichetta testuale "Pausa di gruppo"):
+ * sagoma dell'otter da sola per una pausa singola, con due archi "segnale"
+ * sopra la testa se [showSignal] è vero (pausa fatta insieme) — stessa forma
+ * degli archi di [OtterTapMark], qui statica invece che a corredo di un
+ * gesto. Il completamento/interruzione non è affare di questa icona: vedi il
+ * chip di sfondo colorato che la ospita in HistoryScreen.kt.
+ */
+@Composable
+fun OtterHistoryIcon(
+    modifier: Modifier = Modifier,
+    markSize: Dp = 22.dp,
+    showSignal: Boolean,
+    tint: Color = MaterialTheme.colorScheme.primary,
+) {
+    Canvas(modifier = modifier.size(markSize)) {
+        val s = size.width / 40f
+        fun v(value: Float) = value * s
+
+        val silhouette = Path().apply {
+            addOval(Rect(center = Offset(v(20f), v(22f)), radius = v(13f)))
+            addOval(Rect(center = Offset(v(10f), v(13f)), radius = v(6f)))
+            addOval(Rect(center = Offset(v(30f), v(13f)), radius = v(6f)))
+        }
+        drawPath(silhouette, color = tint)
+
+        if (showSignal) {
+            drawArc(
+                color = tint,
+                startAngle = 200f,
+                sweepAngle = 140f,
+                useCenter = false,
+                topLeft = Offset(v(11f), v(6f)),
+                size = Size(v(18f), v(18f)),
+                style = Stroke(width = v(2.2f), cap = StrokeCap.Round),
+            )
+            drawArc(
+                color = tint.copy(alpha = 0.55f),
+                startAngle = 200f,
+                sweepAngle = 140f,
+                useCenter = false,
+                topLeft = Offset(v(5f), v(0f)),
+                size = Size(v(30f), v(30f)),
+                style = Stroke(width = v(1.8f), cap = StrokeCap.Round),
+            )
+        }
+    }
+}
+
+/**
+ * Le due zampe di [PactPawsMark] senza il badge circolare di sfondo — per
+ * usi inline accanto a testo (es. il bottone "Tempo insieme" in Home) dove
+ * un badge pieno risulterebbe troppo pesante. Stessa costruzione, stessa
+ * inclinazione, solo senza il cerchio "primary" dietro.
+ */
+@Composable
+fun TogetherMark(modifier: Modifier = Modifier, markSize: Dp = 20.dp, tint: Color = MaterialTheme.colorScheme.primary) {
+    Canvas(modifier = modifier.size(markSize)) {
+        val s = size.width / 32f
+        fun v(value: Float) = value * s
+
+        rotate(degrees = -20f, pivot = Offset(v(9f), v(15f))) {
+            drawRoundRect(
+                color = tint,
+                topLeft = Offset(v(4f), v(3f)),
+                size = Size(v(9f), v(22f)),
+                cornerRadius = CornerRadius(v(4.5f), v(4.5f)),
+            )
+        }
+        rotate(degrees = 20f, pivot = Offset(v(23f), v(15f))) {
+            drawRoundRect(
+                color = tint,
+                topLeft = Offset(v(19f), v(3f)),
+                size = Size(v(9f), v(22f)),
+                cornerRadius = CornerRadius(v(4.5f), v(4.5f)),
+            )
+        }
     }
 }

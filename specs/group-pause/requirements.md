@@ -18,8 +18,15 @@ Built in two passes:
   Bluetooth (with NFC as a tap-to-connect shortcut for finding the right
   device), which resolves Phase 1's "no live channel" limitation — the
   host now sees who has joined and gates "Start" on it. Phase 1's
-  QR/manual-code mode is unchanged and remains available side by side with
-  the new Bluetooth mode.
+  QR/manual-code mode is unchanged and remains available as a fallback,
+  one tap away from the live lobby rather than a coequal pairing-mode
+  choice (see the later UI/UX refinement pass, below).
+
+Displayed to the user as **"Tempo Insieme"/"Time Together"** (renamed from
+"Group pause" in a later UI/UX refinement pass, for a warmer tone
+consistent with the rest of the app's copy — see design.md's "Naming"
+section). This document keeps using "Group Pause" as the feature's name
+throughout, matching the unchanged internal/code name.
 
 ## User Story 1: Create a group pause (QR/manual code)
 
@@ -83,14 +90,18 @@ one-shot code.
 
 ### Acceptance Criteria
 
-1. WHEN the user opens "Group pause" → "Create" and chooses the
-   "Bluetooth" pairing mode instead of "QR/Codice" THEN the system SHALL
-   ask only for a duration (no "starts in" delay — starting is a live,
-   host-triggered action here, not a scheduled one).
-2. WHEN Bluetooth permissions, the Bluetooth radio, or device
-   discoverability are missing/off THEN the system SHALL prompt for each in
-   turn (grant permissions → enable Bluetooth → make discoverable) before
-   opening the lobby.
+1. WHEN the user opens "Group pause" → "Create" THEN the system SHALL ask
+   only for a duration (no pairing-mode choice up front, no "starts in"
+   delay — starting is a live, host-triggered action here, not a
+   scheduled one) and then open the live lobby directly; QR/manual code is
+   reachable from inside the lobby via a "Prefer a code or a QR?" link,
+   not offered as an equal first choice.
+2. WHEN Bluetooth permissions or the Bluetooth radio are missing/off THEN
+   the system SHALL still show the lobby's real content (not a dedicated
+   permission/setup screen) with a single non-blocking notice inline,
+   whose tap action requests whichever is currently missing; device
+   discoverability is requested automatically, once, as soon as both are
+   satisfied, with no separate prompt of its own.
 3. WHEN a nearby device connects to the lobby THEN the system SHALL add
    its announced name to a live, visible list of participants.
 4. WHEN the participant list is empty THEN the system SHALL disable the
@@ -107,9 +118,13 @@ nearby devices or, more conveniently, by tapping my phone against theirs.
 
 ### Acceptance Criteria
 
-1. WHEN the user opens "Group pause" → "Join" and chooses the "Bluetooth"
-   pairing mode THEN the system SHALL offer both "tap the host's phone
-   (NFC)" and "search for devices" (manual Bluetooth discovery list).
+1. WHEN the user opens "Group pause" → "Join" THEN the system SHALL land
+   directly on the live lobby (no pairing-mode choice up front): tapping
+   phones (NFC) as the default action if the device supports NFC, or
+   manual Bluetooth discovery as the default if it doesn't — either way, a
+   secondary link offers the other Bluetooth method and another offers
+   QR/manual code, so nothing is unreachable, it's just not presented as
+   three equal buttons any more.
 2. WHEN the user taps their phone against the host's THEN the system
    SHALL read the host's advertised name via NFC and connect to the
    matching Bluetooth device automatically, without requiring the user to
@@ -134,13 +149,17 @@ was in it.
 ### Acceptance Criteria
 
 1. WHEN the block screen is shown for a session that was started via
-   Group Pause THEN the system SHALL show a generic "Part of a group
-   pause" indicator — not a participant count or names, since Phase 1 has
-   no way to know who else joined (see "Known limitation" below).
+   Group Pause THEN the system SHALL show a generic "you're having time
+   together" indicator — not a participant count or names, since neither
+   pairing mode reliably knows who else joined by the time the session is
+   actually running (see "Known limitation" below).
 2. WHEN the History list shows a past session that was started via Group
-   Pause THEN the system SHALL show a "Group pause" tag on that row,
-   alongside the existing outcome/duration text — again generic, no
-   participant names.
+   Pause THEN the system SHALL show an icon (not a text label) on that
+   row distinguishing it from a solo session — the otter mascot plain for
+   solo, with two small signal arcs above its head for a group session —
+   inside a chip whose color already communicates completed-vs-interrupted
+   (see design.md's "History icon system"); no participant names, same
+   reasoning as criterion 1.
 
 ## Known limitations (accepted, not bugs)
 
@@ -156,9 +175,10 @@ was in it.
   not have this limitation, since it has a live channel.
 - **Names never reach BlockScreen/History, even for the Bluetooth lobby.**
   The live lobby shows real connected names while it's open, but nothing
-  carries them forward: `block_group_indicator` and `history_group_tag`
-  stay generic ("part of a group pause") for both pairing modes. This was
-  judged out of scope for the current pass, not an oversight.
+  carries them forward: `block_group_indicator` stays generic ("you're
+  having time together") for both pairing modes, and History's icon (see
+  design.md's "History icon system") only encodes solo-vs-group, not who.
+  This was judged out of scope for the current pass, not an oversight.
 - **NFC exchanges a name, not a device address.** Reading a phone's own
   Bluetooth MAC address isn't possible on modern Android (the platform
   returns a fixed dummy value for privacy) — so the NFC tap conveys the

@@ -73,6 +73,7 @@ import com.calmotter.app.SessionManager
 import com.calmotter.app.SessionRecord
 import com.calmotter.app.SessionStreak
 import com.calmotter.app.ui.mascot.OtterFloatMark
+import com.calmotter.app.ui.mascot.TogetherMark
 import java.util.Calendar
 
 // Indice 1 = 30 min, indice 2 = 60 min, ... fino a 4 ore, a passi di 30 minuti
@@ -240,11 +241,17 @@ fun MainScreen(
                 )
                 // Non compete con il tap sull'otter (l'azione primaria):
                 // testo piccolo e defilato, non un altro bottone pieno —
-                // vedi specs/group-pause/design.md.
+                // vedi specs/group-pause/design.md. TogetherMark (le due
+                // zampe di PactPawsMark senza il badge circolare) come
+                // icona leading, su richiesta esplicita ("un po' anonima"):
+                // un'icona rende il bottone più riconoscibile a colpo
+                // d'occhio invece di solo testo tra i due CTA della Home.
                 TextButton(onClick = { showGroupPauseChooser = true }) {
+                    TogetherMark(markSize = 18.dp)
                     Text(
                         text = stringResource(R.string.group_pause_entry_button),
                         style = MaterialTheme.typography.labelMedium,
+                        modifier = Modifier.padding(start = 8.dp),
                     )
                 }
             }

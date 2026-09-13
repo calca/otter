@@ -148,53 +148,60 @@
     <string name="onb_back">Indietro</string>
     <string name="onb_finish">Iniziamo</string>
 
-    <!-- Pausa di gruppo (specs/group-pause/) -->
-    <string name="group_pause_entry_button">Pausa di gruppo</string>
-    <string name="group_pause_chooser_intro">Vuoi creare una nuova pausa di gruppo o unirti a una già creata?</string>
+    <!-- Tempo Insieme, ex "Pausa di gruppo" (specs/group-pause/) -->
+    <string name="group_pause_entry_button">Tempo insieme</string>
+    <string name="group_pause_chooser_intro">Volete fermarvi insieme? Crea un momento nuovo o unisciti a uno già pronto.</string>
     <string name="group_pause_chooser_create">Crea</string>
     <string name="group_pause_chooser_join">Unisciti</string>
-    <string name="group_pause_host_title">Crea pausa di gruppo</string>
-    <string name="group_pause_host_intro">Scegli la durata e tra quanto iniziare, poi condividi il codice con chi vuoi che si unisca.</string>
+
+    <string name="group_pause_host_title">Prepara il tempo insieme</string>
+    <string name="group_pause_host_intro">Scegli quanto dura, poi invita chi vuoi con te.</string>
     <string name="group_pause_duration_label">Durata</string>
+    <string name="group_pause_host_continue_button">Continua</string>
+
+    <string name="group_pause_prefer_code_link">Preferisci un codice o un QR?</string>
+    <string name="group_pause_qr_delay_title">Tra quanto iniziate?</string>
     <string name="group_pause_start_in_label">Inizia tra</string>
-    <string name="group_pause_create_button">Crea</string>
+    <string name="group_pause_create_button">Crea il codice</string>
     <string name="group_pause_share_hint">Fai scansionare questo QR, o condividi il codice qui sotto</string>
     <string name="group_pause_countdown_label">Si inizia tra %1$d:%2$02d</string>
     <string name="group_pause_duration_reminder">Durata: %1$d min</string>
-    <string name="group_pause_join_title">Unisciti a una pausa di gruppo</string>
+
+    <string name="group_pause_join_title">Unisciti al tempo insieme</string>
     <string name="group_pause_join_scan_tab">Scansiona</string>
     <string name="group_pause_join_manual_tab">Codice manuale</string>
     <string name="group_pause_camera_permission_rationale">Serve il permesso fotocamera per leggere il QR.</string>
     <string name="group_pause_manual_code_hint">Incolla o digita il codice</string>
     <string name="group_pause_manual_code_join_button">Unisciti</string>
     <string name="group_pause_invalid_code">Codice non valido o scaduto</string>
-    <string name="block_group_indicator">Fai parte di una pausa di gruppo</string>
-    <string name="history_group_tag">Pausa di gruppo</string>
 
-    <!-- Pausa di gruppo, lobby dal vivo (Fase 2, specs/group-pause/) -->
-    <string name="group_pause_pairing_mode_qr">QR/Codice</string>
-    <string name="group_pause_pairing_mode_bluetooth">Bluetooth</string>
-    <string name="group_pause_bt_open_lobby_button">Apri lobby</string>
-    <string name="group_pause_bt_permission_rationale">Servono i permessi Bluetooth per la lobby dal vivo.</string>
-    <string name="group_pause_bt_enable_prompt">Il Bluetooth è spento. Attivalo per continuare.</string>
-    <string name="group_pause_bt_enable_button">Attiva Bluetooth</string>
-    <string name="group_pause_bt_discoverable_prompt">Rendi il telefono visibile per qualche minuto, così gli altri possano trovarti.</string>
-    <string name="group_pause_bt_discoverable_button">Rendi visibile</string>
-    <string name="group_pause_bt_lobby_title">Lobby dal vivo</string>
-    <string name="group_pause_bt_participants_none">Nessun partecipante ancora — condividi via Bluetooth o avvicina i telefoni (NFC)</string>
-    <string name="group_pause_bt_participants_count">Partecipanti collegati: %1$d</string>
-    <string name="group_pause_bt_nfc_toggle">Avvicina i telefoni (NFC)</string>
-    <string name="group_pause_bt_start_button">Avvia</string>
-    <string name="group_pause_bt_join_title">Unisciti dal vivo</string>
-    <string name="group_pause_bt_join_nfc_button">Avvicina il telefono dell\'host (NFC)</string>
-    <string name="group_pause_bt_join_scan_button">Cerca dispositivi</string>
-    <string name="group_pause_bt_join_waiting_nfc">Avvicina il telefono all\'host…</string>
-    <string name="group_pause_bt_join_device_list_empty">Ricerca dispositivi in corso…</string>
-    <string name="group_pause_bt_join_connecting">Connessione in corso…</string>
-    <string name="group_pause_bt_join_waiting_host">Connesso — in attesa che l\'host avvii…</string>
-    <string name="group_pause_bt_join_error">Connessione persa.</string>
-    <string name="group_pause_bt_retry_button">Riprova</string>
-    <string name="group_pause_nfc_service_description">Pausa di gruppo — scambio Bluetooth via NFC</string>
+    <string name="block_group_indicator">State vivendo un tempo insieme</string>
+
+    <!-- Lobby dal vivo: Bluetooth + NFC (Fase 2) -->
+    <string name="group_pause_bt_gentle_notice">Per invitarvi serve il Bluetooth.</string>
+    <string name="group_pause_bt_gentle_action">Attivalo</string>
+    <string name="group_pause_bt_permission_notice">Per invitarvi servono i permessi Bluetooth.</string>
+    <string name="group_pause_bt_permission_action">Concedili</string>
+
+    <string name="group_pause_lobby_waiting_title">In attesa di qualcuno…</string>
+    <string name="group_pause_lobby_waiting_subtitle">Avvicinate i telefoni o condividete il Bluetooth</string>
+    <string name="group_pause_lobby_with_one">%1$s è con te</string>
+    <string name="group_pause_lobby_with_two">%1$s e %2$s sono con te</string>
+    <string name="group_pause_lobby_with_many">%1$s e altre %2$d persone sono con te</string>
+    <string name="group_pause_lobby_ready_subtitle">Quando siete pronti, si parte insieme</string>
+    <string name="group_pause_start_button">Iniziamo</string>
+
+    <string name="group_pause_join_nfc_title">Avvicinati a chi ti aspetta</string>
+    <string name="group_pause_join_nfc_subtitle">Tieni i telefoni vicini per un secondo</string>
+    <string name="group_pause_join_search_hero_title">Cerca chi ti sta aspettando</string>
+    <string name="group_pause_join_search_link">Cerca un amico nelle vicinanze</string>
+    <string name="group_pause_join_code_link">Ho un codice o un QR</string>
+    <string name="group_pause_join_searching">Alla ricerca di un amico…</string>
+    <string name="group_pause_join_connecting">Connessione in corso…</string>
+    <string name="group_pause_join_waiting_host">Connesso — in attesa che l\'host inizi…</string>
+    <string name="group_pause_join_error">Connessione persa.</string>
+    <string name="group_pause_join_retry_button">Riprova</string>
+    <string name="group_pause_nfc_service_description">Tempo insieme — scambio Bluetooth via NFC</string>
 
     <!-- Frasi rilassanti/riflessive mostrate durante la pausa (opzionale) -->
     <string-array name="pause_phrases">

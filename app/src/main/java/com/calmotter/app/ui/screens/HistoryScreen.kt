@@ -14,7 +14,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.AlertDialog
@@ -35,7 +34,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -46,6 +44,7 @@ import com.calmotter.app.R
 import com.calmotter.app.SessionRecord
 import com.calmotter.app.SessionStreak
 import com.calmotter.app.WeeklyGoal
+import com.calmotter.app.ui.mascot.OtterHistoryIcon
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Date
@@ -360,17 +359,9 @@ private fun SessionRow(session: SessionRecord) {
                 .padding(16.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // Indicatore esito: cerchio colorato — riproduzione nativa degli
-            // shape drawable dot_active/dot_early (oval piatte statiche, stesso
-            // precedente di StepIndicator in OnboardingScreen), niente AndroidView.
-            Box(
-                modifier = Modifier
-                    .size(10.dp)
-                    .clip(CircleShape)
-                    .background(
-                        if (session.completedNaturally) MaterialTheme.colorScheme.primary
-                        else MaterialTheme.colorScheme.error
-                    )
+            SessionOutcomeIcon(
+                isGroupSession = session.isGroupSession,
+                completedNaturally = session.completedNaturally,
             )
 
             Column(
@@ -394,17 +385,6 @@ private fun SessionRow(session: SessionRecord) {
                     color = MaterialTheme.colorScheme.onSurface,
                     modifier = Modifier.padding(top = 2.dp)
                 )
-                // Nessun nome di compagni: senza lobby live (vedi
-                // specs/group-pause/design.md, sezione "Deferred") non
-                // sappiamo chi altro si è unito, solo che lo era.
-                if (session.isGroupSession) {
-                    Text(
-                        text = stringResource(R.string.history_group_tag),
-                        fontSize = 12.sp,
-                        color = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.padding(top = 2.dp)
-                    )
-                }
             }
 
             Text(
@@ -413,6 +393,30 @@ private fun SessionRow(session: SessionRecord) {
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.primary
             )
+        }
+    }
+}
+
+/**
+ * Sostituisce il vecchio pallino verde/rosso + etichetta testuale "Pausa di
+ * gruppo": un solo chip colorato (tinta "primary" se completata, tinta
+ * "error" se interrotta prima — stesso linguaggio a card tinte già usato in
+ * questa schermata e in "Gestisci app consentite", non un terzo modo di
+ * comunicare stato) che ospita [OtterHistoryIcon] — sagoma da sola per una
+ * pausa singola, con gli archi "segnale" sopra la testa se
+ * [isGroupSession] (Tempo Insieme). Nessuna etichetta testuale: i due
+ * segnali (colore del chip, forma dell'icona) bastano da soli.
+ */
+@Composable
+private fun SessionOutcomeIcon(isGroupSession: Boolean, completedNaturally: Boolean) {
+    val tint = if (completedNaturally) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.error
+    Surface(
+        shape = RoundedCornerShape(10.dp),
+        color = tint.copy(alpha = 0.14f),
+        modifier = Modifier.size(34.dp),
+    ) {
+        Box(contentAlignment = Alignment.Center) {
+            OtterHistoryIcon(markSize = 20.dp, showSignal = isGroupSession, tint = tint)
         }
     }
 }
