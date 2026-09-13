@@ -282,30 +282,53 @@ private fun PermissionStatusRow(
  * Impostazioni di sistema. Tapparlo in entrambe le direzioni richiama
  * [onSetHome] (riapre il selettore Home di Android, da cui si può anche
  * scegliere un'altra app) — checked riflette solo lo stato attuale.
+ *
+ * Quando [homeOk] è vero, mostra anche una nota: CalmOtter deve restare
+ * titolare del ruolo Home di sistema anche quando non c'è una pausa attiva
+ * (per poterlo intercettare di nuovo alla pausa successiva), quindi il
+ * forward al vecchio launcher (vedi MainActivity.forwardToOriginalLauncher())
+ * ne avvia solo l'Activity senza restituirgli il ruolo — quel launcher può
+ * quindi mostrare un proprio avviso "impostami come predefinito", che non è
+ * un problema di CalmOtter e non è evitabile senza un dialog di sistema ad
+ * ogni pausa iniziata/finita (vedi README "Known Limits"). La nota non ha
+ * senso finché CalmOtter non è ancora l'app Home: quel comportamento non si
+ * verifica ancora.
  */
 @Composable
 private fun HomeCard(homeOk: Boolean, onSetHome: () -> Unit) {
-    Surface(
-        shape = RoundedCornerShape(20.dp),
-        color = MaterialTheme.colorScheme.primary.copy(alpha = 0.06f),
-        modifier = Modifier.fillMaxWidth(),
-    ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 12.dp),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically,
+    Column(modifier = Modifier.fillMaxWidth()) {
+        Surface(
+            shape = RoundedCornerShape(20.dp),
+            color = MaterialTheme.colorScheme.primary.copy(alpha = 0.06f),
+            modifier = Modifier.fillMaxWidth(),
         ) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 12.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Text(
+                    text = stringResource(R.string.permission_row_home),
+                    color = MaterialTheme.colorScheme.onSurface,
+                    modifier = Modifier.weight(1f),
+                )
+                Switch(
+                    checked = homeOk,
+                    onCheckedChange = { onSetHome() },
+                    colors = calmSwitchColors(),
+                )
+            }
+        }
+        if (homeOk) {
             Text(
-                text = stringResource(R.string.permission_row_home),
-                color = MaterialTheme.colorScheme.onSurface,
-                modifier = Modifier.weight(1f),
-            )
-            Switch(
-                checked = homeOk,
-                onCheckedChange = { onSetHome() },
-                colors = calmSwitchColors(),
+                text = stringResource(R.string.settings_home_forward_hint),
+                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.55f),
+                fontSize = 12.sp,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 8.dp, start = 4.dp, end = 4.dp),
             )
         }
     }

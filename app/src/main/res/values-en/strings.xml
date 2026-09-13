@@ -14,6 +14,7 @@
     <string name="permission_action_done">Done</string>
     <string name="home_permission_dialog_title">Permissions needed</string>
     <string name="home_launcher_chooser_title">Choose which launcher to use</string>
+    <string name="settings_home_forward_hint">If your launcher shows a "set as default" notice, you can ignore it — Calm Otter needs to stay the Home app to block the Home button during pauses.</string>
     <string name="permission_reason_accessibility">Accessibility — to detect which app is open and show the lock screen.</string>
     <string name="permission_reason_dnd">Do Not Disturb — to silence notifications during the pause, allowing only calls.</string>
     <string name="close">Close</string>

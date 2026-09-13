@@ -33,10 +33,9 @@ Calm Otter/
 │   └── src/main/
 │       ├── AndroidManifest.xml
 │       ├── java/com/calmotter/app/
-│       │   ├── MainActivity.kt                  # password setup + start pause
+│       │   ├── MainActivity.kt                  # launcher icon + Home app: start pause, or block/forward when Home
 │       │   ├── BlockOverlayActivity.kt           # block screen UI
 │       │   ├── AppBlockerAccessibilityService.kt # foreground app detection
-│       │   ├── HomeActivity.kt                   # Home app: block or forward to original launcher
 │       │   ├── LauncherManager.kt                # stores the original phone launcher
 │       │   ├── AllowedAppsManager.kt             # list of extra allowed apps
 │       │   ├── AllowedAppsActivity.kt            # UI to modify the list (password gated)
@@ -70,21 +69,32 @@ add or remove apps from the list; the list is saved in local `SharedPreferences`
 
 ## Home App
 
-Calm Otter can be set as the phone's Home app ("Set as Home (recommended)" in
-`MainActivity`). From that moment, every press of the Home button goes through
-`HomeActivity`:
+Calm Otter can be set as the phone's Home app (the "Home app" toggle in
+Settings). From that moment, every press of the Home button goes through
+`MainActivity`, which now handles both the launcher icon and the Home role:
 
 - **active session**: shows the same block screen (countdown + password) used
   for other apps, eliminating the easiest escape route (icons on the normal home);
 - **no active session**: immediately forwards to the original phone launcher
-  — detected and saved once by `LauncherManager` — and closes itself, so
-  daily use remains unchanged.
+  — detected and kept up to date by `LauncherManager` on every launch — and
+  closes itself, so daily use remains unchanged.
 
 This does not replace the `AccessibilityService` (which remains necessary to
 intercept switches via "Recent apps") and does not fully close the "soft"
 block: the Home app can always be changed back from Settings > Apps > Default
 apps > Home, using the same mechanism (and same limit) as Accessibility. However,
 it adds real friction against habitual relapses.
+
+Because Calm Otter must keep holding Android's Home role the whole time (to be
+able to intercept the Home button again during a future session), forwarding
+to the original launcher when idle only launches its Activity — it does not
+hand the Home role back to it. From that launcher's own point of view it
+isn't actually the assigned default, so it may briefly show its own "set as
+default" prompt, or behave as if some of its features are restricted. This is
+an unavoidable side effect of how Android's `RoleManager` works (handing the
+role back and forth would require an interactive system dialog every single
+time, not a silent API call) — safe to ignore, and left as-is rather than
+"fixed" for that reason.
 
 ## Known Limits of this version ("soft" block)
 
@@ -95,8 +105,15 @@ no truly user-proof block:
   Settings > Accessibility at any time, without a password.
 - Booting the phone in Safe Mode prevents third-party accessibility services
   from loading.
-- The Home button is not interceptable: it leads to the home screen, but the
-  block screen reappears as soon as another app is opened.
+- If Calm Otter is set as the Home app, the Home button *is* intercepted
+  during an active session (see "Home App" above) — but that setting itself
+  can always be changed back from Settings > Apps > Default apps > Home,
+  same mechanism and same limit as Accessibility above.
+- While idle and set as Home, Calm Otter forwards to the previous launcher
+  without giving back the Home role, which can make that launcher show its
+  own "set as default" nag or restrict some of its features — see "Home App"
+  above for why this can't be avoided without an interactive system prompt on
+  every pause start/end.
 
 For a "hard" block, the app would need to be converted to a Device Owner (requires
 provisioning during device setup or factory reset) and use
