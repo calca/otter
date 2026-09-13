@@ -15,6 +15,25 @@
     <uses-permission android:name="android.permission.CAMERA" />
     <uses-feature android:name="android.hardware.camera" android:required="false" />
 
+    <!-- Pausa di gruppo, lobby dal vivo (Fase 2) — solo per la modalità
+         Bluetooth di GroupPauseHostScreen/GroupPauseJoinScreen; QR/codice
+         manuale (Fase 1) resta disponibile senza questi permessi/hardware,
+         da cui required="false" sulle uses-feature. Vedi
+         specs/group-pause/design.md e PermissionChecks.kt. -->
+    <uses-permission android:name="android.permission.BLUETOOTH" android:maxSdkVersion="30" />
+    <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" android:maxSdkVersion="30" />
+    <uses-permission android:name="android.permission.BLUETOOTH_CONNECT" />
+    <uses-permission android:name="android.permission.BLUETOOTH_ADVERTISE" />
+    <!-- neverForLocation: il discovery non viene mai usato per dedurre la
+         posizione fisica, solo per trovare il dispositivo dell'altra
+         persona — evita di dover chiedere anche ACCESS_FINE_LOCATION. -->
+    <uses-permission
+        android:name="android.permission.BLUETOOTH_SCAN"
+        android:usesPermissionFlags="neverForLocation" />
+    <uses-permission android:name="android.permission.NFC" />
+    <uses-feature android:name="android.hardware.bluetooth" android:required="false" />
+    <uses-feature android:name="android.hardware.nfc.hce" android:required="false" />
+
     <!-- Android 11+ (API 30+): senza questo blocco, queryIntentActivities()
          in AllowedAppsActivity.loadApps() vedrebbe solo un sottoinsieme delle
          app installate per via delle restrizioni di package visibility. -->
@@ -160,6 +179,26 @@
         <receiver
             android:name=".SessionExpiryReceiver"
             android:exported="false" />
+
+        <!-- Pausa di gruppo, lobby dal vivo (Fase 2) — lato "carta" NFC
+             opzionale, vedi GroupPauseHceService.kt e
+             specs/group-pause/design.md. exported="true" è richiesto qui:
+             è il sistema stesso (non un'altra app) a doversi collegare a
+             questo servizio quando instrada un tap NFC verso il nostro
+             AID — protetto da android:permission,
+             che solo il sistema possiede, non un'eccezione accidentale
+             alla convenzione exported="false" del resto di questo file. -->
+        <service
+            android:name=".nfc.GroupPauseHceService"
+            android:exported="true"
+            android:permission="android.permission.BIND_NFC_SERVICE">
+            <intent-filter>
+                <action android:name="android.nfc.cardemulation.action.HOST_APDU_SERVICE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.nfc.cardemulation.host_apdu_service"
+                android:resource="@xml/apduservice" />
+        </service>
 
         <service
             android:name=".AppBlockerAccessibilityService"

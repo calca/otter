@@ -7,18 +7,21 @@ starts a session and a trusted partner alone can end it early. This adds a
 second, complementary way to start a session — two or more people begin
 the *same* pause together, each on their own phone.
 
-This is **Phase 1** of a two-phase design, deliberately scoped down from
-the fuller vision discussed with the project owner. Phase 1 ships a fully
-offline, connectionless handshake: a QR code or short manual fallback code
-that encodes a duration and an agreed start time. There is no live
-connection at any point, including the "lobby" — a consequence explained
-below and accepted explicitly by the project owner when choosing this
-phasing over waiting for the live-lobby version. Phase 2 (a live lobby over
-Bluetooth, with NFC as an alternative way to start that connection) is
-deferred — see design.md's "Deferred: Phase 2" section — and not
-implemented by anything described here.
+Built in two passes:
 
-## User Story 1: Create a group pause
+- **Phase 1**: a fully offline, connectionless handshake — a QR code or
+  short manual fallback code that encodes a duration and an agreed start
+  time. No live connection at any point, including the "lobby" (a
+  consequence of that design, accepted by the project owner when choosing
+  this scope).
+- **Phase 2**: an additional pairing mode, a live lobby over classic
+  Bluetooth (with NFC as a tap-to-connect shortcut for finding the right
+  device), which resolves Phase 1's "no live channel" limitation — the
+  host now sees who has joined and gates "Start" on it. Phase 1's
+  QR/manual-code mode is unchanged and remains available side by side with
+  the new Bluetooth mode.
+
+## User Story 1: Create a group pause (QR/manual code)
 
 As someone who wants to pause together with someone else, I want to set a
 duration and a start time and get something I can share, so the other
@@ -42,7 +45,7 @@ person can start the same pause with me.
    device, the same way any other pause starts (DND, block, foreground
    notification, alarm-based expiry — see `pause-session-core/`).
 
-## User Story 2: Join a group pause
+## User Story 2: Join a group pause (QR/manual code)
 
 As the person receiving a shared code, I want to scan or type it and have
 my phone start the same pause at the same moment, so we're actually paused
@@ -72,7 +75,57 @@ together.
    SHALL discard the decoded recipe and return to Home with no session
    started.
 
-## User Story 3: Recognizing a group pause afterward
+## User Story 3: Create a group pause (live Bluetooth lobby)
+
+As someone who wants to pause together with someone else and wants to know
+they're actually joined before starting, I want a live lobby instead of a
+one-shot code.
+
+### Acceptance Criteria
+
+1. WHEN the user opens "Group pause" → "Create" and chooses the
+   "Bluetooth" pairing mode instead of "QR/Codice" THEN the system SHALL
+   ask only for a duration (no "starts in" delay — starting is a live,
+   host-triggered action here, not a scheduled one).
+2. WHEN Bluetooth permissions, the Bluetooth radio, or device
+   discoverability are missing/off THEN the system SHALL prompt for each in
+   turn (grant permissions → enable Bluetooth → make discoverable) before
+   opening the lobby.
+3. WHEN a nearby device connects to the lobby THEN the system SHALL add
+   its announced name to a live, visible list of participants.
+4. WHEN the participant list is empty THEN the system SHALL disable the
+   "Start" action — at least one other participant is required, unlike
+   Phase 1's QR/manual-code mode where this could not be enforced.
+5. WHEN the host taps "Start" THEN the system SHALL send the agreed
+   duration and start moment to every connected participant and begin the
+   same pause session locally, the same way Phase 1's countdown does.
+
+## User Story 4: Join a group pause (live Bluetooth lobby)
+
+As the person joining, I want to find the right host either by browsing
+nearby devices or, more conveniently, by tapping my phone against theirs.
+
+### Acceptance Criteria
+
+1. WHEN the user opens "Group pause" → "Join" and chooses the "Bluetooth"
+   pairing mode THEN the system SHALL offer both "tap the host's phone
+   (NFC)" and "search for devices" (manual Bluetooth discovery list).
+2. WHEN the user taps their phone against the host's THEN the system
+   SHALL read the host's advertised name via NFC and connect to the
+   matching Bluetooth device automatically, without requiring the user to
+   pick it from a list.
+3. WHEN the user instead searches manually THEN the system SHALL show
+   discovered nearby devices by name and connect to whichever one the user
+   taps.
+4. WHEN connected but the host hasn't started yet THEN the system SHALL
+   show a waiting state, with no further action needed from the user.
+5. WHEN the host starts the pause THEN the system SHALL receive the
+   duration/start-moment and begin the same pause session locally, the
+   same way Phase 1's countdown does.
+6. WHEN the connection is lost before the host starts THEN the system
+   SHALL show an error and let the user retry from the start of this flow.
+
+## User Story 5: Recognizing a group pause afterward
 
 As a user, I want to tell a group pause apart from a solo one when I see it
 during or after the session, even though Phase 1 can't tell me who else
@@ -91,23 +144,40 @@ was in it.
 
 ## Known limitations (accepted, not bugs)
 
-- **No participant count or names.** Because Phase 1 has no live channel,
-  the host cannot know whether anyone scanned the code, how many people
-  did, or who they are, at any point — before, during, or after the pause.
-  There is deliberately no host-side "who's joined" list and no "at least
-  one participant" gate on starting: the host's countdown starts and
-  reaches zero regardless of whether anyone else ever sees the code. This
-  was raised explicitly to the project owner during design and accepted as
-  the tradeoff for shipping a connectionless Phase 1 now rather than
-  waiting for the live-lobby version (Phase 2).
-- **Foreground-only countdown.** The countdown between "create/join" and
-  the session actually starting runs only while its screen is open in the
-  app process. If the app is backgrounded and the OS kills the process
-  during that window (at most a few minutes, per the "starts in" choices
-  offered), the scheduled start will not fire on that device. This is the
-  same category of risk as any foreground-only timer and is called out
-  here rather than silently accepted.
-- **Codes are single-use in spirit, not enforced.** Nothing stops the same
-  code from being scanned/typed twice (by the same or different people) —
-  there is no server to enforce one-time use. Anyone with the code before
-  its start moment can join.
+- **QR/manual-code mode has no participant count or names.** Because it
+  has no live channel, the host cannot know whether anyone scanned the
+  code, how many people did, or who they are, at any point — before,
+  during, or after the pause. There is deliberately no host-side "who's
+  joined" list and no "at least one participant" gate on starting for this
+  mode: the host's countdown starts and reaches zero regardless of whether
+  anyone else ever sees the code. This was raised explicitly to the
+  project owner during design and accepted as the tradeoff for shipping a
+  connectionless mode — the Bluetooth lobby mode (User Stories 3–4) does
+  not have this limitation, since it has a live channel.
+- **Names never reach BlockScreen/History, even for the Bluetooth lobby.**
+  The live lobby shows real connected names while it's open, but nothing
+  carries them forward: `block_group_indicator` and `history_group_tag`
+  stay generic ("part of a group pause") for both pairing modes. This was
+  judged out of scope for the current pass, not an oversight.
+- **NFC exchanges a name, not a device address.** Reading a phone's own
+  Bluetooth MAC address isn't possible on modern Android (the platform
+  returns a fixed dummy value for privacy) — so the NFC tap conveys the
+  host's advertised Bluetooth *name* instead, and the joiner still runs
+  ordinary Bluetooth discovery to find the matching device automatically.
+  In practice this is invisible to the user (tap → connect), but it means
+  the host still needs to be Bluetooth-discoverable for the NFC path to
+  work too, same as the manual-search path.
+- **Foreground-only countdown (QR/manual-code mode).** The countdown
+  between "create/join" and the session actually starting runs only while
+  its screen is open in the app process. If the app is backgrounded and
+  the OS kills the process during that window (at most a few minutes, per
+  the "starts in" choices offered), the scheduled start will not fire on
+  that device. This is the same category of risk as any foreground-only
+  timer and is called out here rather than silently accepted. The
+  Bluetooth lobby mode uses a short fixed buffer (a few seconds) instead of
+  a user-chosen delay, so this risk window is much smaller there.
+- **Codes/lobbies are single-use in spirit, not enforced.** Nothing stops
+  the same QR/manual code from being scanned/typed twice, or a Bluetooth
+  lobby from accepting more participants than intended — there is no
+  server to enforce a limit. Anyone with the code, or anyone who can see
+  the host's Bluetooth lobby, can join.

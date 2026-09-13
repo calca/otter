@@ -54,7 +54,7 @@ import com.google.zxing.NotFoundException
 import com.google.zxing.PlanarYUVLuminanceSource
 import com.google.zxing.common.HybridBinarizer
 
-private enum class JoinMode { SCAN, MANUAL }
+private enum class JoinMode { SCAN, MANUAL, BLUETOOTH }
 
 /**
  * Unisciti a una pausa di gruppo: scansiona il QR o inserisci il codice
@@ -83,44 +83,57 @@ fun GroupPauseJoinScreen(onJoined: (durationMinutes: Int) -> Unit, onCancel: () 
 private fun GroupPauseEntryScreen(onRecipeReady: (GroupPauseRecipe) -> Unit, onCancel: () -> Unit) {
     var mode by remember { mutableStateOf(JoinMode.SCAN) }
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .calmBackground()
-            .safeDrawingPadding()
-            .padding(32.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center,
-    ) {
-        Text(
-            text = stringResource(R.string.group_pause_join_title),
-            fontSize = 22.sp,
-            fontWeight = FontWeight.Bold,
-            color = MaterialTheme.colorScheme.primary,
-            textAlign = TextAlign.Center,
-            modifier = Modifier.padding(bottom = 20.dp)
-        )
-
-        Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.padding(bottom = 20.dp)) {
-            JoinModePill(
-                label = stringResource(R.string.group_pause_join_scan_tab),
-                selected = mode == JoinMode.SCAN,
-                onClick = { mode = JoinMode.SCAN },
+    if (mode == JoinMode.BLUETOOTH) {
+        // Schermata a parte (Fase 2, vedi specs/group-pause/design.md): ha
+        // già il proprio sfondo/padding/pulsante Annulla, non va incapsulata
+        // nella Column qui sotto pensata per le due modalità di Fase 1.
+        GroupPauseBluetoothLobbyJoinScreen(onRecipeReady = onRecipeReady, onCancel = onCancel)
+    } else {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .calmBackground()
+                .safeDrawingPadding()
+                .padding(32.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center,
+        ) {
+            Text(
+                text = stringResource(R.string.group_pause_join_title),
+                fontSize = 22.sp,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.primary,
+                textAlign = TextAlign.Center,
+                modifier = Modifier.padding(bottom = 20.dp)
             )
-            JoinModePill(
-                label = stringResource(R.string.group_pause_join_manual_tab),
-                selected = mode == JoinMode.MANUAL,
-                onClick = { mode = JoinMode.MANUAL },
-            )
-        }
 
-        when (mode) {
-            JoinMode.SCAN -> ScanTab(onRecipeReady)
-            JoinMode.MANUAL -> ManualCodeTab(onRecipeReady)
-        }
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.padding(bottom = 20.dp)) {
+                JoinModePill(
+                    label = stringResource(R.string.group_pause_join_scan_tab),
+                    selected = mode == JoinMode.SCAN,
+                    onClick = { mode = JoinMode.SCAN },
+                )
+                JoinModePill(
+                    label = stringResource(R.string.group_pause_join_manual_tab),
+                    selected = mode == JoinMode.MANUAL,
+                    onClick = { mode = JoinMode.MANUAL },
+                )
+                JoinModePill(
+                    label = stringResource(R.string.group_pause_pairing_mode_bluetooth),
+                    selected = false,
+                    onClick = { mode = JoinMode.BLUETOOTH },
+                )
+            }
 
-        OutlinedButton(onClick = onCancel, modifier = Modifier.padding(top = 24.dp)) {
-            Text(stringResource(android.R.string.cancel))
+            when (mode) {
+                JoinMode.SCAN -> ScanTab(onRecipeReady)
+                JoinMode.MANUAL -> ManualCodeTab(onRecipeReady)
+                JoinMode.BLUETOOTH -> Unit // gestito sopra, prima della Column
+            }
+
+            OutlinedButton(onClick = onCancel, modifier = Modifier.padding(top = 24.dp)) {
+                Text(stringResource(android.R.string.cancel))
+            }
         }
     }
 }

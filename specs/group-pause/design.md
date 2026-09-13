@@ -157,54 +157,147 @@ to install the app.
 New dependencies: `com.google.zxing:core:3.5.3`,
 `androidx.camera:camera-core/camera2/lifecycle/view:1.4.1`.
 
-## Deferred: Phase 2 — live lobby via Bluetooth, NFC bootstrap
+## Phase 2: live Bluetooth lobby + NFC tap-to-connect
 
-Discussed at length with the project owner before choosing Phase 1's
-scope, and explicitly deferred rather than built now, for two concrete
-reasons: it needs a real live channel Phase 1 doesn't have, and it needs
-two physical radios to verify, which wasn't available in the environment
-this was built and verified in.
+Built as a second pairing mode alongside Phase 1's QR/manual code (which
+is unchanged and still the default — Phase 2 is additive, selected via a
+"QR/Codice" vs "Bluetooth" pill in `GroupPauseHostScreen`/
+`GroupPauseJoinScreen`'s setup screens). Solves Phase 1's core limitation:
+with a live channel, the host can now see who has joined before starting,
+and gates "Start" on at least one participant being present.
 
-The fuller vision:
+**Transport: classic Bluetooth (`android.bluetooth.*`), not Nearby
+Connections.** Same reasoning Phase 1 already applied when it picked
+CameraX + `zxing:core` over ML Kit specifically to avoid a Google Play
+Services dependency — Nearby Connections is a GMS API; classic Bluetooth
+is plain platform framework. Zero new Gradle dependencies for all of
+Phase 2 (Bluetooth *and* NFC are both framework APIs).
 
-- **A live lobby**, not a one-shot code: the host sees a running list of
-  who has joined (device name, read via `Settings.Global.DEVICE_NAME` —
-  confirmed readable with no Bluetooth permission required) before
-  starting, and Start is a real host-gated action instead of an
-  unconditional countdown.
-- **Bluetooth (Nearby Connections or similar)** as the transport for that
-  lobby — this is the part a one-shot QR/text code structurally cannot
-  provide: scanning a QR tells the *joiner* the recipe, but gives the
-  *host* no signal that anyone scanned it at all. A live lobby requires an
-  actual open connection during the waiting period, not just at the
-  handshake instant.
-- **NFC as an alternative way to start that connection** — specifically
-  **Host Card Emulation (HCE)**, tapping two phones together to bootstrap
-  the same live session Bluetooth would otherwise need a QR/manual code to
-  bootstrap. Classic Android Beam / NFC P2P (`NdefPush`) was considered and
-  rejected: it's been deprecated and unreliable since Android 10, and isn't
-  a reasonable foundation for a feature meant to be a flagship. HCE (the
-  same mechanism contactless payment apps use) is the sound replacement.
-- **Named participants** — once the host actually knows who joined (via
-  the live lobby), `block_group_indicator` and `history_group_tag` could
-  show real names/count instead of Phase 1's generic "part of a group
-  pause" text.
-- **Minimum-one-participant gate** — confirmed as a real requirement
-  ("almeno un'altra persona") during design, but only enforceable with a
-  live channel: Phase 1's host has no way to know if zero people ever see
-  the code, so it cannot gate on that. This becomes possible once Phase 2
-  supplies the join signal the gate needs.
+**Key continuity with Phase 1**: the live channel is used *only* for the
+lobby (discovery, name exchange, host deciding when to start). Once the
+host taps "Start," it builds the exact same `GroupPauseRecipe` Phase 1
+defines, broadcasts the encoded string over the open sockets, and every
+device — host included — hands off to the *unmodified*
+`GroupPauseCountdownScreen` → `SessionManager.startSession(isGroupSession
+= true)`. This is exactly the seam this file's earlier "Deferred" section
+(now superseded by this one) said Phase 1 was written to leave open.
 
-None of this is coded yet. If Phase 2 is picked up, `GroupPauseRecipe`'s
-"handshake" step should be replaceable by a Bluetooth/NFC-bootstrapped
-live session without needing to touch `SessionManager`,
-`CalmOtterDatabase`, or any of Phase 1's Home/BlockScreen/History
-touch points — those were written against "a recipe becomes a started
-session," a contract Phase 2 can still satisfy, just via a richer path to
-get there.
+### Protocol
+
+`bluetooth/GroupPauseBluetoothProtocol.kt` — a fixed, hardcoded service
+`UUID` (host and joiner must agree on it statically, same role the fixed
+recipe byte layout plays for QR/manual codes) plus a tiny line-based
+message format over the RFCOMM socket's raw streams: `HELLO:<name>` (sent
+once by the joiner right after connecting) and `RECIPE:<code>` (sent once
+by the host, reusing `GroupPauseRecipe.encode()` verbatim — Phase 2 never
+invents a second recipe format). Framing logic (`formatHello`/
+`parseGroupPauseBtMessage`/`readLine`/`writeLine`) is deliberately plain
+Kotlin over `InputStream`/`OutputStream`, no Android class involved, so
+`GroupPauseBluetoothProtocolTest.kt` runs as an ordinary JVM unit test —
+same "pure logic, no Context" shape as `GroupPauseRecipe.kt`.
+
+`bluetooth/GroupPauseBluetoothHost.kt` / `GroupPauseBluetoothJoin.kt` wrap
+the actual `BluetoothServerSocket`/`BluetoothSocket` I/O. Neither is a
+`getInstance()` app-wide singleton (unlike `SessionManager` and friends) —
+this state is ephemeral, alive only while a lobby screen is on screen,
+instantiated with `remember { }` and torn down via `DisposableEffect`'s
+`onDispose`, the same lifecycle discipline `GroupPauseJoinScreen.kt`'s
+`QrScannerView` already uses for its CameraX binding.
+
+### Why NFC exchanges a name marker, not a MAC address
+
+The intuitive design — "read the host's Bluetooth address over NFC, then
+connect directly" — does not actually work: since Android 6.0,
+`BluetoothAdapter.getAddress()` returns a fixed dummy value
+(`02:00:00:00:00:00`) to any app reading its *own* local adapter address;
+there is no public API to get it for real. The actual design instead has
+the host set its Bluetooth adapter's *name* to a short marker
+(`CalmOtter-<groupTag>`, via `BluetoothAdapter.name =`) before becoming
+discoverable, and conveys that same marker string over NFC. The joiner
+still runs ordinary Bluetooth discovery — which *does* return real
+addresses for devices it finds, since the MAC restriction is specifically
+about reading your own local adapter's address, not other discovered
+devices' addresses — but auto-connects to the first discovered device
+whose name matches the marker, instead of showing a manual list to tap
+through. **NFC's actual job is to skip the "browse a list of nearby
+Bluetooth devices" UI step, not to skip Bluetooth discovery itself** —
+Android classic discovery only surfaces devices that are paired or
+currently in discoverable mode, so the host still has to request
+discoverability (`ACTION_REQUEST_DISCOVERABLE`) either way.
+
+This means the manual-Bluetooth and NFC-assisted join paths run through
+the exact same `GroupPauseBluetoothJoin.connectTo()` code — only how the
+target device is *selected* differs (`GroupPauseBluetoothJoin.discovered`
+list + a tap, vs. `startDiscovery(autoConnectToNameMarker = ...)` picking
+the first match automatically).
+
+### NFC implementation
+
+Host Card Emulation (HCE), not classic Android Beam/NFC P2P (`NdefPush`) —
+deprecated and unreliable since Android 10, not a sound foundation here.
+
+- `nfc/GroupPauseHceService.kt` — a `HostApduService`. Before the host
+  enables the "Avvicina i telefoni" toggle, the lobby screen sets a
+  `@Volatile` companion field (`pendingMarker`) to the marker string;
+  `processCommandApdu()` responds to any incoming command with that
+  marker's UTF-8 bytes plus the success status word (`90 00`) — a
+  deliberate simplification, since this protocol only ever has one
+  command/response pair, unlike a real payment HCE service that parses
+  the command APDU itself.
+- `nfc/GroupPauseNfcReader.kt` — the joiner's side, `NfcAdapter
+  .enableReaderMode()` (not `NdefPush`). On tag discovery, opens `IsoDep`,
+  sends a SELECT-AID APDU, and hands the response payload back as the
+  marker string. Runs its callback on a Binder thread, not the main
+  thread — callers must post back to the main thread before touching
+  Compose state (`GroupPauseBluetoothLobbyJoinScreen` does this via a
+  plain `Handler(Looper.getMainLooper())`).
+- `res/xml/apduservice.xml` declares one custom AID
+  (`F0010203040506`, invented in the proprietary `0xF0`–`0xFE` range, not
+  a real registered AID).
+- Manifest: the new `<service>` for `GroupPauseHceService` is
+  `android:exported="true"` — the one deliberate exception to this app's
+  usual `exported="false"` convention, required because the OS itself has
+  to bind to it to route a tap to this app; locked down with
+  `android:permission="android.permission.BIND_NFC_SERVICE"`, which only
+  the system holds.
+
+### Permissions
+
+`BLUETOOTH_CONNECT`/`BLUETOOTH_ADVERTISE`/`BLUETOOTH_SCAN` (Android 12+,
+runtime/dangerous — requested together via
+`ActivityResultContracts.RequestMultiplePermissions()`, a new pattern for
+this codebase; every existing single-permission request, `CAMERA` and
+`POST_NOTIFICATIONS`, uses `RequestPermission()` instead) plus legacy
+`BLUETOOTH`/`BLUETOOTH_ADMIN` (`maxSdkVersion="30"`) for this project's
+`minSdk 26` floor. `BLUETOOTH_SCAN` carries
+`android:usesPermissionFlags="neverForLocation"` — truthful here, since
+discovery results are only ever used to find a device by name, never to
+infer physical location, which is what lets this skip requiring
+`ACCESS_FINE_LOCATION` too. Both `android.hardware.bluetooth` and
+`android.hardware.nfc.hce` are declared `required="false"`: Phase 1's
+QR/manual-code path still works with neither radio present.
+`groupPauseBluetoothRuntimePermissions()`/`hasGroupPauseBluetoothPermissions()`
+live in `PermissionChecks.kt`, alongside this app's other shared
+permission-check helpers (`isAccessibilityServiceEnabled`,
+`isDndAccessGranted`).
+
+### What Phase 2 still doesn't do
+
+- **Named participants elsewhere in the app.** The live lobby shows real
+  connected names, but `BlockScreen`'s `block_group_indicator` and
+  `HistoryScreen`'s `history_group_tag` are unchanged from Phase 1 —
+  still generic ("part of a group pause"), not "with Marco and Giulia."
+  Nothing in `SessionRecord`/`GroupPauseRecipe` carries participant names
+  forward past the lobby; wiring that through was judged out of scope for
+  this pass and would be a natural next increment.
+- **Verification is code-level only for the live paths.** See
+  "Verification performed" below — an actual two-device Bluetooth
+  handshake or NFC tap was not observed in this session, since only one
+  adb-connected device was available.
 
 ## Verification performed (single device)
 
+**Phase 1:**
 - Unit tests (`GroupPauseRecipeTest.kt`, no Robolectric): encode→decode
   round-trip, checksum rejects corruption, malformed input rejected,
   already-started recipe rejected, too-far-in-the-future recipe rejected.
@@ -221,3 +314,32 @@ get there.
   verified end-to-end without a second physical device holding a real QR
   up to the camera, and is flagged here as code-reviewed rather than
   empirically scan-verified.
+
+**Phase 2:**
+- Unit tests (`GroupPauseBluetoothProtocolTest.kt`, no Robolectric):
+  `HELLO`/`RECIPE` message format/parse round-trip, unknown-line rejection,
+  display-name newline sanitization, and `readLine`/`writeLine` framing
+  over `ByteArrayInputStream`/`ByteArrayOutputStream`.
+- `./gradlew lintDebug testDebugUnitTest assembleDebug` clean (0 lint
+  errors) — Lint's `MissingPermission` check is a real forcing function
+  given how many new permission-gated Bluetooth/NFC calls this phase adds.
+- **Not verified end-to-end**: an actual two-device Bluetooth
+  pairing/lobby, or an actual NFC tap exchange — both need two physical
+  devices with working radios, unavailable in this session (only one
+  adb-connected device). What *was* checked on that one device, for both
+  the host and joiner Bluetooth screens: the pairing-mode pill correctly
+  hides the QR-only "starts in" picker and swaps the button label, the
+  `RequestMultiplePermissions` dialog appears (bundling all three
+  Bluetooth permissions into one system prompt) and is handled correctly,
+  and the "enable Bluetooth" system prompt appears and is handled. The
+  emulator's own virtual Bluetooth daemon (`com.android.bluetooth`)
+  crashed with a native `SIGABRT` while actually turning the radio on — an
+  emulator/virtual-radio limitation, not this app's — and both lobby
+  screens degraded gracefully: `adapter?.isEnabled` correctly read back
+  `false` afterward and the app fell back to its own "Bluetooth is off"
+  prompt again, with no crash anywhere in `com.calmotter.app`. NFC reader
+  mode / HCE and the live lobby's participant list itself were not
+  reachable given the emulator's Bluetooth radio never came up, so those
+  remain code-reviewed only, not exercised. Beyond that, this code is
+  reviewed, not empirically connection-verified — the same honesty bar
+  Phase 1's camera-scan path was already held to.

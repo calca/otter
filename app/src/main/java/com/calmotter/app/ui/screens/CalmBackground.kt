@@ -14,9 +14,11 @@ import androidx.compose.ui.graphics.Brush
  * tinte tenui (vedi specs/home-and-settings "Living Pond redesign").
  *
  * Usato da Home, Onboarding, BlockScreen, e le schermate di Pausa di gruppo
- * (GroupPauseHostScreen/GroupPauseJoinScreen/GroupPauseCountdownScreen, vedi
- * specs/group-pause/) — stessa categoria "di rito"/apertura di una pausa,
- * non amministrazione. Deliberatamente NON usato su Settings/Cronologia:
+ * (GroupPauseHostScreen/GroupPauseJoinScreen/GroupPauseCountdownScreen e,
+ * dalla Fase 2, GroupPauseBluetoothLobbyHostScreen/
+ * GroupPauseBluetoothLobbyJoinScreen — vedi specs/group-pause/) — stessa
+ * categoria "di rito"/apertura di una pausa, non amministrazione.
+ * Deliberatamente NON usato su Settings/Cronologia:
  * quelle restano schermate di navigazione/amministrazione, non "schermate
  * di apertura" o di sessione attiva.
  */

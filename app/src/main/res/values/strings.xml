@@ -171,6 +171,31 @@
     <string name="block_group_indicator">Fai parte di una pausa di gruppo</string>
     <string name="history_group_tag">Pausa di gruppo</string>
 
+    <!-- Pausa di gruppo, lobby dal vivo (Fase 2, specs/group-pause/) -->
+    <string name="group_pause_pairing_mode_qr">QR/Codice</string>
+    <string name="group_pause_pairing_mode_bluetooth">Bluetooth</string>
+    <string name="group_pause_bt_open_lobby_button">Apri lobby</string>
+    <string name="group_pause_bt_permission_rationale">Servono i permessi Bluetooth per la lobby dal vivo.</string>
+    <string name="group_pause_bt_enable_prompt">Il Bluetooth è spento. Attivalo per continuare.</string>
+    <string name="group_pause_bt_enable_button">Attiva Bluetooth</string>
+    <string name="group_pause_bt_discoverable_prompt">Rendi il telefono visibile per qualche minuto, così gli altri possano trovarti.</string>
+    <string name="group_pause_bt_discoverable_button">Rendi visibile</string>
+    <string name="group_pause_bt_lobby_title">Lobby dal vivo</string>
+    <string name="group_pause_bt_participants_none">Nessun partecipante ancora — condividi via Bluetooth o avvicina i telefoni (NFC)</string>
+    <string name="group_pause_bt_participants_count">Partecipanti collegati: %1$d</string>
+    <string name="group_pause_bt_nfc_toggle">Avvicina i telefoni (NFC)</string>
+    <string name="group_pause_bt_start_button">Avvia</string>
+    <string name="group_pause_bt_join_title">Unisciti dal vivo</string>
+    <string name="group_pause_bt_join_nfc_button">Avvicina il telefono dell\'host (NFC)</string>
+    <string name="group_pause_bt_join_scan_button">Cerca dispositivi</string>
+    <string name="group_pause_bt_join_waiting_nfc">Avvicina il telefono all\'host…</string>
+    <string name="group_pause_bt_join_device_list_empty">Ricerca dispositivi in corso…</string>
+    <string name="group_pause_bt_join_connecting">Connessione in corso…</string>
+    <string name="group_pause_bt_join_waiting_host">Connesso — in attesa che l\'host avvii…</string>
+    <string name="group_pause_bt_join_error">Connessione persa.</string>
+    <string name="group_pause_bt_retry_button">Riprova</string>
+    <string name="group_pause_nfc_service_description">Pausa di gruppo — scambio Bluetooth via NFC</string>
+
     <!-- Frasi rilassanti/riflessive mostrate durante la pausa (opzionale) -->
     <string-array name="pause_phrases">
         <item>Respira. Questo momento è tuo.</item>

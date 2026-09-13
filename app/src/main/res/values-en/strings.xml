@@ -171,6 +171,31 @@
     <string name="block_group_indicator">Part of a group pause</string>
     <string name="history_group_tag">Group pause</string>
 
+    <!-- Group pause, live lobby (Phase 2, specs/group-pause/) -->
+    <string name="group_pause_pairing_mode_qr">QR/Code</string>
+    <string name="group_pause_pairing_mode_bluetooth">Bluetooth</string>
+    <string name="group_pause_bt_open_lobby_button">Open lobby</string>
+    <string name="group_pause_bt_permission_rationale">Bluetooth permissions are needed for the live lobby.</string>
+    <string name="group_pause_bt_enable_prompt">Bluetooth is off. Turn it on to continue.</string>
+    <string name="group_pause_bt_enable_button">Enable Bluetooth</string>
+    <string name="group_pause_bt_discoverable_prompt">Make your phone visible for a few minutes so others can find you.</string>
+    <string name="group_pause_bt_discoverable_button">Make visible</string>
+    <string name="group_pause_bt_lobby_title">Live lobby</string>
+    <string name="group_pause_bt_participants_none">No one has joined yet — share via Bluetooth or tap phones together (NFC)</string>
+    <string name="group_pause_bt_participants_count">Connected participants: %1$d</string>
+    <string name="group_pause_bt_nfc_toggle">Tap phones together (NFC)</string>
+    <string name="group_pause_bt_start_button">Start</string>
+    <string name="group_pause_bt_join_title">Join live</string>
+    <string name="group_pause_bt_join_nfc_button">Tap the host\'s phone (NFC)</string>
+    <string name="group_pause_bt_join_scan_button">Search for devices</string>
+    <string name="group_pause_bt_join_waiting_nfc">Tap your phone against the host\'s…</string>
+    <string name="group_pause_bt_join_device_list_empty">Searching for devices…</string>
+    <string name="group_pause_bt_join_connecting">Connecting…</string>
+    <string name="group_pause_bt_join_waiting_host">Connected — waiting for the host to start…</string>
+    <string name="group_pause_bt_join_error">Connection lost.</string>
+    <string name="group_pause_bt_retry_button">Retry</string>
+    <string name="group_pause_nfc_service_description">Group pause — Bluetooth exchange via NFC</string>
+
     <!-- Relaxing phrases shown during pause (optional) -->
     <string-array name="pause_phrases">
         <item>Breathe. This moment is yours.</item>

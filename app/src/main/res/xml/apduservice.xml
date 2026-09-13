@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    AID inventato nell'intervallo proprietario (0xF0-0xFE), non un AID
+    registrato reale — vedi GroupPauseHceService.kt e
+    specs/group-pause/design.md.
+-->
+<host-apdu-service xmlns:android="http://schemas.android.com/apk/res/android"
+    android:description="@string/group_pause_nfc_service_description"
+    android:requireDeviceUnlock="false">
+    <aid-group
+        android:description="@string/group_pause_nfc_service_description"
+        android:category="other">
+        <aid-filter android:name="F0010203040506" />
+    </aid-group>
+</host-apdu-service>
