@@ -414,6 +414,15 @@ never offered a way to launch one.
   accepting it and truncating the display elsewhere) so the stored
   whitelist and what `BlockScreen` shows never disagree. The phone doesn't
   count against it (see above).
+- **`AllowedAppsActivity.loadApps()` excludes the dialer package from the
+  editable list entirely** (`dialerPackageName()`, exposed from
+  `AllowedAppLaunchItems.kt` for this), reported directly as a bug: the
+  dialer is always allowed unconditionally (see above), so before this fix
+  it showed up in the full installed-app enumeration like any other app,
+  with an unchecked checkbox — implying the user needed to explicitly
+  select it to keep it reachable, which isn't true and could even suggest
+  it wasn't currently allowed. Same reasoning as excluding Calm Otter's own
+  package from this list.
 - **`MainActivity.launchAllowedApp()`** just calls
   `packageManager.getLaunchIntentForPackage(packageName)` and starts it,
   swallowing a null/failed intent silently (package became unlaunchable

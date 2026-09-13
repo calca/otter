@@ -36,7 +36,7 @@ fun loadAllowedAppLaunchItems(context: Context): List<AllowedAppLaunchItem> {
     return listOfNotNull(phoneItem) + allowedItems.filter { it.packageName != phoneItem?.packageName }
 }
 
-private fun dialerPackageName(context: Context): String? =
+fun dialerPackageName(context: Context): String? =
     (context.getSystemService(Context.TELECOM_SERVICE) as? TelecomManager)?.defaultDialerPackage
 
 private fun resolveAppLaunchItem(context: Context, pkg: String?): AllowedAppLaunchItem? {

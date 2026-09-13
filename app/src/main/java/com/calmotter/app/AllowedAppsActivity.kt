@@ -20,7 +20,13 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 /**
- * Lista di app extra consentite durante una pausa.
+ * Lista di app extra consentite durante una pausa, oltre al telefono.
+ *
+ * Il dialer di default non compare in questa lista (vedi [loadApps]):
+ * resta sempre raggiungibile indipendentemente da questa whitelist (vedi
+ * AllowedAppLaunchItems.kt/AppBlockerAccessibilityService), quindi
+ * mostrarlo con una checkbox deselezionabile sarebbe fuorviante — sembrerebbe
+ * un'app che l'utente deve ricordarsi di abilitare.
  *
  * Raggiungibile solo dopo verifica password in MainActivity.
  * Le modifiche vengono salvate immediatamente al toggle di ogni riga,
@@ -130,11 +136,17 @@ class AllowedAppsActivity : BaseActivity() {
     // ── Caricamento app ───────────────────────────────────────────────────
 
     private fun loadApps(allowed: Set<String>): List<AppItem> {
+        // Il dialer di default è sempre consentito (vedi
+        // AllowedAppLaunchItems.kt/AppBlockerAccessibilityService), a parte
+        // dal tetto di MAX_ALLOWED_APPS: mostrarlo qui con una checkbox
+        // vuota farebbe pensare all'utente che vada selezionato esplicitamente
+        // per restare raggiungibile durante la pausa, il che non è vero.
+        val dialerPackage = dialerPackageName(this)
         val intent = Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_LAUNCHER)
         return packageManager
             .queryIntentActivities(intent, PackageManager.MATCH_ALL)
             .map { it.activityInfo }
-            .filter { it.packageName != packageName }
+            .filter { it.packageName != packageName && it.packageName != dialerPackage }
             .distinctBy { it.packageName }
             .sortedWith(compareBy(
                 { it.packageName !in allowed }, // consentite in cima
