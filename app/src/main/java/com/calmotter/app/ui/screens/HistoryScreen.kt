@@ -53,7 +53,11 @@ import java.util.Locale
 // Formatter con giorno della settimana esteso — un'unica istanza riusata per
 // tutte le righe, stesso pattern del vecchio SessionAdapter (uso esclusivo
 // dal thread main durante la composizione, nessun problema di concorrenza).
-private val historyDateFormat = SimpleDateFormat("EEEE d MMM · HH:mm", Locale.ITALY)
+// Locale.getDefault(), non Locale.ITALY: era hardcoded in italiano, quindi
+// ogni riga mostrava sempre "Domenica 13 set" anche con l'app in inglese
+// (dove il resto della schermata usa correttamente values-en/strings.xml) —
+// stesso bug di WeeklyChart.kt ("Lu"/"Ma"/... e "oggi" hardcoded).
+private val historyDateFormat = SimpleDateFormat("EEEE d MMM · HH:mm", Locale.getDefault())
 
 /**
  * Schermata cronologia (ultimo step della migrazione a Compose — il più

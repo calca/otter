@@ -42,6 +42,7 @@
     <string name="home_chart_label">Le tue ultime sessioni</string>
     <string name="home_history_cta">Cronologia →</string>
     <string name="home_chart_empty">Nessuna pausa ancora — inizia la prima</string>
+    <string name="weekly_chart_today">oggi</string>
     <string-array name="weekday_initials">
         <item>D</item>
         <item>L</item>

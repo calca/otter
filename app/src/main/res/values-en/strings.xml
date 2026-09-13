@@ -42,6 +42,7 @@
     <string name="home_chart_label">Your recent sessions</string>
     <string name="home_history_cta">History →</string>
     <string name="home_chart_empty">No pauses yet — start your first</string>
+    <string name="weekly_chart_today">today</string>
     <string-array name="weekday_initials">
         <item>S</item>
         <item>M</item>

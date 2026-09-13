@@ -11,6 +11,9 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.nativeCanvas
 import androidx.compose.ui.graphics.toArgb
+import androidx.compose.ui.res.stringArrayResource
+import androidx.compose.ui.res.stringResource
+import com.calmotter.app.R
 import java.util.Calendar
 
 /**
@@ -40,6 +43,17 @@ fun WeeklyChart(data: IntArray, modifier: Modifier = Modifier) {
     val primaryColor = MaterialTheme.colorScheme.primary
     val secondaryColor = MaterialTheme.colorScheme.onSurface
     val tintColor = primaryColor.copy(alpha = 0.33f) // barre non-oggi: ~33% opacità
+
+    // Risolte qui (scope @Composable) e non dentro Canvas{}, stesso motivo dei
+    // colori sopra — vale anche per stringResource()/stringArrayResource().
+    // Stesso array e stessa convenzione di indicizzazione
+    // (Calendar.DAY_OF_WEEK - 1) usati da SessionsChartCard in MainScreen.kt:
+    // prima di questo fix i giorni erano hardcoded in italiano ("Lu"/"Ma"/...)
+    // e "oggi" era una stringa letterale, quindi questo grafico restava
+    // sempre in italiano indipendentemente dalla lingua dell'app (a
+    // differenza del grafico gemello in Home, già correttamente localizzato).
+    val weekdayInitials = stringArrayResource(R.array.weekday_initials)
+    val todayLabel = stringResource(R.string.weekly_chart_today)
 
     Canvas(
         modifier = modifier
@@ -82,15 +96,7 @@ fun WeeklyChart(data: IntArray, modifier: Modifier = Modifier) {
         val cal = Calendar.getInstance()
         cal.add(Calendar.DAY_OF_YEAR, -6)
         val dayLabels = Array(barCount) {
-            val label = when (cal.get(Calendar.DAY_OF_WEEK)) {
-                Calendar.MONDAY -> "Lu"
-                Calendar.TUESDAY -> "Ma"
-                Calendar.WEDNESDAY -> "Me"
-                Calendar.THURSDAY -> "Gi"
-                Calendar.FRIDAY -> "Ve"
-                Calendar.SATURDAY -> "Sa"
-                else -> "Do"
-            }
+            val label = weekdayInitials.getOrElse(cal.get(Calendar.DAY_OF_WEEK) - 1) { "" }
             cal.add(Calendar.DAY_OF_YEAR, 1)
             label
         }
@@ -121,12 +127,12 @@ fun WeeklyChart(data: IntArray, modifier: Modifier = Modifier) {
                 )
             }
 
-            // Etichetta giorno sotto: "oggi" (stile valore, accento) per
+            // Etichetta giorno sotto: [todayLabel] (stile valore, accento) per
             // l'ultima barra, sigla del giorno (stile muted) per le altre.
             val labelY = barAreaBot + labelHeight * 0.7f
             val lPaint = if (isToday) valuePaint else labelPaint
             drawContext.canvas.nativeCanvas.drawText(
-                if (isToday) "oggi" else dayLabels[i], cx, labelY, lPaint
+                if (isToday) todayLabel else dayLabels[i], cx, labelY, lPaint
             )
         }
     }
