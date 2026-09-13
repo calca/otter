@@ -41,16 +41,21 @@ jobs:
         run: chmod +x gradlew
 
       - name: Lint
-        run: ./gradlew lint --stacktrace
+        # Task-per-flavor, not bare `lint`: with the beta/stable flavors
+        # (see CLAUDE.md) `lintDebug` is ambiguous, and this also directly
+        # validates each flavor's own resource overrides (app/src/beta/res/).
+        run: ./gradlew lintStableDebug lintBetaDebug --stacktrace
 
       - name: Unit tests
-        run: ./gradlew testDebugUnitTest --stacktrace
+        run: ./gradlew testStableDebugUnitTest testBetaDebugUnitTest --stacktrace
 
-      - name: Assemble debug APK
+      - name: Assemble debug APKs
         run: ./gradlew assembleDebug --stacktrace
 
-      - name: Upload debug APK
+      - name: Upload debug APKs
         uses: actions/upload-artifact@v4
         with:
           name: app-debug
-          path: app/build/outputs/apk/debug/app-debug.apk
+          path: |
+            app/build/outputs/apk/stable/debug/app-stable-debug.apk
+            app/build/outputs/apk/beta/debug/app-beta-debug.apk

@@ -43,6 +43,31 @@ android {
         }
     }
 
+    // "beta" e "stable" possono convivere sullo stesso device (applicationId
+    // diverso, vedi sotto) — così una build di test (Bluetooth/NFC dal vivo,
+    // feature nuove) non costringe a disinstallare quella già in uso
+    // quotidiano. "dev/staging/prod" non avrebbe senso qui: niente backend,
+    // niente config remota da differenziare (vedi CLAUDE.md, "no network
+    // calls") — l'unico vero bisogno è poter installare due build in
+    // parallelo, non tre ambienti.
+    flavorDimensions += "channel"
+    productFlavors {
+        create("stable") {
+            dimension = "channel"
+            // Nessun suffisso: resta com.calmotter.app, l'applicationId già
+            // in uso — questa è la build "reale", non quella di test.
+        }
+        create("beta") {
+            dimension = "channel"
+            applicationIdSuffix = ".beta"
+            versionNameSuffix = "-beta"
+            // Nome diverso in app/src/beta/res/values{,-en}/strings.xml
+            // (sovrascrive solo app_name) — altrimenti due icone identiche
+            // "Calm Otter" nel drawer sarebbero indistinguibili, vanificando
+            // il motivo stesso di questo flavor.
+        }
+    }
+
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17

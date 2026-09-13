@@ -16,22 +16,51 @@ MDM provisioning. Do not describe it as tamper-proof in code, comments, or UI
 copy — the honesty of that framing is part of the project's stated values
 (see CONTRIBUTING.md).
 
+## Product flavors: `beta` vs `stable`
+
+Two flavors on the `channel` dimension, so a beta build can sit installed
+side by side with the "real" one on the same device instead of forcing an
+uninstall to test — not `dev`/`staging`/`prod`, which wouldn't mean
+anything here (no backend, no remote config to differentiate; see "no
+network calls" above).
+
+- **`stable`** — no suffix, keeps the existing `applicationId`
+  (`com.calmotter.app`) and `versionName`. The one that matters.
+- **`beta`** — `applicationIdSuffix = ".beta"`, `versionNameSuffix =
+  "-beta"`, and its own `app_name` ("Calm Otter Beta") via
+  `app/src/beta/res/values{,-en}/strings.xml` (overrides just that one
+  string; everything else in `beta` inherits from `main`) — otherwise two
+  identical "Calm Otter" icons in the launcher would be indistinguishable,
+  defeating the point of installing both.
+
+Because flavors exist, several task names now need the flavor spelled out
+— `lintDebug`/`testDebugUnitTest` are ambiguous and fail with "Ambiguous
+matches" (Gradle lists the real candidates in that error, which is the
+fastest way to find a task name after touching `build.gradle.kts`).
+`assembleDebug`/`assembleRelease`/`lint`/`test` bare, on the other hand,
+still resolve as umbrella tasks aggregating both flavors — but bare `test`
+doesn't accept `--tests` (it's a lifecycle task, not the actual `Test`
+task), so filtering needs the real per-flavor task name.
+
 ## Commands
 
 ```bash
-./gradlew assembleDebug              # build debug APK
-./gradlew testDebugUnitTest          # run all unit tests (Robolectric)
-./gradlew test --tests "*.SessionManagerTest"                    # single test class
-./gradlew test --tests "*.SessionManagerTest.methodName"         # single test method
-./gradlew lintDebug                  # Android Lint (must be 0 errors — CI enforces this)
-./gradlew assembleRelease            # signed release build; needs KEYSTORE_PATH/
-                                      # KEYSTORE_PASSWORD/KEY_ALIAS/KEY_PASSWORD env vars
+./gradlew assembleDebug                                  # build both flavors' debug APKs
+./gradlew testStableDebugUnitTest testBetaDebugUnitTest  # run all unit tests (Robolectric), both flavors
+./gradlew testStableDebugUnitTest --tests "*.SessionManagerTest"                    # single test class
+./gradlew testStableDebugUnitTest --tests "*.SessionManagerTest.methodName"         # single test method
+./gradlew lintStableDebug lintBetaDebug          # Android Lint (must be 0 errors — CI enforces this), both flavors
+./gradlew bundleStableRelease         # signed Play Store .aab (stable channel)
+./gradlew assembleBetaRelease         # signed pre-release .apk (beta channel)
+                                      # both need KEYSTORE_PATH/KEYSTORE_PASSWORD/
+                                      # KEY_ALIAS/KEY_PASSWORD env vars
 ```
 
-CI (`.github/workflows/ci.yml`) runs `lint`, `testDebugUnitTest`, and
+CI (`.github/workflows/ci.yml`) runs lint + unit tests for both flavors and
 `assembleDebug` on every branch/PR — treat lint errors and test failures as
-build-breaking. `.github/workflows/android.yml` produces a signed release APK
-from a secrets-backed keystore on push to main/master.
+build-breaking. `.github/workflows/android.yml` produces, from a
+secrets-backed keystore on push to main/master: a signed `stable` `.aab`
+for the Play Store, and a signed `beta` `.apk` as a pre-release build.
 
 Toolchain: Kotlin 2.4.20, AGP 9.4.0, Gradle 9.7.0, compileSdk/targetSdk 37
 (`compileSdkMinor = 1`, i.e. platform 37.1), KSP 2.3.12 (its versioning is

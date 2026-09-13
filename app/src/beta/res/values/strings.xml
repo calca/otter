@@ -1,0 +1,7 @@
+<resources>
+    <!-- Sovrascrive solo app_name per il flavor beta (vedi app/build.gradle.kts):
+         distingue le due icone nel drawer quando beta e stable sono installate
+         assieme sullo stesso device. Tutte le altre stringhe vengono ereditate
+         da main/res invariate. -->
+    <string name="app_name">Calm Otter Beta</string>
+</resources>

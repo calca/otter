@@ -29,16 +29,25 @@ jobs:
       run: |
         echo $ENCODED_STRING | base64 -d > release.jks
 
-    - name: Build and Sign Release APK
+    # stable -> signed .aab for the Play Store; beta -> signed .apk as a
+    # pre-release build (installable side by side with stable, see
+    # CLAUDE.md's "Product flavors" section for why).
+    - name: Build stable AAB and beta pre-release APK
       env:
         KEYSTORE_PATH: ../release.jks
         KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
         KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
         KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
-      run: ./gradlew assembleRelease
+      run: ./gradlew bundleStableRelease assembleBetaRelease
 
-    - name: Upload Signed APK
+    - name: Upload stable AAB (Play Store)
       uses: actions/upload-artifact@v4
       with:
-        name: app-release-signed
-        path: app/build/outputs/apk/release/app-release.apk
+        name: app-stable-release-aab
+        path: app/build/outputs/bundle/stableRelease/app-stable-release.aab
+
+    - name: Upload beta pre-release APK
+      uses: actions/upload-artifact@v4
+      with:
+        name: app-beta-prerelease-apk
+        path: app/build/outputs/apk/beta/release/app-beta-release.apk
