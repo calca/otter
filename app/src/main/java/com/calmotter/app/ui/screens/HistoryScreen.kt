@@ -294,6 +294,12 @@ private fun WeeklyGoalSection(
             LinearProgressIndicator(
                 progress = { percent / 100f },
                 color = MaterialTheme.colorScheme.primary,
+                // trackColor esplicito: il default di LinearProgressIndicator
+                // legge surfaceVariant, un ruolo NON personalizzato per
+                // palette in CalmOtterTheme.kt — cadeva sul lavanda/viola di
+                // base di Material3 a prescindere dal tema scelto (stessa
+                // trappola di Switch/Checkbox/AlertDialog altrove nell'app).
+                trackColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.12f),
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(bottom = 6.dp)
