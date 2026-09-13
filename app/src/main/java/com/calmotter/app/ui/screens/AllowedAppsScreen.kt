@@ -19,13 +19,13 @@ import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.Checkbox
-import androidx.compose.material3.CheckboxColors
-import androidx.compose.material3.CheckboxDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Switch
+import androidx.compose.material3.SwitchColors
+import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
@@ -74,10 +74,13 @@ data class AppItem(
  *   già caricata, senza ri-interrogare il PackageManager a ogni carattere;
  * - salvataggio immediato ad ogni toggle tramite [onToggle], nessun
  *   pulsante Salva esplicito;
- * - tap su tutta la riga per attivare/disattivare: la Checkbox si limita a
+ * - tap su tutta la riga per attivare/disattivare: lo Switch si limita a
  *   riflettere lo stato (onCheckedChange = null) esattamente come
  *   clickable="false"/focusable="false" nell'item XML originale — è la riga
- *   nel suo complesso a gestire il click, non la Checkbox.
+ *   nel suo complesso a gestire il click, non lo Switch. Una Checkbox era la
+ *   scelta iniziale ma è stata sostituita su richiesta ("invece della
+ *   checkbox un toggle?") — coerente con l'uso di Switch altrove nell'app
+ *   (vedi calmSwitchColors()/PhrasesCard in SettingsScreen.kt).
  *
  * [onRefresh] ricarica l'elenco delle app installate da PackageManager: un
  * app appena installata/disinstallata mentre questa schermata era già
@@ -216,30 +219,33 @@ private fun AppRow(
                     .weight(1f)
                     .padding(start = 12.dp)
             )
-            Checkbox(
+            Switch(
                 checked = item.isAllowed,
-                // Nessun onCheckedChange: la Checkbox non gestisce il click da
-                // sola (equivalente Compose di clickable="false"/focusable="false"
+                // Nessun onCheckedChange: lo Switch non gestisce il tap da
+                // solo (equivalente Compose di clickable="false"/focusable="false"
                 // nell'item XML originale) — riflette soltanto lo stato, il tap
                 // è gestito dall'intera riga tramite Card(onClick = ...) sopra.
                 onCheckedChange = null,
-                colors = calmCheckboxColors(),
+                colors = calmSwitchColors(),
             )
         }
     }
 }
 
 /**
- * Colori della Checkbox ristretti ai ruoli personalizzati per palette in
- * CalmOtterTheme.kt: CheckboxDefaults.colors() di default userebbe
- * onSurfaceVariant per il bordo/segno non selezionato, un ruolo NON
- * personalizzato che resta fisso al grigio-viola di base di Material3 a
- * prescindere dalla palette scelta — la stessa "trappola" già documentata
- * per Switch in SettingsScreen.kt/calmSwitchColors().
+ * Colori dello Switch ristretti ai ruoli personalizzati per palette in
+ * CalmOtterTheme.kt — stessa istanza di [calmSwitchColors] già definita in
+ * SettingsScreen.kt (privata a quel file, non riesportabile, da qui la
+ * duplicazione): SwitchDefaults.colors() di default userebbe surfaceVariant
+ * per la track non selezionata, un ruolo NON personalizzato che resta fisso
+ * al viola-grigio di base di Material3 a prescindere dalla palette scelta.
  */
 @Composable
-private fun calmCheckboxColors(): CheckboxColors = CheckboxDefaults.colors(
-    checkedColor = MaterialTheme.colorScheme.primary,
-    checkmarkColor = MaterialTheme.colorScheme.onPrimary,
-    uncheckedColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
+private fun calmSwitchColors(): SwitchColors = SwitchDefaults.colors(
+    checkedThumbColor = MaterialTheme.colorScheme.onPrimary,
+    checkedTrackColor = MaterialTheme.colorScheme.primary,
+    checkedBorderColor = MaterialTheme.colorScheme.primary,
+    uncheckedThumbColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
+    uncheckedTrackColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.12f),
+    uncheckedBorderColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f),
 )

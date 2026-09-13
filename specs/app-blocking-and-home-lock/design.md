@@ -423,6 +423,21 @@ never offered a way to launch one.
   select it to keep it reachable, which isn't true and could even suggest
   it wasn't currently allowed. Same reasoning as excluding Calm Otter's own
   package from this list.
+- **Each row in `AllowedAppsScreen.AppRow` is a `Card` tinted with
+  `primary.copy(alpha = 0.04f/0.12f)`** (unselected/selected), not
+  `colorScheme.surface` — flagged directly ("mi pare un errore"/looked
+  flat): in every light palette `surface` equals `background` (see
+  `CalmOtterTheme.kt`), so an unselected row was visually indistinguishable
+  from the page itself. Same tinted-card ingredient Settings' grouped
+  sections already use. The row's control is a `Switch` (with its own
+  `calmSwitchColors()`, duplicated from `SettingsScreen.kt` since that
+  one's private to its file) — a `Checkbox` was tried first but replaced on
+  request to match the `Switch` used everywhere else a boolean is toggled
+  in this app (`PhrasesCard` in `SettingsScreen.kt`). Both the Card and the
+  Switch/Checkbox read only roles `CalmOtterTheme.kt` actually customizes
+  per palette (`primary`/`onPrimary`/`onSurface`), not `surfaceVariant` —
+  the same trap already fixed for `AlertDialog` and `PhrasesCard`'s own
+  `Switch`.
 - **`MainActivity.launchAllowedApp()`** just calls
   `packageManager.getLaunchIntentForPackage(packageName)` and starts it,
   swallowing a null/failed intent silently (package became unlaunchable
