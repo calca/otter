@@ -164,6 +164,19 @@ class SettingsActivity : BaseActivity() {
      * lo stesso componente, ma DONT_KILL_APP + riabilitazione immediata lo
      * rendono un flicker trascurabile, non un vero disallineamento
      * visibile.
+     *
+     * **Terzo bug reale, stessa famiglia dei due sopra**: quando CalmOtter
+     * detiene già il ruolo Home (l'interruttore in Settings è già acceso) e
+     * l'utente lo tocca comunque, `createRequestRoleIntent()` produce un
+     * intent che il sistema chiude da solo senza mostrare alcun selettore —
+     * non c'è nulla da "richiedere" a chi è già titolare del ruolo. Stesso
+     * sintomo "il tap non fa nulla" dei due bug precedenti, causa ancora
+     * diversa. In quel caso si apre invece `Settings.ACTION_HOME_SETTINGS`
+     * (la schermata di sistema "App Home"), che mostra sempre l'elenco con
+     * il titolare attuale evidenziato, indipendentemente da chi lo sia —
+     * l'unico modo per far vedere qualcosa quando si preme di nuovo un
+     * interruttore già "acceso" che non può davvero spegnersi da qui (vedi
+     * la doc di HomeCard in SettingsScreen.kt).
      */
     private fun promptSetAsHome() {
         launcherManager.refreshOriginalLauncherPackage()
@@ -171,7 +184,11 @@ class SettingsActivity : BaseActivity() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
             val roleManager = getSystemService(RoleManager::class.java)
             if (roleManager != null && roleManager.isRoleAvailable(RoleManager.ROLE_HOME)) {
-                roleRequestLauncher.launch(roleManager.createRequestRoleIntent(RoleManager.ROLE_HOME))
+                if (roleManager.isRoleHeld(RoleManager.ROLE_HOME)) {
+                    startActivity(Intent(Settings.ACTION_HOME_SETTINGS))
+                } else {
+                    roleRequestLauncher.launch(roleManager.createRequestRoleIntent(RoleManager.ROLE_HOME))
+                }
             }
             return
         }
