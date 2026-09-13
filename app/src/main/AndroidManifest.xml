@@ -9,6 +9,12 @@
     <!-- Android 13+: necessario per mostrare notifiche -->
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
 
+    <!-- Pausa di gruppo: solo per scansionare il QR di invito
+         (GroupPauseJoinScreen) — l'inserimento manuale del codice resta
+         disponibile senza questo permesso/hardware, da cui required="false". -->
+    <uses-permission android:name="android.permission.CAMERA" />
+    <uses-feature android:name="android.hardware.camera" android:required="false" />
+
     <!-- Android 11+ (API 30+): senza questo blocco, queryIntentActivities()
          in AllowedAppsActivity.loadApps() vedrebbe solo un sottoinsieme delle
          app installate per via delle restrizioni di package visibility. -->
@@ -70,6 +76,16 @@
                 <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
         </activity>
+
+        <activity
+            android:name=".GroupPauseHostActivity"
+            android:exported="false"
+            android:theme="@style/Theme.CalmOtter" />
+
+        <activity
+            android:name=".GroupPauseJoinActivity"
+            android:exported="false"
+            android:theme="@style/Theme.CalmOtter" />
 
         <activity
             android:name=".BlockOverlayActivity"

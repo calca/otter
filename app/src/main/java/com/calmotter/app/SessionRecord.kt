@@ -15,6 +15,12 @@ import androidx.room.PrimaryKey
  *                          scaduta naturalmente, inferiore se terminata prima
  *                          con la password dall'accountability partner
  * @param completedNaturally true = scadenza automatica, false = sblocco anticipato
+ * @param isGroupSession    true se avviata da GroupPauseHostActivity/
+ *                          GroupPauseJoinActivity (vedi specs/group-pause/)
+ *                          invece che dal tap sull'otter in Home — solo
+ *                          un'etichetta per Cronologia, default `false` per
+ *                          restare compatibile con le righe già esistenti
+ *                          (vedi CalmOtterDatabase.MIGRATION_1_2)
  */
 @Entity(tableName = "sessions")
 data class SessionRecord(
@@ -22,5 +28,6 @@ data class SessionRecord(
     val startTimeMs: Long,
     val plannedMinutes: Int,
     val effectiveMinutes: Int,
-    val completedNaturally: Boolean
+    val completedNaturally: Boolean,
+    val isGroupSession: Boolean = false,
 )

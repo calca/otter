@@ -99,6 +99,19 @@ dependencies {
     // Widget home screen in Compose (sostituisce RemoteViews/AppWidgetProvider)
     implementation("androidx.glance:glance-appwidget:1.2.0")
 
+    // Pausa di gruppo: QR code (specs/group-pause/design.md). zxing:core è
+    // puro Java (nessuna dipendenza Android/fotocamera) — usato sia per
+    // generare il QR (QrCodeGenerator.kt) sia per decodificarlo dai
+    // fotogrammi della fotocamera (GroupPauseJoinScreen.kt). CameraX invece
+    // di ML Kit/zxing-android-embedded: niente Google Play Services, niente
+    // Activity di scansione preconfezionata — l'anteprima resta una nostra
+    // schermata Compose, coerente con lo stile del resto dell'app.
+    implementation("com.google.zxing:core:3.5.3")
+    implementation("androidx.camera:camera-core:1.4.1")
+    implementation("androidx.camera:camera-camera2:1.4.1")
+    implementation("androidx.camera:camera-lifecycle:1.4.1")
+    implementation("androidx.camera:camera-view:1.4.1")
+
     testImplementation("junit:junit:4.13.2")
     testImplementation("org.robolectric:robolectric:4.17")
     testImplementation("androidx.test:core:1.6.1")

@@ -148,6 +148,29 @@
     <string name="onb_back">Back</string>
     <string name="onb_finish">Let\'s go</string>
 
+    <!-- Group pause (specs/group-pause/) -->
+    <string name="group_pause_entry_button">Group pause</string>
+    <string name="group_pause_chooser_intro">Do you want to create a new group pause or join one that already exists?</string>
+    <string name="group_pause_chooser_create">Create</string>
+    <string name="group_pause_chooser_join">Join</string>
+    <string name="group_pause_host_title">Create group pause</string>
+    <string name="group_pause_host_intro">Choose the duration and how soon to start, then share the code with whoever should join.</string>
+    <string name="group_pause_duration_label">Duration</string>
+    <string name="group_pause_start_in_label">Starts in</string>
+    <string name="group_pause_create_button">Create</string>
+    <string name="group_pause_share_hint">Have this QR scanned, or share the code below</string>
+    <string name="group_pause_countdown_label">Starting in %1$d:%2$02d</string>
+    <string name="group_pause_duration_reminder">Duration: %1$d min</string>
+    <string name="group_pause_join_title">Join a group pause</string>
+    <string name="group_pause_join_scan_tab">Scan</string>
+    <string name="group_pause_join_manual_tab">Manual code</string>
+    <string name="group_pause_camera_permission_rationale">Camera permission is needed to scan the QR.</string>
+    <string name="group_pause_manual_code_hint">Paste or type the code</string>
+    <string name="group_pause_manual_code_join_button">Join</string>
+    <string name="group_pause_invalid_code">Invalid or expired code</string>
+    <string name="block_group_indicator">Part of a group pause</string>
+    <string name="history_group_tag">Group pause</string>
+
     <!-- Relaxing phrases shown during pause (optional) -->
     <string-array name="pause_phrases">
         <item>Breathe. This moment is yours.</item>

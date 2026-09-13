@@ -151,6 +151,20 @@ fun BlockScreen(
             color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
         )
 
+        // Etichetta generica, non "con altre N persone": senza una lobby
+        // live (vedi specs/group-pause/design.md, sezione "Deferred") questo
+        // dispositivo non sa davvero quante altre persone si sono unite, solo
+        // che questa è nata come pausa di gruppo — dire un numero che non
+        // conosciamo davvero sarebbe disonesto, non solo impreciso.
+        if (remember { sessionManager.isGroupSession() }) {
+            Text(
+                text = stringResource(R.string.block_group_indicator),
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.padding(top = 2.dp)
+            )
+        }
+
         Text(
             text = remainingText,
             color = MaterialTheme.colorScheme.primary,

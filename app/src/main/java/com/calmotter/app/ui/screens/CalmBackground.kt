@@ -13,12 +13,12 @@ import androidx.compose.ui.graphics.Brush
  * colore saturo: coerente con la scelta di tenere il resto della UI su
  * tinte tenui (vedi specs/home-and-settings "Living Pond redesign").
  *
- * Usato da Home, Onboarding, e BlockScreen — le tre schermate a cui questo
- * redesign visivo si applica (vedi il commento di classe di BlockScreen su
- * come le tre schermate di blocco ora condividano il linguaggio visivo della
- * Home). Deliberatamente NON usato su Settings/Cronologia: quelle restano
- * schermate di navigazione/amministrazione, non "schermate di apertura" o
- * di sessione attiva.
+ * Usato da Home, Onboarding, BlockScreen, e le schermate di Pausa di gruppo
+ * (GroupPauseHostScreen/GroupPauseJoinScreen/GroupPauseCountdownScreen, vedi
+ * specs/group-pause/) — stessa categoria "di rito"/apertura di una pausa,
+ * non amministrazione. Deliberatamente NON usato su Settings/Cronologia:
+ * quelle restano schermate di navigazione/amministrazione, non "schermate
+ * di apertura" o di sessione attiva.
  */
 @Composable
 fun Modifier.calmBackground(): Modifier {

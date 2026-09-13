@@ -18,6 +18,7 @@ everything described is live in `main` today.
 - [`home-screen-widget/`](home-screen-widget/requirements.md) — the Glance 1×1 widget
 - [`mascot-marks/`](mascot-marks/requirements.md) — the app icon and the two in-app otter illustrations
 - [`home-and-settings/`](home-and-settings/requirements.md) — the calm-Home / Settings split
+- [`group-pause/`](group-pause/requirements.md) — synchronized multi-device pause via QR/manual code (Phase 1); live Bluetooth/NFC lobby documented as deferred Phase 2
 
 Each feature has:
 - `requirements.md` — user stories with EARS-style acceptance criteria (WHEN/THE SYSTEM SHALL), matching current behavior

@@ -116,6 +116,8 @@ fun MainScreen(
     onHistory: () -> Unit,
     onSettings: () -> Unit,
     onSessionStarted: () -> Unit = {},
+    onGroupPauseHost: () -> Unit = {},
+    onGroupPauseJoin: () -> Unit = {},
 ) {
     val context = LocalContext.current
 
@@ -129,6 +131,7 @@ fun MainScreen(
     var weekSummary by remember { mutableStateOf(WeekSummary(List(7) { 0 }, List(7) { 0 }, 0, 0)) }
     var selectedDurationIndex by remember { mutableIntStateOf(1) }
     var showPermissionDialog by remember { mutableStateOf(false) }
+    var showGroupPauseChooser by remember { mutableStateOf(false) }
 
     fun refreshDerivedState() {
         accessibilityOk = isAccessibilityServiceEnabled()
@@ -235,6 +238,15 @@ fun MainScreen(
                     color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.55f),
                     modifier = Modifier.padding(vertical = 20.dp)
                 )
+                // Non compete con il tap sull'otter (l'azione primaria):
+                // testo piccolo e defilato, non un altro bottone pieno —
+                // vedi specs/group-pause/design.md.
+                TextButton(onClick = { showGroupPauseChooser = true }) {
+                    Text(
+                        text = stringResource(R.string.group_pause_entry_button),
+                        style = MaterialTheme.typography.labelMedium,
+                    )
+                }
             }
         }
 
@@ -260,6 +272,26 @@ fun MainScreen(
                 onGrantDnd()
             },
             onDismiss = { showPermissionDialog = false },
+        )
+    }
+
+    if (showGroupPauseChooser) {
+        AlertDialog(
+            onDismissRequest = { showGroupPauseChooser = false },
+            title = { Text(stringResource(R.string.group_pause_entry_button)) },
+            text = { Text(stringResource(R.string.group_pause_chooser_intro)) },
+            confirmButton = {
+                TextButton(onClick = {
+                    showGroupPauseChooser = false
+                    onGroupPauseHost()
+                }) { Text(stringResource(R.string.group_pause_chooser_create)) }
+            },
+            dismissButton = {
+                TextButton(onClick = {
+                    showGroupPauseChooser = false
+                    onGroupPauseJoin()
+                }) { Text(stringResource(R.string.group_pause_chooser_join)) }
+            },
         )
     }
 }

@@ -37,7 +37,16 @@ class SessionManager private constructor(private val context: Context) {
         return (end - System.currentTimeMillis()).coerceAtLeast(0L)
     }
 
-    fun startSession(durationMinutes: Int) {
+    /**
+     * [isGroupSession]: true quando questa sessione è partita da
+     * GroupPauseHostActivity/GroupPauseJoinActivity (pausa di gruppo, vedi
+     * specs/group-pause/) invece che dal tap sull'otter in Home — letto poi
+     * da [isGroupSession] per mostrare un indicatore in BlockScreen e
+     * riportato in [SessionRecord] per il tag in Cronologia. Non cambia in
+     * alcun modo il funzionamento della sessione stessa (durata, DND,
+     * sblocco): è solo un'etichetta.
+     */
+    fun startSession(durationMinutes: Int, isGroupSession: Boolean = false) {
         val now = System.currentTimeMillis()
         val endTime = now + durationMinutes * 60_000L
         prefs.edit()
@@ -45,6 +54,7 @@ class SessionManager private constructor(private val context: Context) {
             .putLong(KEY_START_TIME, now)
             .putLong(KEY_END_TIME, endTime)
             .putInt(KEY_PLANNED_MINUTES, durationMinutes)
+            .putBoolean(KEY_IS_GROUP, isGroupSession)
             .apply()
         setOnlyCallsAllowed(true)
         scheduleAutoExpiry(endTime)
@@ -52,6 +62,9 @@ class SessionManager private constructor(private val context: Context) {
         PauseWidgetProvider.saveLastDuration(context, durationMinutes)
         PauseWidgetProvider.updateAllWidgets(context)
     }
+
+    /** Vero se la sessione attiva (o appena terminata) era una pausa di gruppo. */
+    fun isGroupSession(): Boolean = prefs.getBoolean(KEY_IS_GROUP, false)
 
     /** Millisecondi totali della sessione (0 se non disponibile). */
     fun totalMillis(): Long {
@@ -76,7 +89,8 @@ class SessionManager private constructor(private val context: Context) {
                     startTimeMs        = startTime,
                     plannedMinutes     = plannedMinutes,
                     effectiveMinutes   = effectiveMinutes,
-                    completedNaturally = completedNaturally
+                    completedNaturally = completedNaturally,
+                    isGroupSession     = prefs.getBoolean(KEY_IS_GROUP, false),
                 )
             )
         }
@@ -163,6 +177,7 @@ class SessionManager private constructor(private val context: Context) {
         private const val KEY_START_TIME = "session_start_time"
         private const val KEY_END_TIME = "session_end_time"
         private const val KEY_PLANNED_MINUTES = "session_planned_minutes"
+        private const val KEY_IS_GROUP = "session_is_group"
         private const val EXPIRY_REQUEST_CODE = 1001
 
         @Volatile private var instance: SessionManager? = null

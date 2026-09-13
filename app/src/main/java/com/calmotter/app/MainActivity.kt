@@ -154,6 +154,8 @@ class MainActivity : BaseActivity() {
                         onHistory = { startActivity(Intent(this, HistoryActivity::class.java)) },
                         onSettings = { startActivity(Intent(this, SettingsActivity::class.java)) },
                         onSessionStarted = { enterBlockScreen() },
+                        onGroupPauseHost = { startActivity(Intent(this, GroupPauseHostActivity::class.java)) },
+                        onGroupPauseJoin = { startActivity(Intent(this, GroupPauseJoinActivity::class.java)) },
                     )
                 }
             }
@@ -284,6 +286,19 @@ class MainActivity : BaseActivity() {
             android.graphics.Color.BLACK,
         )
         resumeSignal++
+
+        // Pausa di gruppo (GroupPauseHostActivity/GroupPauseJoinActivity,
+        // vedi specs/group-pause/): quella schermata avvia la sessione poi
+        // chiama finish() su se stessa, tornando qui — un ritorno da
+        // un'altra Activity, non un nuovo Intent, quindi handleIntent() (che
+        // gira solo da onCreate()/onNewIntent()) non se ne accorgerebbe da
+        // solo. Il tap sull'otter in MainScreen resta gestito com'era
+        // (onSessionStarted chiama enterBlockScreen() nella stessa
+        // Composition, prima ancora che onResume() rientri in gioco) — questo
+        // controllo serve solo per il caso "sessione avviata altrove".
+        if (sessionManager.isSessionActive() && !showBlockScreen) {
+            enterBlockScreen()
+        }
     }
 
     /**

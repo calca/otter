@@ -148,6 +148,29 @@
     <string name="onb_back">Indietro</string>
     <string name="onb_finish">Iniziamo</string>
 
+    <!-- Pausa di gruppo (specs/group-pause/) -->
+    <string name="group_pause_entry_button">Pausa di gruppo</string>
+    <string name="group_pause_chooser_intro">Vuoi creare una nuova pausa di gruppo o unirti a una già creata?</string>
+    <string name="group_pause_chooser_create">Crea</string>
+    <string name="group_pause_chooser_join">Unisciti</string>
+    <string name="group_pause_host_title">Crea pausa di gruppo</string>
+    <string name="group_pause_host_intro">Scegli la durata e tra quanto iniziare, poi condividi il codice con chi vuoi che si unisca.</string>
+    <string name="group_pause_duration_label">Durata</string>
+    <string name="group_pause_start_in_label">Inizia tra</string>
+    <string name="group_pause_create_button">Crea</string>
+    <string name="group_pause_share_hint">Fai scansionare questo QR, o condividi il codice qui sotto</string>
+    <string name="group_pause_countdown_label">Si inizia tra %1$d:%2$02d</string>
+    <string name="group_pause_duration_reminder">Durata: %1$d min</string>
+    <string name="group_pause_join_title">Unisciti a una pausa di gruppo</string>
+    <string name="group_pause_join_scan_tab">Scansiona</string>
+    <string name="group_pause_join_manual_tab">Codice manuale</string>
+    <string name="group_pause_camera_permission_rationale">Serve il permesso fotocamera per leggere il QR.</string>
+    <string name="group_pause_manual_code_hint">Incolla o digita il codice</string>
+    <string name="group_pause_manual_code_join_button">Unisciti</string>
+    <string name="group_pause_invalid_code">Codice non valido o scaduto</string>
+    <string name="block_group_indicator">Fai parte di una pausa di gruppo</string>
+    <string name="history_group_tag">Pausa di gruppo</string>
+
     <!-- Frasi rilassanti/riflessive mostrate durante la pausa (opzionale) -->
     <string-array name="pause_phrases">
         <item>Respira. Questo momento è tuo.</item>

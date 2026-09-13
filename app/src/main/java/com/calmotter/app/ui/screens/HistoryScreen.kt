@@ -394,6 +394,17 @@ private fun SessionRow(session: SessionRecord) {
                     color = MaterialTheme.colorScheme.onSurface,
                     modifier = Modifier.padding(top = 2.dp)
                 )
+                // Nessun nome di compagni: senza lobby live (vedi
+                // specs/group-pause/design.md, sezione "Deferred") non
+                // sappiamo chi altro si è unito, solo che lo era.
+                if (session.isGroupSession) {
+                    Text(
+                        text = stringResource(R.string.history_group_tag),
+                        fontSize = 12.sp,
+                        color = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.padding(top = 2.dp)
+                    )
+                }
             }
 
             Text(
