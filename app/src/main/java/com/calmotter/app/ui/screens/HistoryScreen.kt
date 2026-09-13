@@ -1,6 +1,8 @@
 package com.calmotter.app.ui.screens
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -14,7 +16,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.AlertDialog
@@ -25,7 +26,6 @@ import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.RadioButtonDefaults
 import androidx.compose.material3.Surface
@@ -42,7 +42,6 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -495,12 +494,29 @@ private fun formatMinutes(minutes: Int): String {
 // loro `remember` alla chiusura, quindi riaprirli parte sempre pulito senza
 // reset manuali.
 
+// Preset del target, non un campo numerico libero (vedi doc di
+// [WeeklyGoalDialog]): partono da una soglia già "di minimo impegno" invece
+// che da 1, su richiesta esplicita ("un minimo di sfida!"), e crescono a
+// passi via via più larghi — stessa progressione "shape" per entrambi i tipi
+// (5 preset, differenze crescenti) pur partendo da soglie diverse.
+private val SESSION_GOAL_PRESETS = listOf(3, 5, 7, 10, 14)
+private val MINUTE_GOAL_PRESETS = listOf(120, 180, 300, 420, 600) // 2h/3h/5h/7h/10h
+
+private fun goalPresetsFor(type: GoalType) =
+    if (type == GoalType.SESSIONS) SESSION_GOAL_PRESETS else MINUTE_GOAL_PRESETS
+
 /**
  * Editor dell'obiettivo settimanale: tipo (sessioni/minuti) via due
- * `RadioButton` affiancati, target numerico via `OutlinedTextField`. Colori
- * del RadioButton ristretti a `primary`/`onSurface` — `RadioButtonDefaults`
- * userebbe altrimenti `onSurfaceVariant` per lo stato non selezionato, un
- * ruolo non personalizzato per palette (stessa trappola documentata in
+ * `RadioButton` affiancati, target via chip preset — non un campo numerico
+ * libero: stesso pattern a pillole di [DurationChipRow] in MainScreen.kt
+ * (Home usa lo stesso linguaggio per scegliere la durata della pausa),
+ * scelto al posto della tastiera numerica su richiesta diretta. I preset
+ * partono da 3 sessioni / 2h, non da 1, anche questo su richiesta ("un
+ * minimo di sfida!") — un obiettivo "1 sessione a settimana" sarebbe banale
+ * da centrare comunque. Colori del RadioButton ristretti a
+ * `primary`/`onSurface` — `RadioButtonDefaults` userebbe altrimenti
+ * `onSurfaceVariant` per lo stato non selezionato, un ruolo non
+ * personalizzato per palette (stessa trappola documentata in
  * CLAUDE.md/specs/mascot-marks per altri componenti).
  */
 @Composable
@@ -510,10 +526,11 @@ fun WeeklyGoalDialog(
     onSave: (GoalType, Int) -> Unit,
 ) {
     var selectedType by remember { mutableStateOf(currentGoal?.type ?: GoalType.SESSIONS) }
-    var targetText by remember { mutableStateOf(currentGoal?.target?.toString() ?: "") }
-    var errorText by remember { mutableStateOf("") }
+    var selectedTarget by remember {
+        mutableStateOf(currentGoal?.target?.takeIf { it in goalPresetsFor(selectedType) }
+            ?: goalPresetsFor(selectedType).first())
+    }
 
-    val invalidText = stringResource(R.string.weekly_goal_invalid)
     val radioColors = RadioButtonDefaults.colors(
         selectedColor = MaterialTheme.colorScheme.primary,
         unselectedColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
@@ -534,7 +551,11 @@ fun WeeklyGoalDialog(
                                 .weight(1f)
                                 .selectable(
                                     selected = selectedType == type,
-                                    onClick = { selectedType = type },
+                                    onClick = {
+                                        selectedType = type
+                                        val presets = goalPresetsFor(type)
+                                        if (selectedTarget !in presets) selectedTarget = presets.first()
+                                    },
                                     role = Role.RadioButton,
                                 ),
                             verticalAlignment = Alignment.CenterVertically,
@@ -544,41 +565,16 @@ fun WeeklyGoalDialog(
                         }
                     }
                 }
-                OutlinedTextField(
-                    value = targetText,
-                    onValueChange = {
-                        targetText = it
-                        errorText = ""
-                    },
-                    label = { Text(stringResource(R.string.weekly_goal_target_hint)) },
-                    singleLine = true,
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(top = 12.dp)
+                GoalTargetChipRow(
+                    type = selectedType,
+                    selectedTarget = selectedTarget,
+                    onSelect = { selectedTarget = it },
+                    modifier = Modifier.padding(top = 16.dp)
                 )
-                if (errorText.isNotBlank()) {
-                    Text(
-                        text = errorText,
-                        color = MaterialTheme.colorScheme.error,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(top = 6.dp)
-                    )
-                }
             }
         },
         confirmButton = {
-            TextButton(
-                onClick = {
-                    val target = targetText.toIntOrNull()
-                    if (target == null || target <= 0) {
-                        errorText = invalidText
-                    } else {
-                        onSave(selectedType, target)
-                    }
-                }
-            ) {
+            TextButton(onClick = { onSave(selectedType, selectedTarget) }) {
                 Text(stringResource(R.string.save))
             }
         },
@@ -588,6 +584,44 @@ fun WeeklyGoalDialog(
             }
         },
     )
+}
+
+/**
+ * Riga di chip preset per il target dell'obiettivo — stesso stile pillola
+ * di `DurationChipRow` in MainScreen.kt (privata a quel file, da qui la
+ * duplicazione): sfondo `primary` a bassa opacità invece di `FilterChip` di
+ * M3, i cui colori di stato leggono ruoli non personalizzati per palette.
+ */
+@Composable
+private fun GoalTargetChipRow(
+    type: GoalType,
+    selectedTarget: Int,
+    onSelect: (Int) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Row(
+        modifier = modifier
+            .fillMaxWidth()
+            .horizontalScroll(rememberScrollState()),
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        goalPresetsFor(type).forEach { target ->
+            val selected = target == selectedTarget
+            val label = if (type == GoalType.SESSIONS) target.toString() else formatMinutes(target)
+            Surface(
+                onClick = { onSelect(target) },
+                shape = RoundedCornerShape(50),
+                color = MaterialTheme.colorScheme.primary.copy(alpha = if (selected) 0.22f else 0.08f),
+            ) {
+                Text(
+                    text = label,
+                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = if (selected) 1f else 0.65f),
+                    fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Normal,
+                )
+            }
+        }
+    }
 }
 
 /** Conferma prima di svuotare la cronologia — operazione non reversibile. */

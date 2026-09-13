@@ -103,10 +103,8 @@
     <string name="weekly_goal_set_button">Imposta obiettivo</string>
     <string name="weekly_goal_edit_button">Modifica obiettivo</string>
     <string name="weekly_goal_dialog_title">Obiettivo settimanale</string>
-    <string name="weekly_goal_target_hint">Numero</string>
     <string name="weekly_goal_type_sessions">Sessioni</string>
     <string name="weekly_goal_type_minutes">Minuti</string>
-    <string name="weekly_goal_invalid">Inserisci un numero maggiore di zero</string>
     <string name="weekly_goal_progress_sessions">%1$d di %2$d sessioni questa settimana</string>
     <string name="weekly_goal_progress_minutes">%1$d di %2$d minuti questa settimana</string>
 

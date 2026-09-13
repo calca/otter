@@ -70,13 +70,10 @@ group rather than leaving a two-native-one-Compose split:
   default (which reads `onSurfaceVariant` for the unselected state — an
   uncustomized-per-palette role, the same trap documented for `Switch` in
   `home-and-settings/design.md` and for the mascot marks in
-  `mascot-marks/design.md`). The `EditText` numeric target field becomes
-  an `OutlinedTextField` with `KeyboardType.Number`. Validation
-  (`target == null || target <= 0`) used to show `weekly_goal_invalid` as
-  a `Toast`; now it's inline error text under the field instead (same
-  pattern `PasswordVerifyDialog` already established for wrong-password),
-  since a `Toast` appearing behind/under an already-open `AlertDialog`
-  reads worse than text inside the dialog itself.
+  `mascot-marks/design.md`). The `EditText` numeric target field originally
+  became an `OutlinedTextField` with `KeyboardType.Number` — later replaced
+  entirely (see "Preset target chips" below) with a preset chip row, no
+  free-form number entry at all.
 - **`ClearHistoryConfirmDialog`** (`HistoryScreen.kt`) — a plain
   title+message+confirm/cancel `AlertDialog`, no state of its own.
 - **`HistoryActivity` now owns only two booleans**
@@ -133,3 +130,35 @@ coerente con il resto dell'app"):
   explicitly *not* Settings/History, which stay navigation/administration
   screens. Applying it here would have contradicted that documented
   boundary rather than extended it.
+- **`LinearProgressIndicator`'s `trackColor`** (goal progress bar) is now
+  explicit (`onSurface.copy(alpha = 0.12f)`), not the M3 default — which
+  reads `surfaceVariant`, rendering a fixed lavender track regardless of
+  the selected palette. Same trap, one more instance of it.
+
+## Preset target chips (`WeeklyGoalDialog`)
+
+Requested directly ("invece della input box cosa possiamo inserire?"):
+the numeric target `OutlinedTextField` + keyboard was replaced with a row
+of preset chips, one per `GoalType`, using the exact same pill style as
+`DurationChipRow` in `MainScreen.kt` (Home's own pause-duration picker) —
+`Surface(shape = RoundedCornerShape(50), color = primary.copy(alpha =
+0.22f selected / 0.08f unselected))`, not `FilterChip`, whose default
+colors read the same uncustomized `secondaryContainer`/`surfaceVariant`
+roles as everything else in this trap. `GoalTargetChipRow` (private to
+`HistoryScreen.kt`) duplicates that style rather than importing it, since
+`DurationChipRow` is private to `MainScreen.kt`.
+
+Presets: `SESSION_GOAL_PRESETS = [3, 5, 7, 10, 14]`,
+`MINUTE_GOAL_PRESETS = [120, 180, 300, 420, 600]` (2h/3h/5h/7h/10h, labeled
+via the existing `formatMinutes()`). Both start above the trivial floor —
+1 session or a few minutes a week would be met by accident — on explicit
+request ("partirò da 3 a crescere per le sessioni, per le ore da 2h... un
+minimo di sfida!"), and both lists share the same "5 presets, widening
+gaps" shape despite different starting points. Switching `GoalType` resets
+`selectedTarget` to the new type's first preset *only* if the current
+value isn't already one of the new type's presets (so re-opening the
+dialog on an existing goal, or flipping type and back, doesn't silently
+change the selection). No validation state exists anymore — every preset
+is by construction a valid target, so `weekly_goal_invalid` and
+`weekly_goal_target_hint` were deleted from both `strings.xml` files as
+dead resources rather than left unused.
