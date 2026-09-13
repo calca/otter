@@ -54,7 +54,7 @@
     <string-array name="calm_countdown_near_end_phrases">
         <item>Almost there</item>
         <item>Just a moment more…</item>
-        <item>Freedom\'s close</item>
+        <item>The world can wait a little longer</item>
         <item>You\'re nearly there</item>
         <item>One last breath</item>
     </string-array>
@@ -63,7 +63,7 @@
         <item>You still have %1$d minutes for yourself</item>
         <item>Around %1$d minutes to go</item>
         <item>Enjoy %1$d more minutes</item>
-        <item>%1$d minutes of space</item>
+        <item>%1$d minutes of calm</item>
     </string-array>
     <string name="hint_unlock_password">Password</string>
     <string name="unlock">Unlock</string>

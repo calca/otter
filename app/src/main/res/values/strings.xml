@@ -54,7 +54,7 @@
     <string-array name="calm_countdown_near_end_phrases">
         <item>Quasi finita</item>
         <item>Ancora un momento…</item>
-        <item>Tra poco sei libero</item>
+        <item>Il mondo ti aspetta ancora un po\'</item>
         <item>Quasi ci sei</item>
         <item>Un ultimo respiro</item>
     </string-array>
@@ -63,7 +63,7 @@
         <item>Hai ancora %1$d minuti per te</item>
         <item>Tra circa %1$d minuti</item>
         <item>Goditi ancora %1$d minuti</item>
-        <item>%1$d minuti di spazio</item>
+        <item>%1$d minuti di calma</item>
     </string-array>
     <string name="hint_unlock_password">Password</string>
     <string name="unlock">Sblocca</string>
