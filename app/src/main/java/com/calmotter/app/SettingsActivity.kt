@@ -8,12 +8,8 @@ import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.provider.Settings
-import android.text.InputType
-import android.widget.EditText
-import android.widget.Toast
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.appcompat.app.AlertDialog
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -81,6 +77,7 @@ class SettingsActivity : BaseActivity() {
                 SettingsScreen(
                     currentTheme = ThemeManager.getTheme(this),
                     partnerName = passwordManager.getPartnerName(),
+                    passwordManager = passwordManager,
                     phraseManager = phraseManager,
                     resumeSignal = resumeSignal,
                     isAccessibilityServiceEnabled = { isAccessibilityServiceEnabled(this) },
@@ -90,7 +87,7 @@ class SettingsActivity : BaseActivity() {
                     onGrantDnd = { startActivity(Intent(Settings.ACTION_NOTIFICATION_POLICY_ACCESS_SETTINGS)) },
                     onSetHome = { promptSetAsHome() },
                     onPickTheme = { theme -> pickTheme(theme) },
-                    onManageApps = { promptPasswordThenOpenAllowedApps() },
+                    onManageAppsVerified = { startActivity(Intent(this, AllowedAppsActivity::class.java)) },
                     onChangePassword = { startActivity(Intent(this, ChangePasswordActivity::class.java)) },
                     onOpenGitHub = { openUrl(GITHUB_REPO_URL) },
                     onOpenLicense = { openUrl("$GITHUB_REPO_URL/blob/main/LICENSE") },
@@ -198,37 +195,4 @@ class SettingsActivity : BaseActivity() {
         startActivity(intent)
     }
 
-    /**
-     * L'elenco delle app extra consentite durante una pausa può essere
-     * modificato solo da chi conosce la password: la verifica avviene qui,
-     * prima di aprire AllowedAppsActivity.
-     */
-    private fun promptPasswordThenOpenAllowedApps() {
-        val input = EditText(this).apply {
-            inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_PASSWORD
-            hint = getString(R.string.hint_unlock_password)
-        }
-
-        AlertDialog.Builder(this)
-            .setTitle(R.string.manage_allowed_apps)
-            .setMessage(R.string.manage_allowed_apps_password_prompt)
-            .setView(input)
-            .setPositiveButton(R.string.confirm) { _, _ ->
-                if (passwordManager.isLockedOut()) {
-                    // Dialog "usa e getta": niente countdown live, mostriamo
-                    // solo quanto manca al termine del lockout in questo momento.
-                    Toast.makeText(
-                        this,
-                        getString(R.string.password_locked_out, passwordManager.lockoutRemainingSeconds()),
-                        Toast.LENGTH_SHORT
-                    ).show()
-                } else if (passwordManager.verify(input.text.toString())) {
-                    startActivity(Intent(this, AllowedAppsActivity::class.java))
-                } else {
-                    Toast.makeText(this, getString(R.string.wrong_password), Toast.LENGTH_SHORT).show()
-                }
-            }
-            .setNegativeButton(android.R.string.cancel, null)
-            .show()
-    }
 }

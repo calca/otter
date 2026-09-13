@@ -15,16 +15,12 @@ import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Lock
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -39,8 +35,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.calmotter.app.CalmCountdown
@@ -85,14 +79,6 @@ fun BlockScreen(
     val context = LocalContext.current
 
     var showUnlockDialog by remember { mutableStateOf(false) }
-    var password by remember { mutableStateOf("") }
-    var statusText by remember { mutableStateOf("") }
-    // Secondi di lockout rimanenti (null = nessun lockout in corso). Tenuto
-    // separato dal testo formattato: stringResource() è @Composable e non
-    // può essere chiamata dentro il LaunchedEffect che aggiorna il conto
-    // alla rovescia — solo il numero viene aggiornato lì, la formattazione
-    // avviene più sotto nel corpo del Composable.
-    var lockoutSecondsRemaining by remember { mutableStateOf<Int?>(null) }
     var remainingText by remember { mutableStateOf("") }
     // Millisecondi grezzi (non solo il testo già formattato) servono per
     // l'anello di avanzamento condiviso con la Home — vedi [ProgressRing] in
@@ -101,7 +87,6 @@ fun BlockScreen(
     // entra in questo stato (vedi MainActivity.enterBlockScreen()).
     val totalMillis = remember { sessionManager.totalMillis() }
     var remainingMillisState by remember { mutableStateOf(sessionManager.remainingMillis()) }
-    var isLockedOut by remember { mutableStateOf(passwordManager.isLockedOut()) }
 
     // Equivalente Compose del CountDownTimer(remainingMillis, 60_000) usato
     // dalla versione XML: aggiorna il tempo rimanente circa una volta al
@@ -127,25 +112,7 @@ fun BlockScreen(
         onExpiredNaturally()
     }
 
-    // Stesso pattern di ChangePasswordScreen: finché il lockout è attivo,
-    // aggiorna il messaggio con il conto alla rovescia una volta al secondo,
-    // poi si riabilita da sola.
-    LaunchedEffect(isLockedOut) {
-        if (isLockedOut) {
-            while (passwordManager.isLockedOut()) {
-                lockoutSecondsRemaining = passwordManager.lockoutRemainingSeconds()
-                delay(1000)
-            }
-            isLockedOut = false
-            lockoutSecondsRemaining = null
-        }
-    }
-
     val sessionEndedText = stringResource(R.string.session_ended)
-    val wrongPasswordText = stringResource(R.string.wrong_password)
-    val displayStatusText = lockoutSecondsRemaining?.let {
-        stringResource(R.string.password_locked_out, it)
-    } ?: statusText
 
     Column(
         modifier = Modifier
@@ -263,72 +230,15 @@ fun BlockScreen(
     }
 
     if (showUnlockDialog) {
-        AlertDialog(
-            onDismissRequest = {
-                showUnlockDialog = false
-                password = ""
-                statusText = ""
-            },
-            title = { Text(stringResource(R.string.unlock)) },
-            text = {
-                Column {
-                    OutlinedTextField(
-                        value = password,
-                        onValueChange = { password = it },
-                        label = { Text(stringResource(R.string.hint_unlock_password)) },
-                        enabled = !isLockedOut,
-                        singleLine = true,
-                        visualTransformation = PasswordVisualTransformation(),
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
-                        modifier = Modifier.fillMaxWidth()
-                    )
-                    if (displayStatusText.isNotBlank()) {
-                        Text(
-                            text = displayStatusText,
-                            color = MaterialTheme.colorScheme.error,
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(top = 6.dp)
-                        )
-                    }
-                }
-            },
-            confirmButton = {
-                TextButton(
-                    enabled = !isLockedOut,
-                    onClick = {
-                        if (passwordManager.isLockedOut()) {
-                            isLockedOut = true
-                            return@TextButton
-                        }
-                        if (passwordManager.verify(password)) {
-                            sessionManager.endSession()
-                            Toast.makeText(context, sessionEndedText, Toast.LENGTH_SHORT).show()
-                            showUnlockDialog = false
-                            onUnlocked()
-                        } else {
-                            password = ""
-                            if (passwordManager.isLockedOut()) {
-                                isLockedOut = true
-                            } else {
-                                statusText = wrongPasswordText
-                            }
-                        }
-                    }
-                ) {
-                    Text(stringResource(R.string.unlock))
-                }
-            },
-            dismissButton = {
-                TextButton(
-                    onClick = {
-                        showUnlockDialog = false
-                        password = ""
-                        statusText = ""
-                    }
-                ) {
-                    Text(stringResource(android.R.string.cancel))
-                }
+        PasswordVerifyDialog(
+            passwordManager = passwordManager,
+            title = stringResource(R.string.unlock),
+            confirmLabel = stringResource(R.string.unlock),
+            onDismiss = { showUnlockDialog = false },
+            onVerified = {
+                sessionManager.endSession()
+                Toast.makeText(context, sessionEndedText, Toast.LENGTH_SHORT).show()
+                onUnlocked()
             },
         )
     }

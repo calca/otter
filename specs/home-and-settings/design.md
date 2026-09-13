@@ -38,7 +38,10 @@ verbatim from `MainActivity` in an earlier pass — same logic, same
 `PasswordManager`/`ThemeManager` calls, just relocated with their
 triggering button; `isDefaultHome()`/`promptSetAsHome()` (from
 `app-blocking-and-home-lock/design.md`) moved here the same way in this
-pass.
+pass. `promptPasswordThenOpenAllowedApps()` itself was later deleted
+outright, not just moved again — see "Non-Compose dialogs" in
+`session-history-and-stats/design.md` for why, and
+`ui/screens/PasswordVerifyDialog.kt` for what replaced it.
 
 ## Streak on Home
 
@@ -178,12 +181,15 @@ with two separate, more targeted pieces of UI.
 
 - **`PermissionExplainerDialog`** (private composable, `MainScreen.kt`) —
   a plain M3 `AlertDialog` (the first Compose-native dialog in this
-  codebase; every existing dialog elsewhere — `SettingsActivity`'s
+  codebase; at the time, every existing dialog elsewhere — `SettingsActivity`'s
   password prompt, `HistoryActivity`'s clear-history/weekly-goal dialogs —
-  is a View-based `androidx.appcompat.app.AlertDialog.Builder` invoked
+  was a View-based `androidx.appcompat.app.AlertDialog.Builder` invoked
   imperatively from an `Activity`, not a good fit here since this dialog's
   state (`showPermissionDialog`) and content both live in `MainScreen`
-  itself). It renders one `PermissionReasonRow` per *currently missing*
+  itself; the password prompt was converted to Compose too in a later
+  pass, on request — see `session-history-and-stats/design.md`'s
+  "Non-Compose dialogs" — while `HistoryActivity`'s two stayed native by
+  deliberate choice). It renders one `PermissionReasonRow` per *currently missing*
   permission only (`if (!accessibilityOk) ... if (!dndOk) ...` — a
   permission already granted gets no row, so a second tap after granting
   one shows only what's left, or doesn't open at all if nothing's left).

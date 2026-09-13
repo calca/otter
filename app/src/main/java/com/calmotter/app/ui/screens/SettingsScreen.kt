@@ -40,6 +40,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.calmotter.app.AppTheme
+import com.calmotter.app.PasswordManager
 import com.calmotter.app.PhraseManager
 import com.calmotter.app.R
 
@@ -65,6 +66,7 @@ import com.calmotter.app.R
 fun SettingsScreen(
     currentTheme: AppTheme,
     partnerName: String?,
+    passwordManager: PasswordManager,
     phraseManager: PhraseManager,
     resumeSignal: Int,
     isAccessibilityServiceEnabled: () -> Boolean,
@@ -74,7 +76,7 @@ fun SettingsScreen(
     onGrantDnd: () -> Unit,
     onSetHome: () -> Unit,
     onPickTheme: (AppTheme) -> Unit,
-    onManageApps: () -> Unit,
+    onManageAppsVerified: () -> Unit,
     onChangePassword: () -> Unit,
     onOpenGitHub: () -> Unit,
     onOpenLicense: () -> Unit,
@@ -91,6 +93,11 @@ fun SettingsScreen(
     }
 
     var phrasesEnabled by remember { mutableStateOf(phraseManager.isEnabled()) }
+    // Gestito qui (non più in SettingsActivity via un AlertDialog.Builder di
+    // sistema con un EditText — non Material, stonava nel resto di un'app
+    // 100% Compose) tramite lo stesso PasswordVerifyDialog usato da
+    // BlockScreen per sbloccare una sessione — vedi la sua stessa doc.
+    var showManageAppsDialog by remember { mutableStateOf(false) }
 
     Column(
         modifier = Modifier
@@ -117,7 +124,7 @@ fun SettingsScreen(
         PasswordCard(
             partnerName = partnerName,
             onChangePassword = onChangePassword,
-            onManageApps = onManageApps,
+            onManageApps = { showManageAppsDialog = true },
         )
 
         SectionLabel(stringResource(R.string.phrases_toggle_label))
@@ -131,6 +138,17 @@ fun SettingsScreen(
             onOpenGitHub = onOpenGitHub,
             onOpenLicense = onOpenLicense,
             onOpenDeveloper = onOpenDeveloper,
+        )
+    }
+
+    if (showManageAppsDialog) {
+        PasswordVerifyDialog(
+            passwordManager = passwordManager,
+            title = stringResource(R.string.manage_allowed_apps),
+            message = stringResource(R.string.manage_allowed_apps_password_prompt),
+            confirmLabel = stringResource(R.string.confirm),
+            onDismiss = { showManageAppsDialog = false },
+            onVerified = onManageAppsVerified,
         )
     }
 }

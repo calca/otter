@@ -47,7 +47,18 @@ reloaded directly after those actions rather than on every `onResume()`.
 
 The weekly-goal editor and the clear-history confirmation are built with
 `AlertDialog.Builder` + raw `View`s (`RadioGroup`, `EditText`,
-`LinearLayout`), not Compose `AlertDialog` — same pattern as
-`MainActivity.promptPasswordThenOpenAllowedApps()`. This is a deliberate,
-consistent choice across the codebase for one-off native dialogs rather than
-an incomplete migration; don't "fix" it in isolation.
+`LinearLayout`), not Compose `AlertDialog`. This used to be documented as a
+deliberate, consistent choice across the codebase for one-off native
+dialogs, including what was then `MainActivity.promptPasswordThenOpenAllowedApps()`
+— explicitly warning against "fixing" any one of them in isolation.
+
+That password-verify dialog was pulled out of this group anyway, on direct
+request ("non è material" — it visually stood out against a 100%-Compose
+app in a way the other two apparently don't prompt the same complaint) and
+replaced by a shared `ui/screens/PasswordVerifyDialog.kt`, now also used by
+`BlockScreen`'s own unlock dialog (which was Compose from the start,
+predating this native-dialogs note entirely). This is a deliberate,
+acknowledged exception, not an oversight: the weekly-goal editor and
+clear-history confirmation below remain native by the same original
+reasoning as before — don't convert them "to match" without their own
+explicit request, since nothing about *them* was reported as a problem.

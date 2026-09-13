@@ -468,6 +468,21 @@ permanently on-screen.
   `unlock` string when `allowedApps` is empty) was removed later — see
   "BlockScreen redesign" below.
 
+**Superseded by a later extraction**: the state-hoisting details in the
+bullets above (`password`/`statusText`/`isLockedOut`/`lockoutSecondsRemaining`
+hoisted at `BlockScreen`'s top level, manually reset on dismiss/cancel) no
+longer describe the actual code — the whole dialog, state included, moved
+into a shared `ui/screens/PasswordVerifyDialog.kt` once Settings' own
+password prompt needed the exact same thing (see
+`session-history-and-stats/design.md`'s "Non-Compose dialogs"). The manual
+resets are gone too, not just relocated: because the dialog composable is
+only ever invoked from inside `if (showUnlockDialog) { PasswordVerifyDialog(...) }`,
+Compose destroys its `remember`ed state when it leaves composition, so a
+fresh dialog is naturally blank next time without needing to reset anything
+by hand. `BlockScreen` itself now only owns `showUnlockDialog` and what to
+do in `onVerified` (end the session, toast, forward/exit) — the dialog's
+own field/error/lockout state is no longer its concern.
+
 ## BlockScreen redesign: Home-styled ring + floating otter, less text
 
 On request ("prendi ispirazione dalla home, vorrei otter fluttuante come
