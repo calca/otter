@@ -56,12 +56,12 @@
         <item>Ancora un momento…</item>
         <item>Il mondo ti aspetta ancora un po\'</item>
         <item>Quasi ci sei</item>
-        <item>Un ultimo respiro</item>
+        <item>Un ultimo momento di calma</item>
     </string-array>
     <string-array name="calm_countdown_template_phrases">
         <item>Ancora circa %1$d minuti</item>
         <item>Hai ancora %1$d minuti per te</item>
-        <item>Tra circa %1$d minuti</item>
+        <item>Ancora %1$d minuti di quiete</item>
         <item>Goditi ancora %1$d minuti</item>
         <item>%1$d minuti di calma</item>
     </string-array>
