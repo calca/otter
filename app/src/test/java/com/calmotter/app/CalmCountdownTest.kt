@@ -1,10 +1,17 @@
 package com.calmotter.app
 
+import android.content.Context
+import androidx.test.core.app.ApplicationProvider
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import org.junit.runner.RunWith
+import org.robolectric.RobolectricTestRunner
 
+@RunWith(RobolectricTestRunner::class)
 class CalmCountdownTest {
+
+    private val context: Context = ApplicationProvider.getApplicationContext()
 
     /**
      * Sotto i 5 minuti il risultato è una delle frasi "quasi finita", nessuna
@@ -24,7 +31,7 @@ class CalmCountdownTest {
         )
         for (remaining in remainingMillisValues) {
             repeat(10) {
-                val result = CalmCountdown.format(remaining)
+                val result = CalmCountdown.format(remaining, context)
                 assertTrue("expected non-blank result for $remaining ms", result.isNotBlank())
                 assertFalse(
                     "expected no digits for $remaining ms but got: $result",
@@ -51,7 +58,7 @@ class CalmCountdownTest {
     private fun assertContainsRoundedMinutes(totalMinutes: Int, expectedRounded: Int) {
         val remainingMillis = totalMinutes * 60_000L
         repeat(10) {
-            val result = CalmCountdown.format(remainingMillis)
+            val result = CalmCountdown.format(remainingMillis, context)
             assertTrue(
                 "expected '$expectedRounded' as substring of: $result",
                 result.contains(expectedRounded.toString())

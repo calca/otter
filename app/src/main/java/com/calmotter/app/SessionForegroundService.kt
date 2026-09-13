@@ -72,7 +72,7 @@ class SessionForegroundService : Service() {
             ((total - remaining).toFloat() / total * 100).toInt().coerceIn(0, 100)
         } else 0
 
-        val contentText = CalmCountdown.format(remaining)
+        val contentText = CalmCountdown.format(remaining, this)
         val subText = notificationSubPhrases.random()
 
         // Tap sulla notifica → apre MainActivity

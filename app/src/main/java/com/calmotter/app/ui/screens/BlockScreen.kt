@@ -118,7 +118,7 @@ fun BlockScreen(
             return@LaunchedEffect
         }
         while (remaining > 0) {
-            remainingText = CalmCountdown.format(remaining)
+            remainingText = CalmCountdown.format(remaining, context)
             remainingMillisState = remaining
             delay(60_000)
             remaining = sessionManager.remainingMillis()
