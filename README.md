@@ -96,6 +96,30 @@ role back and forth would require an interactive system dialog every single
 time, not a silent API call) — safe to ignore, and left as-is rather than
 "fixed" for that reason.
 
+## Tempo Insieme (Group Pause)
+
+Two or more people can start the *same* pause together, each on their own
+phone — no server involved, same local-only philosophy as the rest of the
+app. From Home, "Tempo insieme" opens two roles, each with two ways to pair:
+
+- **QR / manual code** — fully offline: the host generates a code (also
+  shown as a QR) that encodes the duration and an agreed start time; the
+  other person scans it or types it in. No live connection at any point,
+  not even during the wait — the two phones never actually talk to each
+  other, they just start at the same pre-agreed moment.
+- **Live lobby (Bluetooth, with NFC as a shortcut)** — the host opens a
+  live lobby over classic Bluetooth; the other person either taps their
+  phone against the host's (NFC) or searches for it manually, then the
+  host starts once at least one person has joined. The two phones *do*
+  briefly connect here, but only to agree on when to start — the live
+  connection ends the moment the pause itself begins.
+
+This is why the app asks for a few extra permissions beyond the original
+Accessibility/Do Not Disturb pair: **Camera** (to scan a QR), and
+**Bluetooth + NFC** (for the live lobby). None of them enable any network
+call or data collection — everything stays between the two phones
+involved, or doesn't leave the device at all in the QR/code case.
+
 ## Known Limits of this version ("soft" block)
 
 On Android, without being the *Device Owner* (MDM-style provisioning), there is
@@ -127,9 +151,11 @@ insufficient in real-world use.
 
 - Device Admin (not Device Owner) to make uninstallation more difficult
   during an active session.
-- Session history / usage statistics.
 - Remote unlock (requires a small backend) instead of only local.
-- Configurable whitelist instead of just the phone (e.g., maps, family messages).
+- Named participants in a group pause's block screen/history (currently
+  generic — see "Tempo Insieme" above — since the QR/code pairing mode has
+  no live channel to learn names from, and the live-lobby mode doesn't
+  carry them forward past the lobby yet).
 
 ## License
 
