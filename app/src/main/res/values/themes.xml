@@ -59,6 +59,16 @@
         <item name="colorOnSurface">@color/sage_on_surface</item>
         <item name="colorSurfaceVariant">@color/sage_surface_variant</item>
         <item name="colorOnSurfaceVariant">#404943</item>
+        <!-- Il popup dell'ActionBar (es. il "⋮" di Cronologia) non eredita i
+             colori di questo tema direttamente: Material3 lo mostra dentro un
+             ThemeOverlay a parte (?attr/actionBarPopupTheme, di default
+             ThemeOverlay.Material3.Light nella libreria) con il proprio
+             colorSurface fisso — da cui il popup restava sempre lavanda a
+             prescindere dalla palette, segnalato direttamente ("colore
+             errato e non del tema"). Verificato empiricamente (misura pixel)
+             che sovrascrivere solo popupMenuBackground/colorSurface qui non
+             bastava proprio per questo: serve il proprio ThemeOverlay. -->
+        <item name="actionBarPopupTheme">@style/ThemeOverlay.CalmOtter.Sage.PopupMenu</item>
     </style>
 
     <!-- LAVENDER THEME -->
@@ -92,6 +102,7 @@
         <item name="colorOnSurface">@color/lavender_on_surface</item>
         <item name="colorSurfaceVariant">@color/lavender_surface_variant</item>
         <item name="colorOnSurfaceVariant">#49454f</item>
+        <item name="actionBarPopupTheme">@style/ThemeOverlay.CalmOtter.Lavender.PopupMenu</item>
     </style>
 
     <!-- TERRACOTTA THEME -->
@@ -125,6 +136,29 @@
         <item name="colorOnSurface">@color/terracotta_on_surface</item>
         <item name="colorSurfaceVariant">@color/terracotta_surface_variant</item>
         <item name="colorOnSurfaceVariant">#53433f</item>
+        <item name="actionBarPopupTheme">@style/ThemeOverlay.CalmOtter.Terracotta.PopupMenu</item>
+    </style>
+
+    <!-- Overlay del popup dell'ActionBar per palette (vedi actionBarPopupTheme
+         sopra) — popupMenuBackground esplicito, non solo colorSurface: il
+         drawable di default (Widget.Material3.PopupMenu.Overflow) usa un
+         macro M3 (@macro/m3_comp_menu_container_color) che non è detto legga
+         colorSurface, quindi si sovrascrive direttamente l'attributo che il
+         widget style consulta davvero, eliminando l'ambiguità. -->
+    <style name="ThemeOverlay.CalmOtter.Sage.PopupMenu" parent="ThemeOverlay.Material3.Light">
+        <item name="colorSurface">@color/sage_surface</item>
+        <item name="colorOnSurface">@color/sage_on_surface</item>
+        <item name="popupMenuBackground">@color/sage_surface</item>
+    </style>
+    <style name="ThemeOverlay.CalmOtter.Lavender.PopupMenu" parent="ThemeOverlay.Material3.Light">
+        <item name="colorSurface">@color/lavender_surface</item>
+        <item name="colorOnSurface">@color/lavender_on_surface</item>
+        <item name="popupMenuBackground">@color/lavender_surface</item>
+    </style>
+    <style name="ThemeOverlay.CalmOtter.Terracotta.PopupMenu" parent="ThemeOverlay.Material3.Light">
+        <item name="colorSurface">@color/terracotta_surface</item>
+        <item name="colorOnSurface">@color/terracotta_on_surface</item>
+        <item name="popupMenuBackground">@color/terracotta_surface</item>
     </style>
 
     <!-- Shared Styles -->

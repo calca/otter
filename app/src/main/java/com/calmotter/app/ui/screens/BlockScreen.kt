@@ -176,36 +176,44 @@ fun BlockScreen(
             )
         }
 
-        // Un'unica row di azioni, tutte con lo stesso badge circolare pieno
-        // (primary + contenuto onPrimary): le app consentite mostrano le
-        // prime 2 lettere del nome al posto di un'icona reale (nessuna
-        // icona da caricare/desaturare), e lo sblocco — ultimo a destra,
-        // non il primo elemento — apre un dialog con il campo password
-        // invece di tenerlo sempre visibile in pagina. Nessuna didascalia
-        // sopra la row (rimossa: il lucchetto e le iniziali già dicono cosa
-        // sono) — resta comunque compatta anche senza app consentite
-        // configurate (il badge di sblocco è l'unico elemento sempre
-        // presente) — vedi AllowedAppLaunchItems.kt per il telefono sempre
-        // incluso/il tetto di 5 app configurabili, condiviso da tutti e tre
-        // i chiamanti.
+        // Un'unica row di azioni, tutte con lo stesso badge circolare tinto
+        // (primary a bassa opacità + contenuto primary — non più un riempimento
+        // primary pieno con onPrimary: quel look, ereditato da prima che il
+        // resto dell'app passasse al linguaggio "card tinta" di Settings/
+        // AllowedApps/History, stonava rispetto a tutto il resto, segnalato
+        // direttamente). Le app consentite mostrano le prime 2 lettere del
+        // nome al posto di un'icona reale (nessuna icona da caricare/
+        // desaturare), e lo sblocco — ultimo a destra, non il primo elemento —
+        // apre un dialog con il campo password invece di tenerlo sempre
+        // visibile in pagina. Nessuna didascalia sopra la row (rimossa: il
+        // lucchetto e le iniziali già dicono cosa sono) — resta comunque
+        // compatta anche senza app consentite configurate (il badge di
+        // sblocco è l'unico elemento sempre presente) — vedi
+        // AllowedAppLaunchItems.kt per il telefono sempre incluso/il tetto di
+        // 3 app configurabili, condiviso da tutti e tre i chiamanti. Niente
+        // scroll orizzontale di proposito: telefono + 3 app + sblocco (5
+        // badge) restano sempre entro la riga a questa dimensione, quindi uno
+        // scroll nascosto farebbe solo perdere lo sblocco di vista come
+        // capitava prima con il tetto a 5 app (7 badge, l'ultimo — lo sblocco
+        // stesso — finiva fuori schermo).
         Row(
             modifier = Modifier.fillMaxWidth().padding(top = 12.dp),
-            horizontalArrangement = Arrangement.spacedBy(20.dp, Alignment.CenterHorizontally),
+            horizontalArrangement = Arrangement.spacedBy(16.dp, Alignment.CenterHorizontally),
             verticalAlignment = Alignment.CenterVertically,
         ) {
             allowedApps.forEach { app ->
                 Box(
                     modifier = Modifier
-                        .size(40.dp)
+                        .size(48.dp)
                         .clip(CircleShape)
-                        .background(MaterialTheme.colorScheme.primary)
+                        .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.18f))
                         .clickable { onLaunchApp(app.packageName) },
                     contentAlignment = Alignment.Center,
                 ) {
                     Text(
                         text = app.label.trim().take(2).uppercase(),
-                        color = MaterialTheme.colorScheme.onPrimary,
-                        fontSize = 14.sp,
+                        color = MaterialTheme.colorScheme.primary,
+                        fontSize = 15.sp,
                         fontWeight = FontWeight.SemiBold,
                     )
                 }
@@ -213,17 +221,17 @@ fun BlockScreen(
 
             Box(
                 modifier = Modifier
-                    .size(40.dp)
+                    .size(48.dp)
                     .clip(CircleShape)
-                    .background(MaterialTheme.colorScheme.primary)
+                    .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.18f))
                     .clickable { showUnlockDialog = true },
                 contentAlignment = Alignment.Center,
             ) {
                 Icon(
                     imageVector = Icons.Default.Lock,
                     contentDescription = stringResource(R.string.unlock),
-                    tint = MaterialTheme.colorScheme.onPrimary,
-                    modifier = Modifier.size(20.dp)
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.size(22.dp)
                 )
             }
         }

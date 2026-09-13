@@ -378,15 +378,20 @@ never offered a way to launch one.
   "just an unlock control",
   not a broken empty list.
 - **`AllowedAppLaunchItem(label, packageName)`** (in `BlockScreen.kt`) went
-  through three looks before landing here: text-only rows (too long/lost
+  through four looks before landing here: text-only rows (too long/lost
   focus), then real app icons desaturated via
-  `ColorFilter.tint(primary, BlendMode.Color)` (a duotone effect), and
-  finally **2-letter initial badges** — `app.label.trim().take(2).uppercase()`
-  rendered in a solid `primary`-filled circle with `onPrimary` text,
-  the exact same badge construction as the Unlock control next to it (see
-  below) rather than a distinct style for "app" vs "action". This also
-  means no icon/`Bitmap` is loaded at all anymore — `AllowedAppLaunchItem`
-  only carries what's needed to derive the initials and launch the app.
+  `ColorFilter.tint(primary, BlendMode.Color)` (a duotone effect),
+  **2-letter initial badges** — `app.label.trim().take(2).uppercase()` —
+  in a solid `primary`-filled circle with `onPrimary` text (the exact same
+  badge construction as the Unlock control next to it, see below), and
+  finally the same 2-letter badges re-tinted to `primary.copy(alpha =
+  0.18f)` background + `primary` content, 48dp not 40dp — flagged directly
+  ("il colore dei bottoni non rispetta il [linguaggio]... li fai un filo
+  più grandi"): the solid full-opacity fill predates the tinted-card
+  language later established for Settings/AllowedApps/History (see those
+  specs) and had come to look out of place next to it. This also means no
+  icon/`Bitmap` is loaded at all — `AllowedAppLaunchItem` only carries what's
+  needed to derive the initials and launch the app.
 - **`MainActivity.loadAllowedAppLaunchItems()`** resolves labels only for
   packages already in `AllowedAppsManager.getAllowedPackages()` — a
   handful of entries, unlike `AllowedAppsActivity.loadApps()`'s full
@@ -399,7 +404,7 @@ never offered a way to launch one.
   `.take(AllowedAppsManager.MAX_ALLOWED_APPS)` as a safety net — the real
   cap is enforced at write time (see below), this should never actually
   trim anything in practice.
-- **The phone is always the first item, outside the 5-app cap.** Resolved
+- **The phone is always the first item, outside the 3-app cap.** Resolved
   separately via `TelecomManager.defaultDialerPackage` (the same call
   `AppBlockerAccessibilityService.allowedPackages()` already uses to exempt
   it from blocking) rather than reading it from
@@ -407,10 +412,11 @@ never offered a way to launch one.
   list existed there was nowhere to actually *launch* it from when Calm
   Otter is Home. Deduplicated against the configurable list by package name
   in case a user had also explicitly whitelisted their dialer.
-- **`AllowedAppsManager.MAX_ALLOWED_APPS = 5`** is the single source of
-  truth for the cap, enforced where an app is actually *added*
-  (`AllowedAppsActivity.toggleApp()` — attempting a 6th shows a
-  `allowed_apps_limit_reached` toast and does nothing, rather than
+- **`AllowedAppsManager.MAX_ALLOWED_APPS = 3`** (lowered from 5, see
+  requirements.md's User Story 4 criterion 7 for the bug that prompted
+  it) is the single source of truth for the cap, enforced where an app is
+  actually *added* (`AllowedAppsActivity.toggleApp()` — attempting a 4th
+  shows a `allowed_apps_limit_reached` toast and does nothing, rather than
   accepting it and truncating the display elsewhere) so the stored
   whitelist and what `BlockScreen` shows never disagree. The phone doesn't
   count against it (see above).
@@ -455,19 +461,30 @@ Originally `BlockScreen` had an always-visible `OutlinedTextField` +
 `Button("Unlock")` sitting in the main flow, with the allowed-apps row (if
 any) below it. Reworked so Unlock lives in the *same* row as the allowed
 apps, **last** (rightmost) rather than first — the allowed-app badges are
-listed first, Unlock always trails them — as a solid-`primary`-badge lock
-icon, the same circular badge construction as `PactPawsMark` (filled
-`primary` circle, `onPrimary` content; `PausePawsMark`, which originally
-shared this same construction and appeared above the row on `BlockScreen`
-itself, has since been removed — see "BlockScreen redesign" below and
-`mascot-marks/design.md`) and now also the same
-construction the allowed-app initial badges use (see above) — the whole
-row reads as one consistent set of round action badges, distinguished by
-their content (a lock glyph vs. 2 letters), not by a different visual
-treatment for "the important one". Tapping the lock badge opens a Compose
-`AlertDialog` containing the password field, error/lockout text, and the
-actual "Unlock"/"Cancel" buttons, instead of keeping that content
-permanently on-screen.
+listed first, Unlock always trails them — as a tinted-`primary`-badge lock
+icon (see above for the solid→tinted repaint), the same circular badge
+construction as `PactPawsMark` (`onPrimary` content originally;
+`PausePawsMark`, which originally shared this same construction and
+appeared above the row on `BlockScreen` itself, has since been removed —
+see "BlockScreen redesign" below and `mascot-marks/design.md`) and now
+also the same construction the allowed-app initial badges use (see
+above) — the whole row reads as one consistent set of round action
+badges, distinguished by their content (a lock glyph vs. 2 letters), not
+by a different visual treatment for "the important one". Tapping the
+lock badge opens a Compose `AlertDialog` containing the password field,
+error/lockout text, and the actual "Unlock"/"Cancel" buttons, instead of
+keeping that content permanently on-screen.
+
+Deliberately no horizontal scroll on this row: with the cap lowered to 3
+allowed apps (see above), phone + 3 apps + Unlock is 5 badges, which fits
+one row at 48dp with 16dp spacing on a normal phone screen without one.
+Before that fix, phone + 5 apps + Unlock (7 badges) silently overflowed
+past the screen edge with no scroll to reach them — the Unlock badge
+itself, being last, became completely unreachable, leaving no way to end
+the session from this screen. A scrollable row was considered and
+rejected as the fix (in favor of lowering the cap instead): Unlock is the
+one control this screen cannot afford to hide behind an undiscovered
+scroll gesture.
 
 - **`showUnlockDialog` (`mutableStateOf(false)`)** gates the dialog;
   `password`/`statusText`/`isLockedOut`/`lockoutSecondsRemaining` are

@@ -49,4 +49,13 @@
     <color name="terracotta_surface">#FFFBFF</color>
     <color name="terracotta_on_surface">#201A18</color>
     <color name="terracotta_surface_variant">#F5DED8</color>
+
+    <!-- Default (mai risolto in pratica) per i 3 nomi *_dark_surface definiti
+         davvero in values-night/colors.xml: lint richiede una dichiarazione
+         di base per ogni risorsa qualificata, anche se questi nomi sono
+         consultati solo da values-night/themes.xml (mai da una config
+         chiara) — vedi ThemeOverlay.CalmOtter.*.PopupMenu lì. -->
+    <color name="sage_dark_surface">@color/sage_surface</color>
+    <color name="lavender_dark_surface">@color/lavender_surface</color>
+    <color name="terracotta_dark_surface">@color/terracotta_surface</color>
 </resources>

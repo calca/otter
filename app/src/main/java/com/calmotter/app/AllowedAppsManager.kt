@@ -24,7 +24,12 @@ class AllowedAppsManager private constructor(context: Context) {
         // raggiungibile a parte, vedi MainActivity/BlockScreen — non conta in
         // questo limite): una row di icone in BlockScreen deve restare corta
         // e leggibile a colpo d'occhio, non diventare un mini app-drawer.
-        const val MAX_ALLOWED_APPS = 5
+        // Abbassato da 5 a 3 dopo un bug reale: telefono + 5 app + sblocco
+        // (7 badge) non entravano in una riga su schermi normali — l'ultimo
+        // badge (lo sblocco stesso!) finiva fuori schermo e non tappabile,
+        // senza scroll orizzontale a recuperarlo. Telefono + 3 app + sblocco
+        // (5 badge) ci sta sempre.
+        const val MAX_ALLOWED_APPS = 3
 
         private const val PREFS_NAME = "calm_otter_allowed_apps"
         private const val KEY_PACKAGES = "allowed_packages"

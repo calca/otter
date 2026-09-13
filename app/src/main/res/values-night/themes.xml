@@ -11,6 +11,11 @@
         <item name="colorPrimaryVariant">#6BBFA0</item>
         <item name="colorOnPrimary">#1A2B38</item>
         <item name="colorError">#E07A78</item>
+        <!-- Sfondo dei popup/overflow menu: senza questo, Widget.MaterialComponents.PopupMenu.Overflow
+             cade su un grigio neutro fisso non legato a nessun colore di
+             questa palette — segnalato direttamente ("colore errato e non
+             del tema"). ?attr/colorSurface risolve a quello sopra. -->
+        <item name="popupMenuBackground">?attr/colorSurface</item>
     </style>
     <style name="Theme.CalmOtter.Sage.Block"          parent="Theme.CalmOtter.Sage" />
     <style name="Theme.CalmOtter.Sage.WithActionBar"  parent="Theme.MaterialComponents.DayNight">
@@ -23,6 +28,15 @@
         <item name="colorPrimaryVariant">#6BBFA0</item>
         <item name="colorOnPrimary">#1A2B38</item>
         <item name="colorError">#E07A78</item>
+        <!-- Popup dell'ActionBar (es. "⋮" di Cronologia): mostrato dentro un
+             ThemeOverlay a parte (?attr/actionBarPopupTheme, di default
+             ThemeOverlay.MaterialComponents.Dark nella libreria) col proprio
+             colorSurface fisso (#121212 circa) — da cui il popup restava
+             sempre grigio neutro a prescindere dalla palette, segnalato
+             direttamente ("colore errato e non del tema"). Serve il proprio
+             ThemeOverlay, non basta colorSurface/popupMenuBackground qui
+             (verificato con misura pixel, non solo a occhio). -->
+        <item name="actionBarPopupTheme">@style/ThemeOverlay.CalmOtter.Sage.PopupMenu</item>
     </style>
 
     <!-- LAVENDER night -->
@@ -36,6 +50,7 @@
         <item name="colorPrimaryVariant">#A99ED0</item>
         <item name="colorOnPrimary">#1E1A2E</item>
         <item name="colorError">#E07A78</item>
+        <item name="popupMenuBackground">?attr/colorSurface</item>
     </style>
     <style name="Theme.CalmOtter.Lavender.Block"         parent="Theme.CalmOtter.Lavender" />
     <style name="Theme.CalmOtter.Lavender.WithActionBar" parent="Theme.MaterialComponents.DayNight">
@@ -48,6 +63,7 @@
         <item name="colorPrimaryVariant">#A99ED0</item>
         <item name="colorOnPrimary">#1E1A2E</item>
         <item name="colorError">#E07A78</item>
+        <item name="actionBarPopupTheme">@style/ThemeOverlay.CalmOtter.Lavender.PopupMenu</item>
     </style>
 
     <!-- TERRACOTTA night -->
@@ -61,6 +77,7 @@
         <item name="colorPrimaryVariant">#C4927A</item>
         <item name="colorOnPrimary">#2A1812</item>
         <item name="colorError">#E07A78</item>
+        <item name="popupMenuBackground">?attr/colorSurface</item>
     </style>
     <style name="Theme.CalmOtter.Terracotta.Block"         parent="Theme.CalmOtter.Terracotta" />
     <style name="Theme.CalmOtter.Terracotta.WithActionBar" parent="Theme.MaterialComponents.DayNight">
@@ -73,6 +90,30 @@
         <item name="colorPrimaryVariant">#C4927A</item>
         <item name="colorOnPrimary">#2A1812</item>
         <item name="colorError">#E07A78</item>
+        <item name="actionBarPopupTheme">@style/ThemeOverlay.CalmOtter.Terracotta.PopupMenu</item>
+    </style>
+
+    <!-- Overlay del popup dell'ActionBar per palette, tema scuro — vedi
+         commento su actionBarPopupTheme in Theme.CalmOtter.Sage.WithActionBar
+         sopra. Estende ThemeOverlay.MaterialComponents.Dark (il default
+         della libreria per questo stesso attributo su un tema
+         MaterialComponents) invece di ThemeOverlay.Material3.Light usato
+         nel file values/themes.xml — questo file resta sullo schema
+         MaterialComponents pre-redesign, vedi CalmOtterTheme.kt. -->
+    <style name="ThemeOverlay.CalmOtter.Sage.PopupMenu" parent="ThemeOverlay.MaterialComponents.Dark">
+        <item name="colorSurface">@color/sage_dark_surface</item>
+        <item name="colorOnSurface">#D4E8DC</item>
+        <item name="popupMenuBackground">@color/sage_dark_surface</item>
+    </style>
+    <style name="ThemeOverlay.CalmOtter.Lavender.PopupMenu" parent="ThemeOverlay.MaterialComponents.Dark">
+        <item name="colorSurface">@color/lavender_dark_surface</item>
+        <item name="colorOnSurface">#E0D8F5</item>
+        <item name="popupMenuBackground">@color/lavender_dark_surface</item>
+    </style>
+    <style name="ThemeOverlay.CalmOtter.Terracotta.PopupMenu" parent="ThemeOverlay.MaterialComponents.Dark">
+        <item name="colorSurface">@color/terracotta_dark_surface</item>
+        <item name="colorOnSurface">#F0DDD8</item>
+        <item name="popupMenuBackground">@color/terracotta_dark_surface</item>
     </style>
 
 </resources>

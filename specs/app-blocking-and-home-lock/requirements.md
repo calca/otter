@@ -61,9 +61,11 @@ all-or-nothing.
 6. WHEN a search yields no matching app THEN the system SHALL show an empty
    state instead of a blank list; the search field offers a clear (×)
    button once non-empty.
-7. WHEN the allowed-set already has 5 apps THEN toggling on a 6th SHALL be
+7. WHEN the allowed-set already has 3 apps THEN toggling on a 4th SHALL be
    rejected (brief message shown, toggle stays off) — see User Story 4 for
-   why (the block screen's icon row needs to stay short).
+   why (the block screen's icon row needs to stay short; lowered from 5 to
+   3 after phone + 5 apps + unlock, 7 badges, didn't fit one row and the
+   unlock badge itself became unreachable — see that story for the fix).
 
 ## User Story 3: Home-button interception
 
@@ -120,11 +122,16 @@ Home shows the block screen instead of any launcher — otherwise being
    allowed-apps list), regardless of the configurable allowed-apps list's
    contents — it was already always exempt from blocking, this just makes
    it launchable from this screen too, same as the configured apps.
-7. The user-configurable allowed-apps list SHALL be capped at 5 apps
+7. The user-configurable allowed-apps list SHALL be capped at 3 apps
    (the phone from criterion 6 doesn't count against this cap): attempting
-   to allow a 6th app in the editor SHALL be rejected with a brief message,
+   to allow a 4th app in the editor SHALL be rejected with a brief message,
    not silently accepted and trimmed elsewhere — this keeps the icon row
-   short enough to read at a glance.
+   short enough to read at a glance. Lowered from an original cap of 5,
+   reported directly as a bug: phone + 5 apps + Unlock (7 badges) didn't
+   fit one row on a normal phone screen, and — since the row has no
+   horizontal scroll by design (see Design doc) — the Unlock badge itself,
+   being last, ended up pushed off-screen and untappable, leaving no way
+   to end the session from this screen at all.
 
 ## Known limits (do not misrepresent in code/UI)
 

@@ -59,6 +59,64 @@ Three variants per palette, chosen per-Activity via
   since `BASE` and `BLOCK` resolve to identical XML styles anyway (the
   `.Block` aliases below add nothing)
 
+## `WITH_ACTION_BAR`'s overflow menu needs its own `ThemeOverlay`, not just `colorSurface`
+
+`HistoryActivity`'s overflow menu ("Export history"/"Clear history") was
+reported directly as wrong-colored ("il menù di export ha il colore
+errato e non del tema") — a fixed Material3 lavender in light mode, a
+fixed neutral dark grey (`#121212`-ish) in dark mode, neither tracking
+Sage/Lavender/Terracotta.
+
+**Why setting `colorSurface` (already correctly per-palette) and even
+`popupMenuBackground` directly on `Theme.CalmOtter.<Palette>.WithActionBar`
+does *not* fix this**, verified by measuring actual rendered pixel values
+(not just eyeballing a screenshot — a first attempt at this fix looked
+plausibly closer in a screenshot but measured as unchanged): the
+ActionBar's overflow popup is not rendered using the Activity's own theme
+directly. Both `Theme.Material3.DayNight` and `Theme.MaterialComponents.DayNight`
+(the light/dark parents here — see "Two parallel systems" above) set
+their own `actionBarPopupTheme` to a fixed library `ThemeOverlay`
+(`ThemeOverlay.Material3.Light` / `ThemeOverlay.MaterialComponents.Dark`),
+and the overflow popup is shown inside *that* overlay's `ContextThemeWrapper`,
+which defines its own `colorSurface` independent of whatever the
+Activity's outer theme says. Overriding `colorSurface`/`popupMenuBackground`
+on the outer theme never reaches it.
+
+**Fix**: define a `ThemeOverlay.CalmOtter.<Palette>.PopupMenu` per palette
+(extending the library's own default overlay for that theme family — the
+same distinction as light vs. dark below), and point `actionBarPopupTheme`
+at it from each `.WithActionBar` style:
+- `values/themes.xml` (light, Material3-based): `ThemeOverlay.CalmOtter.Sage.PopupMenu`
+  etc. extend `ThemeOverlay.Material3.Light`.
+- `values-night/themes.xml` (dark, still MaterialComponents-based — see
+  "Two parallel systems"): the same 3 overlays extend
+  `ThemeOverlay.MaterialComponents.Dark` instead, and use their own
+  `sage_dark_surface`/`lavender_dark_surface`/`terracotta_dark_surface`
+  color names (new, in `values-night/colors.xml`, mirroring the palette's
+  existing inline hex `colorSurface`) rather than a `values/colors.xml`
+  name, consistent with this file's established pattern of not touching
+  `@color/*` names owned by the light redesign.
+
+Each overlay sets **both** `colorSurface` (for consistency/ripples/text)
+**and** `popupMenuBackground` directly (not relying on `colorSurface`
+alone): `Widget.Material3.PopupMenu.Overflow`'s actual background drawable
+resolves through an M3 "macro" token
+(`@macro/m3_comp_menu_container_color`), which isn't guaranteed to key off
+`colorSurface` specifically — setting `popupMenuBackground` directly on
+the overlay bypasses that ambiguity entirely and is what the widget style
+actually consults.
+
+**`popupMenuBackground` is `format="reference"` only** — a raw `#hex`
+literal fails AAPT2 linking ("expected reference but got raw string"); it
+must be a `@color/name`. This is why `values-night/colors.xml` gained 3
+new dark-surface color names instead of inlining hex directly in the
+`ThemeOverlay` (consistent with the "narrow, separate override" pattern
+already described above for the 3 `*_primary` names) — and why
+`values/colors.xml` needed matching (unused-in-practice, lint-required)
+fallback declarations for those same 3 names, since a `values-night`-only
+color resource without a base-`values` declaration is a lint error
+(`MissingDefaultResource`).
+
 ## Material 3 Expressive
 
 `CalmOtterTheme` wraps content in `MaterialExpressiveTheme` (not plain

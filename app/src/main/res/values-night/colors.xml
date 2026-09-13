@@ -13,4 +13,14 @@
     <color name="sage_primary">#6BBFA0</color>
     <color name="lavender_primary">#A99ED0</color>
     <color name="terracotta_primary">#C4927A</color>
+
+    <!-- Stessi valori di colorSurface inline in values-night/themes.xml, come
+         @color/ invece che #hex letterale: popupMenuBackground è un attr
+         format="reference" puro — AAPT2 rifiuta un valore #hex diretto lì
+         ("expected reference but got raw string"), serve passare da un
+         @color/ nominato (vedi ThemeOverlay.CalmOtter.*.PopupMenu nello
+         stesso file). -->
+    <color name="sage_dark_surface">#223040</color>
+    <color name="lavender_dark_surface">#262240</color>
+    <color name="terracotta_dark_surface">#381F15</color>
 </resources>
