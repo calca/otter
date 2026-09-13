@@ -23,8 +23,13 @@ other app.
    square) THEN the otter head SHALL stay fully within the mask's safe
    zone — no ear or facial feature clipped by any of the three shapes.
 3. WHEN the device supports themed/monochrome icons (Android 13+, Material
-   You) THEN the system SHALL have a simplified single-color silhouette
-   (head + ears only, no eyes/nose) available for that purpose.
+   You) THEN the system SHALL have a simplified single-color version
+   available for that purpose — head + ears silhouette, with the eyes and
+   nose cut through as transparent holes so it still reads as an otter
+   face instead of a plain blob (see design.md — an earlier head+ears-only
+   version without them shipped first and was found, on a real device
+   next to other apps' themed icons, to be indistinguishable from a
+   generic rounded shape).
 
 ## User Story 2: Onboarding illustration
 

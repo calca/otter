@@ -32,14 +32,37 @@ written as two arcs: `M{cx-r},{cy} a{r},{r} 0 1,0 {2r},0 a{r},{r} 0 1,0
 ears) in one `<path>` — safe as a plain nonzero-winding union because the
 ear centers sit *inside* the head circle by construction (that's what
 produces the "peeking ear" crescent), so there's no risk of an accidental
-hole. `ic_launcher_monochrome.xml` deliberately does **not** attempt to
-punch eye/nose holes into that silhouette via `fillType="evenOdd"` — doing
-that correctly requires the eye/nose subpaths to wind in the opposite
-direction from the head, which is fragile to get right by hand without a
-renderer to check against. Simplifying the monochrome icon down to a
-plain silhouette sidesteps the problem entirely and happens to match
-Google's own guidance (monochrome/themed icons should be *more* reduced
-than the color version, not just recolored).
+hole.
+
+**`ic_launcher_monochrome.xml` — real bug, found and fixed.** It
+originally shipped as head+ears only, no eyes/nose, on the reasoning that
+punching holes via `fillType="evenOdd"` needed the eye/nose subpaths wound
+opposite to the head's — fragile to get right by hand without a renderer,
+and simplifying down to a plain silhouette matches Google's own guidance
+that monochrome/themed icons should be *more* reduced than the color
+version, not just recolored. **That reasoning about winding direction was
+wrong**: `evenOdd` doesn't care which way a subpath is wound (unlike the
+`nonzero` rule the foreground's ear-union above actually depends on) — it
+just counts how many subpath boundaries a point falls inside, and toggles
+fill on each crossing. Any point inside both the head *and* an eye is
+inside two boundaries (even → hole), regardless of either shape's drawing
+direction. So the eye/nose subpaths could simply be appended to the same
+path with `fillType="evenOdd"`, no direction-flipping needed — confirmed
+by rendering the exact same `pathData` outside of Android first (Python/
+Pillow, painting the eye/nose ellipses back in the background color,
+which is geometrically identical to `evenOdd` for non-self-overlapping
+subpaths like these) before touching the actual resource.
+
+The plain-silhouette version turned out to be a real problem in practice,
+not just a theoretical one: screenshotted on a real device next to Maps/
+Telegram/Gmail with themed icons on, every other app's monochrome icon
+stayed recognizable (pin, paper plane, envelope) while Calm Otter's was a
+featureless rounded blob — indistinguishable as an otter, or from a
+plain circle. "More reduced than the color version" doesn't mean *zero*
+identifying detail; it means simplified enough to read as one flat shape,
+which the eyes/nose (small, and inside the silhouette rather than
+crossing its outline) don't interfere with. Fixed by adding them back as
+holes via the `evenOdd` path above.
 
 ## Adaptive icon safe zone
 

@@ -1,9 +1,22 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
     Versione per l'icona "themed"/monocromatica (Android 13+, Material You):
-    solo la silhouette testa+orecchie, senza occhi/naso — le icone
-    monocromatiche vanno semplificate ulteriormente rispetto al foreground
-    a colori, non solo ricolorate.
+    il sistema tinge tutto con un solo colore, leggendo solo il canale alfa
+    del vector — un'icona composta solo dalla sagoma testa+orecchie
+    (versione precedente di questo file, senza occhi/naso) risultava una
+    macchia tonda indistinguibile accanto alle icone di altre app, che
+    restano riconoscibili anche ridotte a un solo colore (bug reale,
+    osservato accanto a Maps/Telegram/Gmail in modalità icone a tema — la
+    sagoma da sola non basta a leggersi come "otter").
+
+    Occhi e naso sono qui "ritagliati" nella sagoma con fillType="evenOdd"
+    (un solo path, non tre): un punto interno a un numero pari di
+    sotto-forme (dentro la testa E dentro un occhio) resta trasparente,
+    invece che pieno — a differenza della regola "nonzero" usata altrove
+    in questo file (vedi PathParser in altri marchi), evenOdd non dipende
+    dal verso di disegno delle sotto-forme, quindi non serve invertirle a
+    mano per ottenere il buco. Verificato renderizzando gli stessi
+    pathData fuori da Android prima di applicare la modifica.
 -->
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
     android:width="108dp"
@@ -12,7 +25,11 @@
     android:viewportHeight="108">
     <path
         android:fillColor="#FFFFFF"
+        android:fillType="evenOdd"
         android:pathData="M29,58 a25,25 0 1,0 50,0 a25,25 0 1,0 -50,0
                            M30,42 a10,10 0 1,0 20,0 a10,10 0 1,0 -20,0
-                           M58,42 a10,10 0 1,0 20,0 a10,10 0 1,0 -20,0" />
+                           M58,42 a10,10 0 1,0 20,0 a10,10 0 1,0 -20,0
+                           M40,62 a6,2.2 0 1,0 12,0 a6,2.2 0 1,0 -12,0
+                           M56,62 a6,2.2 0 1,0 12,0 a6,2.2 0 1,0 -12,0
+                           M51.5,72 a2.5,2.5 0 1,0 5,0 a2.5,2.5 0 1,0 -5,0" />
 </vector>
