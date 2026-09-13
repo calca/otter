@@ -27,6 +27,8 @@
     <string name="hint_partner_name">Il tuo nome (opzionale)</string>
     <string name="hint_new_password">Nuova password</string>
     <string name="hint_confirm_password">Conferma password</string>
+    <string name="show_password">Mostra password</string>
+    <string name="hide_password">Nascondi password</string>
     <string name="save_password">Salva password</string>
     <string name="password_too_short">La password deve avere almeno 4 caratteri</string>
     <string name="passwords_dont_match">Le due password non coincidono</string>

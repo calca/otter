@@ -31,10 +31,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -120,25 +117,19 @@ fun OnboardingScreen(
                             .padding(bottom = 10.dp)
                     )
 
-                    OutlinedTextField(
+                    PasswordOutlinedTextField(
                         value = password,
                         onValueChange = { password = it },
-                        label = { Text(stringResource(R.string.hint_new_password)) },
-                        singleLine = true,
-                        visualTransformation = PasswordVisualTransformation(),
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+                        label = stringResource(R.string.hint_new_password),
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(bottom = 10.dp)
                     )
 
-                    OutlinedTextField(
+                    PasswordOutlinedTextField(
                         value = passwordConfirm,
                         onValueChange = { passwordConfirm = it },
-                        label = { Text(stringResource(R.string.hint_confirm_password)) },
-                        singleLine = true,
-                        visualTransformation = PasswordVisualTransformation(),
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+                        label = stringResource(R.string.hint_confirm_password),
                         modifier = Modifier.fillMaxWidth()
                     )
 

@@ -9,6 +9,7 @@
 | `PasswordManager.kt` | Password hashing, storage (`EncryptedSharedPreferences`), verification |
 | `LockoutPolicy.kt` | Pure rate-limiting state machine (no Context/Keystore dependency) |
 | `ui/screens/CalmBackground.kt` | `Modifier.calmBackground()` — the same light `primary`-tinted background applied to `MainScreen.kt`'s root `Column`, applied here too; see `home-and-settings/design.md`'s "Tinted background" for why it's a low-alpha gradient and not `primary` as a solid fill |
+| `ui/screens/PasswordOutlinedTextField.kt` | Shared password `OutlinedTextField` with a show/hide toggle — see "Show/hide password" below |
 
 ## Flow
 
@@ -32,6 +33,42 @@ screen that depended on state which could change while the Activity was
 backgrounded. `OnboardingScreen` now takes only `passwordManager` and
 `onFinished` — no `resumeSignal`, no permission-check lambdas — and
 `OnboardingActivity` has no `onResume()` override at all.
+
+## Show/hide password: `PasswordOutlinedTextField`
+
+Every password field in the app (this wizard's new-password/confirm pair,
+`ChangePasswordScreen`'s current/new/confirm trio, and
+`PasswordVerifyDialog`'s single field — see
+`session-history-and-stats/design.md` and
+`app-blocking-and-home-lock/design.md` for that dialog's own history) went
+through a single `OutlinedTextField` + `PasswordVisualTransformation()`
+each, independently, until a shared `PasswordOutlinedTextField` composable
+replaced all six call sites at once, on request ("l'occhiolino per fare
+vedere la password").
+
+- **The eye glyph is hand-drawn via `Canvas`** (an almond outline + pupil
+  dot, plus a diagonal strike-through when hidden), not
+  `Icons.Filled.Visibility`/`VisibilityOff` — those two live only in
+  `material-icons-extended`, an artifact `app/build.gradle.kts`
+  deliberately doesn't include (only the much smaller `material-icons-core`
+  is a dependency, and it doesn't have this pair). Adding the extended
+  artifact for two glyphs wasn't judged worth its size; drawing them by
+  hand instead matches the mascot marks' own established convention
+  (`ui/mascot/OtterMarks.kt`) of small Canvas-drawn shapes over pulling in
+  more icons.
+- **`passwordVisible` (`mutableStateOf(false)`) is internal to the
+  composable**, not hoisted by any caller — same reasoning as
+  `PasswordVerifyDialog`'s own internal state (see its doc comment):
+  whichever screen embeds this field doesn't need to know or manage
+  whether it's currently shown in clear text.
+- The toggle's `IconButton` carries a `Modifier.semantics { contentDescription = ... }`
+  (`show_password`/`hide_password`, swapping with state) for accessibility,
+  since the hand-drawn `Canvas` icon has no built-in semantics of its own
+  the way `Icon(imageVector = ...)` would.
+- All six call sites kept their existing `enabled`/`modifier` per-field
+  behavior (e.g. `ChangePasswordScreen`'s current-password field disables
+  during lockout) — `PasswordOutlinedTextField` accepts both as parameters,
+  same shape as a plain `OutlinedTextField` would.
 
 ## Password hashing
 

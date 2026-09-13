@@ -7,11 +7,9 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -22,8 +20,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import com.calmotter.app.PasswordManager
 import com.calmotter.app.R
@@ -83,38 +79,29 @@ fun ChangePasswordScreen(
             modifier = Modifier.padding(bottom = 24.dp)
         )
 
-        OutlinedTextField(
+        PasswordOutlinedTextField(
             value = current,
             onValueChange = { current = it },
-            label = { Text(stringResource(R.string.hint_current_password)) },
+            label = stringResource(R.string.hint_current_password),
             enabled = !isLockedOut,
-            singleLine = true,
-            visualTransformation = PasswordVisualTransformation(),
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(bottom = 16.dp)
         )
 
-        OutlinedTextField(
+        PasswordOutlinedTextField(
             value = new1,
             onValueChange = { new1 = it },
-            label = { Text(stringResource(R.string.hint_new_password)) },
-            singleLine = true,
-            visualTransformation = PasswordVisualTransformation(),
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+            label = stringResource(R.string.hint_new_password),
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(bottom = 16.dp)
         )
 
-        OutlinedTextField(
+        PasswordOutlinedTextField(
             value = new2,
             onValueChange = { new2 = it },
-            label = { Text(stringResource(R.string.hint_confirm_password)) },
-            singleLine = true,
-            visualTransformation = PasswordVisualTransformation(),
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+            label = stringResource(R.string.hint_confirm_password),
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(bottom = 24.dp)
