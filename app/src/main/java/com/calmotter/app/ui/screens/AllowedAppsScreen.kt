@@ -20,6 +20,8 @@ import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Checkbox
+import androidx.compose.material3.CheckboxColors
+import androidx.compose.material3.CheckboxDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -176,10 +178,19 @@ private fun AppRow(
             .padding(horizontal = 12.dp, vertical = 4.dp),
         shape = RoundedCornerShape(12.dp),
         colors = CardDefaults.cardColors(
+            // Tinta di primary anche per le righe non consentite, non
+            // colorScheme.surface: nella palette chiara surface COINCIDE con
+            // background (vedi CalmOtterTheme.kt), quindi una card "plain
+            // surface" è visivamente indistinguibile dallo sfondo pagina —
+            // ogni riga sembrava fluttuare senza contorno. Due intensità
+            // diverse di primary bastano a restare leggibili in entrambi i
+            // temi mantenendo lo stesso "ingrediente" delle card di Settings
+            // (vedi calmSwitchColors()/PermissionStatusCard in
+            // SettingsScreen.kt).
             containerColor = if (item.isAllowed) {
-                MaterialTheme.colorScheme.primary.copy(alpha = 0.08f)
+                MaterialTheme.colorScheme.primary.copy(alpha = 0.12f)
             } else {
-                MaterialTheme.colorScheme.surface
+                MaterialTheme.colorScheme.primary.copy(alpha = 0.04f)
             }
         ),
         elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
@@ -212,7 +223,23 @@ private fun AppRow(
                 // nell'item XML originale) — riflette soltanto lo stato, il tap
                 // è gestito dall'intera riga tramite Card(onClick = ...) sopra.
                 onCheckedChange = null,
+                colors = calmCheckboxColors(),
             )
         }
     }
 }
+
+/**
+ * Colori della Checkbox ristretti ai ruoli personalizzati per palette in
+ * CalmOtterTheme.kt: CheckboxDefaults.colors() di default userebbe
+ * onSurfaceVariant per il bordo/segno non selezionato, un ruolo NON
+ * personalizzato che resta fisso al grigio-viola di base di Material3 a
+ * prescindere dalla palette scelta — la stessa "trappola" già documentata
+ * per Switch in SettingsScreen.kt/calmSwitchColors().
+ */
+@Composable
+private fun calmCheckboxColors(): CheckboxColors = CheckboxDefaults.colors(
+    checkedColor = MaterialTheme.colorScheme.primary,
+    checkmarkColor = MaterialTheme.colorScheme.onPrimary,
+    uncheckedColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
+)
