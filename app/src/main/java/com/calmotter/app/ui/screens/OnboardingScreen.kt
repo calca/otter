@@ -30,6 +30,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
@@ -269,7 +272,7 @@ private fun StepBody(
         modifier = Modifier.padding(bottom = 16.dp)
     )
     Text(
-        text = stringResource(bodyRes),
+        text = boldAnnotatedString(stringResource(bodyRes)),
         color = MaterialTheme.colorScheme.onBackground,
         textAlign = TextAlign.Center,
         fontSize = 16.sp,
@@ -277,4 +280,37 @@ private fun StepBody(
             .fillMaxWidth()
             .padding(bottom = bodyBottomPadding)
     )
+}
+
+/**
+ * Evidenzia in grassetto il testo racchiuso tra <b> e </b> in una string
+ * resource (scritti come &lt;b&gt;/&lt;/b&gt; in strings.xml così che
+ * getString() li restituisca come testo letterale invece di scartarli, come
+ * farebbe con i tag di styling nativi di Android). Basta questo parsing
+ * minimale — non serve un parser HTML completo — per evidenziare una singola
+ * frase chiave per step di onboarding.
+ */
+private fun boldAnnotatedString(text: String): AnnotatedString {
+    val openTag = "<b>"
+    val closeTag = "</b>"
+    return buildAnnotatedString {
+        var index = 0
+        while (index < text.length) {
+            val openIndex = text.indexOf(openTag, index)
+            if (openIndex == -1) {
+                append(text.substring(index))
+                break
+            }
+            append(text.substring(index, openIndex))
+            val closeIndex = text.indexOf(closeTag, openIndex)
+            if (closeIndex == -1) {
+                append(text.substring(openIndex + openTag.length))
+                break
+            }
+            pushStyle(SpanStyle(fontWeight = FontWeight.Bold))
+            append(text.substring(openIndex + openTag.length, closeIndex))
+            pop()
+            index = closeIndex + closeTag.length
+        }
+    }
 }

@@ -127,6 +127,33 @@ problem and still fit comfortably without scrolling), so `StepBody`'s
 shared 24dp illustration-to-title spacer was left alone; only this step's
 own values were tightened.
 
+## Bold emphasis in step bodies: `boldAnnotatedString`
+
+Each step body highlights exactly one key phrase in bold (e.g. "the rest
+can wait" on the final step) rather than reading as a flat block of text.
+The obvious API for this — `androidx.compose.ui.text.AnnotatedString.fromHtml()`
+(ui-text 1.6.0+) — was tried first and rejected: it failed to resolve at
+compile time (`Unresolved reference 'fromHtml'`) against this project's
+Kotlin toolchain even though the symbol is present and public in the
+resolved `ui-text-android:1.13.0-alpha03` classpath (verified with
+`javap`) — almost certainly a mangling/metadata mismatch specific to this
+alpha BOM, not a real absence of the API. Rather than chase an alpha
+dependency's toolchain quirk, `StepBody` uses a small hand-rolled
+`boldAnnotatedString(text: String): AnnotatedString` (private, bottom of
+`OnboardingScreen.kt`) that scans for literal `<b>`/`</b>` markers and
+wraps the enclosed span in `SpanStyle(fontWeight = FontWeight.Bold)` via
+`buildAnnotatedString`/`pushStyle`/`pop` — same "small hand-rolled shape
+instead of a bigger dependency" convention as the hand-drawn eye icon
+above.
+
+The markers themselves live in `strings.xml`/`values-en/strings.xml` as
+`&lt;b&gt;`/`&lt;/b&gt;` (HTML-entity-escaped), **not** bare `<b>` — bare
+tags are Android's own native styling-span syntax, which `getString()`
+(what `stringResource()` calls) silently strips before the string ever
+reaches Kotlin. Escaping them makes `getString()` return the literal
+characters `<b>...</b>` as plain text, which `boldAnnotatedString` then
+parses itself.
+
 ## Lockout state machine
 
 `LockoutPolicy` is a pure `object` operating on `State(failedAttempts,

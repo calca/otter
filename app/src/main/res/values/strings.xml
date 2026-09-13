@@ -140,11 +140,11 @@
 
     <!-- Onboarding -->
     <string name="onb1_title">Benvenuto in Calm Otter</string>
-    <string name="onb1_body">Calm Otter ti aiuta a prenderti pause vere dal telefono: scegli per quanto tempo, e per quella durata tutto il resto si ferma con te — il telefono resta sempre raggiungibile, insieme a qualche altra app che scegli di tenere a portata di mano.\n\nLa pausa finisce da sola allo scadere del tempo, oppure prima se una persona di fiducia inserisce la password: è un patto tra te e chi ti vuole bene.</string>
+    <string name="onb1_body">Calm Otter ti aiuta a prenderti pause vere dal telefono: scegli per quanto tempo, e per quella durata tutto si ferma con te — restano raggiungibili &lt;b&gt;il telefono e poche app che scegli tu&lt;/b&gt;.\n\nLa pausa finisce da sola a tempo scaduto, o prima se una persona di fiducia inserisce la password: &lt;b&gt;un patto tra te e chi ti vuole bene&lt;/b&gt;.</string>
     <string name="onb4_title">Scegli la password insieme</string>
-    <string name="onb4_body">Passa il telefono alla persona di fiducia: sceglierà lei la password, tenendola solo per sé — sarà l\'unica in grado di interrompere una pausa prima del tempo. Non serve che tu la conosca: è proprio questo che rende il patto un gesto di fiducia.</string>
+    <string name="onb4_body">Passa il telefono alla persona di fiducia: sceglierà lei la password, tenendola solo per sé — sarà l\'unica in grado di interrompere una pausa prima del tempo. Non serve che tu la conosca: è proprio questo che rende il patto &lt;b&gt;un gesto di fiducia&lt;/b&gt;.</string>
     <string name="onb5_title">Tutto pronto</string>
-    <string name="onb5_body">Calm Otter è pronto.\n\nQuando sentirai il bisogno di una pausa, basterà aprire l\'app, scegliere quanto tempo prenderti — il resto può aspettare.\n\nPrenditi cura di te.</string>
+    <string name="onb5_body">Calm Otter è pronto.\n\nQuando sentirai il bisogno di una pausa, basterà aprire l\'app, scegliere quanto tempo prenderti — &lt;b&gt;il resto può aspettare&lt;/b&gt;.\n\nPrenditi cura di te.</string>
     <string name="onb_next">Avanti</string>
     <string name="onb_back">Indietro</string>
     <string name="onb_finish">Iniziamo</string>
