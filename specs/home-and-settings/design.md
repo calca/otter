@@ -196,13 +196,21 @@ with two separate, more targeted pieces of UI.
   mirrors onboarding step 3's wording but is its own string, not extracted
   from `onb3_body` — onboarding's combined multi-paragraph string was left
   untouched to avoid any risk to that separately-tested flow. `AlertDialog`
-  itself is left with its default M3 container color
+  was originally left with its default M3 container color
   (`AlertDialogDefaults.containerColor`, effectively `surfaceContainerHigh`)
-  — that role isn't customized per palette either (same family as the
-  `surfaceVariant` trap in CLAUDE.md), but a dialog surface reading as a
-  fairly neutral system-chrome tone is normal even in most themed M3 apps,
-  unlike a hand-drawn mascot mark; only the row content is a place this
-  design chooses `onSurface` deliberately, not left to a default.
+  — reasoned at the time as an acceptable "neutral system-chrome tone",
+  unlike a hand-drawn mascot mark. **This turned out wrong once more
+  dialogs existed**: with only this one dialog in the app, the uncustomized
+  purple/pink M3 default was easy to read as "generic system chrome"; once
+  `PasswordVerifyDialog`/`WeeklyGoalDialog`/`ClearHistoryConfirmDialog`
+  existed too, the same fixed hue on *every* dialog regardless of
+  Sage/Lavender/Terracotta became visible as a real mismatch and was
+  reported directly. Fixed in `CalmOtterTheme.kt` by customizing
+  `surfaceContainerHigh` per palette after all (see its own doc comment
+  for the up-to-date list of which roles are customized — `surfaceVariant`/
+  `primaryContainer` still aren't, per CLAUDE.md). Only the row
+  content remains a place this design chooses `onSurface` deliberately,
+  same as before.
   `MainScreen`'s `onStart` lambda passed into `PondScene` is what decides
   which behavior a tap gets: `if (BuildConfig.DEBUG || (accessibilityOk &&
   dndOk)) startSession() else showPermissionDialog = true` — the
