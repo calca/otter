@@ -54,6 +54,39 @@ class SessionManagerTest {
     }
 
     /**
+     * L'icona di Cronologia (vedi HistoryScreen.kt/OtterHistoryIcon) dipende
+     * interamente da questo campo arrivando correttamente fino alla riga
+     * salvata — prima di questo test non c'era nessuna copertura automatica
+     * sul round-trip isGroupSession, solo verifica manuale su device.
+     */
+    @Test
+    fun groupSessionFlagIsPersistedThroughToHistory() {
+        val manager = SessionManager.getInstance(context)
+
+        manager.startSession(45, isGroupSession = true)
+        assertTrue(manager.isGroupSession())
+
+        manager.endSession()
+
+        val history = SessionHistoryManager.getInstance(context).getAll()
+        assertEquals(1, history.size)
+        assertTrue(history[0].isGroupSession)
+    }
+
+    @Test
+    fun soloSessionIsNotFlaggedAsGroup() {
+        val manager = SessionManager.getInstance(context)
+
+        manager.startSession(45)
+        assertFalse(manager.isGroupSession())
+
+        manager.endSession()
+
+        val history = SessionHistoryManager.getInstance(context).getAll()
+        assertFalse(history[0].isGroupSession)
+    }
+
+    /**
      * Rete di sicurezza: se il tempo di fine è già passato (l'allarme di
      * sistema non è scattato), isSessionActive() si auto-chiude.
      *
