@@ -363,16 +363,7 @@ private fun PondScene(
                     ProgressRing(fraction = fraction, modifier = Modifier.size(176.dp))
                 }
 
-                val floatTransition = rememberInfiniteTransition(label = "otterFloat")
-                val floatOffset by floatTransition.animateFloat(
-                    initialValue = -5f,
-                    targetValue = 5f,
-                    animationSpec = infiniteRepeatable(
-                        animation = tween(if (sessionActive) 5200 else 3200, easing = FastOutSlowInEasing),
-                        repeatMode = RepeatMode.Reverse,
-                    ),
-                    label = "otterFloatY",
-                )
+                val floatOffset = rememberOtterFloatOffset(periodMillis = if (sessionActive) 5200 else 3200)
 
                 Box(
                     modifier = Modifier
@@ -452,13 +443,37 @@ private fun AmbientRipples(modifier: Modifier = Modifier) {
 }
 
 /**
+ * Offset verticale animato per l'effetto "otter che fluttua" — condiviso fra
+ * [PondScene] (Home) e `BlockScreen`, così la mascotte fluttua allo stesso
+ * identico modo ovunque compaia con l'anello di avanzamento intorno, non solo
+ * qui. Non `private`: unica ragione per cui è definita in questo file e non
+ * altrove è che [PondScene] è stata la prima a usarla.
+ */
+@Composable
+fun rememberOtterFloatOffset(periodMillis: Int): Float {
+    val floatTransition = rememberInfiniteTransition(label = "otterFloat")
+    val floatOffset by floatTransition.animateFloat(
+        initialValue = -5f,
+        targetValue = 5f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(periodMillis, easing = FastOutSlowInEasing),
+            repeatMode = RepeatMode.Reverse,
+        ),
+        label = "otterFloatY",
+    )
+    return floatOffset
+}
+
+/**
  * Anello di avanzamento della sessione attiva: l'unico punto della Home
  * dove "primary" è usato a piena intensità (non a bassa opacità come nel
  * resto della scena), perché qui porta un'informazione reale — quanto è
- * passato — e non è decorazione.
+ * passato — e non è decorazione. Non `private`: condiviso anche da
+ * `BlockScreen`, che dopo il redesign mostra lo stesso identico
+ * anello+otter fluttuante della Home invece di un badge statico.
  */
 @Composable
-private fun ProgressRing(fraction: Float, modifier: Modifier = Modifier) {
+fun ProgressRing(fraction: Float, modifier: Modifier = Modifier) {
     val trackColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.12f)
     val progressColor = MaterialTheme.colorScheme.primary
 

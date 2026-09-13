@@ -419,9 +419,11 @@ never offered a way to launch one.
   swallowing a null/failed intent silently (package became unlaunchable
   between list-load and tap) rather than surfacing an error — the user
   stays on `BlockScreen`, same as if they'd tapped nothing.
-- Placed in `BlockScreen` *after* the countdown/phrase, as its own labeled
-  row — originally below a separate always-visible password field and
-  Unlock button, since folded into the row itself (see next section).
+- Placed in `BlockScreen` *after* the countdown/phrase, as its own row —
+  originally below a separate always-visible password field and Unlock
+  button, since folded into the row itself (see next section). The row
+  used to carry a caption above it; removed in a later text-reduction pass,
+  see "BlockScreen redesign" below.
 
 ## Unlock moved into the actions row, behind a dialog
 
@@ -430,8 +432,11 @@ Originally `BlockScreen` had an always-visible `OutlinedTextField` +
 any) below it. Reworked so Unlock lives in the *same* row as the allowed
 apps, **last** (rightmost) rather than first — the allowed-app badges are
 listed first, Unlock always trails them — as a solid-`primary`-badge lock
-icon, the same circular badge construction as `PausePawsMark`/`PactPawsMark`
-(filled `primary` circle, `onPrimary` content) and now also the same
+icon, the same circular badge construction as `PactPawsMark` (filled
+`primary` circle, `onPrimary` content; `PausePawsMark`, which originally
+shared this same construction and appeared above the row on `BlockScreen`
+itself, has since been removed — see "BlockScreen redesign" below and
+`mascot-marks/design.md`) and now also the same
 construction the allowed-app initial badges use (see above) — the whole
 row reads as one consistent set of round action badges, distinguished by
 their content (a lock glyph vs. 2 letters), not by a different visual
@@ -457,7 +462,49 @@ permanently on-screen.
   callback on success — just relocated, plus `showUnlockDialog = false`
   on success so the dialog doesn't linger visible during the
   forward-to-launcher/finish transition.
-- The row's caption (`block_actions_label` / plain `unlock` string when
-  `allowedApps` is empty) and the row itself are always shown — unlike the
-  old inline Unlock button+field, which were also always shown, this isn't
-  a behavior change, just a relocation into a more compact control.
+- The row itself is always shown, unlike the old inline Unlock button+field
+  which was also always shown — not a behavior change, just a relocation
+  into a more compact control. Its caption (`block_actions_label` / plain
+  `unlock` string when `allowedApps` is empty) was removed later — see
+  "BlockScreen redesign" below.
+
+## BlockScreen redesign: Home-styled ring + floating otter, less text
+
+On request ("prendi ispirazione dalla home, vorrei otter fluttuante come
+prima, riduci le scritte inutili"), `BlockScreen` was redesigned to look
+and read like `MainScreen`'s "Living Pond" during an active session,
+instead of having its own distinct static badge and a paragraph of rules
+text repeated every time it appears:
+
+- **`PausePawsMark` (the static badge above the old title) is gone**,
+  replaced by the exact same `ProgressRing` + floating `OtterFloatMark`
+  `PondScene` draws on the Home screen during a session — same code, not a
+  lookalike. `ProgressRing` and the floating-offset animation (previously
+  private/inline inside `PondScene`) are now `rememberOtterFloatOffset(periodMillis)`
+  and a non-`private` `ProgressRing`, both still declared in `MainScreen.kt`
+  — `BlockScreen.kt` calls them directly, same package
+  (`ui/screens`), no import needed. See `mascot-marks/design.md`'s
+  "Replacing `PausePawsMark`" for the full mark-level history.
+- **`BlockScreen` now tracks raw milliseconds, not just the formatted
+  countdown string**: `totalMillis` (read once via `remember`, doesn't
+  change during a session) and `remainingMillisState` (updated on the same
+  once-a-minute tick that already updated the display string), so it can
+  compute the ring's fill fraction the same way `PondScene` does
+  (`1f - remaining/total`).
+- **`block_title` ("Pause in progress"), `block_message` (the full
+  rules paragraph), and `block_actions_label` (the caption above the
+  allowed-apps row) are all gone** — removed as repeated, non-essential
+  text now that the ring/otter/lock-icon visual language, the countdown
+  phrase, and the optional reflective quote already carry the meaning.
+  `home_active_label` ("Paused"/"In pausa") is reused in its place, the
+  same string `PondScene` shows for the same state, rather than adding a
+  `BlockScreen`-specific one.
+- **The reflective phrase and the `CalmCountdown`-generated countdown
+  phrase are both kept** — neither is "repeated boilerplate text": the
+  countdown phrase is the one piece of actually-changing information on
+  the screen, and the reflective quote is the one bit of emotional value
+  the "soft lock" is meant to add, not mechanical explanation of the rules.
+- **A stray emoji in `CalmCountdown.kt`'s `nearEndPhrases`** ("Quasi
+  finita" had a trailing emoji) was found and removed while touching this
+  exact file for the fraction calculation above — unrelated to the visual
+  redesign itself, just noticed in passing.

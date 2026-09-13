@@ -11,7 +11,7 @@ package com.calmotter.app
 object CalmCountdown {
 
     private val nearEndPhrases = listOf(
-        "Quasi finita \uD83C\uDF43",
+        "Quasi finita",
         "Ancora un momento…",
         "Tra poco sei libero",
         "Quasi ci sei",

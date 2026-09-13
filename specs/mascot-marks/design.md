@@ -9,7 +9,7 @@
 | `res/drawable/ic_launcher_monochrome.xml` | Head+ears silhouette only, no eyes/nose — themed/Material You icon (Android 13+); simplified further than the color foreground on purpose |
 | `res/drawable/ic_otter_widget.xml` | Same silhouette as the foreground, tones inverted (dark head, light details) for the widget's light background — see below |
 | `res/mipmap-anydpi-v26/ic_launcher.xml` + `ic_launcher_round.xml` | `<adaptive-icon>` wiring background+foreground+monochrome. minSdk is 26 (the API level adaptive icons shipped in), so there's no legacy PNG fallback to maintain |
-| `ui/mascot/OtterMarks.kt` | `OtterFloatMark()`, `PausePawsMark()`, `PactPawsMark()`, `SprigMark()` — all four drawn live via Compose `Canvas`, since none of them ever appear outside a Compose screen. `OtterFloatMark` is used in both `MainScreen.kt` (Home, "Living Pond") and `OnboardingScreen.kt` (step 1) — the same composable, not two copies |
+| `ui/mascot/OtterMarks.kt` | `OtterFloatMark()`, `PactPawsMark()`, `SprigMark()` — drawn live via Compose `Canvas`, since none of them ever appear outside a Compose screen. `OtterFloatMark` is used in `MainScreen.kt` (Home, "Living Pond"), `OnboardingScreen.kt` (step 1), and now `BlockScreen.kt` too — the same composable, not separate copies. A fourth mark, `PausePawsMark()`, used to live here (see "Replacing PausePawsMark" below) — removed once nothing referenced it any more |
 
 ## Why one mark is a vector drawable and the rest are Compose `Canvas`
 
@@ -17,8 +17,9 @@
 consumers aren't Compose at all: the adaptive-icon XML the launcher reads,
 and the Glance widget (`PauseWidgetProvider.kt`), which renders via
 `Image(provider = ImageProvider(...))` rather than arbitrary drawing calls.
-`OtterFloatMark` and `PausePawsMark` only ever appear inside a screen this
-app already renders with Compose, so they're plain `Canvas` draw calls —
+`OtterFloatMark` (and the other Canvas-drawn marks) only ever appear inside
+a screen this app already renders with Compose, so they're plain `Canvas`
+draw calls —
 no path-data hand-conversion, and (unlike the vector drawables) they can
 read `MaterialTheme.colorScheme` and stay palette-adaptive.
 
@@ -78,8 +79,9 @@ primary.copy(alpha = 0.32f)` — two densities of the one role that *is*
 customized per palette. `OtterFloatMark` (which absorbed this illustration's
 onboarding job — see requirements.md's "Superseded marks") uses the same
 recipe (`fur = primary.copy(alpha = 0.32f)`, `nose = primary` at full
-strength). `PausePawsMark` was written against `primary`/`onPrimary` from
-the start and never had this problem. If you add another mark, stay inside
+strength). The now-removed `PausePawsMark` was written against
+`primary`/`onPrimary` from the start and never had this problem — worth
+remembering if a future mark is written the same way. If you add another mark, stay inside
 the customized set (`specs/multi-theme-system/design.md` lists the two
 "two parallel systems" this project juggles) or add the new role
 explicitly to every `*Light`/`*Dark` scheme in `CalmOtterTheme.kt` first.
@@ -180,6 +182,50 @@ string edits:
   (placeholder) / `Image` (Glance), so the placeholder and the real
   widget content now agree, and `🦦` was replaced the same way in the
   placeholder using the pre-existing `ic_otter_widget.xml`.
+
+**A stray emoji missed by that pass**: `CalmCountdown.kt`'s
+`nearEndPhrases` list (the countdown's own varied under-5-minutes phrases,
+unrelated to `strings.xml`/`SessionForegroundService.kt` above — a third
+hardcoded Kotlin string list this app had) still had one trailing emoji on
+"Quasi finita" — found and removed while touching this exact file for the
+`BlockScreen` redesign below, not on its own pass.
+
+## Replacing `PausePawsMark`: `BlockScreen` now reuses `OtterFloatMark`
+
+`PausePawsMark` ("Paws Together" — two otter paws holding each other,
+representing real sea-otter sleeping behavior) was `BlockScreen`'s only
+mark, drawn as a static badge above the title/message text. Removed
+entirely in a `BlockScreen` redesign, on request ("prendi ispirazione dalla
+home, vorrei otter fluttuante come prima, riduci le scritte inutili"):
+`BlockScreen` now shows the exact same `ProgressRing` + floating
+`OtterFloatMark` combination `MainScreen`'s `PondScene` shows during an
+active session, instead of its own distinct mark — one visual language for
+"a session is active" everywhere it can be encountered, not a different
+static badge specific to the block screens. `ProgressRing` and the
+floating-offset animation (previously private, inline code inside
+`PondScene`) were both lifted out to non-`private` top-level declarations
+in `MainScreen.kt` — `rememberOtterFloatOffset(periodMillis)` for the
+animation, `ProgressRing` unchanged otherwise — so `BlockScreen.kt` (same
+package, `ui/screens`) can call them directly without an import. This also
+meant `BlockScreen` needed to start tracking raw remaining/total
+milliseconds (`totalMillis`, `remainingMillisState`), not just the already-
+formatted countdown string it read before, to compute the ring's fill
+fraction the same way `PondScene` does.
+
+`PausePawsMark` had exactly one caller left afterward (itself), so it was
+deleted outright rather than left orphaned — see `PactPawsMark`'s doc
+comment in `OtterMarks.kt`, which used to link to it as "the same badge
+construction", now describing that construction inline instead since the
+mark it referenced no longer exists.
+
+The same pass also removed `BlockScreen`'s `block_title`/`block_message`/
+`block_actions_label` strings ("Pause in progress", the full paragraph
+explaining the block's rules, and the caption above the allowed-apps row)
+— on request, to cut text repeated every time the screen appears when the
+visual language (ring, otter, lock icon) and the existing reflective
+phrase/countdown already carry the meaning. `home_active_label` ("Paused"),
+already used by `PondScene` for the same state, is reused here instead of
+introducing a `BlockScreen`-specific label.
 
 ## Why the widget needed its own drawable
 

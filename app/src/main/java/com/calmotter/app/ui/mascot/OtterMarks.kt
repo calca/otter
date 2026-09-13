@@ -23,7 +23,7 @@ import androidx.compose.ui.unit.dp
  * referenziata anche da un adaptive-icon XML e dal widget Glance, non
  * solo da Compose).
  *
- * Entrambe disegnano con Canvas usando i ruoli colore di MaterialTheme
+ * Tutte disegnano con Canvas usando i ruoli colore di MaterialTheme
  * (non hex fissi come nel mockup di design): seguono così automaticamente
  * la palette scelta dall'utente (Sage/Lavender/Terracotta) e il tema
  * chiaro/scuro, invece di essere fisse su un'unica combinazione.
@@ -34,58 +34,6 @@ import androidx.compose.ui.unit.dp
  * stessa mascotte della Home, così la primissima cosa che l'utente vede è
  * già l'otter che ritroverà a ogni apertura dell'app.
  */
-
-/**
- * "Paws Together": le due zampe che si tengono (comportamento reale delle
- * lontre marine mentre dormono, per non allontanarsi alla deriva) disegnate
- * come due barre arrotondate — leggibili anche come simbolo ⏸. Usata sulla
- * schermata di blocco, l'unico punto dell'app dove "in pausa" è letteralmente
- * il contenuto dello schermo.
- */
-@Composable
-fun PausePawsMark(modifier: Modifier = Modifier, markSize: Dp = 72.dp) {
-    val bg = MaterialTheme.colorScheme.primary
-    val face = MaterialTheme.colorScheme.onPrimary
-    val ink = MaterialTheme.colorScheme.primary
-
-    Canvas(modifier = modifier.size(markSize)) {
-        val s = size.width / 240f
-        fun v(value: Float) = value * s
-
-        drawCircle(color = bg, radius = size.width / 2f, center = center)
-
-        drawCircle(color = face, radius = v(17f), center = Offset(v(92f), v(64f)))
-        drawCircle(color = face, radius = v(17f), center = Offset(v(148f), v(64f)))
-        drawCircle(color = face, radius = v(46f), center = Offset(v(120f), v(92f)))
-
-        val leftEye = Path().apply {
-            moveTo(v(96f), v(91f))
-            quadraticTo(v(104f), v(97f), v(112f), v(91f))
-        }
-        val rightEye = Path().apply {
-            moveTo(v(128f), v(91f))
-            quadraticTo(v(136f), v(97f), v(144f), v(91f))
-        }
-        drawPath(leftEye, color = ink, style = Stroke(width = v(5f), cap = StrokeCap.Round))
-        drawPath(rightEye, color = ink, style = Stroke(width = v(5f), cap = StrokeCap.Round))
-        drawOval(color = ink, topLeft = Offset(v(115f), v(102.5f)), size = Size(v(10f), v(7f)))
-
-        drawRoundRect(
-            color = face,
-            topLeft = Offset(v(98f), v(140f)),
-            size = Size(v(18f), v(58f)),
-            cornerRadius = CornerRadius(v(9f), v(9f))
-        )
-        drawRoundRect(
-            color = face,
-            topLeft = Offset(v(124f), v(140f)),
-            size = Size(v(18f), v(58f)),
-            cornerRadius = CornerRadius(v(9f), v(9f))
-        )
-        drawCircle(color = bg, radius = v(2.6f), center = Offset(v(107f), v(150f)))
-        drawCircle(color = bg, radius = v(2.6f), center = Offset(v(133f), v(150f)))
-    }
-}
 
 /**
  * Lontra vista dall'alto, a galla: il pulsante principale della Home
@@ -131,13 +79,16 @@ fun OtterFloatMark(modifier: Modifier = Modifier, markSize: Dp = 96.dp) {
 }
 
 /**
- * "Pact Paws": le due zampe di [PausePawsMark], stesso badge circolare,
- * ma inclinate l'una verso l'altra come una stretta di mano invece che
- * verticali e affiancate — usata nello step "Scegli la password insieme"
- * dell'onboarding al posto dell'emoji 🔒 di sistema, per legare l'icona al
- * significato di quello step (un patto tra due persone) invece che a un
- * generico simbolo di sicurezza. Vedi specs/mascot-marks/ per il confronto
- * con le altre proposte scartate.
+ * "Pact Paws": due zampe in un badge circolare pieno (`primary` + contenuto
+ * `onPrimary`), inclinate l'una verso l'altra come una stretta di mano —
+ * originariamente la stessa costruzione della mascotte "Paws Together" di
+ * `BlockScreen` (rimossa dal redesign di quella schermata, che ora riusa
+ * [OtterFloatMark]+l'anello di avanzamento della Home), solo ruotate.
+ * Usata nello step "Scegli la password insieme" dell'onboarding al posto
+ * dell'emoji 🔒 di sistema, per legare l'icona al significato di quello
+ * step (un patto tra due persone) invece che a un generico simbolo di
+ * sicurezza. Vedi specs/mascot-marks/ per il confronto con le altre
+ * proposte scartate.
  */
 @Composable
 fun PactPawsMark(modifier: Modifier = Modifier, markSize: Dp = 96.dp) {

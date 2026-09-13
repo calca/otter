@@ -78,7 +78,7 @@ brand.
    (Glance widget content already isn't theme-adaptive today, see
    `home-screen-widget/design.md`).
 
-## User Story 4: Block-screen mark
+## User Story 4: Block-screen mark (superseded — see "Superseded marks" below)
 
 As the person seeing the block screen, I want the one screen where
 "paused" is literally what's happening to say so visually, not just in
@@ -93,6 +93,9 @@ text next to a generic countdown.
    palette-adaptive in this app (`primary`, `onPrimary`) — see design.md
    for why the obvious `surfaceVariant`/`primaryContainer` roles are
    unsafe here.
+
+A later `BlockScreen` redesign replaced this mark and its title entirely —
+see "Superseded marks" below and design.md's "Replacing `PausePawsMark`".
 
 ## Out of scope
 
@@ -116,3 +119,13 @@ it, since the next mark added to this file will hit the same traps:
    `OtterFloatMark`'s ears vs. muzzle. Both were fixed by merging same-color
    overlapping shapes into one `Path` per fill color, drawn as a single
    `drawPath` call. See design.md's "One Path per fill color" section.
+
+`PausePawsMark` ("Paws Together", User Story 4 above) is also gone now —
+`BlockScreen` was redesigned to reuse `OtterFloatMark` plus the same
+`ProgressRing` `MainScreen` draws during an active session, instead of its
+own static badge, and the mark had no other caller left once that happened.
+See design.md's "Replacing `PausePawsMark`" for the full reasoning; nothing
+about its construction was wrong (unlike the two marks above, it never hit
+either trap) — it was simply superseded by a decision to make every
+"session active" screen share one visual language rather than each having
+its own.

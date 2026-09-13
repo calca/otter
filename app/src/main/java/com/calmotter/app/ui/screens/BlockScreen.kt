@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.layout.size
@@ -46,7 +47,7 @@ import com.calmotter.app.CalmCountdown
 import com.calmotter.app.PasswordManager
 import com.calmotter.app.R
 import com.calmotter.app.SessionManager
-import com.calmotter.app.ui.mascot.PausePawsMark
+import com.calmotter.app.ui.mascot.OtterFloatMark
 import kotlinx.coroutines.delay
 
 /**
@@ -93,6 +94,13 @@ fun BlockScreen(
     // avviene più sotto nel corpo del Composable.
     var lockoutSecondsRemaining by remember { mutableStateOf<Int?>(null) }
     var remainingText by remember { mutableStateOf("") }
+    // Millisecondi grezzi (non solo il testo già formattato) servono per
+    // l'anello di avanzamento condiviso con la Home — vedi [ProgressRing] in
+    // MainScreen.kt. totalMillis non cambia durante la sessione, letto una
+    // volta sola: questo Composable viene sempre ricomposto da capo quando si
+    // entra in questo stato (vedi MainActivity.enterBlockScreen()).
+    val totalMillis = remember { sessionManager.totalMillis() }
+    var remainingMillisState by remember { mutableStateOf(sessionManager.remainingMillis()) }
     var isLockedOut by remember { mutableStateOf(passwordManager.isLockedOut()) }
 
     // Equivalente Compose del CountDownTimer(remainingMillis, 60_000) usato
@@ -111,6 +119,7 @@ fun BlockScreen(
         }
         while (remaining > 0) {
             remainingText = CalmCountdown.format(remaining)
+            remainingMillisState = remaining
             delay(60_000)
             remaining = sessionManager.remainingMillis()
         }
@@ -147,80 +156,72 @@ fun BlockScreen(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
-        PausePawsMark(modifier = Modifier.padding(bottom = 16.dp))
+        // Stesso anello di avanzamento + otter fluttuante della Home durante
+        // una sessione attiva (vedi PondScene/ProgressRing in MainScreen.kt),
+        // al posto del vecchio badge statico PausePawsMark — stesso
+        // linguaggio visivo ovunque una sessione sia in corso, non solo qui.
+        Box(
+            modifier = Modifier.size(200.dp).padding(bottom = 16.dp),
+            contentAlignment = Alignment.Center,
+        ) {
+            val fraction = if (totalMillis > 0) {
+                (1f - remainingMillisState.toFloat() / totalMillis.toFloat()).coerceIn(0f, 1f)
+            } else {
+                0f
+            }
+            ProgressRing(fraction = fraction, modifier = Modifier.size(176.dp))
+
+            val floatOffset = rememberOtterFloatOffset(periodMillis = 5200)
+            Box(modifier = Modifier.offset(y = floatOffset.dp)) {
+                OtterFloatMark(markSize = 124.dp)
+            }
+        }
 
         Text(
-            text = stringResource(R.string.block_title),
-            color = MaterialTheme.colorScheme.primary,
-            fontSize = 22.sp,
-            fontWeight = FontWeight.Bold,
-            modifier = Modifier.padding(bottom = 8.dp)
+            text = stringResource(R.string.home_active_label),
+            style = MaterialTheme.typography.labelMedium,
+            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
         )
 
         Text(
-            text = stringResource(R.string.block_message),
-            color = MaterialTheme.colorScheme.onSurface,
-            fontSize = 14.sp,
+            text = remainingText,
+            color = MaterialTheme.colorScheme.primary,
+            fontSize = 18.sp,
+            fontWeight = FontWeight.SemiBold,
+            fontStyle = FontStyle.Italic,
             textAlign = TextAlign.Center,
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(bottom = 32.dp)
+                .padding(top = 4.dp, bottom = 28.dp)
         )
 
         if (phraseText != null) {
             Text(
                 text = phraseText,
-                color = MaterialTheme.colorScheme.onSurface,
-                fontSize = 17.sp,
+                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f),
+                fontSize = 16.sp,
                 fontStyle = FontStyle.Italic,
                 textAlign = TextAlign.Center,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(bottom = 32.dp)
+                    .padding(bottom = 28.dp)
             )
         }
-
-        Text(
-            text = remainingText,
-            color = MaterialTheme.colorScheme.primary,
-            fontSize = 20.sp,
-            fontStyle = FontStyle.Italic,
-            textAlign = TextAlign.Center,
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(bottom = 40.dp)
-        )
 
         // Un'unica row di azioni, tutte con lo stesso badge circolare pieno
         // (primary + contenuto onPrimary): le app consentite mostrano le
         // prime 2 lettere del nome al posto di un'icona reale (nessuna
         // icona da caricare/desaturare), e lo sblocco — ultimo a destra,
         // non il primo elemento — apre un dialog con il campo password
-        // invece di tenerlo sempre visibile in pagina. La row resta
-        // comunque compatta anche senza app consentite configurate (il
-        // badge di sblocco è l'unico elemento sempre presente) — vedi
-        // AllowedAppLaunchItems.kt per il telefono sempre incluso/il tetto
-        // di 5 app configurabili, condiviso da tutti e tre i chiamanti.
-        Text(
-            // "Sblocca" da sola quando allowedApps è vuota (nessun'app
-            // consentita configurata oltre al telefono, che risulta anch'esso
-            // assente solo se il dialer di sistema non è risolvibile) — la
-            // frase combinata parlerebbe di un'app da aprire che qui non
-            // esiste.
-            text = if (allowedApps.isNotEmpty()) {
-                stringResource(R.string.block_actions_label)
-            } else {
-                stringResource(R.string.unlock)
-            },
-            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.55f),
-            fontSize = 13.sp,
-            textAlign = TextAlign.Center,
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(top = 40.dp, bottom = 12.dp)
-        )
+        // invece di tenerlo sempre visibile in pagina. Nessuna didascalia
+        // sopra la row (rimossa: il lucchetto e le iniziali già dicono cosa
+        // sono) — resta comunque compatta anche senza app consentite
+        // configurate (il badge di sblocco è l'unico elemento sempre
+        // presente) — vedi AllowedAppLaunchItems.kt per il telefono sempre
+        // incluso/il tetto di 5 app configurabili, condiviso da tutti e tre
+        // i chiamanti.
         Row(
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier.fillMaxWidth().padding(top = 12.dp),
             horizontalArrangement = Arrangement.spacedBy(20.dp, Alignment.CenterHorizontally),
             verticalAlignment = Alignment.CenterVertically,
         ) {
