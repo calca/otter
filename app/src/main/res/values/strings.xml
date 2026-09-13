@@ -68,6 +68,19 @@
         <item>Goditi ancora %1$d minuti</item>
         <item>%1$d minuti di calma</item>
     </string-array>
+    <!-- Sottotitolo della notifica di sessione attiva (SessionForegroundService) —
+         prima una lista Kotlin hardcoded, solo in italiano a prescindere dalla
+         lingua del dispositivo (bug reale: l'unico testo dell'app rimasto fuori
+         da strings.xml). Tono di incoraggiamento, diverso dalle frasi
+         riflessive di BlockScreen/pause_phrases. -->
+    <string-array name="notification_encouragement_phrases">
+        <item>Stai facendo bene</item>
+        <item>Il telefono può aspettare</item>
+        <item>Un respiro alla volta</item>
+        <item>Ce la fai</item>
+        <item>Prenditi cura di te</item>
+        <item>Sei sulla strada giusta</item>
+    </string-array>
     <string name="hint_unlock_password">Password</string>
     <string name="unlock">Sblocca</string>
     <string name="wrong_password">Password errata</string>

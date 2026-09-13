@@ -73,7 +73,7 @@ class SessionForegroundService : Service() {
         } else 0
 
         val contentText = CalmCountdown.format(remaining, this)
-        val subText = notificationSubPhrases.random()
+        val subText = resources.getStringArray(R.array.notification_encouragement_phrases).random()
 
         // Tap sulla notifica → apre MainActivity
         val tapIntent = PendingIntent.getActivity(
@@ -119,16 +119,5 @@ class SessionForegroundService : Service() {
         fun stop(context: Context) {
             context.stopService(Intent(context, SessionForegroundService::class.java))
         }
-
-        // Frasi brevi per il subtext della notifica — tono diverso dal blocco schermo,
-        // più di incoraggiamento che di riflessione
-        private val notificationSubPhrases = listOf(
-            "Stai facendo bene",
-            "Il telefono può aspettare",
-            "Un respiro alla volta",
-            "Ce la fai",
-            "Prenditi cura di te",
-            "Sei sulla strada giusta"
-        )
     }
 }

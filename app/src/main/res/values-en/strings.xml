@@ -68,6 +68,14 @@
         <item>Enjoy %1$d more minutes</item>
         <item>%1$d minutes of calm</item>
     </string-array>
+    <string-array name="notification_encouragement_phrases">
+        <item>You\'re doing great</item>
+        <item>The phone can wait</item>
+        <item>One breath at a time</item>
+        <item>You\'ve got this</item>
+        <item>Take care of yourself</item>
+        <item>You\'re on the right track</item>
+    </string-array>
     <string name="hint_unlock_password">Password</string>
     <string name="unlock">Unlock</string>
     <string name="wrong_password">Wrong password</string>
