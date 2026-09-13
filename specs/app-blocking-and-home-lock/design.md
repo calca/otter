@@ -7,10 +7,11 @@
 | `AppBlockerAccessibilityService.kt` | Watches `TYPE_WINDOW_STATE_CHANGED` events; launches `BlockOverlayActivity` for non-exempt foreground apps |
 | `AllowedAppsManager.kt` | Plain-`SharedPreferences` set of extra allowed package names |
 | `AllowedAppsActivity.kt` / `ui/screens/AllowedAppsScreen.kt` | Password-gated editor; loads all launcher-intent activities off the main thread |
-| `BlockOverlayActivity.kt` | Hosts `BlockScreen` for the "blocked app" case |
-| `MainActivity.kt` | Also hosts `BlockScreen`, for the "Home button pressed during an active session" case (see "One Activity, two roles" below) — a separate `HomeActivity` class used to own this, merged into `MainActivity` on request |
+| `BlockOverlayActivity.kt` | Hosts `BlockScreen` for the "blocked app opened" case |
+| `MainActivity.kt` | Also hosts `BlockScreen`, both for "Home button pressed during an active session" and "launcher icon opened (or a session starts) during an active session" (see "One Activity, two roles" below) — a separate `HomeActivity` class used to own the Home case, merged into `MainActivity` on request |
+| `AllowedAppLaunchItems.kt` | `loadAllowedAppLaunchItems()`/`launchAllowedApp()`, shared by `MainActivity` and `BlockOverlayActivity` so both pass the same allowed-apps row to `BlockScreen` |
 | `LauncherManager.kt` | Remembers the device's pre-CalmOtter default launcher package |
-| `ui/screens/BlockScreen.kt` | Shared Composable for both block entry points |
+| `ui/screens/BlockScreen.kt` | Shared Composable for all three block entry points, byte-for-byte identical in every case (see "Three block screens, one screen" below) |
 
 ## Blocking decision (`AppBlockerAccessibilityService.allowedPackages()`)
 
@@ -47,41 +48,93 @@ anything about what each one did.
 - **`MainActivity.handleIntent(intent)`** (called from both `onCreate()`
   and `onNewIntent()`) is the merge point: `intent.categories?.contains
   (Intent.CATEGORY_HOME)` decides whether this launch came from the Home
-  button. If so and no session is active, it forwards to the original
-  launcher and finishes (`HomeActivity`'s old idle behavior) — `onCreate()`
-  checks `isFinishing` right after and skips `setContent {}` if so. If so
-  and a session *is* active, it sets `showBlockForHome = true` (a
-  `mutableStateOf<Boolean>`) and rolls a fresh phrase into
-  `blockPhraseText`; otherwise (opened via the launcher icon, any session
-  state) it's `false`. `setContent {}`'s single composition branches on
-  `showBlockForHome`: `BlockScreen` vs `MainScreen`. Because both are
-  `mutableStateOf`, flipping them from `onNewIntent()` on an already-live
-  instance recomposes the right content directly — no `recreate()` needed,
-  and none should be added; that would defeat the point of reusing the
-  instance and cause a visible flicker.
-- **Opening the app via its icon during an active session still shows
-  `MainScreen`'s "Paused" view, never `BlockScreen`** — `showBlockForHome`
-  is only ever set from the `CATEGORY_HOME` branch, so a `LAUNCHER` intent
-  can never trigger it regardless of session state. This was the one
-  behavior that had to survive the merge exactly as-is.
-- **The two behavioral differences between the two old callers survive
-  unchanged**, just now living in the one class: `BlockOverlayActivity`
-  shows a toast on natural session expiry, this path (via
-  `forwardToOriginalLauncher()`) does not; `BlockOverlayActivity.finish()`s
-  itself back to whatever was blocked, this path forwards to the original
-  launcher via `LauncherManager.getOriginalLauncherPackage()`. Both are
-  still injected into the shared `BlockScreen` as lambdas
-  (`onExpiredImmediately`, `onExpiredNaturally`, `onUnlocked`), not
-  duplicated Composable logic.
+  button — stored in `forwardOnBlockScreenExit`, used only to decide what
+  happens on *exit* from `BlockScreen` (see "Three block screens, one
+  screen" below), not whether to show it. Whether `BlockScreen` is shown at
+  all now depends purely on `sessionManager.isSessionActive()`, regardless
+  of `CATEGORY_HOME`. If a session is active, `enterBlockScreen()` sets
+  `showBlockScreen = true` (`mutableStateOf<Boolean>`) and rolls a fresh
+  phrase into `blockPhraseText`; otherwise `exitBlockScreen()` clears both.
+  If `CATEGORY_HOME` and no session is active, it forwards to the original
+  launcher and finishes instead, exactly as before. `setContent {}`'s
+  single composition branches on `showBlockScreen`: `BlockScreen` vs
+  `MainScreen`. Because both are `mutableStateOf`, flipping them from
+  `onNewIntent()` (or from `MainScreen`'s own `onSessionStarted` callback,
+  see below) on an already-live instance recomposes the right content
+  directly — no `recreate()` needed, and none should be added; that would
+  defeat the point of reusing the instance and cause a visible flicker.
+
+## Three block screens, one screen
+
+Originally, opening the app via its icon during an active session showed
+`MainScreen`'s "Paused" view (a progress ring, no unlock affordance at all)
+— the only way to actually unlock from there was to press Home instead, or
+open a blocked app to trigger `BlockOverlayActivity`. Reported as a real gap
+(not just a visual inconsistency) and fixed on request: **all three
+situations where a session is active — the launcher icon, the Home button,
+and opening a non-allowed app — now show the exact same `BlockScreen`**, so
+there is always exactly one way to see "a pause is active" and exactly one
+way out of it (unlock, or wait for expiry).
+
+- **`MainActivity` shows `BlockScreen` whenever `isSessionActive()` is
+  true, from any entry point.** A session becoming active *while `MainScreen`
+  is already showing* (the user taps the otter) has no new `Intent` to
+  react to, so `MainScreen` takes a new `onSessionStarted: () -> Unit`
+  callback, invoked right after `sessionManager.startSession(...)`; wired
+  in `MainActivity` to `enterBlockScreen()`, same as the `handleIntent()`
+  path.
+- **Exit behavior still depends on how this instance was reached**
+  (`forwardOnBlockScreenExit`, set once per `handleIntent()` call from
+  `CATEGORY_HOME`): unlocking/expiry arrived at via the Home button still
+  calls `forwardToOriginalLauncher()` (there's nowhere else to go); arrived
+  at via the launcher icon, it now just calls `exitBlockScreen()` and falls
+  back to `MainScreen` in the same instance — forwarding to another
+  launcher would make no sense when the user opened Calm Otter herself.
+- **The back button is now blocked while `BlockScreen` is showing, matching
+  `BlockOverlayActivity`** (previously `MainActivity` had no back handling
+  at all) — an `OnBackPressedCallback` whose `isEnabled` is kept in sync
+  with `showBlockScreen` everywhere the latter changes.
+- **`BlockOverlayActivity` gains the allowed-apps row** it never had:
+  `loadAllowedAppLaunchItems()`/`launchAllowedApp()` moved out of
+  `MainActivity` into a new shared top-level file, `AllowedAppLaunchItems.kt`
+  (plain functions taking a `Context`, not Activity methods), so both
+  Activities pass identical `allowedApps`/`onLaunchApp` to `BlockScreen`.
+- **The one remaining behavioral asymmetry between the two old callers —
+  a toast on natural session expiry in `BlockOverlayActivity` but not in
+  `MainActivity` — is now gone too**: `MainActivity`'s `onExpiredNaturally`
+  shows the same `session_ended` toast. `onExpiredImmediately` still shows
+  no toast in either caller (session already over before the screen ever
+  rendered, so there was nothing to interrupt).
+- **A pre-existing minor duplication also removed in the same pass**:
+  `MainActivity` used to hand-build the phrase string
+  (`"“$it”"`) instead of reusing `R.string.phrase_format`, the same
+  resource `BlockOverlayActivity` already used — same rendered text either
+  way, now the same code path too.
+- **Consequence accepted, not a bug**: Settings and History, reachable from
+  `MainScreen`'s header, are no longer reachable during an active session
+  from *any* entry point (previously the icon path left them reachable) —
+  the user has to unlock first, matching the intent behind the "soft lock"
+  in the first place.
 - **Verified on-device, not just by reading the diff** (this touches
   Android task/launchMode semantics, easy to get subtly wrong): icon-open
-  idle, icon-open with active session (Paused view, not block), Home-press
-  idle (forwards away), Home-press with active session (`BlockScreen`),
-  Home-press *again* while already showing `BlockScreen` (reuses the
-  instance via `onNewIntent`, fresh phrase, no duplicate/leaked instance),
-  unlocking from that screen, and normal Settings/History navigation
-  (`singleTask` doesn't break the ability to push child activities or
-  back-navigate out of them).
+  idle, icon-open with active session (immediate `BlockScreen`, not the old
+  Paused view), starting a session from an already-open `MainScreen`
+  (immediate transition, no separate Intent involved), unlocking from the
+  icon path (falls back to `MainScreen` in the same instance, no forward),
+  Home-press idle (forwards away), Home-press with active session
+  (`BlockScreen`), unlocking from the Home path (forwards to the original
+  launcher, unlike the icon path), back button blocked while `BlockScreen`
+  is shown, and normal Settings/History navigation when idle (`singleTask`
+  doesn't break the ability to push child activities or back-navigate out
+  of them). `BlockOverlayActivity`'s own allowed-apps row was verified by
+  code review only, not live on-device — this emulator's
+  `AppBlockerAccessibilityService` wasn't dispatching
+  `TYPE_WINDOW_STATE_CHANGED` events at all during this session (`dumpsys
+  accessibility` showed the service bound with empty `eventTypes`/
+  `feedbackType` even after a full clean install and completing the real
+  system consent dialog) — a pre-existing environment issue unrelated to
+  this change, since the service's own code/manifest/XML config were not
+  touched at all here. Worth a fresh look separately.
 - **`SettingsActivity.promptSetAsHome()`'s disable/re-enable trick** (see
   below) now targets `MainActivity`'s component instead of a separate
   `HomeActivity` one — since it's the same component that also owns the

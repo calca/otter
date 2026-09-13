@@ -60,14 +60,15 @@ data class AllowedAppLaunchItem(val label: String, val packageName: String)
 
 /**
  * Schermata condivisa "sessione bloccata, inserisci la password per sbloccare",
- * usata sia da BlockOverlayActivity che da MainActivity (quando invocata
- * come app Home con una sessione attiva — vedi MainActivity.kt, che prima
- * era una classe separata, HomeActivity, poi unificata). Le differenze di
- * comportamento fra i due chiamanti (toast sì/no alla scadenza naturale del
- * countdown, e formattazione della frase opzionale) restano fuori da qui:
- * sono decise dal chiamante tramite [onExpiredNaturally] e tramite il
- * parametro già formattato
- * [phraseText].
+ * usata identicamente da tutti e tre i punti in cui una sessione attiva può
+ * essere incontrata: `BlockOverlayActivity` (AccessibilityService, app non
+ * consentita aperta), e `MainActivity` sia dall'icona del launcher sia dal
+ * tasto Home — deliberatamente unificate (vedi il commento di classe di
+ * `MainActivity`) dopo che la versione precedente, aperta dall'icona durante
+ * una sessione, non offriva alcun modo di sbloccare da lì. I tre chiamanti
+ * restano liberi di differire solo su cosa succede *dopo* l'uscita da questa
+ * schermata (sblocco/scadenza) — `onExpiredImmediately`/`onExpiredNaturally`/
+ * `onUnlocked` — non su come appare o si comporta mentre è a schermo.
  */
 @Composable
 fun BlockScreen(
@@ -198,14 +199,14 @@ fun BlockScreen(
         // invece di tenerlo sempre visibile in pagina. La row resta
         // comunque compatta anche senza app consentite configurate (il
         // badge di sblocco è l'unico elemento sempre presente) — vedi
-        // specs/app-blocking-and-home-lock/design.md per perché questa row
-        // esiste solo quando Calm Otter è l'app Home e per il telefono
-        // sempre incluso/il tetto di 5 app configurabili.
+        // AllowedAppLaunchItems.kt per il telefono sempre incluso/il tetto
+        // di 5 app configurabili, condiviso da tutti e tre i chiamanti.
         Text(
-            // "Sblocca" da sola quando non ci sono app consentite da
-            // mostrare (es. BlockOverlayActivity, che non passa mai
-            // allowedApps) — la frase combinata parlerebbe di un'app da
-            // aprire che qui non esiste.
+            // "Sblocca" da sola quando allowedApps è vuota (nessun'app
+            // consentita configurata oltre al telefono, che risulta anch'esso
+            // assente solo se il dialer di sistema non è risolvibile) — la
+            // frase combinata parlerebbe di un'app da aprire che qui non
+            // esiste.
             text = if (allowedApps.isNotEmpty()) {
                 stringResource(R.string.block_actions_label)
             } else {

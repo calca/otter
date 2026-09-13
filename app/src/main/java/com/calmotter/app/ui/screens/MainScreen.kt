@@ -110,6 +110,7 @@ fun MainScreen(
     onGrantDnd: () -> Unit,
     onHistory: () -> Unit,
     onSettings: () -> Unit,
+    onSessionStarted: () -> Unit = {},
 ) {
     val context = LocalContext.current
 
@@ -210,6 +211,11 @@ fun MainScreen(
                         sessionManager.startSession(durationMinutes)
                         Toast.makeText(context, sessionStartedText, Toast.LENGTH_SHORT).show()
                         refreshDerivedState()
+                        // Passa subito a BlockScreen invece di restare su
+                        // MainScreen mostrando il progress ring: le due
+                        // schermate ora sono unificate, vedi
+                        // MainActivity.enterBlockScreen().
+                        onSessionStarted()
                     } else {
                         showPermissionDialog = true
                     }

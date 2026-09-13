@@ -7,6 +7,16 @@ import androidx.activity.compose.setContent
 import com.calmotter.app.ui.screens.BlockScreen
 import com.calmotter.app.ui.theme.CalmOtterTheme
 
+/**
+ * Overlay di blocco lanciato da [AppBlockerAccessibilityService] quando si
+ * apre un'app non consentita durante una sessione attiva. Mostra lo stesso
+ * `BlockScreen`, con le stesse `allowedApps` (vedi [loadAllowedAppLaunchItems]
+ * in `AllowedAppLaunchItems.kt`, condiviso con `MainActivity`) e lo stesso
+ * comportamento a scadenza/sblocco, di quando una sessione attiva viene
+ * incontrata dall'icona del launcher o dal tasto Home — le tre schermate di
+ * blocco sono state deliberatamente unificate, vedi il commento di classe
+ * di `MainActivity`.
+ */
 class BlockOverlayActivity : BaseActivity() {
     override val themeVariant = ThemeVariant.BLOCK
 
@@ -38,6 +48,8 @@ class BlockOverlayActivity : BaseActivity() {
                         finish()
                     },
                     onUnlocked = { finish() },
+                    allowedApps = loadAllowedAppLaunchItems(applicationContext),
+                    onLaunchApp = { pkg -> launchAllowedApp(applicationContext, pkg) },
                 )
             }
         }
