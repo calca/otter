@@ -119,6 +119,9 @@ fun MainScreen(
     onSessionStarted: () -> Unit = {},
     onGroupPauseHost: () -> Unit = {},
     onGroupPauseJoin: () -> Unit = {},
+    // Vedi il parametro omonimo di [BlockScreen]: è lo stesso otter, ed è
+    // [MainActivity] a legarli come elemento condiviso.
+    otterModifier: Modifier = Modifier,
 ) {
     val context = LocalContext.current
 
@@ -228,7 +231,8 @@ fun MainScreen(
                     } else {
                         showPermissionDialog = true
                     }
-                }
+                },
+                otterModifier = otterModifier,
             )
 
             if (!sessionActive) {
@@ -389,6 +393,7 @@ private fun PondScene(
     selectedDurationIndex: Int,
     onSelectDuration: (Int) -> Unit,
     onStart: () -> Unit,
+    otterModifier: Modifier = Modifier,
 ) {
     var isStarting by remember { mutableStateOf(false) }
     val otterScale by animateFloatAsState(
@@ -449,7 +454,7 @@ private fun PondScene(
                         .clickable(enabled = !sessionActive && !isStarting, onClick = { isStarting = true }),
                     contentAlignment = Alignment.Center,
                 ) {
-                    OtterFloatMark(markSize = 124.dp)
+                    OtterFloatMark(modifier = otterModifier, markSize = 124.dp)
                 }
             }
         }

@@ -572,3 +572,62 @@ text repeated every time it appears:
   inheriting from the window theme. `CalmBackground.kt`'s doc comment,
   which used to explicitly call out the block screen as one of the
   screens deliberately excluded, is updated accordingly.
+
+## Home → BlockScreen: the otter as a shared element
+
+The redesign above left the two screens drawing the *same* otter
+(`OtterFloatMark` at 124.dp in both), but `MainActivity` still swapped
+between them with a bare `if (showBlockScreen)`: Compose replaced one
+tree with the other in a single frame, with no transition at all. On
+report ("l'animazione di avvio è bella, ma quando passa di pagina la
+transizione è brutta") the swap was replaced with a
+`SharedTransitionLayout` + `AnimatedContent` pair, and the otter declared
+a shared element across the two.
+
+- **Only the otter is shared, under the key `"otter"`.** Everything else
+  is genuinely different between the two states (ambient ripples and the
+  duration chips on one side; the progress ring, countdown phrase and
+  reflective quote on the other) and simply crossfades. Sharing the
+  *ring* too was rejected: on the Home screen the ring only exists during
+  an active session, so on the start path there is no ring to morph
+  *from* — it has to materialize either way.
+- **The `Modifier` is built in `MainActivity`, not in the screens.**
+  `sharedElement` needs both scopes at once (`SharedTransitionLayout` for
+  the shared state, `AnimatedContent` for which side is entering), and
+  only `MainActivity` has them. `MainScreen` and `BlockScreen` each take
+  an `otterModifier: Modifier = Modifier` parameter and pass it straight
+  to `OtterFloatMark`. The default matters: `BlockOverlayActivity` (and
+  `MainActivity` itself when it opens already blocked, without passing
+  through the Home screen) have no originating screen to animate from and
+  render `BlockScreen` unchanged.
+- **Asymmetric fade, on purpose**: the outgoing content fades over 220ms
+  while the incoming one waits 120ms then fades over 340ms. A symmetric
+  crossfade leaves both trees sitting at half opacity simultaneously,
+  which reads as a smear; staggering them keeps the shared otter — drawn
+  at full opacity in the transition overlay — the only crisp thing on
+  screen during the swap, so it's the otter that carries the eye across.
+- **`@OptIn(ExperimentalSharedTransitionApi::class)` sits on
+  `MainActivity.onCreate`**, the single place in the app that uses the
+  API, rather than being opted into project-wide.
+
+### Verification note: why the effect is subtler than it sounds
+
+On a 1080×2220 device the otter's Home position (centre y ≈ 785px) and
+its BlockScreen position (y ≈ 813px) are barely 28px apart — the two
+screens had already converged on nearly the same composition. So the
+shared element travels almost no distance, and the visible improvement is
+mostly that the otter stays *continuous and crisp* while everything
+around it dissolves, rather than a dramatic glide.
+
+That near-coincidence also made the change impossible to verify by
+screenshot alone: two independent otters crossfading while perfectly
+aligned look identical to one shared otter holding still. It was
+confirmed instead by temporarily offsetting `BlockScreen`'s otter by
+90dp horizontally, capturing the transition frame by frame with
+`animator_duration_scale` set to 10 (Compose honours the system animator
+scale, so this slows its own animations too, not just the platform's),
+and checking that the otter's x position *interpolated* across
+intermediate frames rather than jumping. It did; the temporary offset was
+then removed. Worth remembering as the technique for any future
+shared-element work here — the scale trick turns a 460ms morph into
+something `adb exec-out screencap` can actually sample.

@@ -10,10 +10,19 @@ import android.widget.Toast
 import androidx.activity.OnBackPressedCallback
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.ExperimentalSharedTransitionApi
+import androidx.compose.animation.SharedTransitionLayout
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.togetherWith
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Modifier
 import androidx.core.content.ContextCompat
 import com.calmotter.app.ui.screens.BlockScreen
 import com.calmotter.app.ui.screens.MainScreen
@@ -103,6 +112,11 @@ class MainActivity : BaseActivity() {
         ActivityResultContracts.RequestPermission()
     ) { /* refreshUi non serve: il permesso non cambia il layout */ }
 
+    // SharedTransitionLayout/sharedElement sono ancora dietro opt-in
+    // (@ExperimentalSharedTransitionApi) in questa versione di Compose:
+    // l'annotazione sta qui e non più in alto perché è l'unico punto dell'app
+    // che li usa.
+    @OptIn(ExperimentalSharedTransitionApi::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -128,35 +142,78 @@ class MainActivity : BaseActivity() {
 
         setContent {
             CalmOtterTheme(appTheme = currentTheme) {
-                if (showBlockScreen) {
-                    BlockScreen(
-                        sessionManager = sessionManager,
-                        passwordManager = passwordManager,
-                        phraseText = blockPhraseText,
-                        onExpiredImmediately = { onBlockScreenExit() },
-                        onExpiredNaturally = {
-                            Toast.makeText(this, getString(R.string.session_ended), Toast.LENGTH_SHORT).show()
-                            onBlockScreenExit()
+                // Home e schermata di pausa disegnano lo stesso otter
+                // (OtterFloatMark a 124.dp in entrambe): invece di sostituire
+                // un albero con l'altro in un frame solo — che faceva
+                // "teletrasportare" l'otter da centrato verticalmente a in
+                // cima alla colonna — l'otter è dichiarato elemento condiviso
+                // e scivola alla sua nuova posizione, mentre tutto il resto
+                // (increspature e chip di durata da una parte, anello di
+                // avanzamento e frase dall'altra) si dissolve attorno.
+                SharedTransitionLayout {
+                    AnimatedContent(
+                        targetState = showBlockScreen,
+                        transitionSpec = {
+                            // Uscita più corta dell'entrata, così i due
+                            // contenuti non restano sovrapposti a mezza
+                            // opacità per mezzo secondo: la Home sfuma via
+                            // mentre la pausa è ancora quasi trasparente, e
+                            // l'otter condiviso resta l'unica cosa nitida
+                            // durante lo scambio — è lui a portare l'occhio.
+                            fadeIn(tween(340, delayMillis = 120, easing = FastOutSlowInEasing)) togetherWith
+                                fadeOut(tween(220, easing = FastOutSlowInEasing))
                         },
-                        onUnlocked = { onBlockScreenExit() },
-                        allowedApps = loadAllowedAppLaunchItems(applicationContext),
-                        onLaunchApp = { pkg -> launchAllowedApp(applicationContext, pkg) },
-                    )
-                } else {
-                    MainScreen(
-                        resumeSignal = resumeSignal,
-                        sessionManager = sessionManager,
-                        sessionHistoryManager = sessionHistoryManager,
-                        isAccessibilityServiceEnabled = { isAccessibilityServiceEnabled(this) },
-                        isDndAccessGranted = { isDndAccessGranted(this) },
-                        onGrantAccessibility = { startActivity(Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS)) },
-                        onGrantDnd = { startActivity(Intent(Settings.ACTION_NOTIFICATION_POLICY_ACCESS_SETTINGS)) },
-                        onHistory = { startActivity(Intent(this, HistoryActivity::class.java)) },
-                        onSettings = { startActivity(Intent(this, SettingsActivity::class.java)) },
-                        onSessionStarted = { enterBlockScreen() },
-                        onGroupPauseHost = { startActivity(Intent(this, GroupPauseHostActivity::class.java)) },
-                        onGroupPauseJoin = { startActivity(Intent(this, GroupPauseJoinActivity::class.java)) },
-                    )
+                        label = "homeToBlock",
+                    ) { blocking ->
+                        // Il boundsTransform vive qui (non nei due Composable)
+                        // perché sharedElement va costruito dentro entrambi
+                        // gli scope: SharedTransitionLayout per lo stato
+                        // condiviso, AnimatedContent per sapere quale dei due
+                        // lati sta entrando. Le schermate ricevono solo un
+                        // Modifier già pronto, e restano usabili senza (vedi
+                        // BlockOverlayActivity, che non ha alcuna transizione
+                        // da cui arrivare).
+                        val otterModifier = Modifier.sharedElement(
+                            rememberSharedContentState(key = "otter"),
+                            animatedVisibilityScope = this@AnimatedContent,
+                            boundsTransform = { _, _ ->
+                                tween(460, easing = FastOutSlowInEasing)
+                            },
+                        )
+
+                        if (blocking) {
+                            BlockScreen(
+                                sessionManager = sessionManager,
+                                passwordManager = passwordManager,
+                                phraseText = blockPhraseText,
+                                onExpiredImmediately = { onBlockScreenExit() },
+                                onExpiredNaturally = {
+                                    Toast.makeText(this@MainActivity, getString(R.string.session_ended), Toast.LENGTH_SHORT).show()
+                                    onBlockScreenExit()
+                                },
+                                onUnlocked = { onBlockScreenExit() },
+                                allowedApps = loadAllowedAppLaunchItems(applicationContext),
+                                onLaunchApp = { pkg -> launchAllowedApp(applicationContext, pkg) },
+                                otterModifier = otterModifier,
+                            )
+                        } else {
+                            MainScreen(
+                                resumeSignal = resumeSignal,
+                                sessionManager = sessionManager,
+                                sessionHistoryManager = sessionHistoryManager,
+                                isAccessibilityServiceEnabled = { isAccessibilityServiceEnabled(this@MainActivity) },
+                                isDndAccessGranted = { isDndAccessGranted(this@MainActivity) },
+                                onGrantAccessibility = { startActivity(Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS)) },
+                                onGrantDnd = { startActivity(Intent(Settings.ACTION_NOTIFICATION_POLICY_ACCESS_SETTINGS)) },
+                                onHistory = { startActivity(Intent(this@MainActivity, HistoryActivity::class.java)) },
+                                onSettings = { startActivity(Intent(this@MainActivity, SettingsActivity::class.java)) },
+                                onSessionStarted = { enterBlockScreen() },
+                                onGroupPauseHost = { startActivity(Intent(this@MainActivity, GroupPauseHostActivity::class.java)) },
+                                onGroupPauseJoin = { startActivity(Intent(this@MainActivity, GroupPauseJoinActivity::class.java)) },
+                                otterModifier = otterModifier,
+                            )
+                        }
+                    }
                 }
             }
         }

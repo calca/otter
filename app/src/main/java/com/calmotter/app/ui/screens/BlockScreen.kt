@@ -75,6 +75,13 @@ fun BlockScreen(
     onUnlocked: () -> Unit,
     allowedApps: List<AllowedAppLaunchItem> = emptyList(),
     onLaunchApp: (String) -> Unit = {},
+    // Applicato all'otter perché [MainActivity] possa dichiararlo elemento
+    // condiviso con quello della Home e farlo scivolare da lì invece di
+    // sostituirlo di colpo. Default vuoto: gli altri due chiamanti
+    // (BlockOverlayActivity via AccessibilityService, e MainActivity quando
+    // apre già bloccata senza passare dalla Home) non hanno una schermata di
+    // partenza da cui animare, e mostrano questa così com'è.
+    otterModifier: Modifier = Modifier,
 ) {
     val context = LocalContext.current
 
@@ -141,7 +148,7 @@ fun BlockScreen(
 
             val floatOffset = rememberOtterFloatOffset(periodMillis = 5200)
             Box(modifier = Modifier.offset(y = floatOffset.dp)) {
-                OtterFloatMark(markSize = 124.dp)
+                OtterFloatMark(modifier = otterModifier, markSize = 124.dp)
             }
         }
 

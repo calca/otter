@@ -133,6 +133,34 @@ Home shows the block screen instead of any launcher — otherwise being
    being last, ended up pushed off-screen and untappable, leaving no way
    to end the session from this screen at all.
 
+## User Story 5: Continuity between the Home screen and the block screen
+
+As the phone's user, when a pause starts I want the block screen to feel
+like the Home screen settling into it, not like a different screen
+appearing out of nowhere — the tap animation on the otter already builds
+up to the moment, and a hard cut right at its peak throws that away.
+
+### Acceptance Criteria
+
+1. WHEN a session is started from the Home screen THEN the system SHALL
+   animate the change to the block screen, NOT replace one screen with
+   the other in a single frame.
+2. WHEN that transition runs THEN the otter SHALL remain continuously on
+   screen throughout, as one element moving to its new position — it
+   SHALL NOT disappear, flicker, or be re-drawn from scratch on the other
+   side.
+3. WHEN that transition runs THEN the content that genuinely differs
+   between the two screens (ambient ripples and duration chips on one
+   side; progress ring, countdown phrase and reflective quote on the
+   other) SHALL fade rather than snap.
+4. WHEN the block screen is reached WITHOUT coming from the Home screen —
+   `BlockOverlayActivity` via the AccessibilityService, or the launcher
+   icon opened during an already-active session — THEN it SHALL render
+   exactly as before, with no transition and no dependency on one having
+   occurred.
+5. The transition SHALL be symmetric: leaving the block screen back to
+   the Home screen animates the same way, not just entering it.
+
 ## Known limits (do not misrepresent in code/UI)
 
 - The user can disable the Accessibility service from system Settings at
