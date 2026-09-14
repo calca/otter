@@ -149,6 +149,24 @@
     <string name="widget_soon">tra poco</string>
     <string name="widget_minutes">~%1$d min</string>
     <string name="widget_hours">~%1$dh %2$dm</string>
+    <string name="widget_unlock_label">Sblocca</string>
+    <!-- Versioni accorciate di pause_phrases per le taglie 2×2/4×2 del widget
+         (stato attivo, formato "in linea") — le frasi intere di pause_phrases
+         non ci stanno nello spazio disponibile. Stessa voce, non un tono
+         nuovo: dove possibile sono la stessa frase raccorciata, non
+         un'altra frase. -->
+    <string-array name="widget_reflective_phrases">
+        <item>Questo momento è tuo</item>
+        <item>Il silenzio è rispetto</item>
+        <item>Stai recuperando qualcosa</item>
+        <item>Fai spazio alla mente</item>
+        <item>Un piccolo atto di cura</item>
+        <item>Il mondo è ancora lì</item>
+        <item>La noia nutre la creatività</item>
+        <item>Sei più presente di quanto pensi</item>
+        <item>Meno schermi, più profondità</item>
+        <item>Scegli il presente</item>
+    </string-array>
 
     <!-- Onboarding -->
     <string name="onb1_title">Benvenuto in Calm Otter</string>

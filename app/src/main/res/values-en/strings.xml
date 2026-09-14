@@ -144,6 +144,19 @@
     <string name="widget_soon">almost done</string>
     <string name="widget_minutes">~%1$d min</string>
     <string name="widget_hours">~%1$dh %2$dm</string>
+    <string name="widget_unlock_label">Unlock</string>
+    <string-array name="widget_reflective_phrases">
+        <item>This moment is yours</item>
+        <item>Silence is self-respect</item>
+        <item>You\'re gaining something</item>
+        <item>Make space for your mind</item>
+        <item>A small act of self-care</item>
+        <item>The world is still there</item>
+        <item>Boredom nurtures creativity</item>
+        <item>You\'re more present than you think</item>
+        <item>Less screen, more depth</item>
+        <item>Choose the present</item>
+    </string-array>
 
     <!-- Onboarding -->
     <string name="onb1_title">Welcome to Calm Otter</string>

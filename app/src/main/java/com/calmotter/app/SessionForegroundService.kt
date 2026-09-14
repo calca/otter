@@ -35,6 +35,10 @@ class SessionForegroundService : Service() {
                 return
             }
             updateNotification()
+            // Stesso tick usato per la notifica ora fa avanzare anche l'anello
+            // del widget 2×2/4×2 e ne ruota la frase riflessiva — nessun nuovo
+            // meccanismo, vedi la doc di PauseGlanceWidget in PauseWidgetProvider.kt.
+            PauseWidgetProvider.updateAllWidgets(this@SessionForegroundService)
             handler.postDelayed(this, UPDATE_INTERVAL_MS)
         }
     }

@@ -1,9 +1,23 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!--
+    Piazzamento predefinito 2×2 (110dp, la taglia "anello" — vedi
+    PauseWidgetProvider.kt/SizeMode.Responsive), ma ridimensionabile fino al
+    vecchio 1×1 (40dp, per chi vuole il minimo, richiesto esplicitamente) o
+    fino al 4×2 largo (250×110dp). Le formule 40/110/250dp derivano dalla
+    stessa convenzione Android "70dp × celle − 30dp" usata per il minWidth
+    di 40dp originale (1 cella): coerente con quel valore, non inventata da
+    zero per questa revisione.
+-->
 <appwidget-provider xmlns:android="http://schemas.android.com/apk/res/android"
-    android:minWidth="40dp"
-    android:minHeight="40dp"
-    android:targetCellWidth="1"
-    android:targetCellHeight="1"
+    android:minWidth="110dp"
+    android:minHeight="110dp"
+    android:targetCellWidth="2"
+    android:targetCellHeight="2"
+    android:minResizeWidth="40dp"
+    android:minResizeHeight="40dp"
+    android:maxResizeWidth="250dp"
+    android:maxResizeHeight="110dp"
+    android:resizeMode="horizontal|vertical"
     android:updatePeriodMillis="1800000"
     android:initialLayout="@layout/widget_pause"
     android:widgetCategory="home_screen"
