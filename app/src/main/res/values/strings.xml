@@ -74,12 +74,12 @@
          da strings.xml). Tono di incoraggiamento, diverso dalle frasi
          riflessive di BlockScreen/pause_phrases. -->
     <string-array name="notification_encouragement_phrases">
-        <item>Stai facendo bene</item>
+        <item>Un momento per te</item>
         <item>Il telefono può aspettare</item>
-        <item>Un respiro alla volta</item>
-        <item>Ce la fai</item>
+        <item>Rallenta un attimo</item>
+        <item>Va tutto bene così</item>
         <item>Prenditi cura di te</item>
-        <item>Sei sulla strada giusta</item>
+        <item>Nessuna fretta</item>
     </string-array>
     <string name="hint_unlock_password">Password</string>
     <string name="unlock">Sblocca</string>
