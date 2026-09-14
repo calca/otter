@@ -7,6 +7,13 @@
 # Local configuration files
 local.properties
 
+# Release signing material — never belongs in this repo (see
+# ~/Developer/otter-release-secrets/README.md for where it actually lives
+# and how it reaches CI via GitHub Actions secrets instead).
+*.jks
+*.keystore
+release.jks
+
 # Gradle
 .gradle/
 gradle-app.setting
