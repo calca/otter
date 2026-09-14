@@ -131,6 +131,13 @@ if (sessionManager.isSessionActive() && !showBlockScreen) {
   one extra line under "Paused": `block_group_indicator` ("You're having
   time together"). Deliberately generic — see the "no participant count"
   limitation in requirements.md.
+- `SessionForegroundService.kt`'s persistent notification — the subtext
+  otherwise rotates randomly through `notification_encouragement_phrases`
+  (see `specs/pause-session-core/`); when `isGroupSession()` is true it's
+  pinned to the same `block_group_indicator` string BlockScreen uses
+  instead, so a shared pause reads as such wherever it's visible, not just
+  on the block screen. Reuses the existing string rather than adding a
+  second, differently-worded way of saying "this is a group pause."
 - `HistoryScreen.kt`'s `SessionRow` — originally a small `history_group_tag`
   text line ("Group pause") under the outcome text; replaced in the later
   UI/UX refinement pass by `OtterHistoryIcon` inside a tinted chip — see

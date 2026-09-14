@@ -73,7 +73,15 @@ class SessionForegroundService : Service() {
         } else 0
 
         val contentText = CalmCountdown.format(remaining, this)
-        val subText = resources.getStringArray(R.array.notification_encouragement_phrases).random()
+        // Per una pausa di gruppo (Tempo Insieme) il sottotesto smette di
+        // ruotare tra le frasi di incoraggiamento e mostra invece lo stesso
+        // indicatore fisso già usato da BlockScreen — coerenza tra le due
+        // superfici, non un secondo modo diverso di comunicare "è di gruppo".
+        val subText = if (sessionManager.isGroupSession()) {
+            getString(R.string.block_group_indicator)
+        } else {
+            resources.getStringArray(R.array.notification_encouragement_phrases).random()
+        }
 
         // Tap sulla notifica → apre MainActivity
         val tapIntent = PendingIntent.getActivity(
