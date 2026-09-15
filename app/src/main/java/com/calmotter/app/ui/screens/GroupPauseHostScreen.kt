@@ -1,6 +1,8 @@
 package com.calmotter.app.ui.screens
 
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -23,7 +25,10 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
@@ -266,7 +271,34 @@ private fun MinutePillRow(
 /** QR + codice manuale da condividere — mostrato sopra al conto alla rovescia condiviso. */
 @Composable
 private fun GroupPauseShareHeader(code: String) {
-    val qrBitmap = remember(code) { generateQrCodeBitmap(code, sizePx = 512) }
+    // Il QR deve restare scuro-su-chiaro per essere leggibile (vedi
+    // generateQrCodeBitmap), ma il "chiaro" non deve per forza essere un
+    // quadrato bianco pieno, che sulle palette tenui dell'app stonava.
+    //
+    // - Tema chiaro: sfondo del QR trasparente, così il gradiente di
+    //   calmBackground passa attraverso e il QR sembra appoggiato sulla
+    //   pagina invece che incollato sopra. I moduli usano onBackground
+    //   (quasi nero in tutte e tre le palette chiare): 14:1 abbondanti di
+    //   contrasto sul punto più scuro del gradiente.
+    // - Tema scuro: la trasparenza qui è impossibile — moduli scuri su
+    //   sfondo scuro non li legge nessuno, e invertire il QR lo renderebbe
+    //   illeggibile al joiner. Serve una lastra chiara, ma tinta di palette
+    //   (onBackground, che in scuro è un tono chiaro tenue) invece del
+    //   bianco, con angoli tondi e padding perché legga come una card
+    //   voluta e non come un rettangolo appiccicato.
+    val darkTheme = isSystemInDarkTheme()
+    val scheme = MaterialTheme.colorScheme
+    val moduleColor = if (darkTheme) scheme.background else scheme.onBackground
+    val fieldColor = if (darkTheme) scheme.onBackground else Color.Transparent
+
+    val qrBitmap = remember(code, moduleColor, fieldColor) {
+        generateQrCodeBitmap(
+            content = code,
+            sizePx = 512,
+            darkColor = moduleColor.toArgb(),
+            lightColor = fieldColor.toArgb(),
+        )
+    }
 
     Text(
         text = stringResource(R.string.group_pause_share_hint),
@@ -277,7 +309,21 @@ private fun GroupPauseShareHeader(code: String) {
     Image(
         bitmap = qrBitmap.asImageBitmap(),
         contentDescription = null,
-        modifier = Modifier.size(220.dp)
+        modifier = Modifier
+            .then(
+                // La lastra esiste solo dove serve davvero: in tema chiaro
+                // aggiungerla riporterebbe esattamente il rettangolo che
+                // questo cambiamento toglie.
+                if (darkTheme) {
+                    Modifier
+                        .clip(RoundedCornerShape(20.dp))
+                        .background(fieldColor)
+                        .padding(12.dp)
+                } else {
+                    Modifier
+                }
+            )
+            .size(220.dp)
     )
     Text(
         text = code,

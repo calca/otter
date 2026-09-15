@@ -38,7 +38,7 @@ data class GroupPauseRecipe(
 | File | Role |
 |---|---|
 | `GroupPauseRecipe.kt` | `GroupPauseRecipe` data class + `encode()`/`decodeGroupPauseRecipe()`. Pure Kotlin, no `Context` — directly unit-testable (`GroupPauseRecipeTest.kt`), same "pure state machine" shape as `LockoutPolicy.kt`. |
-| `QrCodeGenerator.kt` | `generateQrCodeBitmap(content, sizePx)` — wraps `com.google.zxing.qrcode.QRCodeWriter`, paints the result into a `Bitmap.Config.RGB_565` manually. |
+| `QrCodeGenerator.kt` | `generateQrCodeBitmap(content, sizePx, darkColor, lightColor)` — wraps `com.google.zxing.qrcode.QRCodeWriter`, paints the result into a `Bitmap.Config.ARGB_8888` manually. Colours are parameters (see "QR colours" below); `ARGB_8888` rather than `RGB_565` because `lightColor` may be `TRANSPARENT`. |
 | `ui/screens/GroupPauseHostScreen.kt` | Duration picker → the live Bluetooth/NFC lobby by default (`GroupPauseBluetoothLobbyHostScreen`), or (via its "Prefer a code or a QR?" link) a private `GroupPauseQrDelayScreen` step asking only the start-delay → generates a recipe → shows QR + text code + the shared countdown. See "UI/UX refinement pass" below for why the delay picker moved here. |
 | `ui/screens/GroupPauseJoinScreen.kt` | The live Bluetooth/NFC lobby by default (`GroupPauseBluetoothLobbyJoinScreen`), or (via its "I have a code or a QR" link) a private `GroupPauseCodeEntryScreen` with Scan (CameraX + zxing) or manual-code entry → decodes a recipe → the shared countdown. |
 | `ui/screens/GroupPauseCountdownScreen.kt` | Shared by both flows — ticks "starting in mm:ss", calls back once at zero. |
@@ -437,6 +437,59 @@ corso…"/"Searching for devices…" → "Alla ricerca di un amico…"/"Looking
 for a friend…" (the join screen is looking for a *person*, not a
 *device*, even though the underlying mechanism is a Bluetooth device
 scan).
+
+## QR colours: transparent in light themes, a tinted plate in dark ones
+
+The QR was originally painted pure black on pure white. On the app's soft
+palettes that white square read as pasted-on — reported directly ("il
+bianco stona") with the question of whether the background could simply be
+transparent.
+
+It can, but only in light themes, and the reason is functional rather
+than aesthetic:
+
+- **The QR must stay dark-on-light.** The joiner decodes with
+  `MultiFormatReader` + `HybridBinarizer` and **no** `DecodeHintType`
+  (see `GroupPauseJoinScreen.kt`), so an inverted QR — light modules on a
+  dark field — is simply not read. Most system camera apps don't read
+  inverted codes either, and the share hint invites scanning from the
+  other person's phone, so this isn't only about our own decoder.
+- **With a transparent field, the "light" half is whatever is behind the
+  QR.** In light themes that's `calmBackground`'s gradient, which is
+  light — fine. In dark themes the background is `0xFF1A2B38` /
+  `0xFF1E1A2E` / `0xFF2A1812`, and dark modules on it would be
+  unreadable. `CalmOtterTheme` picks the dark scheme from
+  `isSystemInDarkTheme()`, so this is reachable by any user with dark
+  mode on, not a corner case.
+
+So the treatment is split:
+
+| | field (`lightColor`) | modules (`darkColor`) |
+|---|---|---|
+| Light themes | `Color.Transparent` — the gradient shows through | `onBackground` (near-black in all three light palettes) |
+| Dark themes | `onBackground` (a soft light tint of the palette) on a 20dp rounded, 12dp-padded plate | `background` (the palette's own dark tone) |
+
+Measured contrast (worst case = the gradient's darkest point, `primary`
+at alpha 0.09 over `surface`): **14.1:1 Sage, 14.7:1 Lavender, 15.0:1
+Terracotta** in light themes, and **11.3 / 12.3 / 13.0:1** on the dark
+themes' plates. Using each palette's `primary` for the modules was tried
+first and rejected: it drops to **3.9:1 on Lavender**, too low to rely on
+for a code meant to be read by a camera.
+
+The dark-theme plate is deliberately *not* also applied in light themes —
+adding it there would reinstate exactly the rectangle this change
+removes.
+
+`QrCodeGeneratorTest.kt` guards all of this by re-decoding the generated
+bitmap through the joiner's exact zxing pipeline, per palette, rather
+than trusting the contrast arithmetic: the transparent case is
+composited over the real gradient colour first (a transparent pixel reads
+as RGB 0x000000 when sampled raw, so decoding the bitmap as-is would
+falsely fail — the camera sees the composited result, and that's what the
+test reproduces). A fourth test asserts that an *inverted* QR is **not**
+decodable by that pipeline, pinning the reason the dark theme needs a
+plate; if zxing ever starts handling inversion, that test fails and the
+decision can be revisited.
 
 ## Verification performed (single device)
 

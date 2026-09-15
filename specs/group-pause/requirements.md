@@ -51,6 +51,16 @@ person can start the same pause with me.
    the system SHALL start a pause session of the chosen duration on this
    device, the same way any other pause starts (DND, block, foreground
    notification, alarm-based expiry — see `pause-session-core/`).
+5. The QR SHALL be rendered in the active palette rather than as a pure
+   black-on-white square, and SHALL NOT sit on an opaque white field in
+   light themes.
+6. The QR SHALL remain dark-modules-on-a-light-field in every theme and
+   palette — it SHALL NOT be inverted in dark themes, because the join
+   path's decoder cannot read inverted codes (see design.md). Where a
+   transparent field would leave the modules on a dark background, a light
+   plate SHALL be drawn behind the QR instead.
+7. Module/field colour pairs SHALL be verified by actually decoding the
+   generated QR, per palette and per theme, not by inspection alone.
 
 ## User Story 2: Join a group pause (QR/manual code)
 
