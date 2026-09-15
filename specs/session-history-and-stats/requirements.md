@@ -68,3 +68,13 @@ wipe it entirely, so the data isn't locked into the app.
    system SHALL show a message instead of sharing an empty file.
 3. WHEN the user chooses to clear history THEN the system SHALL ask for
    confirmation before deleting every record.
+4. Both actions SHALL be reachable as always-visible icons in the History
+   ActionBar, NOT collapsed into an overflow menu.
+5. The export icon SHALL depict sharing rather than downloading/saving,
+   since the action opens a share sheet and leaves no file the user can
+   retrieve afterwards.
+6. Both icons SHALL keep a text label exposed to accessibility services
+   and to the long-press tooltip, so neither is icon-only in practice.
+7. Both icons SHALL take their colour from the same theme attribute as
+   the ActionBar's up-arrow, so they match it in every palette and in
+   dark mode.

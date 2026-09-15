@@ -82,10 +82,13 @@ group rather than leaving a two-native-one-Compose split:
 - **Trigger paths stayed exactly as they were**: `WeeklyGoalDialog` still
   opens from a Compose button inside `HistoryScreen` itself
   (`onEditGoal`); `ClearHistoryConfirmDialog` still opens from the native
-  ActionBar overflow menu (`onOptionsItemSelected`, `MENU_CLEAR` — the menu
+  ActionBar menu (`onOptionsItemSelected`, `MENU_CLEAR` — the menu
   itself is unavoidably a platform `Menu`/`MenuItem`, `WITH_ACTION_BAR`
   `themeVariant`, not something to convert to Compose) — only what each
-  trigger *shows* changed, not how it's reached.
+  trigger *shows* changed, not how it's reached. (That menu was an
+  overflow at the time; it later became two always-visible icons — see
+  "From an overflow menu to two ActionBar icons" below — but it's still
+  the same `onOptionsItemSelected` path.)
 
 ## Card-based visual redesign
 
@@ -164,3 +167,45 @@ GoalType` for the 2-item non-scrolling type row, `T = Int` for the
 near-duplicate composables. `RadioButton`/`RadioButtonDefaults`/
 `Modifier.selectable`/`Role.RadioButton` were removed from this file
 entirely along with their now-unneeded imports.
+
+## From an overflow menu to two ActionBar icons
+
+`HistoryActivity`'s two actions — export and clear — both sat behind the
+`⋮` overflow (`SHOW_AS_ACTION_NEVER`). On request ("invece del menù con i
+tre puntini, possiamo mettere 2 icone materiali?") they were promoted to
+always-visible icons (`SHOW_AS_ACTION_ALWAYS`) with `setIcon(...)`. With
+exactly two actions, the overflow was spending a tap to hide what fits in
+the bar.
+
+- **Export uses the Material *share* glyph, not a download/save one.**
+  `exportHistory()` writes the CSV to `cacheDir` and opens an
+  `ACTION_SEND` chooser — nothing lands anywhere the user could go back
+  and find. A download icon would promise a file in Downloads that
+  doesn't exist.
+- **Clear uses the trash glyph and still goes through
+  `ClearHistoryConfirmDialog`.** The confirmation matters *more* now, not
+  less: an always-visible icon is easier to hit by accident than a buried
+  menu item, and the action is irreversible.
+- **Both icons tint with `?attr/colorControlNormal`**, the same attribute
+  the ActionBar's own up-arrow uses, so all three icons match on every
+  palette and in dark mode without per-theme drawables. Verified by
+  sampling pixels rather than by eye: back arrow, share and trash all
+  resolve to `#1D1B20` in light and `#A3AAAF` in dark.
+- **The `menu.add(...)` titles were kept.** They're not redundant now
+  that there are icons — Android surfaces them as the long-press tooltip
+  and the TalkBack label (confirmed via `uiautomator dump`: the two items
+  expose `content-desc="Export history"` / `"Clear history"`), so the
+  icons aren't mute for anyone who doesn't recognise them.
+
+### Side effect: the app now has no overflow popup at all
+
+`HistoryActivity` was the only `onCreateOptionsMenu` in the app, so after
+this change nothing shows an ActionBar popup menu. That makes the
+`actionBarPopupTheme` / `ThemeOverlay.CalmOtter.*.PopupMenu` block in
+`values/themes.xml` — added earlier specifically to stop the History
+overflow rendering in the wrong palette — dead for the moment. It was
+**left in place deliberately** rather than deleted: it costs nothing,
+removing theme attributes risks regressions that wouldn't surface until
+some future screen adds a menu, and that future screen would want it
+back. If it's still unused when other cleanup happens, that's the time to
+drop it.

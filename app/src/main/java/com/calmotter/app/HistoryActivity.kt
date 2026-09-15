@@ -93,11 +93,23 @@ class HistoryActivity : BaseActivity() {
         }
     }
 
+    /**
+     * Due sole azioni, entrambe come icona sempre visibile invece che dentro
+     * l'overflow "⋮": con due voci soltanto, il menu a tendina costava un tap
+     * in più per nascondere quello che ci sta comodamente in barra.
+     *
+     * Il titolo passato a `menu.add` resta quello di prima e non è ridondante
+     * ora che c'è un'icona: Android lo usa come tooltip sulla pressione lunga
+     * e come etichetta per TalkBack, quindi le icone non restano mute per chi
+     * non le riconosce o non le vede.
+     */
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
         menu.add(0, MENU_EXPORT, 0, getString(R.string.history_export))
-            .setShowAsAction(MenuItem.SHOW_AS_ACTION_NEVER)
+            .setIcon(R.drawable.ic_history_share)
+            .setShowAsAction(MenuItem.SHOW_AS_ACTION_ALWAYS)
         menu.add(0, MENU_CLEAR, 1, getString(R.string.history_clear))
-            .setShowAsAction(MenuItem.SHOW_AS_ACTION_NEVER)
+            .setIcon(R.drawable.ic_history_delete)
+            .setShowAsAction(MenuItem.SHOW_AS_ACTION_ALWAYS)
         return true
     }
 
