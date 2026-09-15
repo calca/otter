@@ -23,7 +23,35 @@ jobs:
     - name: Grant execute permission for gradlew
       run: chmod +x gradlew
 
+    # Senza i 4 secret di firma questo workflow non può produrre nulla di
+    # utile. Prima li lasciava comunque proseguire: `base64 -d` di una
+    # variabile vuota scriveva un release.jks vuoto, e la build falliva più
+    # avanti con "Failed to read key from store: Tag number over 30 is not
+    # supported" — un messaggio che non dice affatto "mancano i secret".
+    # Risultato: una X rossa su ogni singolo push da quando il workflow
+    # esiste, che nasconde i fallimenti veri invece di segnalarli.
+    #
+    # Ora la mancanza dei secret è uno skip dichiarato, non un fallimento.
+    # Per configurarli: ~/Developer/otter-release-secrets/README.md (fuori
+    # dal repo di proposito).
+    - name: Check signing secrets
+      id: signing
+      env:
+        KEYSTORE: ${{ secrets.KEYSTORE }}
+      run: |
+        if [ -n "$KEYSTORE" ]; then
+          echo "available=true" >> "$GITHUB_OUTPUT"
+        else
+          echo "available=false" >> "$GITHUB_OUTPUT"
+          echo "### Release build skipped" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "No \`KEYSTORE\` secret is configured, so there is nothing to sign with." >> "$GITHUB_STEP_SUMMARY"
+          echo "See \`otter-release-secrets/README.md\` to set up signing." >> "$GITHUB_STEP_SUMMARY"
+          echo "::warning title=Release build skipped::No KEYSTORE secret configured; signed artifacts were not produced."
+        fi
+
     - name: Decode Keystore
+      if: steps.signing.outputs.available == 'true'
       env:
         ENCODED_STRING: ${{ secrets.KEYSTORE }}
       run: |
@@ -33,6 +61,7 @@ jobs:
     # pre-release build (installable side by side with stable, see
     # CLAUDE.md's "Product flavors" section for why).
     - name: Build stable AAB and beta pre-release APK
+      if: steps.signing.outputs.available == 'true'
       env:
         KEYSTORE_PATH: ../release.jks
         KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
@@ -41,12 +70,14 @@ jobs:
       run: ./gradlew bundleStableRelease assembleBetaRelease
 
     - name: Upload stable AAB (Play Store)
+      if: steps.signing.outputs.available == 'true'
       uses: actions/upload-artifact@v4
       with:
         name: app-stable-release-aab
         path: app/build/outputs/bundle/stableRelease/app-stable-release.aab
 
     - name: Upload beta pre-release APK
+      if: steps.signing.outputs.available == 'true'
       uses: actions/upload-artifact@v4
       with:
         name: app-beta-prerelease-apk

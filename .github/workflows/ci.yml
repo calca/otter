@@ -30,6 +30,21 @@ jobs:
           # sdkmanager fallisce con "Failed to find package" anche se il
           # pacchetto esiste lato Google. Versione più recente verificata.
           cmdline-tools-version: 14742923
+          # Il default di questo input è "tools platform-tools", e "tools"
+          # (le vecchie SDK Tools, deprecate da anni) è stato rimosso dal
+          # repository di Google: l'action esegue `sdkmanager tools`, che
+          # ora fallisce con "Failed to find package 'tools'" ed esce 1,
+          # facendo fallire la CI prima ancora di arrivare a Gradle.
+          #
+          # Non è una regressione del repo: rilanciando la run di un commit
+          # che era passato (903fe10) ha iniziato a fallire con lo stesso
+          # identico errore, a codice invariato — è il pacchetto ad essere
+          # sparito lato Google, non qualcosa che abbiamo cambiato noi.
+          #
+          # `tools` non serviva comunque: platform/build-tools li installa
+          # il passo successivo, e lint/test/assemble non usano nulla delle
+          # vecchie SDK Tools.
+          packages: platform-tools
 
       - name: Install Android SDK platform & build-tools for compileSdk 37.1
         run: sdkmanager "platforms;android-37.1" "build-tools;37.0.0"
