@@ -6,7 +6,7 @@
 |---|---|
 | `res/drawable/ic_launcher_background.xml` | Solid Sage (`#0F5238`) fill, full 108×108dp adaptive-icon canvas |
 | `res/drawable/ic_launcher_foreground.xml` | "Still Otter" head — the only mark drawn as a hand-authored vector drawable, since it has to be referenced from a static adaptive-icon XML (and from Glance, which can't run arbitrary Canvas code) |
-| `res/drawable/ic_launcher_monochrome.xml` | Head+ears silhouette only, no eyes/nose — themed/Material You icon (Android 13+); simplified further than the color foreground on purpose |
+| `res/drawable/ic_launcher_monochrome.xml` | Themed/Material You icon (Android 13+): head+ears silhouette with eyes/nose knocked out as transparent holes. Simplified further than the color foreground, but not to a bare silhouette — see "two real bugs, in sequence" below, including why this path must stay `nonzero` with reversed holes and must **not** use `evenOdd` |
 | `res/drawable/ic_otter_widget.xml` | Same silhouette as the foreground, tones inverted (dark head, light details) for the widget's light background — see below |
 | `res/mipmap-anydpi-v26/ic_launcher.xml` + `ic_launcher_round.xml` | `<adaptive-icon>` wiring background+foreground+monochrome. minSdk is 26 (the API level adaptive icons shipped in), so there's no legacy PNG fallback to maintain |
 | `ui/mascot/OtterMarks.kt` | `OtterFloatMark()`, `PactPawsMark()`, `SprigMark()` — drawn live via Compose `Canvas`, since none of them ever appear outside a Compose screen. `OtterFloatMark` is used in `MainScreen.kt` (Home, "Living Pond"), `OnboardingScreen.kt` (step 1), and now `BlockScreen.kt` too — the same composable, not separate copies. A fourth mark, `PausePawsMark()`, used to live here (see "Replacing PausePawsMark" below) — removed once nothing referenced it any more |
@@ -34,35 +34,54 @@ ear centers sit *inside* the head circle by construction (that's what
 produces the "peeking ear" crescent), so there's no risk of an accidental
 hole.
 
-**`ic_launcher_monochrome.xml` — real bug, found and fixed.** It
-originally shipped as head+ears only, no eyes/nose, on the reasoning that
-punching holes via `fillType="evenOdd"` needed the eye/nose subpaths wound
-opposite to the head's — fragile to get right by hand without a renderer,
-and simplifying down to a plain silhouette matches Google's own guidance
-that monochrome/themed icons should be *more* reduced than the color
-version, not just recolored. **That reasoning about winding direction was
-wrong**: `evenOdd` doesn't care which way a subpath is wound (unlike the
-`nonzero` rule the foreground's ear-union above actually depends on) — it
-just counts how many subpath boundaries a point falls inside, and toggles
-fill on each crossing. Any point inside both the head *and* an eye is
-inside two boundaries (even → hole), regardless of either shape's drawing
-direction. So the eye/nose subpaths could simply be appended to the same
-path with `fillType="evenOdd"`, no direction-flipping needed — confirmed
-by rendering the exact same `pathData` outside of Android first (Python/
-Pillow, painting the eye/nose ellipses back in the background color,
-which is geometrically identical to `evenOdd` for non-self-overlapping
-subpaths like these) before touching the actual resource.
+**`ic_launcher_monochrome.xml` — two real bugs, in sequence.** Worth
+reading as a pair, because the fix for the first one caused the second.
 
-The plain-silhouette version turned out to be a real problem in practice,
-not just a theoretical one: screenshotted on a real device next to Maps/
+**Bug 1: the featureless blob.** It originally shipped as head+ears only,
+no eyes/nose, on the reasoning that simplifying down to a plain
+silhouette matches Google's guidance that monochrome/themed icons should
+be *more* reduced than the color version. That turned out to be a real
+problem in practice: screenshotted on a real device next to Maps/
 Telegram/Gmail with themed icons on, every other app's monochrome icon
 stayed recognizable (pin, paper plane, envelope) while Calm Otter's was a
-featureless rounded blob — indistinguishable as an otter, or from a
-plain circle. "More reduced than the color version" doesn't mean *zero*
+featureless rounded blob — indistinguishable as an otter, or from a plain
+circle. "More reduced than the color version" doesn't mean *zero*
 identifying detail; it means simplified enough to read as one flat shape,
 which the eyes/nose (small, and inside the silhouette rather than
-crossing its outline) don't interfere with. Fixed by adding them back as
-holes via the `evenOdd` path above.
+crossing its outline) don't interfere with.
+
+**Bug 2: the missing ears, caused by how bug 1 was fixed.** The fix
+added the eye/nose subpaths and switched the path to
+`fillType="evenOdd"`. The stated justification was that `evenOdd` doesn't
+care which way a subpath is wound, so no direction-flipping was needed —
+which is *true in isolation* and *the wrong rule for this shape*. The
+head and the two ears deliberately overlap (that overlap is what produces
+the "peeking ear" silhouette). Under `evenOdd`, a point inside the head
+**and** inside an ear falls within two boundaries — even — and so becomes
+transparent. The result, reported from the launcher with a screenshot,
+was an otter with two white crescents where its ears should be.
+
+**The correct rule here is `nonzero` with the holes wound backwards**
+(sweep flag `1` instead of `0` on the eye/nose arcs): concordant subpaths
+union — which is what head+ears need — while discordant ones subtract,
+which is what the eyes and nose need. This is what the pre-bug-1
+documentation had claimed was necessary, and it was right; it was
+overridden on a correct-but-inapplicable general fact about `evenOdd`.
+
+**Why the verification missed it.** Bug 1's fix *was* checked by
+rendering outside Android first — but by painting the eye/nose ellipses
+back in the background colour, which is only geometrically equivalent to
+`evenOdd` for subpaths that don't overlap each other. The ears do overlap
+the head, so the check modelled the part that worked and silently skipped
+the part that broke. The re-fix was verified by rendering the real
+`pathData` through an actual `fill-rule` implementation, comparing all
+three candidates side by side (`evenOdd`; `nonzero` with concordant
+holes; `nonzero` with reversed holes), and looking at the *whole*
+silhouette rather than only the detail being added — then confirmed on
+the device with themed icons switched on in Wallpaper & style.
+
+The lesson worth keeping: when changing a fill rule, the blast radius is
+every subpath in the path, not just the one being added.
 
 ## Adaptive icon safe zone
 

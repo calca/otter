@@ -30,6 +30,13 @@ other app.
    version without them shipped first and was found, on a real device
    next to other apps' themed icons, to be indistinguishable from a
    generic rounded shape).
+4. WHEN the themed icon is rendered THEN the ears SHALL be solid, joined
+   to the head — a later fix for criterion 3 punched them into crescents
+   by switching the path to `evenOdd`, which subtracts the ear/head
+   overlap; see design.md.
+5. Any change to this icon's fill rule SHALL be verified by rendering the
+   complete silhouette, not only the detail being changed, since a fill
+   rule applies to every subpath in the path.
 
 ## User Story 2: Onboarding illustration
 
