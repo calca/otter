@@ -22,9 +22,9 @@ analytics: everything happens on the device.
    Access (Do Not Disturb).
 3. **Start a pause** — choose a duration and tap the otter. From that
    moment: any app that isn't allowed gets covered by a full-screen block
-   with a countdown, Do Not Disturb silences notifications, and a system
-   alarm guarantees the session ends on time even if you never touch the
-   phone again.
+   with a countdown, Do Not Disturb silences notifications — phone calls
+   and alarms still come through — and a system alarm guarantees the
+   session ends on time even if you never touch the phone again.
 4. **End the pause** — automatically when time is up, or earlier if the
    correct password is entered on the block screen.
 

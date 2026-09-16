@@ -240,7 +240,7 @@ with two separate, more targeted pieces of UI.
   are unaffected (`BuildConfig.DEBUG` is `false` there, same check as
   before). This doesn't fake the underlying OS permissions — the real
   service still won't run if Accessibility genuinely isn't enabled, and
-  `SessionManager.setOnlyCallsAllowed()` already no-ops silently when DND
+  `SessionManager.setPauseDnd()` already no-ops silently when DND
   access isn't granted (see `app-blocking-and-home-lock/design.md`) — it
   only skips the *app-level* gate that would otherwise stop you from
   starting a session at all while iterating on everything else (Settings,

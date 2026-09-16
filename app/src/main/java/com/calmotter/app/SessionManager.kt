@@ -75,7 +75,7 @@ class SessionManager private constructor(private val context: Context) {
             .putInt(KEY_GROUP_TAG, groupTag)
             .putBoolean(KEY_IS_HOST, isHost)
             .apply()
-        setOnlyCallsAllowed(true)
+        setPauseDnd(true)
         scheduleAutoExpiry(endTime)
         SessionForegroundService.start(context)
         PauseWidgetProvider.saveLastDuration(context, durationMinutes)
@@ -134,7 +134,7 @@ class SessionManager private constructor(private val context: Context) {
             .remove(KEY_IS_HOST)
             .remove(KEY_END_TIME)
             .apply()
-        setOnlyCallsAllowed(false)
+        setPauseDnd(false)
         cancelAutoExpiry()
         SessionForegroundService.stop(context)
         PauseWidgetProvider.updateAllWidgets(context)
@@ -145,7 +145,7 @@ class SessionManager private constructor(private val context: Context) {
      */
     fun reapplyAfterBoot() {
         val endTime = prefs.getLong(KEY_END_TIME, 0L)
-        setOnlyCallsAllowed(true)
+        setPauseDnd(true)
         scheduleAutoExpiry(endTime)
         SessionForegroundService.start(context)
     }
@@ -177,24 +177,44 @@ class SessionManager private constructor(private val context: Context) {
         )
     }
 
-    private fun setOnlyCallsAllowed(enabled: Boolean) {
+    private fun setPauseDnd(enabled: Boolean) {
         val nm = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
         if (!nm.isNotificationPolicyAccessGranted) return // permesso non concesso: si ignora silenziosamente
 
         if (enabled) {
-            // Silenzia tutto tranne le chiamate telefoniche, da qualunque numero.
-            // Nasconde anche i pallini (dots), la tendina (pull-down) e la barra di stato (status bar).
-            val suppressedEffects = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-                NotificationManager.Policy.SUPPRESSED_EFFECT_BADGE or
+            // Silenzia tutto tranne le chiamate telefoniche (da qualunque
+            // numero) e le sveglie.
+            //
+            // Le sveglie devono passare: una pausa può durare fino a 4 ore, e
+            // far perdere una sveglia è un danno che esce dal patto — quello
+            // riguarda le distrazioni, non gli impegni presi. Segnalato come
+            // bug reale.
+            //
+            // Vanno però concesse esplicitamente solo da Android 9 (API 28):
+            // PRIORITY_CATEGORY_ALARMS è comparsa lì, insieme alla
+            // possibilità stessa per DND di silenziarle. Sotto quella
+            // versione il filtro "solo priorità" le lascia passare comunque,
+            // quindi non c'è nulla da aggiungere (e la costante non
+            // esisterebbe).
+            //
+            // Da API 28 nasconde anche i pallini (dots), la tendina
+            // (pull-down) e la barra di stato (status bar).
+            val priorityCategories: Int
+            val suppressedEffects: Int
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+                priorityCategories = NotificationManager.Policy.PRIORITY_CATEGORY_CALLS or
+                        NotificationManager.Policy.PRIORITY_CATEGORY_ALARMS
+                suppressedEffects = NotificationManager.Policy.SUPPRESSED_EFFECT_BADGE or
                         NotificationManager.Policy.SUPPRESSED_EFFECT_NOTIFICATION_LIST or
                         NotificationManager.Policy.SUPPRESSED_EFFECT_STATUS_BAR
             } else {
-                0
+                priorityCategories = NotificationManager.Policy.PRIORITY_CATEGORY_CALLS
+                suppressedEffects = 0
             }
 
             nm.setNotificationPolicy(
                 NotificationManager.Policy(
-                    NotificationManager.Policy.PRIORITY_CATEGORY_CALLS,
+                    priorityCategories,
                     NotificationManager.Policy.PRIORITY_SENDERS_ANY,
                     0,
                     suppressedEffects

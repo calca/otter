@@ -290,7 +290,7 @@ fun MainScreen(
                         // per poter testare il resto del flusso (Settings,
                         // History, schermata di blocco...) senza doverli
                         // concedere davvero a ogni installazione pulita — vedi
-                        // SessionManager.setOnlyCallsAllowed(), che già ignora
+                        // SessionManager.setPauseDnd(), che già ignora
                         // silenziosamente il DND se non concesso, quindi questo
                         // bypass non nasconde un crash, solo il blocco vero e
                         // proprio non scatta. In release il controllo resta

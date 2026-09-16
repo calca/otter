@@ -32,15 +32,31 @@ alive in the meantime, which reduces (does not eliminate — see README
 second self-stop path independent of `endSession()` being called from
 elsewhere.
 
-## DND suppressed effects
+## DND priority categories and suppressed effects
 
-`SessionManager.setOnlyCallsAllowed(true)` builds
-`NotificationManager.Policy(PRIORITY_CATEGORY_CALLS, PRIORITY_SENDERS_ANY, 0,
-suppressedEffects)`, where `suppressedEffects` is `0` below API 28 and
-`SUPPRESSED_EFFECT_BADGE | SUPPRESSED_EFFECT_NOTIFICATION_LIST |
-SUPPRESSED_EFFECT_STATUS_BAR` from API 28 up (hides notification dots, the
-pull-down shade content, and the status bar icons — added after the initial
-DND implementation; see `SessionManager.kt` history if diffing).
+`SessionManager.setPauseDnd(true)` (named `setOnlyCallsAllowed` until alarms
+were let through) builds
+`NotificationManager.Policy(priorityCategories, PRIORITY_SENDERS_ANY, 0,
+suppressedEffects)`. Both varying arguments are decided by the same API 28
+check:
+
+- **Below API 28**: `priorityCategories` is `PRIORITY_CATEGORY_CALLS` and
+  `suppressedEffects` is `0`.
+- **API 28 and up**: `priorityCategories` also carries
+  `PRIORITY_CATEGORY_ALARMS`, and `suppressedEffects` is
+  `SUPPRESSED_EFFECT_BADGE | SUPPRESSED_EFFECT_NOTIFICATION_LIST |
+  SUPPRESSED_EFFECT_STATUS_BAR` (hides notification dots, the pull-down
+  shade content, and the status bar icons — added after the initial DND
+  implementation; see `SessionManager.kt` history if diffing).
+
+**Alarms are deliberately let through**, and the API 28 split is not
+symmetric with the suppressed effects even though it shares the check:
+`PRIORITY_CATEGORY_ALARMS` only exists from API 28, which is also where DND
+gained the ability to silence alarms at all — below that, the priority
+filter never touched them, so there is nothing to grant. The reason it
+matters is stated in `requirements.md`: a pause runs up to four hours, and
+silencing an alarm would take the block outside what it is for. Reported as
+a real bug after the DND policy shipped allowing calls only.
 
 ## Boot restore vs. self-heal race
 
