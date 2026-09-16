@@ -141,7 +141,6 @@ internal val OtterSlotHeight = 320.dp
  * vanno ricalcolati manualmente a ogni onResume() dell'Activity tramite
  * [resumeSignal] (vedi MainActivity).
  */
-
 @Composable
 fun MainScreen(
     resumeSignal: Int,
@@ -616,6 +615,42 @@ fun rememberOtterFloatOffset(periodMillis: Int): Float {
         label = "otterFloatY",
     )
     return floatOffset
+}
+
+/**
+ * Chiusura dell'anello a fine pausa: l'anello completo si stacca dal suo
+ * raggio, si allarga verso l'esterno e svanisce.
+ *
+ * È l'esatto contrario di [TapConfirmBurst], che all'avvio porta un'onda
+ * verso l'interno stringendosi sull'otter — stesso vocabolario visivo letto
+ * al rovescio, invece di introdurre un'animazione nuova per la fine.
+ *
+ * Usata solo alla **scadenza naturale**: allo sblocco con password l'anello
+ * non è al 100%, e vederlo "compiersi" racconterebbe una cosa che non è
+ * successa. Lì resta la sola dissolvenza — vedi BlockScreen.
+ *
+ * [progress] va da 0 (anello fermo al suo posto) a 1 (svanito).
+ */
+@Composable
+fun RingReleaseBurst(progress: Float, modifier: Modifier = Modifier) {
+    val ringColor = MaterialTheme.colorScheme.primary
+
+    Canvas(modifier = modifier) {
+        val strokeWidth = 4.dp.toPx()
+        // Parte esattamente dov'era l'anello di avanzamento, così lo
+        // sostituisce senza scarti di raggio.
+        val startRadius = (size.minDimension - strokeWidth) / 2f
+        val radius = startRadius * (1f + progress * 0.45f)
+
+        drawCircle(
+            color = ringColor,
+            radius = radius,
+            // Si assottiglia mentre si allarga: sembra che si allenti, non
+            // che venga ingrandito.
+            alpha = (1f - progress) * (1f - progress),
+            style = Stroke(width = strokeWidth * (1f - progress * 0.6f)),
+        )
+    }
 }
 
 /**

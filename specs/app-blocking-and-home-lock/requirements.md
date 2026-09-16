@@ -166,6 +166,18 @@ up to the moment, and a hard cut right at its peak throws that away.
    history exists, nor on the length of the text below it — it is the one
    element both screens place identically, so anything that moves it in
    one screen and not the other reintroduces the slide.
+7. WHEN a session reaches its planned end while the block screen is
+   showing THEN the system SHALL play a brief closing animation on the
+   progress ring before leaving the screen.
+8. WHEN a session is ended early by entering the password THEN the system
+   SHALL NOT play that closing animation — the ring is not complete, and
+   showing it complete would state something untrue. The early exit SHALL
+   NOT be marked as a failure either: it is a designed part of the pact.
+9. WHEN the block screen opens onto an already-expired session THEN it
+   SHALL exit without the closing animation, there having been nothing on
+   screen to watch.
+10. The closing animation SHALL delay only leaving the screen, never the
+    end of the block itself — the session is already over when it plays.
 
 ## Known limits (do not misrepresent in code/UI)
 

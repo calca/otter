@@ -1,6 +1,9 @@
 package com.calmotter.app.ui.screens
 
 import android.widget.Toast
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -101,6 +104,14 @@ fun BlockScreen(
     val totalMillis = remember { sessionManager.totalMillis() }
     var remainingMillisState by remember { mutableStateOf(sessionManager.remainingMillis()) }
 
+    // Chiusura dell'anello a scadenza naturale. Deliberatamente NON usata
+    // allo sblocco con password né in `onExpiredImmediately` (sessione già
+    // finita prima ancora che la schermata comparisse): nel primo caso
+    // l'anello non è al 100% e "compierlo" racconterebbe una cosa non
+    // avvenuta, nel secondo non c'è nulla che l'utente stesse guardando.
+    var releasingRing by remember { mutableStateOf(false) }
+    val ringRelease = remember { Animatable(0f) }
+
     // Equivalente Compose del CountDownTimer(remainingMillis, 60_000) usato
     // dalla versione XML: aggiorna il tempo rimanente circa una volta al
     // minuto di tempo reale (non sincronizzato con l'inizio della sessione).
@@ -122,6 +133,12 @@ fun BlockScreen(
             remaining = sessionManager.remainingMillis()
         }
         sessionManager.endSession(completedNaturally = true)
+        // La pausa è arrivata in fondo da sé: l'anello si compie e si
+        // scioglie prima di lasciare la schermata (vedi [RingReleaseBurst]).
+        // La sessione è già chiusa a questo punto — l'animazione ritarda solo
+        // l'uscita dalla schermata, non la fine del blocco.
+        releasingRing = true
+        ringRelease.animateTo(1f, animationSpec = tween(700, easing = FastOutSlowInEasing))
         onExpiredNaturally()
     }
 
@@ -158,7 +175,14 @@ fun BlockScreen(
             } else {
                 0f
             }
-            ProgressRing(fraction = fraction, modifier = Modifier.size(176.dp))
+            if (releasingRing) {
+                // L'anello scompare e al suo posto parte la dissolvenza, dallo
+                // stesso raggio: i due non convivono, altrimenti si vedrebbero
+                // due cerchi concentrici invece di uno che si allenta.
+                RingReleaseBurst(progress = ringRelease.value, modifier = Modifier.size(176.dp))
+            } else {
+                ProgressRing(fraction = fraction, modifier = Modifier.size(176.dp))
+            }
 
             // Se il chiamante non ne fornisce una, questa schermata avvia la
             // propria oscillazione: è il caso di BlockOverlayActivity, che non

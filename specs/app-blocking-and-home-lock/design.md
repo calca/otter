@@ -646,6 +646,48 @@ instance removes the residual cause. The cost, accepted: no more slower
 bob during a session, since changing the period mid-flight would restart
 the animation and reintroduce exactly this.
 
+### Ending the pause: the ring completes and releases
+
+Until this point the only feedback at the end of a session was a system
+toast. On request ("a fine sessione, possiamo inserire un'animazione?")
+`RingReleaseBurst` (`MainScreen.kt`) was added: the progress ring, having
+just reached 100%, detaches from its radius, widens by 45%, thins out and
+fades. It is deliberately `TapConfirmBurst` read backwards — that one
+brings a wave *inward* onto the otter at the start — rather than a new
+visual idea for the ending.
+
+**Only on natural expiry.** `BlockScreen` sets `releasingRing` in the
+countdown loop's exhausted branch, and nowhere else:
+
+- **Unlocked with the password**: no release, just the existing crossfade.
+  The ring is not at 100% — often nowhere near, as an early unlock is
+  usually early — so showing it "complete" would narrate something that
+  didn't happen. Ending early is a legitimate part of the pact, so it
+  gets a plain exit rather than anything that could read as a reprimand.
+- **`onExpiredImmediately`** (session already over before the screen
+  rendered): no release either, because there was nothing on screen for
+  the user to have been watching.
+
+The ring and the release never render together — `releasingRing` swaps one
+for the other — otherwise two concentric circles would be visible instead
+of one loosening.
+
+The 700ms delay is only on *leaving the screen*: `endSession()` has
+already run by then, so nothing about the block itself is prolonged. It
+plays in all three callers, including `BlockOverlayActivity`, rather than
+being made caller-specific: this doc's own rule is that the three block
+screens may differ in what happens *after* they exit, never in how they
+behave while on screen, and an ending animation is squarely the latter.
+
+Verified on-device by writing a session whose end time was a few seconds
+out, then capturing the 60-second countdown tick that notices it (the
+loop's `delay(60_000)` is real time and is not affected by
+`animator_duration_scale`, so the tick has to be waited out even when the
+animation itself is slowed 10x). The frames show the ring filling,
+closing as a complete circle, then widening and fading. Unlocking in the
+same build showed the ring near-empty and no release, confirming the
+distinction is doing what it claims.
+
 ### How this was verified
 
 Position was measured on-device rather than eyeballed, because the otter
