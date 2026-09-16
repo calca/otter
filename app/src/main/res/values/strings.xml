@@ -209,6 +209,10 @@
     <string name="group_pause_manual_code_join_button">Unisciti</string>
     <string name="group_pause_invalid_code">Codice non valido o scaduto</string>
 
+    <string name="release_others_title">Rilascia chi era con te</string>
+    <string name="release_others_body">Avvicinate i telefoni: la loro pausa finisce come la tua.</string>
+    <string name="release_others_done">Fatto</string>
+    <string name="unlock_or_tap_hint">…oppure avvicina il telefono di chi ha convocato la pausa, se l\'ha già chiusa</string>
     <string name="block_group_with_one">Insieme a %1$s</string>
     <plurals name="block_group_with_many">
         <item quantity="one">Insieme a %1$s e un\'altra persona</item>

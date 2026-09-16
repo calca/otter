@@ -670,6 +670,60 @@ would clip content with no visible sign. Making that column scrollable
 would turn the failure into something recoverable; not done here, as it
 changes the screen's single-page character and was outside this request.
 
+## Social unlock: the host can release the others, in person
+
+Requested as "qualcosa di social oltre al locale": whoever convened the
+shared pause can end it for the others by holding the phones together,
+instead of them typing a password they are not supposed to know.
+
+**This deliberately bypasses the other person's local password, and that
+is the decision, not a side effect.** Today the password is the only way
+out and it belongs to an accountability partner. With this, someone can
+leave a pause by arranging it with a willing host and four centimetres.
+The chosen reading is the other one: *a pause convened together can be
+ended together, in person* — the authorisation is physical contact plus a
+deliberate gesture by the host, not a secret. It has to be stated, not
+smuggled in, which is why it is written here, in the code, and in the
+user-facing copy.
+
+Scope, kept narrow on purpose:
+
+- **Only the host releases**, and only people who were in *that* pause.
+  One keeper per shared pause. A joiner's unlock screen offers it; a
+  host's does not, having nobody to be released by.
+- **The token is `UNLOCK:<groupTag>`**, the tag both devices already share
+  from the recipe. It is *not* a secret — it travels in the Phase 1 QR —
+  and is not the authorisation. It only prevents releasing someone who was
+  in a different pause.
+- **The offer is bounded by a screen, not by time or a background
+  service**: after the host's own pause ends (either exit path), the block
+  screen is replaced by a release step that advertises the token over HCE
+  only while it is on screen. Dismissing it stops advertising.
+
+**No chooser.** The unlock dialog already existed; it now also runs NFC
+reader mode while open, and says so in its message line. Typing the
+password or touching the other phone satisfies the same affordance,
+whichever happens first — rather than adding a "password or NFC?" step to
+an action that already has two.
+
+This reuses the existing NFC plumbing on both sides (`GroupPauseHceService`
+with its mutable payload, and `GroupPauseNfcReader`); the only new state is
+`groupTag`/`isHost` on the session, which previously stopped at the lobby.
+
+### What is and isn't verified
+
+The token format and its rejection cases are unit-tested. The screens were
+checked on-device by seeding session state directly: the joiner's dialog
+shows the second route, the host's does not, and the host's release step
+appears after unlocking and returns to Home when dismissed. Because the
+emulator reports **no NFC feature at all**, both paths correctly disable
+themselves there, so the UI had to be seen by temporarily bypassing that
+one availability check, which was then reverted.
+
+**The actual tap has never been executed.** It needs two NFC devices, which
+this environment does not have — the same honest limit that applies to
+every Bluetooth and NFC path in this feature.
+
 ## Verification performed (single device)
 
 **Phase 1:**

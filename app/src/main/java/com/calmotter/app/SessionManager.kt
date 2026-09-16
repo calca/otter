@@ -57,6 +57,11 @@ class SessionManager private constructor(private val context: Context) {
         durationMinutes: Int,
         isGroupSession: Boolean = false,
         companions: List<String> = emptyList(),
+        // Identificano la pausa condivisa e il ruolo di questo dispositivo:
+        // servono al rilascio via NFC (vedi groupPauseUnlockToken) — solo
+        // l'host può rilasciare, e solo chi era in *quella* pausa.
+        groupTag: Int = 0,
+        isHost: Boolean = false,
     ) {
         val now = System.currentTimeMillis()
         val endTime = now + durationMinutes * 60_000L
@@ -67,6 +72,8 @@ class SessionManager private constructor(private val context: Context) {
             .putInt(KEY_PLANNED_MINUTES, durationMinutes)
             .putBoolean(KEY_IS_GROUP, isGroupSession)
             .putString(KEY_COMPANIONS, companions.filter { it.isNotBlank() }.joinToString("\n"))
+            .putInt(KEY_GROUP_TAG, groupTag)
+            .putBoolean(KEY_IS_HOST, isHost)
             .apply()
         setOnlyCallsAllowed(true)
         scheduleAutoExpiry(endTime)
@@ -77,6 +84,12 @@ class SessionManager private constructor(private val context: Context) {
 
     /** Vero se la sessione attiva (o appena terminata) era una pausa di gruppo. */
     fun isGroupSession(): Boolean = prefs.getBoolean(KEY_IS_GROUP, false)
+
+    /** Tag della pausa condivisa in corso; 0 se non è di gruppo o non lo si conosce. */
+    fun groupTag(): Int = prefs.getInt(KEY_GROUP_TAG, 0)
+
+    /** true se è questo dispositivo ad aver convocato la pausa condivisa. */
+    fun isGroupHost(): Boolean = prefs.getBoolean(KEY_IS_HOST, false)
 
     /** Nomi di chi condivide la pausa in corso; vuoto se non se ne conoscono. */
     fun companions(): List<String> =
@@ -117,6 +130,8 @@ class SessionManager private constructor(private val context: Context) {
         prefs.edit()
             .putBoolean(KEY_ACTIVE, false)
             .remove(KEY_COMPANIONS)
+            .remove(KEY_GROUP_TAG)
+            .remove(KEY_IS_HOST)
             .remove(KEY_END_TIME)
             .apply()
         setOnlyCallsAllowed(false)
@@ -195,6 +210,8 @@ class SessionManager private constructor(private val context: Context) {
         private const val PREFS_NAME = "calm_otter_session"
         private const val KEY_ACTIVE = "session_active"
         private const val KEY_COMPANIONS = "session_companions"
+        private const val KEY_GROUP_TAG = "session_group_tag"
+        private const val KEY_IS_HOST = "session_is_host"
         private const val KEY_START_TIME = "session_start_time"
         private const val KEY_END_TIME = "session_end_time"
         private const val KEY_PLANNED_MINUTES = "session_planned_minutes"

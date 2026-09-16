@@ -108,4 +108,28 @@ class GroupPauseBluetoothProtocolTest {
         assertNull(parseGroupPauseBtMessage("SOMETHING:new"))
         assertNull(parseGroupPauseBtMessage(""))
     }
+
+    @Test
+    fun unlockTokenRoundTrips() {
+        assertEquals(41827, parseGroupPauseUnlockToken(groupPauseUnlockToken(41827)))
+    }
+
+    /**
+     * Un token di un'altra pausa non deve liberare questa: il confronto sul
+     * groupTag è ciò che impedisce di terminare la sessione sbagliata.
+     */
+    @Test
+    fun unlockTokenOfAnotherPauseDoesNotMatch() {
+        assertEquals(41827, parseGroupPauseUnlockToken(groupPauseUnlockToken(41827)))
+        assert(parseGroupPauseUnlockToken(groupPauseUnlockToken(999)) != 41827)
+    }
+
+    /** Payload estranei (o il marker della lobby) non sono rilasci. */
+    @Test
+    fun nonUnlockPayloadsAreRejected() {
+        assertNull(parseGroupPauseUnlockToken(groupPauseLobbyNameMarker(41827)))
+        assertNull(parseGroupPauseUnlockToken("UNLOCK:"))
+        assertNull(parseGroupPauseUnlockToken("UNLOCK:abc"))
+        assertNull(parseGroupPauseUnlockToken(""))
+    }
 }

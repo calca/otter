@@ -256,6 +256,32 @@ behind.
 7. Pre-existing session records SHALL survive the schema change with no
    data loss.
 
+## User Story 10: Ending a shared pause together
+
+As people who paused together and are now in the same room, we want the
+one who convened it to be able to end it for the others by touching
+phones, rather than everyone typing a password they don't know.
+
+### Acceptance Criteria
+
+1. WHEN a device hosted a shared pause AND that pause has ended THEN it
+   SHALL be able to offer release to the people who were in it, over NFC.
+2. WHEN a device joined a shared pause THEN its unlock screen SHALL accept
+   either the password or that release, without an extra step choosing
+   between them, and SHALL say that the second route exists.
+3. WHEN a device hosted the pause THEN it SHALL NOT offer itself the
+   release route, having nobody to be released by.
+4. A release SHALL only end a pause carrying the same group tag — never
+   an unrelated one.
+5. The release offer SHALL last only as long as the screen offering it,
+   never as a background service or a timer.
+6. This SHALL be documented as deliberately bypassing the joiner's own
+   password: the authorisation is physical presence plus the host's
+   explicit gesture. It SHALL NOT be presented as if the password still
+   governed that exit.
+7. WHEN the device has no NFC THEN both sides SHALL simply not offer the
+   route, with the password remaining as before.
+
 ## Known limitations (accepted, not bugs)
 
 - **QR/manual-code mode has no participant count or names.** Because it

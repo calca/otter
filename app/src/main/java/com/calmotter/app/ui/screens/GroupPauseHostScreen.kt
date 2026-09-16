@@ -72,7 +72,7 @@ private sealed class HostFlowStep {
  */
 @Composable
 fun GroupPauseHostScreen(
-    onStarted: (durationMinutes: Int, companions: List<String>) -> Unit,
+    onStarted: (durationMinutes: Int, companions: List<String>, groupTag: Int) -> Unit,
     onCancel: () -> Unit,
     // Preselezione dalla scorciatoia "Di nuovo con…": null quando si entra dal
     // percorso normale, che parte dal default di sempre.
@@ -110,7 +110,7 @@ fun GroupPauseHostScreen(
         is HostFlowStep.Countdown -> GroupPauseCountdownScreen(
             durationMinutes = current.recipe.durationMinutes,
             startAtEpochMillis = current.recipe.startAtEpochMillis,
-            onReady = { onStarted(current.recipe.durationMinutes, current.companions) },
+            onReady = { onStarted(current.recipe.durationMinutes, current.companions, current.recipe.groupTag) },
             onCancel = onCancel,
             header = {
                 if (current.showShareHeader) GroupPauseShareHeader(code = current.recipe.encode())

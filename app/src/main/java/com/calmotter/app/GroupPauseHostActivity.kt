@@ -32,8 +32,14 @@ class GroupPauseHostActivity : BaseActivity() {
                 GroupPauseHostScreen(
                     initialDurationMinutes = intent.getIntExtra(EXTRA_DURATION_MINUTES, 0)
                         .takeIf { it > 0 },
-                    onStarted = { durationMinutes, companions ->
-                        sessionManager.startSession(durationMinutes, isGroupSession = true, companions = companions)
+                    onStarted = { durationMinutes, companions, groupTag ->
+                        sessionManager.startSession(
+                            durationMinutes,
+                            isGroupSession = true,
+                            companions = companions,
+                            groupTag = groupTag,
+                            isHost = true,
+                        )
                         finish()
                     },
                     onCancel = { finish() },

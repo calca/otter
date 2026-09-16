@@ -140,3 +140,22 @@ fun localBluetoothDisplayName(context: Context): String =
     Settings.Global.getString(context.contentResolver, Settings.Global.DEVICE_NAME)
         ?: Build.MODEL
         ?: "Calm Otter"
+
+private const val UNLOCK_PREFIX = "UNLOCK:"
+
+/**
+ * Payload NFC con cui l'host rilascia chi era nella sua stessa pausa: il
+ * `groupTag` della sessione condivisa, che entrambi i dispositivi conoscono
+ * perché è dentro la ricetta che hanno decodificato.
+ *
+ * Il tag **non è un segreto** — viaggia nel QR di Fase 1 — e non è
+ * l'autorizzazione. L'autorizzazione è fisica: i due telefoni devono
+ * toccarsi (NFC, pochi centimetri) e l'host deve aver deliberatamente
+ * offerto il rilascio. Il tag serve solo a non liberare qualcuno che stava
+ * facendo un'altra pausa.
+ */
+fun groupPauseUnlockToken(groupTag: Int): String = UNLOCK_PREFIX + groupTag
+
+/** `groupTag` rilasciato, oppure null se il payload non è un rilascio valido. */
+fun parseGroupPauseUnlockToken(payload: String): Int? =
+    if (payload.startsWith(UNLOCK_PREFIX)) payload.removePrefix(UNLOCK_PREFIX).toIntOrNull() else null

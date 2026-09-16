@@ -1,6 +1,16 @@
 package com.calmotter.app.ui.screens
 
 import android.widget.Toast
+import com.calmotter.app.nfc.GroupPauseHceService
+import com.calmotter.app.bluetooth.groupPauseUnlockToken
+import androidx.compose.material3.TextButton
+import com.calmotter.app.nfc.GroupPauseNfcReader
+import com.calmotter.app.bluetooth.parseGroupPauseUnlockToken
+import androidx.compose.runtime.DisposableEffect
+import android.os.Looper
+import android.os.Handler
+import android.nfc.NfcAdapter
+import android.app.Activity
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.tween
@@ -110,6 +120,34 @@ fun BlockScreen(
     // finita prima ancora che la schermata comparisse): nel primo caso
     // l'anello non è al 100% e "compierlo" racconterebbe una cosa non
     // avvenuta, nel secondo non c'è nulla che l'utente stesse guardando.
+    // Stato della pausa condivisa, letto una volta: serve sia per mostrare i
+    // nomi sia per decidere se il rilascio via NFC ha senso qui.
+    val sessionGroupTag = remember { sessionManager.groupTag() }
+    val activity = context as? Activity
+    val mainHandler = remember { Handler(Looper.getMainLooper()) }
+    val nfcReleaseEnabled = remember {
+        activity != null &&
+            sessionManager.isGroupSession() &&
+            !sessionManager.isGroupHost() &&
+            sessionGroupTag != 0 &&
+            NfcAdapter.getDefaultAdapter(context) != null
+    }
+
+    // Se questo dispositivo ha convocato la pausa condivisa, alla sua fine
+    // può rilasciare chi c'era — vedi [ReleaseOthersStep]. Va letto adesso:
+    // endSession() azzera tag e ruolo.
+    val canReleaseOthers = remember {
+        activity != null &&
+            sessionManager.isGroupSession() &&
+            sessionManager.isGroupHost() &&
+            sessionGroupTag != 0 &&
+            sessionManager.companions().isNotEmpty() &&
+            NfcAdapter.getDefaultAdapter(context) != null
+    }
+    // Non null = mostra il passo di rilascio invece della schermata di blocco;
+    // la lambda è l'uscita che era stata sospesa.
+    var releaseThenExit by remember { mutableStateOf<(() -> Unit)?>(null) }
+
     var releasingRing by remember { mutableStateOf(false) }
     val ringRelease = remember { Animatable(0f) }
 
@@ -140,10 +178,19 @@ fun BlockScreen(
         // l'uscita dalla schermata, non la fine del blocco.
         releasingRing = true
         ringRelease.animateTo(1f, animationSpec = tween(700, easing = FastOutSlowInEasing))
-        onExpiredNaturally()
+        if (canReleaseOthers) releaseThenExit = onExpiredNaturally else onExpiredNaturally()
     }
 
     val sessionEndedText = stringResource(R.string.session_ended)
+
+    // La pausa di questo dispositivo è finita, ma era lui a convocarla: prima
+    // di uscire offre il rilascio a chi c'era. Sostituisce la schermata invece
+    // di aggiungersi altrove — è il momento esatto in cui serve, e non costa
+    // spazio permanente da nessuna parte.
+    releaseThenExit?.let { exit ->
+        ReleaseOthersStep(groupTag = sessionGroupTag, onDone = exit)
+        return
+    }
 
     Column(
         modifier = Modifier
@@ -319,17 +366,96 @@ fun BlockScreen(
         }
     }
 
+    // Rilascio via NFC: mentre il dialogo di sblocco è aperto il telefono
+    // ascolta anche l'NFC, così le due strade — digitare la password o
+    // avvicinare il telefono di chi ha convocato la pausa e l'ha già chiusa —
+    // soddisfano la stessa affordance, senza un selettore in mezzo. Vince
+    // quella che accade prima.
+    //
+    // Solo in una pausa di gruppo e solo se questo dispositivo NON è l'host:
+    // l'host non ha nessuno da cui farsi rilasciare. Il confronto sul
+    // groupTag evita di liberare chi stava facendo un'altra pausa; è la
+    // vicinanza fisica a fare da autorizzazione, non il tag — vedi
+    // groupPauseUnlockToken.
+    if (showUnlockDialog && nfcReleaseEnabled) {
+        DisposableEffect(Unit) {
+            val reader = GroupPauseNfcReader(activity!!)
+            reader.start { payload ->
+                if (parseGroupPauseUnlockToken(payload) == sessionGroupTag) {
+                    mainHandler.post {
+                        sessionManager.endSession()
+                        Toast.makeText(context, sessionEndedText, Toast.LENGTH_SHORT).show()
+                        onUnlocked()
+                    }
+                }
+            }
+            onDispose { reader.stop() }
+        }
+    }
+
     if (showUnlockDialog) {
         PasswordVerifyDialog(
             passwordManager = passwordManager,
             title = stringResource(R.string.unlock),
             confirmLabel = stringResource(R.string.unlock),
             onDismiss = { showUnlockDialog = false },
+            // Il secondo modo va detto, altrimenti resta scopribile solo per
+            // caso: il lettore NFC è già attivo mentre questo dialogo è aperto.
+            message = if (nfcReleaseEnabled) stringResource(R.string.unlock_or_tap_hint) else null,
             onVerified = {
                 sessionManager.endSession()
                 Toast.makeText(context, sessionEndedText, Toast.LENGTH_SHORT).show()
-                onUnlocked()
+                showUnlockDialog = false
+                if (canReleaseOthers) releaseThenExit = onUnlocked else onUnlocked()
             },
         )
+    }
+}
+
+/**
+ * Passo finale per l'host di una pausa condivisa: il telefono espone via NFC
+ * il token di rilascio (vedi [groupPauseUnlockToken]) finché questa schermata
+ * è a video, così chi era nella stessa pausa può terminare avvicinando il
+ * proprio telefono invece di digitare una password che non conosce.
+ *
+ * **Questo scavalca deliberatamente la password locale dell'altra persona**,
+ * ed è una scelta dichiarata, non un effetto collaterale: una pausa convocata
+ * insieme può essere chiusa insieme, di presenza. L'autorizzazione è il
+ * contatto fisico fra i due telefoni più questo gesto esplicito dell'host —
+ * vedi specs/group-pause/design.md.
+ */
+@Composable
+private fun ReleaseOthersStep(groupTag: Int, onDone: () -> Unit) {
+    DisposableEffect(groupTag) {
+        GroupPauseHceService.pendingMarker = groupPauseUnlockToken(groupTag)
+        onDispose { GroupPauseHceService.pendingMarker = null }
+    }
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .calmBackground()
+            .safeDrawingPadding()
+            .padding(40.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center,
+    ) {
+        OtterFloatMark(markSize = 96.dp)
+        Text(
+            text = stringResource(R.string.release_others_title),
+            fontSize = 19.sp,
+            fontWeight = FontWeight.Bold,
+            color = MaterialTheme.colorScheme.primary,
+            textAlign = TextAlign.Center,
+            modifier = Modifier.padding(top = 16.dp, bottom = 6.dp),
+        )
+        Text(
+            text = stringResource(R.string.release_others_body),
+            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.75f),
+            textAlign = TextAlign.Center,
+        )
+        TextButton(onClick = onDone, modifier = Modifier.padding(top = 24.dp)) {
+            Text(stringResource(R.string.release_others_done))
+        }
     }
 }
