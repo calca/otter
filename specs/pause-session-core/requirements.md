@@ -19,13 +19,19 @@ accountability partner's block takes effect for that long.
    and planned duration.
 2. WHEN a session starts THEN the system SHALL enable Do Not Disturb,
    allowing phone calls from any number (`PRIORITY_CATEGORY_CALLS`,
-   `PRIORITY_SENDERS_ANY`) **and alarms** through, and — on Android 9
-   (API 28) and above — SHALL also suppress notification badges, the
-   notification list, and the status bar. Alarms are never silenced by a
-   pause: a pause lasts up to four hours, and making the user miss one is
-   outside what the pact covers — it is about distractions, not
-   commitments. On API 28 and above this takes `PRIORITY_CATEGORY_ALARMS`
-   explicitly; below it the priority filter already lets alarms through.
+   `PRIORITY_SENDERS_ANY`), **alarms and media audio** through, and — on
+   Android 9 (API 28) and above — SHALL also suppress notification badges,
+   the notification list, and the status bar. Neither alarms nor media are
+   ever silenced by a pause: one is a commitment already made, the other is
+   something already playing, and neither is an incoming distraction, which
+   is what the block exists to remove. A pause lasts up to four hours, so
+   muting an alarm — or cutting music off mid-track the instant the otter
+   is tapped — falls outside what the pact covers. On API 28 and above this
+   takes `PRIORITY_CATEGORY_ALARMS` and `PRIORITY_CATEGORY_MEDIA`
+   explicitly; below it the priority filter leaves both alone anyway.
+   Letting media *sound* through is independent of whether a player app can
+   be *opened* during a pause, which the allowed-apps whitelist decides
+   (see `app-blocking-and-home-lock/`).
 3. WHEN a session starts THEN the system SHALL schedule an inexact
    `AlarmManager` alarm (`setAndAllowWhileIdle`) for the end time, so the
    session terminates even if the app process is not running.

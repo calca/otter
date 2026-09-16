@@ -43,20 +43,34 @@ check:
 - **Below API 28**: `priorityCategories` is `PRIORITY_CATEGORY_CALLS` and
   `suppressedEffects` is `0`.
 - **API 28 and up**: `priorityCategories` also carries
-  `PRIORITY_CATEGORY_ALARMS`, and `suppressedEffects` is
-  `SUPPRESSED_EFFECT_BADGE | SUPPRESSED_EFFECT_NOTIFICATION_LIST |
-  SUPPRESSED_EFFECT_STATUS_BAR` (hides notification dots, the pull-down
-  shade content, and the status bar icons — added after the initial DND
-  implementation; see `SessionManager.kt` history if diffing).
+  `PRIORITY_CATEGORY_ALARMS` and `PRIORITY_CATEGORY_MEDIA`, and
+  `suppressedEffects` is `SUPPRESSED_EFFECT_BADGE |
+  SUPPRESSED_EFFECT_NOTIFICATION_LIST | SUPPRESSED_EFFECT_STATUS_BAR`
+  (hides notification dots, the pull-down shade content, and the status bar
+  icons — added after the initial DND implementation; see
+  `SessionManager.kt` history if diffing).
 
-**Alarms are deliberately let through**, and the API 28 split is not
-symmetric with the suppressed effects even though it shares the check:
-`PRIORITY_CATEGORY_ALARMS` only exists from API 28, which is also where DND
-gained the ability to silence alarms at all — below that, the priority
-filter never touched them, so there is nothing to grant. The reason it
-matters is stated in `requirements.md`: a pause runs up to four hours, and
-silencing an alarm would take the block outside what it is for. Reported as
-a real bug after the DND policy shipped allowing calls only.
+**Alarms and media are deliberately let through.** The line the policy
+draws is not "how much can we silence" but *incoming distraction vs.
+everything else*: an alarm is a commitment already made, media is something
+already playing, and neither is a thing arriving to pull attention away.
+Since a pause runs up to four hours, muting an alarm — or cutting music off
+mid-track at the exact moment the otter is tapped — lands outside what the
+block is for. Both were reported as real bugs after the DND policy first
+shipped allowing calls only.
+
+The API 28 check is shared with the suppressed effects but for an unrelated
+reason: `PRIORITY_CATEGORY_ALARMS`/`_MEDIA` only exist from API 28, which is
+also where DND gained the ability to silence those two channels at all —
+below that the priority filter left them alone, so there is nothing to
+grant.
+
+Note the scope: this governs **audio only**. Whether a player app can be
+*opened* mid-pause is a separate decision, made by the allowed-apps
+whitelist (`AllowedAppsManager`, see `app-blocking-and-home-lock/`). The two
+have to agree to be useful — a whitelisted Spotify with media muted would
+just play to nobody — but they stay separate settings, and neither implies
+the other.
 
 ## Boot restore vs. self-heal race
 

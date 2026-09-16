@@ -182,20 +182,27 @@ class SessionManager private constructor(private val context: Context) {
         if (!nm.isNotificationPolicyAccessGranted) return // permesso non concesso: si ignora silenziosamente
 
         if (enabled) {
-            // Silenzia tutto tranne le chiamate telefoniche (da qualunque
-            // numero) e le sveglie.
+            // Silenzia le notifiche, non il telefono: passano le chiamate (da
+            // qualunque numero), le sveglie e l'audio dei media.
             //
-            // Le sveglie devono passare: una pausa può durare fino a 4 ore, e
-            // far perdere una sveglia è un danno che esce dal patto — quello
-            // riguarda le distrazioni, non gli impegni presi. Segnalato come
-            // bug reale.
+            // Sveglie e media non sono distrazioni in arrivo, che è ciò che
+            // questa pausa esiste per togliere: sono rispettivamente un
+            // impegno già preso e qualcosa che stai già ascoltando. Una pausa
+            // può durare 4 ore, e zittire una sveglia — o troncare la musica
+            // a metà canzone nell'istante esatto in cui si tocca l'otter —
+            // sono danni che stanno fuori dal patto. Entrambi segnalati.
             //
-            // Vanno però concesse esplicitamente solo da Android 9 (API 28):
-            // PRIORITY_CATEGORY_ALARMS è comparsa lì, insieme alla
-            // possibilità stessa per DND di silenziarle. Sotto quella
-            // versione il filtro "solo priorità" le lascia passare comunque,
-            // quindi non c'è nulla da aggiungere (e la costante non
-            // esisterebbe).
+            // Vanno concesse esplicitamente solo da Android 9 (API 28): è lì
+            // che sono comparse PRIORITY_CATEGORY_ALARMS/_MEDIA, insieme alla
+            // possibilità stessa per DND di silenziare quei due canali. Sotto
+            // quella versione il filtro "solo priorità" non li toccava,
+            // quindi non c'è nulla da aggiungere (e le costanti non
+            // esisterebbero).
+            //
+            // Nota: questo riguarda solo l'audio. *Aprire* Spotify durante
+            // una pausa resta una decisione separata, che si prende dalla
+            // whitelist (vedi AllowedAppsManager) — qui si evita solo che
+            // l'app consentita suoni a vuoto.
             //
             // Da API 28 nasconde anche i pallini (dots), la tendina
             // (pull-down) e la barra di stato (status bar).
@@ -203,7 +210,8 @@ class SessionManager private constructor(private val context: Context) {
             val suppressedEffects: Int
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
                 priorityCategories = NotificationManager.Policy.PRIORITY_CATEGORY_CALLS or
-                        NotificationManager.Policy.PRIORITY_CATEGORY_ALARMS
+                        NotificationManager.Policy.PRIORITY_CATEGORY_ALARMS or
+                        NotificationManager.Policy.PRIORITY_CATEGORY_MEDIA
                 suppressedEffects = NotificationManager.Policy.SUPPRESSED_EFFECT_BADGE or
                         NotificationManager.Policy.SUPPRESSED_EFFECT_NOTIFICATION_LIST or
                         NotificationManager.Policy.SUPPRESSED_EFFECT_STATUS_BAR
