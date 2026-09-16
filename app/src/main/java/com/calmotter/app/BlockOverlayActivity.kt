@@ -20,6 +20,14 @@ import com.calmotter.app.ui.theme.CalmOtterTheme
 class BlockOverlayActivity : BaseActivity() {
     override val themeVariant = ThemeVariant.BLOCK
 
+    override fun onResume() {
+        super.onResume()
+        // Rimuove la finestra-ponte di AppBlockerAccessibilityService, se
+        // ancora presente: questa Activity è ora davvero in primo piano, non
+        // serve più coprire lo schermo dell'app bloccata nell'attesa.
+        AppBlockerAccessibilityService.notifyBlockScreenVisible()
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
