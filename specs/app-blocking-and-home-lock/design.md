@@ -534,9 +534,9 @@ text repeated every time it appears:
 
 - **`PausePawsMark` (the static badge above the old title) is gone**,
   replaced by the exact same `ProgressRing` + floating `OtterFloatMark`
-  `PondScene` draws on the Home screen during a session — same code, not a
+  `PondOtter` draws on the Home screen during a session — same code, not a
   lookalike. `ProgressRing` and the floating-offset animation (previously
-  private/inline inside `PondScene`) are now `rememberOtterFloatOffset(periodMillis)`
+  private/inline inside `PondOtter`) are now `rememberOtterFloatOffset(periodMillis)`
   and a non-`private` `ProgressRing`, both still declared in `MainScreen.kt`
   — `BlockScreen.kt` calls them directly, same package
   (`ui/screens`), no import needed. See `mascot-marks/design.md`'s
@@ -545,7 +545,7 @@ text repeated every time it appears:
   countdown string**: `totalMillis` (read once via `remember`, doesn't
   change during a session) and `remainingMillisState` (updated on the same
   once-a-minute tick that already updated the display string), so it can
-  compute the ring's fill fraction the same way `PondScene` does
+  compute the ring's fill fraction the same way `PondOtter` does
   (`1f - remaining/total`).
 - **`block_title` ("Pause in progress"), `block_message` (the full
   rules paragraph), and `block_actions_label` (the caption above the
@@ -553,7 +553,7 @@ text repeated every time it appears:
   text now that the ring/otter/lock-icon visual language, the countdown
   phrase, and the optional reflective quote already carry the meaning.
   `home_active_label` ("Paused"/"In pausa") is reused in its place, the
-  same string `PondScene` shows for the same state, rather than adding a
+  same string `PondOtter` shows for the same state, rather than adding a
   `BlockScreen`-specific one.
 - **The reflective phrase and the `CalmCountdown`-generated countdown
   phrase are both kept** — neither is "repeated boilerplate text": the
@@ -619,21 +619,63 @@ vorrei stesse fermo in pagina mentre il resto fade-out e fade-in."
 Measuring showed the slide wasn't the transition's doing — the two screens
 simply drew the otter in different places. On a 1080x2220 device the Home
 otter's centre sat at y=812 with an empty history and y=760 once a few
-sessions existed, because `PondScene` was centred in `weight(1f)` space
+sessions existed, because `PondOtter` was centred in `weight(1f)` space
 that shrinks as the bottom card grows; `BlockScreen` meanwhile centred its
 own column, landing somewhere else again. No static position could match
 both Home states, so the shared element always had a gap to animate.
 
-The fix is therefore layout, not animation: `OtterSlotTopInset` +
-`OtterSlotHeight` (both in `MainScreen.kt`) give the otter a fixed slot at
-a fixed offset, used verbatim by both screens — `BlockScreen` reserves the
-same space Home spends on padding + header, despite having no header, and
-is anchored to the top instead of vertically centred. With identical
-bounds the shared element has nothing to interpolate, so the otter is
-genuinely motionless while everything around it crossfades.
+The fix is therefore layout, not animation. The first version of it gave
+the otter a fixed slot at a fixed offset from the top: `OtterSlotTopInset`
++ `OtterSlotHeight` (both in `MainScreen.kt`), with `BlockScreen`
+reserving via a hand-placed `Spacer` the same space Home spends on padding
++ header despite having no header. With identical bounds the shared
+element has nothing to interpolate, so the otter is motionless while
+everything around it crossfades.
 
 A side benefit: Home itself stops reflowing the moment you record your
 first session.
+
+### That fix broke twice, so the position moved into one container
+
+Two numbers that have to match, computed by two screens, are not an
+invariant — they are a coincidence waiting to be disturbed, and both
+disturbances came from changes made elsewhere in good faith:
+
+1. **A scrolling refactor.** Making every screen scroll at large font
+   scales meant dropping `Modifier.weight` (illegal inside a vertical
+   scroll) for `Arrangement.SpaceBetween`. With three children, that
+   splits the leftover space into two gaps — one of them *above* the
+   otter, which is exactly the offset that was supposed to be fixed.
+2. **`maxHeight` measured outside the safe area.** The same refactor's
+   `BoxWithConstraints` sat outside `safeDrawingPadding()`, so
+   `heightIn(min = maxHeight)` made Home permanently taller than its own
+   viewport by the system-bar insets. Home was therefore always slightly
+   scrollable, and any residual scroll offset lifted the otter off its
+   anchor — see `CalmScreenColumn`'s doc comment.
+
+Both were reported the same way: the otter slides when the pause starts.
+So the position stopped being something each screen computes and became
+something neither can: **`OtterAnchoredScreen`** (`ui/screens/`) is the
+container for both, and it centres the `OtterSlotHeight` slot in the
+viewport, subtracting a *fixed* `headerHeight` (96dp for Home's title
+strip, 0 for `BlockScreen`) so that a header only one of the two screens
+has cannot shift what follows it. The otter's position is now a function
+of the viewport height alone — identical across the two screens by
+definition, not by arithmetic that has to be kept in step.
+
+Centring rather than a top offset is what the user asked for, but note it
+is the *slot* that is centred, not the content column: centring the
+columns would put the otter at the middle of each screen's own content,
+and those differ (Home: sessions line, "Tempo insieme"; block: countdown,
+phrase, actions), which would reintroduce the slide with a different
+magnitude.
+
+Two limits are accepted and documented on the container: once content
+overflows and the screen actually scrolls, the anchor is gone (content you
+can reach beats an otter that holds still), and on a viewport short enough
+that the computed gap clamps to zero the two screens differ by
+`headerHeight` — which does not happen on a phone held upright, where the
+centre sits around 240dp and the header takes 96.
 
 The float animation (`rememberOtterFloatOffset`) is also hoisted into
 `MainActivity` and passed to both screens. Each used to run its own, at

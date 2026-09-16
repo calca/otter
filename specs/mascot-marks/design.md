@@ -240,19 +240,19 @@ mark, drawn as a static badge above the title/message text. Removed
 entirely in a `BlockScreen` redesign, on request ("prendi ispirazione dalla
 home, vorrei otter fluttuante come prima, riduci le scritte inutili"):
 `BlockScreen` now shows the exact same `ProgressRing` + floating
-`OtterFloatMark` combination `MainScreen`'s `PondScene` shows during an
+`OtterFloatMark` combination `MainScreen`'s `PondOtter` shows during an
 active session, instead of its own distinct mark — one visual language for
 "a session is active" everywhere it can be encountered, not a different
 static badge specific to the block screens. `ProgressRing` and the
 floating-offset animation (previously private, inline code inside
-`PondScene`) were both lifted out to non-`private` top-level declarations
+`PondOtter`) were both lifted out to non-`private` top-level declarations
 in `MainScreen.kt` — `rememberOtterFloatOffset(periodMillis)` for the
 animation, `ProgressRing` unchanged otherwise — so `BlockScreen.kt` (same
 package, `ui/screens`) can call them directly without an import. This also
 meant `BlockScreen` needed to start tracking raw remaining/total
 milliseconds (`totalMillis`, `remainingMillisState`), not just the already-
 formatted countdown string it read before, to compute the ring's fill
-fraction the same way `PondScene` does.
+fraction the same way `PondOtter` does.
 
 `PausePawsMark` had exactly one caller left afterward (itself), so it was
 deleted outright rather than left orphaned — see `PactPawsMark`'s doc
@@ -266,7 +266,7 @@ explaining the block's rules, and the caption above the allowed-apps row)
 — on request, to cut text repeated every time the screen appears when the
 visual language (ring, otter, lock icon) and the existing reflective
 phrase/countdown already carry the meaning. `home_active_label` ("Paused"),
-already used by `PondScene` for the same state, is reused here instead of
+already used by `PondOtter` for the same state, is reused here instead of
 introducing a `BlockScreen`-specific label.
 
 ## Why the widget needed its own drawable

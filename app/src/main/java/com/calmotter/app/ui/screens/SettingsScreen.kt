@@ -190,7 +190,7 @@ private fun calmSwitchColors(): SwitchColors = SwitchDefaults.colors(
  * disturbare) — spostata qui dalla Home perché nessuno dei due blocca
  * l'avvio di una sessione in sé: vengono comunque chiesti (con
  * spiegazione) al tap sull'otter se ancora mancanti, vedi
- * PondScene/PermissionExplainerDialog in MainScreen.kt. Qui sono uno stato
+ * PondOtter/PermissionExplainerDialog in MainScreen.kt. Qui sono uno stato
  * sempre consultabile, non un promemoria a ogni apertura dell'app.
  * L'app Home ha una sua card separata sotto (vedi [HomeCard]): non è un
  * permesso di sistema, è solo "consigliata".

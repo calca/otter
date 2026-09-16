@@ -39,9 +39,6 @@
     <string name="home_start_hint">Tap the otter to start</string>
     <string name="home_active_label">Paused</string>
     <string name="home_time_remaining">%1$d min left</string>
-    <string name="home_chart_label">Your recent sessions</string>
-    <string name="home_history_cta">History →</string>
-    <string name="home_chart_empty">No pauses yet — start your first</string>
     <string name="weekly_chart_today">today</string>
     <string-array name="weekday_initials">
         <item>S</item>

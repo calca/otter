@@ -18,20 +18,14 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material3.Icon
@@ -193,32 +187,20 @@ fun BlockScreen(
         return
     }
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .calmBackground()
-            .safeDrawingPadding()
-            .verticalScroll(rememberScrollState())
-            .padding(horizontal = 40.dp, vertical = 0.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-    ) {
-        // Ancorata in alto, non più centrata verticalmente: l'otter deve
-        // cadere nello stesso identico punto di quello della Home, e la
-        // centratura lo legava all'altezza del testo sotto (che cambia con
-        // la frase riflessiva e con la presenza dell'indicatore di gruppo).
-        // Questo Spacer riserva lo spazio che in Home occupano padding e
-        // intestazione — vedi [OtterSlotTopInset] in MainScreen.kt.
-        Spacer(modifier = Modifier.height(OtterSlotTopInset))
-
-        // Stesso anello di avanzamento + otter fluttuante della Home durante
-        // una sessione attiva (vedi PondScene/ProgressRing in MainScreen.kt),
-        // al posto del vecchio badge statico PausePawsMark — stesso
-        // linguaggio visivo ovunque una sessione sia in corso, non solo qui.
-        // Stesso slot ad altezza fissa della Home, per la stessa ragione.
-        Box(
-            modifier = Modifier.height(OtterSlotHeight).fillMaxWidth(),
-            contentAlignment = Alignment.Center,
-        ) {
+    // Stesso contenitore della Home ([OtterAnchoredScreen]), che è ciò che
+    // fa cadere questo otter nello stesso identico punto di quello lì: la
+    // posizione non è più calcolata qui (prima: uno `Spacer` alto quanto
+    // padding + intestazione della Home, tenuto allineato a mano) ma una
+    // volta sola, per entrambe le schermate. `headerHeight` resta a zero:
+    // un'intestazione questa schermata non ce l'ha.
+    OtterAnchoredScreen(
+        horizontalPadding = 40.dp,
+        otter = {
+            // Stesso anello di avanzamento + otter fluttuante della Home
+            // durante una sessione attiva (vedi PondOtter/ProgressRing in
+            // MainScreen.kt), al posto del vecchio badge statico
+            // PausePawsMark — stesso linguaggio visivo ovunque una sessione
+            // sia in corso, non solo qui.
             val fraction = if (totalMillis > 0) {
                 (1f - remainingMillisState.toFloat() / totalMillis.toFloat()).coerceIn(0f, 1f)
             } else {
@@ -240,8 +222,8 @@ fun BlockScreen(
             Box(modifier = Modifier.offset(y = floatOffset.dp)) {
                 OtterFloatMark(modifier = otterModifier, markSize = 124.dp)
             }
-        }
-
+        },
+    ) {
         Text(
             text = stringResource(R.string.home_active_label),
             style = MaterialTheme.typography.labelMedium,

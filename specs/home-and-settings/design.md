@@ -65,7 +65,7 @@ that state or those callbacks belong to Home anymore. Added:
 composables at that time, unchanged internally — later replaced outright by
 `ThemeListCard`/`ThemeListRow`, see "Full list-card redesign" below.
 
-## Living Pond: `PondScene` (`MainScreen.kt`)
+## Living Pond: `PondOtter` (`MainScreen.kt`)
 
 A second redesign pass replaced the plain duration-picker/Start-button/
 streak-text/History-button column with an otter-centric "pond" scene, kept
@@ -74,10 +74,13 @@ Home-specific, not a general-purpose mascot mark, except `OtterFloatMark`
 itself which lives in `ui/mascot/OtterMarks.kt` alongside the other two
 marks since it's reused nowhere outside Home but is thematically a mark).
 
-- **`PondScene`** — a `Column` containing a fixed-size `Box` (the "pond":
-  ripples/ring + otter, always centered) followed by either the duration
-  chips or the active-session readout. `sessionActive` switches both the
-  Box's contents and the row below it.
+- **`PondOtter`** — the fixed-size `Box` that is the "pond" itself:
+  ripples/ring + otter, always centered. `sessionActive` switches its
+  contents (ambient ripples vs. progress ring). It draws *only* the pond:
+  the duration chips and the active-session readout are siblings below it,
+  passed by `MainScreen` as the `below` content of `OtterAnchoredScreen`.
+  It was one `Column` holding both (named `PondScene`) until that container
+  took over placing the pond — see "Where the otter goes" below.
 - **`AmbientRipples`** — three `Canvas`-drawn circles animated via one
   shared `rememberInfiniteTransition` float `t` (`0f..1f`, linear,
   restarting), each ring reading `(t + phase) % 1f` at a different `phase`
@@ -105,7 +108,7 @@ marks since it's reused nowhere outside Home but is thematically a mark).
   tapping the otter called `onStart` (and therefore
   `sessionManager.startSession()`/`onSessionStarted()`, which swaps straight
   to `BlockScreen`) synchronously, an instant cut with no feedback on the tap
-  itself. `PondScene` now holds its own `isStarting` (`mutableStateOf(false)`)
+  itself. `PondOtter` now holds its own `isStarting` (`mutableStateOf(false)`)
   gate: on tap it (a) disables further taps
   (`clickable(enabled = !sessionActive && !isStarting, ...)`), (b) springs the
   otter up to 1.18× scale (`animateFloatAsState` with
@@ -175,23 +178,37 @@ per palette (`background`/`surface`/`onBackground`/`onSurface`/`primary`/
 `onPrimary`/`error`/`onError`) are ever used — see the `surfaceVariant`
 trap note in CLAUDE.md.
 
-## Anchored layout: the middle `Column` carries `weight(1f)`
+## Where the otter goes: `OtterAnchoredScreen`
 
-A third pass gave `MainScreen`'s root `Column` three regions instead of one
-flat top-aligned flow: the title row and permission prompts (fixed height,
-top), a middle `Column(Modifier.weight(1f), verticalArrangement =
-Arrangement.Center)` wrapping `PondScene` plus the weekly-summary line (this
-region expands to fill whatever space is left and centers its content
-inside it), and `SessionsChartCard` (fixed height, bottom — falls naturally
-below the weighted region instead of trailing right under the pond). The
-root `Column` also dropped its `.verticalScroll(...)`: nothing here is a
-form, so there's no keyboard to dodge, and a `weight(1f)` child needs a
-bounded-height parent to center within, which an indefinitely-tall
-scrolling parent isn't. `PondScene`'s pond `Box` grew from 200dp to 260dp
-(otter 96dp→124dp, active-session ring 136dp→176dp) — with the extra
-vertical room now going to the pond instead of empty space below the card,
-a larger otter reads as the deliberate focal point rather than one element
-sized for a cramped top section.
+`MainScreen` no longer positions the otter at all. It hands
+`OtterAnchoredScreen` a `headerHeight` (`HomeHeaderHeight`, 96dp — the
+title strip, deliberately fixed so a larger system font cannot push the
+otter down), the pond as the `otter` slot, and everything else as `below`;
+the container centres the `OtterSlotHeight` slot in the viewport. The block
+screen passes the same container a `headerHeight` of zero and its own
+`otter` content, which is what makes the two agree by construction rather
+than by two hand-kept numbers matching — the full story, including the two
+times they stopped matching, is in `app-blocking-and-home-lock/design.md`
+("The otter has to be in the same place, or it slides") and in the
+container's own doc comment.
+
+This replaced three earlier passes' worth of layout, each of which fixed a
+real complaint and left a fragile arrangement behind:
+
+- A `weight(1f)` middle region centred the pond between a fixed title row
+  and a bottom-anchored `SessionsChartCard`. It fixed "the home is a bit
+  empty" (Home read top-heavy, with the bottom third unused) but tied the
+  otter's position to how tall the card below it was.
+- Making every screen scroll for large font scales removed `weight` (it
+  cannot be used inside a vertical scroll) in favour of
+  `Arrangement.SpaceBetween`, which split the leftover space into *two*
+  gaps — one of them above the otter.
+- With the card since removed, there is no bottom anchor left to balance
+  against anyway.
+
+What survives from those passes: the pond `Box` is 260dp (otter 124dp,
+active-session ring 176dp), grown from 200dp/96dp/136dp when the middle of
+the screen became the otter's rather than a cramped top section's.
 
 ## Permissions off Home: `PermissionExplainerDialog` and `PermissionStatusCard`
 
@@ -231,7 +248,7 @@ with two separate, more targeted pieces of UI.
   `primaryContainer` still aren't, per CLAUDE.md). Only the row
   content remains a place this design chooses `onSurface` deliberately,
   same as before.
-  `MainScreen`'s `onStart` lambda passed into `PondScene` is what decides
+  `MainScreen`'s `onStart` lambda passed into `PondOtter` is what decides
   which behavior a tap gets: `if (BuildConfig.DEBUG || (accessibilityOk &&
   dndOk)) startSession() else showPermissionDialog = true` — the
   `BuildConfig.DEBUG ||` short-circuits the whole check in debug builds

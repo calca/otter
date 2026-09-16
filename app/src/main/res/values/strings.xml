@@ -39,9 +39,6 @@
     <string name="home_start_hint">Tocca l\'otter per iniziare</string>
     <string name="home_active_label">In pausa</string>
     <string name="home_time_remaining">%1$d min rimasti</string>
-    <string name="home_chart_label">Le tue ultime sessioni</string>
-    <string name="home_history_cta">Cronologia →</string>
-    <string name="home_chart_empty">Nessuna pausa ancora — inizia la prima</string>
     <string name="weekly_chart_today">oggi</string>
     <string-array name="weekday_initials">
         <item>D</item>

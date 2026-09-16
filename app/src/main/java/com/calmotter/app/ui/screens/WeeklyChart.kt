@@ -46,12 +46,14 @@ fun WeeklyChart(data: IntArray, modifier: Modifier = Modifier) {
 
     // Risolte qui (scope @Composable) e non dentro Canvas{}, stesso motivo dei
     // colori sopra — vale anche per stringResource()/stringArrayResource().
-    // Stesso array e stessa convenzione di indicizzazione
-    // (Calendar.DAY_OF_WEEK - 1) usati da SessionsChartCard in MainScreen.kt:
-    // prima di questo fix i giorni erano hardcoded in italiano ("Lu"/"Ma"/...)
+    // Convenzione di indicizzazione dell'array: Calendar.DAY_OF_WEEK - 1.
+    // Prima di questo fix i giorni erano hardcoded in italiano ("Lu"/"Ma"/...)
     // e "oggi" era una stringa letterale, quindi questo grafico restava
     // sempre in italiano indipendentemente dalla lingua dell'app (a
-    // differenza del grafico gemello in Home, già correttamente localizzato).
+    // differenza del grafico gemello che la Home aveva allora, già
+    // correttamente localizzato — quello è poi stato rimosso, vedi
+    // [SessionsSummaryLink] in MainScreen.kt: le barre degli ultimi 7 giorni
+    // vivono ormai solo qui, in Cronologia).
     val weekdayInitials = stringArrayResource(R.array.weekday_initials)
     val todayLabel = stringResource(R.string.weekly_chart_today)
 

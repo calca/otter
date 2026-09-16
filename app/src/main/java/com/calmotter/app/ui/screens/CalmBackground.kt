@@ -73,7 +73,7 @@ fun Modifier.calmBackground(): Modifier {
  * distribuire — sulla Home finiva tutto nell'unico spazio fra "Tempo insieme"
  * e la card della cronologia, e lo scorrimento residuo spostava l'otter dal
  * suo ancoraggio fisso, rimettendo in moto la transizione condivisa verso
- * BlockScreen (vedi [OtterSlotTopInset]).
+ * BlockScreen (vedi [OtterAnchoredScreen]).
  *
  * `calmBackground()` resta invece sul Box esterno a schermo pieno: il velo
  * di colore deve continuare a passare sotto le barre di sistema.
