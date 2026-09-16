@@ -13,22 +13,25 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Set up JDK 17
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v6
         with:
           distribution: temurin
           java-version: "17"
 
       - name: Set up Android SDK
-        uses: android-actions/setup-android@v3
+        uses: android-actions/setup-android@v4
         with:
-          # Il default di questa action (build cmdline-tools molto vecchio,
-          # es. 12266719) non riconosce ancora "platforms;android-37.1"
-          # (compileSdk 37.1, richiesto dalle dipendenze Compose alpha):
-          # sdkmanager fallisce con "Failed to find package" anche se il
-          # pacchetto esiste lato Google. Versione più recente verificata.
+          # Build di cmdline-tools troppo vecchie non riconoscono
+          # "platforms;android-37.1" (compileSdk 37.1, richiesto dalle
+          # dipendenze Compose alpha): sdkmanager fallisce con "Failed to
+          # find package" anche se il pacchetto esiste lato Google. Il
+          # default della v4 è ormai proprio questa build (cmdline-tools
+          # 20.0 = 14742923), quindi il pin oggi non cambia nulla — resta
+          # esplicito perché il default è cambiato in passato e può
+          # ricambiare, e qui un cambio silenzioso romperebbe la build.
           cmdline-tools-version: 14742923
           # Il default di questo input è "tools platform-tools", e "tools"
           # (le vecchie SDK Tools, deprecate da anni) è stato rimosso dal
@@ -50,7 +53,7 @@ jobs:
         run: sdkmanager "platforms;android-37.1" "build-tools;37.0.0"
 
       - name: Set up Gradle
-        uses: gradle/actions/setup-gradle@v4
+        uses: gradle/actions/setup-gradle@v6
 
       - name: Make gradlew executable
         run: chmod +x gradlew
@@ -68,7 +71,7 @@ jobs:
         run: ./gradlew assembleDebug --stacktrace
 
       - name: Upload debug APKs
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: app-debug
           path: |
