@@ -118,7 +118,7 @@ internal val OtterSlotTopInset = 96.dp
  * Effetto collaterale voluto: anche la Home da sola smette di riassestarsi
  * quando registri la prima sessione.
  */
-internal val OtterSlotHeight = 320.dp
+internal val OtterSlotHeight = 272.dp
 
 /**
  * Schermata home ("Living Pond" — vedi specs/home-and-settings): lo stagno
@@ -155,6 +155,9 @@ fun MainScreen(
     onSessionStarted: () -> Unit = {},
     onGroupPauseHost: () -> Unit = {},
     onGroupPauseJoin: () -> Unit = {},
+    // Riapre direttamente il percorso "Crea" con la durata data — vedi la
+    // scorciatoia "Di nuovo con…" più sotto.
+    onGroupPauseAgain: (durationMinutes: Int) -> Unit = {},
     // Vedi il parametro omonimo di [BlockScreen]: è lo stesso otter, ed è
     // [MainActivity] a legarli come elemento condiviso.
     otterModifier: Modifier = Modifier,
@@ -172,6 +175,10 @@ fun MainScreen(
     var totalMillis by remember { mutableStateOf(0L) }
     var streakDays by remember { mutableIntStateOf(0) }
     var hasHistory by remember { mutableStateOf(false) }
+    // Ultima pausa condivisa di cui si sappiano i nomi, per la scorciatoia
+    // "Di nuovo con…": ricalcolata insieme al resto a ogni onResume, così
+    // compare subito dopo che una pausa insieme è finita.
+    var lastCompanion by remember { mutableStateOf<Pair<String, Int>?>(null) }
     var weekSummary by remember { mutableStateOf(WeekSummary(List(7) { 0 }, List(7) { 0 }, 0, 0)) }
     var selectedDurationIndex by remember { mutableIntStateOf(1) }
     var showPermissionDialog by remember { mutableStateOf(false) }
@@ -187,6 +194,14 @@ fun MainScreen(
         streakDays = SessionStreak.currentStreakDays(history)
         hasHistory = history.isNotEmpty()
         weekSummary = weekSummaryOf(history)
+        // Primo nome soltanto: la scorciatoia deve nominare una persona, e con
+        // "Marco, Anna e Luca" smetterebbe di essere una riga breve.
+        lastCompanion = history
+            .firstOrNull { it.isGroupSession && it.companions.isNotBlank() }
+            ?.let { record ->
+                record.companions.split("\n").firstOrNull { it.isNotBlank() }
+                    ?.let { name -> name to record.plannedMinutes }
+            }
     }
 
     // Rieseguito a ogni onResume() dell'Activity (resumeSignal incrementato
@@ -298,6 +313,20 @@ fun MainScreen(
                         style = MaterialTheme.typography.labelMedium,
                         modifier = Modifier.padding(start = 8.dp),
                     )
+                }
+
+                // Scorciatoia verso la stessa persona dell'ultima volta: salta
+                // il selettore Crea/Unisciti e riparte dalla stessa durata.
+                // Risparmia i tocchi, non l'accoppiamento: il Bluetooth va
+                // rifatto comunque, perché la connessione si chiude all'avvio
+                // della pausa (vedi specs/group-pause, "handshake-then-autonomy").
+                lastCompanion?.let { (name, minutes) ->
+                    TextButton(onClick = { onGroupPauseAgain(minutes) }) {
+                        Text(
+                            text = stringResource(R.string.home_again_with, name),
+                            style = MaterialTheme.typography.labelMedium,
+                        )
+                    }
                 }
             }
         }

@@ -46,7 +46,18 @@ class SessionManager private constructor(private val context: Context) {
      * alcun modo il funzionamento della sessione stessa (durata, DND,
      * sblocco): è solo un'etichetta.
      */
-    fun startSession(durationMinutes: Int, isGroupSession: Boolean = false) {
+    /**
+     * [companions] sono i nomi raccolti nella lobby dal vivo — vuoto per una
+     * pausa in solitaria e anche per una di gruppo nata dal percorso QR/codice,
+     * che non ha modo di conoscerli. Persistiti separati da "\n" perché un
+     * nome dispositivo può contenere una virgola, non un a capo (il protocollo
+     * Bluetooth li toglie comunque, vedi GroupPauseBluetoothProtocol).
+     */
+    fun startSession(
+        durationMinutes: Int,
+        isGroupSession: Boolean = false,
+        companions: List<String> = emptyList(),
+    ) {
         val now = System.currentTimeMillis()
         val endTime = now + durationMinutes * 60_000L
         prefs.edit()
@@ -55,6 +66,7 @@ class SessionManager private constructor(private val context: Context) {
             .putLong(KEY_END_TIME, endTime)
             .putInt(KEY_PLANNED_MINUTES, durationMinutes)
             .putBoolean(KEY_IS_GROUP, isGroupSession)
+            .putString(KEY_COMPANIONS, companions.filter { it.isNotBlank() }.joinToString("\n"))
             .apply()
         setOnlyCallsAllowed(true)
         scheduleAutoExpiry(endTime)
@@ -65,6 +77,12 @@ class SessionManager private constructor(private val context: Context) {
 
     /** Vero se la sessione attiva (o appena terminata) era una pausa di gruppo. */
     fun isGroupSession(): Boolean = prefs.getBoolean(KEY_IS_GROUP, false)
+
+    /** Nomi di chi condivide la pausa in corso; vuoto se non se ne conoscono. */
+    fun companions(): List<String> =
+        prefs.getString(KEY_COMPANIONS, "").orEmpty()
+            .split("\n")
+            .filter { it.isNotBlank() }
 
     /** Millisecondi totali della sessione (0 se non disponibile). */
     fun totalMillis(): Long {
@@ -91,12 +109,14 @@ class SessionManager private constructor(private val context: Context) {
                     effectiveMinutes   = effectiveMinutes,
                     completedNaturally = completedNaturally,
                     isGroupSession     = prefs.getBoolean(KEY_IS_GROUP, false),
+                    companions         = prefs.getString(KEY_COMPANIONS, "").orEmpty(),
                 )
             )
         }
 
         prefs.edit()
             .putBoolean(KEY_ACTIVE, false)
+            .remove(KEY_COMPANIONS)
             .remove(KEY_END_TIME)
             .apply()
         setOnlyCallsAllowed(false)
@@ -174,6 +194,7 @@ class SessionManager private constructor(private val context: Context) {
     companion object {
         private const val PREFS_NAME = "calm_otter_session"
         private const val KEY_ACTIVE = "session_active"
+        private const val KEY_COMPANIONS = "session_companions"
         private const val KEY_START_TIME = "session_start_time"
         private const val KEY_END_TIME = "session_end_time"
         private const val KEY_PLANNED_MINUTES = "session_planned_minutes"

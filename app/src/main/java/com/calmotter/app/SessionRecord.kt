@@ -21,6 +21,13 @@ import androidx.room.PrimaryKey
  *                          un'etichetta per Cronologia, default `false` per
  *                          restare compatibile con le righe già esistenti
  *                          (vedi CalmOtterDatabase.MIGRATION_1_2)
+ * @param companions        nomi di chi ha condiviso questa pausa, separati da
+ *                          "\n" — vuoto sia per le sessioni in solitaria sia
+ *                          per quelle di gruppo nate dal percorso QR/codice,
+ *                          che non ha alcun canale da cui apprendere un nome
+ *                          (vedi specs/group-pause/). Un'unica colonna di
+ *                          testo invece di una tabella a parte: sono due o tre
+ *                          nomi per riga, mai interrogati singolarmente.
  */
 @Entity(tableName = "sessions")
 data class SessionRecord(
@@ -30,4 +37,5 @@ data class SessionRecord(
     val effectiveMinutes: Int,
     val completedNaturally: Boolean,
     val isGroupSession: Boolean = false,
+    val companions: String = "",
 )

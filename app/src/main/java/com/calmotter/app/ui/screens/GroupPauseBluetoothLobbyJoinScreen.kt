@@ -78,7 +78,7 @@ private sealed class JoinLobbyState {
  */
 @Composable
 fun GroupPauseBluetoothLobbyJoinScreen(
-    onRecipeReady: (GroupPauseRecipe) -> Unit,
+    onRecipeReady: (GroupPauseRecipe, hostName: String?) -> Unit,
     onWantCodeInstead: () -> Unit,
     onCancel: () -> Unit,
 ) {
@@ -113,7 +113,7 @@ fun GroupPauseBluetoothLobbyJoinScreen(
 
     fun onRecipeCode(code: String) {
         val recipe = decodeGroupPauseRecipe(code)
-        if (recipe != null) onRecipeReady(recipe) else state = JoinLobbyState.Error(invalidCodeText)
+        if (recipe != null) onRecipeReady(recipe, hostName) else state = JoinLobbyState.Error(invalidCodeText)
     }
 
     val onReadinessAction: () -> Unit = {

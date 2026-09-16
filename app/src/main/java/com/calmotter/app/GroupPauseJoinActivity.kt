@@ -22,8 +22,8 @@ class GroupPauseJoinActivity : BaseActivity() {
         setContent {
             CalmOtterTheme(appTheme = ThemeManager.getTheme(this)) {
                 GroupPauseJoinScreen(
-                    onJoined = { durationMinutes ->
-                        sessionManager.startSession(durationMinutes, isGroupSession = true)
+                    onJoined = { durationMinutes, companions ->
+                        sessionManager.startSession(durationMinutes, isGroupSession = true, companions = companions)
                         finish()
                     },
                     onCancel = { finish() },

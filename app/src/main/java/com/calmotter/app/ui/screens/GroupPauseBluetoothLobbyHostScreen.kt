@@ -69,7 +69,7 @@ import kotlin.random.Random
 @Composable
 fun GroupPauseBluetoothLobbyHostScreen(
     durationMinutes: Int,
-    onRecipeReady: (GroupPauseRecipe) -> Unit,
+    onRecipeReady: (GroupPauseRecipe, companions: List<String>) -> Unit,
     onWantCodeInstead: () -> Unit,
     onCancel: () -> Unit,
 ) {
@@ -199,8 +199,13 @@ fun GroupPauseBluetoothLobbyHostScreen(
                         startAtEpochMillis = System.currentTimeMillis() + 5_000L,
                         groupTag = groupTag,
                     )
+                    // Copiati prima di broadcastRecipeAndClose(), che chiude
+                    // le connessioni: participantNames è la lista viva della
+                    // lobby, e dopo la chiusura non è più ciò che si vuole
+                    // registrare.
+                    val companions = participantNames.toList()
                     host.broadcastRecipeAndClose(recipe.encode())
-                    onRecipeReady(recipe)
+                    onRecipeReady(recipe, companions)
                 },
                 enabled = participantNames.isNotEmpty(),
                 modifier = Modifier.weight(1f)

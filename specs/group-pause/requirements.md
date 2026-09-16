@@ -232,6 +232,30 @@ phone blocked.
 5. A host name SHALL NOT be able to break the protocol's framing,
    whichever characters it contains.
 
+## User Story 9: The pause remembers who you shared it with
+
+As someone who paused together with a friend, I want the app to show who
+that was, during the pause and afterwards, so the pairing leaves something
+behind.
+
+### Acceptance Criteria
+
+1. WHEN a session is started from a live lobby THEN the names known at
+   that moment SHALL be stored with the session record.
+2. WHEN such a session is active THEN the block screen SHALL name the
+   companion rather than showing only a generic indicator.
+3. WHEN more than one companion is present THEN the wording SHALL be
+   grammatically correct for the count, in every supported language.
+4. WHEN viewing History THEN a shared session SHALL show who it was shared
+   with.
+5. WHEN a group session came from the QR/code path THEN it SHALL fall back
+   to the generic wording, that path having no way to learn a name.
+6. WHEN a previous shared session with a known name exists THEN Home SHALL
+   offer a shortcut that reopens the create flow with that session's
+   duration preselected, provided the duration is still on offer.
+7. Pre-existing session records SHALL survive the schema change with no
+   data loss.
+
 ## Known limitations (accepted, not bugs)
 
 - **QR/manual-code mode has no participant count or names.** Because it

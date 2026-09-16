@@ -619,6 +619,57 @@ Details worth keeping:
 The name is *not* yet carried past the lobby into the session or History —
 that remains the open gap already noted in this file and in README.
 
+## Names survive the lobby, and a shortcut back to the same person
+
+Until now the pairing work left no trace past the lobby: once started, a
+Tempo Insieme session was indistinguishable from a solo one except for one
+generic line, and History marked it with an icon but never said with whom.
+This was the open gap noted in README and here; it is what made the flow
+feel thin.
+
+**`SessionRecord.companions`** (Room v2 → v3, `DEFAULT ''`) stores the
+names, newline-separated. One text column rather than a join table: it
+holds two or three names per row and is never queried by name. The default
+is the correct value for old rows, not a placeholder — no earlier row
+could have known the names, because they did not travel past the lobby.
+
+The names flow lobby → screen → Activity → `SessionManager.startSession`
+→ prefs → `SessionRecord`. The host copies `participantNames` *before*
+`broadcastRecipeAndClose()`, which closes the connections; the joiner uses
+the host name learned from `LOBBY:`. The QR/code path carries no names and
+stays generic, which is why the old wording is kept as the fallback rather
+than removed.
+
+`BlockScreen` shows "Together with Marco", or a **plurals** resource for
+more — "and 1 others" is ungrammatical in both languages, and one extra
+person is the commonest case after none. History rows gain "with Marco".
+
+**"Again with <name>"** on Home reads the most recent group session that
+has names and opens the Create flow directly, preselecting that session's
+duration (only if it is still one of the offered options — a duration that
+no longer exists would select no chip at all). It saves taps, not pairing:
+the Bluetooth connection still has to be made again, because it is closed
+at start by design.
+
+### The Home ran out of vertical room
+
+Adding that one row made it vanish rather than overflow visibly: the inner
+column is `weight(1f)` with no scrolling, so the extra button was composed
+but clipped away, and did not even appear in the semantics tree. Found by
+seeding a companion row and seeing nothing while History showed "with
+Marco" correctly — which located the problem in the layout rather than the
+data.
+
+`OtterSlotHeight` dropped 320dp → 272dp to make room. Both screens read
+that same constant, so the otter stays aligned (re-measured: Home 676,
+block screen 681 — inside the float animation's own ±14px).
+
+Worth knowing: the Home is now close to its vertical limit, and it fails
+*silently* when exceeded. A larger font scale, or another permanent row,
+would clip content with no visible sign. Making that column scrollable
+would turn the failure into something recoverable; not done here, as it
+changes the screen's single-page character and was outside this request.
+
 ## Verification performed (single device)
 
 **Phase 1:**

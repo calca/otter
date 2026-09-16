@@ -59,7 +59,9 @@ private enum class JoinMode { SCAN, MANUAL }
 private sealed class JoinFlowStep {
     data object Live : JoinFlowStep()
     data object QrOrCode : JoinFlowStep()
-    data class Countdown(val recipe: GroupPauseRecipe) : JoinFlowStep()
+    // Il nome dell'host arriva dal LOBBY: della lobby dal vivo; dal percorso
+    // QR/codice non c'è (null), ed è il motivo per cui lì resta generico.
+    data class Countdown(val recipe: GroupPauseRecipe, val hostName: String? = null) : JoinFlowStep()
 }
 
 /**
@@ -70,12 +72,15 @@ private sealed class JoinFlowStep {
  * conto alla rovescia condiviso alla fine di entrambi i percorsi.
  */
 @Composable
-fun GroupPauseJoinScreen(onJoined: (durationMinutes: Int) -> Unit, onCancel: () -> Unit) {
+fun GroupPauseJoinScreen(
+    onJoined: (durationMinutes: Int, companions: List<String>) -> Unit,
+    onCancel: () -> Unit,
+) {
     var step by remember { mutableStateOf<JoinFlowStep>(JoinFlowStep.Live) }
 
     when (val current = step) {
         JoinFlowStep.Live -> GroupPauseBluetoothLobbyJoinScreen(
-            onRecipeReady = { recipe -> step = JoinFlowStep.Countdown(recipe) },
+            onRecipeReady = { recipe, hostName -> step = JoinFlowStep.Countdown(recipe, hostName) },
             onWantCodeInstead = { step = JoinFlowStep.QrOrCode },
             onCancel = onCancel,
         )
@@ -86,7 +91,7 @@ fun GroupPauseJoinScreen(onJoined: (durationMinutes: Int) -> Unit, onCancel: () 
         is JoinFlowStep.Countdown -> GroupPauseCountdownScreen(
             durationMinutes = current.recipe.durationMinutes,
             startAtEpochMillis = current.recipe.startAtEpochMillis,
-            onReady = { onJoined(current.recipe.durationMinutes) },
+            onReady = { onJoined(current.recipe.durationMinutes, listOfNotNull(current.hostName)) },
             onCancel = onCancel,
         )
     }

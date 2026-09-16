@@ -50,7 +50,14 @@ private sealed class HostFlowStep {
     data object Setup : HostFlowStep()
     data class BluetoothLobby(val durationMinutes: Int) : HostFlowStep()
     data class QrDelayPicker(val durationMinutes: Int) : HostFlowStep()
-    data class Countdown(val recipe: GroupPauseRecipe, val showShareHeader: Boolean) : HostFlowStep()
+    // I nomi raccolti nella lobby viaggiano fin qui per poter finire nella
+    // sessione: il percorso QR non ne ha (lista vuota), ed è il motivo per cui
+    // lì l'indicazione resta generica.
+    data class Countdown(
+        val recipe: GroupPauseRecipe,
+        val showShareHeader: Boolean,
+        val companions: List<String> = emptyList(),
+    ) : HostFlowStep()
 }
 
 /**
@@ -64,17 +71,26 @@ private sealed class HostFlowStep {
  * non lascia nulla in sospeso.
  */
 @Composable
-fun GroupPauseHostScreen(onStarted: (durationMinutes: Int) -> Unit, onCancel: () -> Unit) {
+fun GroupPauseHostScreen(
+    onStarted: (durationMinutes: Int, companions: List<String>) -> Unit,
+    onCancel: () -> Unit,
+    // Preselezione dalla scorciatoia "Di nuovo con…": null quando si entra dal
+    // percorso normale, che parte dal default di sempre.
+    initialDurationMinutes: Int? = null,
+) {
     var step by remember { mutableStateOf<HostFlowStep>(HostFlowStep.Setup) }
 
     when (val current = step) {
         HostFlowStep.Setup -> GroupPauseSetupScreen(
+            initialDurationMinutes = initialDurationMinutes,
             onContinue = { durationMinutes -> step = HostFlowStep.BluetoothLobby(durationMinutes) },
             onCancel = onCancel,
         )
         is HostFlowStep.BluetoothLobby -> GroupPauseBluetoothLobbyHostScreen(
             durationMinutes = current.durationMinutes,
-            onRecipeReady = { recipe -> step = HostFlowStep.Countdown(recipe, showShareHeader = false) },
+            onRecipeReady = { recipe, companions ->
+                step = HostFlowStep.Countdown(recipe, showShareHeader = false, companions = companions)
+            },
             onWantCodeInstead = { step = HostFlowStep.QrDelayPicker(current.durationMinutes) },
             onCancel = onCancel,
         )
@@ -94,7 +110,7 @@ fun GroupPauseHostScreen(onStarted: (durationMinutes: Int) -> Unit, onCancel: ()
         is HostFlowStep.Countdown -> GroupPauseCountdownScreen(
             durationMinutes = current.recipe.durationMinutes,
             startAtEpochMillis = current.recipe.startAtEpochMillis,
-            onReady = { onStarted(current.recipe.durationMinutes) },
+            onReady = { onStarted(current.recipe.durationMinutes, current.companions) },
             onCancel = onCancel,
             header = {
                 if (current.showShareHeader) GroupPauseShareHeader(code = current.recipe.encode())
@@ -107,8 +123,14 @@ fun GroupPauseHostScreen(onStarted: (durationMinutes: Int) -> Unit, onCancel: ()
 private fun GroupPauseSetupScreen(
     onContinue: (durationMinutes: Int) -> Unit,
     onCancel: () -> Unit,
+    initialDurationMinutes: Int? = null,
 ) {
-    var selectedDuration by remember { mutableIntStateOf(30) }
+    // Solo se è una delle opzioni offerte: una durata registrata che qui non
+    // esiste (arrivata da un host con una versione diversa) selezionerebbe un
+    // chip inesistente, lasciando la riga senza nulla di evidenziato.
+    var selectedDuration by remember {
+        mutableIntStateOf(initialDurationMinutes?.takeIf { it in DURATION_OPTIONS } ?: 30)
+    }
 
     Column(
         modifier = Modifier

@@ -170,6 +170,7 @@
     <string name="onb_finish">Let\'s go</string>
 
     <!-- Time Together, formerly "Group pause" (specs/group-pause/) -->
+    <string name="home_again_with">Again with %1$s</string>
     <string name="group_pause_entry_button">Time together</string>
     <string name="group_pause_chooser_intro">Want to pause together?</string>
     <string name="group_pause_chooser_create_desc">Choose how long, then invite whoever you want</string>
@@ -198,6 +199,12 @@
     <string name="group_pause_manual_code_join_button">Join</string>
     <string name="group_pause_invalid_code">Invalid or expired code</string>
 
+    <string name="block_group_with_one">Together with %1$s</string>
+    <plurals name="block_group_with_many">
+        <item quantity="one">Together with %1$s and 1 other</item>
+        <item quantity="other">Together with %1$s and %2$d others</item>
+    </plurals>
+    <string name="history_with_companions">with %1$s</string>
     <string name="block_group_indicator">You\'re having time together</string>
 
     <!-- Live lobby: Bluetooth + NFC (Phase 2) -->

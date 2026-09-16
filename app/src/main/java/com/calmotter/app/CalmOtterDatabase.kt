@@ -8,7 +8,7 @@ import androidx.room.RoomDatabase
 import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
 
-@Database(entities = [SessionRecord::class], version = 2, exportSchema = false)
+@Database(entities = [SessionRecord::class], version = 3, exportSchema = false)
 abstract class CalmOtterDatabase : RoomDatabase() {
     abstract fun sessionRecordDao(): SessionRecordDao
 
@@ -20,6 +20,15 @@ abstract class CalmOtterDatabase : RoomDatabase() {
         private val MIGRATION_1_2 = object : Migration(1, 2) {
             override fun migrate(db: SupportSQLiteDatabase) {
                 db.execSQL("ALTER TABLE sessions ADD COLUMN isGroupSession INTEGER NOT NULL DEFAULT 0")
+            }
+        }
+
+        // v2 → v3: aggiunge SessionRecord.companions. DEFAULT '' è il valore
+        // corretto e non un ripiego: nessuna riga precedente poteva conoscere
+        // i nomi dei partecipanti, perché non viaggiavano oltre la lobby.
+        private val MIGRATION_2_3 = object : Migration(2, 3) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("ALTER TABLE sessions ADD COLUMN companions TEXT NOT NULL DEFAULT ''")
             }
         }
 
@@ -36,7 +45,7 @@ abstract class CalmOtterDatabase : RoomDatabase() {
                     // in modo sincrono da BroadcastReceiver senza coroutine scope:
                     // query sul main thread accettabili qui.
                     .allowMainThreadQueries()
-                    .addMigrations(MIGRATION_1_2)
+                    .addMigrations(MIGRATION_1_2, MIGRATION_2_3)
                     .build()
                     .also { instance = it }
             }

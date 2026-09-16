@@ -36,6 +36,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
@@ -205,8 +206,27 @@ fun BlockScreen(
         // che questa è nata come pausa di gruppo — dire un numero che non
         // conosciamo davvero sarebbe disonesto, non solo impreciso.
         if (remember { sessionManager.isGroupSession() }) {
+            // Con chi, quando lo si sa. I nomi arrivano dalla lobby dal vivo e
+            // ora sopravvivono all'avvio della sessione: prima il lavoro fatto
+            // per accoppiare due telefoni non lasciava alcuna traccia da qui
+            // in poi, e la pausa era indistinguibile da una in solitaria a
+            // parte una riga generica. Quella riga resta il ripiego per il
+            // percorso QR/codice, che non ha modo di conoscere un nome.
+            val companions = remember { sessionManager.companions() }
             Text(
-                text = stringResource(R.string.block_group_indicator),
+                text = when (companions.size) {
+                    0 -> stringResource(R.string.block_group_indicator)
+                    1 -> stringResource(R.string.block_group_with_one, companions[0])
+                    // plurals e non una stringa con %d: "e altre 1 persone"
+                    // / "and 1 others" è sgrammaticato in entrambe le lingue,
+                    // ed è esattamente il caso più frequente dopo quello a uno.
+                    else -> pluralStringResource(
+                        R.plurals.block_group_with_many,
+                        companions.size - 1,
+                        companions[0],
+                        companions.size - 1,
+                    )
+                },
                 style = MaterialTheme.typography.labelSmall,
                 color = MaterialTheme.colorScheme.primary,
                 modifier = Modifier.padding(top = 2.dp)

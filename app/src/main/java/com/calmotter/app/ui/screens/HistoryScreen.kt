@@ -386,6 +386,22 @@ private fun SessionRow(session: SessionRecord) {
                     color = MaterialTheme.colorScheme.onSurface,
                     modifier = Modifier.padding(top = 2.dp)
                 )
+                // Con chi, quando lo si sa. L'icona diceva già "di gruppo" ma
+                // non con chi: a distanza di settimane è proprio quella la
+                // cosa che si vuole ritrovare. Vuoto per le pause di gruppo
+                // nate da QR/codice, che non hanno nomi da registrare.
+                val companions = session.companions.split("\n").filter { it.isNotBlank() }
+                if (companions.isNotEmpty()) {
+                    Text(
+                        text = stringResource(
+                            R.string.history_with_companions,
+                            companions.joinToString(", "),
+                        ),
+                        fontSize = 13.sp,
+                        color = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.padding(top = 2.dp)
+                    )
+                }
             }
 
             Text(
