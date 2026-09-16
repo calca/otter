@@ -214,11 +214,19 @@ fun MainScreen(
     // disponibile è infinita), da cui heightIn(min) + SpaceBetween, che
     // distribuisce lo spazio in eccesso senza pesi.
     val scrollState = rememberScrollState()
-    BoxWithConstraints(modifier = Modifier.fillMaxSize().calmBackground()) {
+    Box(modifier = Modifier.fillMaxSize().calmBackground()) {
+    // BoxWithConstraints *dentro* safeDrawingPadding: misurato fuori,
+    // maxHeight includeva le barre di sistema — spazio che questa colonna non
+    // ha — e heightIn(min = maxHeight) la rendeva più alta del viewport
+    // esattamente di quegli inset. Vedi [CalmScreenColumn] per il bug
+    // completo: la Home restava sempre scorrevole di ~70-100dp, SpaceBetween
+    // aveva quello spazio in più da mettere tutto fra "Tempo insieme" e la
+    // card, e lo scorrimento residuo staccava l'otter dal suo ancoraggio
+    // fisso rimettendo in movimento la transizione verso BlockScreen.
+    BoxWithConstraints(modifier = Modifier.fillMaxSize().safeDrawingPadding()) {
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .safeDrawingPadding()
             .verticalScroll(scrollState)
             .heightIn(min = maxHeight)
             .padding(24.dp),
@@ -339,6 +347,7 @@ fun MainScreen(
             dimmed = sessionActive,
             onHistory = onHistory,
         )
+    }
     }
     }
 
