@@ -5,6 +5,10 @@ on:
     branches: [ "main", "master" ]
   pull_request:
     branches: [ "main", "master" ]
+  # Consente di lanciarlo a mano (`gh workflow run android.yml`) senza dover
+  # fare un push finto: serve a verificare la firma dopo aver configurato o
+  # ruotato i secret. Senza questo trigger quel comando fallisce con HTTP 422.
+  workflow_dispatch:
 
 jobs:
   build:
