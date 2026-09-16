@@ -146,9 +146,11 @@ up to the moment, and a hard cut right at its peak throws that away.
    animate the change to the block screen, NOT replace one screen with
    the other in a single frame.
 2. WHEN that transition runs THEN the otter SHALL remain continuously on
-   screen throughout, as one element moving to its new position — it
-   SHALL NOT disappear, flicker, or be re-drawn from scratch on the other
-   side.
+   screen throughout AND SHALL NOT move: it stays put while the rest of
+   the screen changes around it. It SHALL NOT disappear, flicker, slide to
+   a new position, or be re-drawn from scratch on the other side.
+   (Originally this criterion allowed the otter to travel to a new
+   position; that was rejected on sight — see design.md.)
 3. WHEN that transition runs THEN the content that genuinely differs
    between the two screens (ambient ripples and duration chips on one
    side; progress ring, countdown phrase and reflective quote on the
@@ -160,6 +162,10 @@ up to the moment, and a hard cut right at its peak throws that away.
    occurred.
 5. The transition SHALL be symmetric: leaving the block screen back to
    the Home screen animates the same way, not just entering it.
+6. The otter's resting position SHALL NOT depend on how much session
+   history exists, nor on the length of the text below it — it is the one
+   element both screens place identically, so anything that moves it in
+   one screen and not the other reintroduces the slide.
 
 ## Known limits (do not misrepresent in code/UI)
 

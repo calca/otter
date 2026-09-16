@@ -85,6 +85,42 @@ private val DURATION_LABELS = arrayOf(
 )
 
 /**
+ * Spazio sopra lo slot dell'otter, misurato dall'inizio dell'area sicura:
+ * il padding superiore della Home (24dp) + l'intestazione (48dp, che è
+ * l'altezza dell'IconButton delle impostazioni, non quella del testo) + il
+ * padding sotto l'intestazione (24dp).
+ *
+ * [BlockScreen] riserva esattamente lo stesso spazio pur non avendo
+ * un'intestazione: è ciò che fa cadere il suo otter nello stesso identico
+ * punto di quello della Home.
+ */
+internal val OtterSlotTopInset = 96.dp
+
+/**
+ * Altezza fissa dello slot che contiene otter e anello, identica nelle due
+ * schermate.
+ *
+ * Fissa e non `weight(1f)`: prima la Home centrava l'otter nello spazio che
+ * avanzava, e quello spazio si restringe quando la card della cronologia in
+ * fondo cresce. Misurato su un 1080×2220, centro dell'otter in Home: y=812 a
+ * cronologia vuota, y=760 con qualche sessione — 52px di differenza fra due
+ * stati della *stessa* schermata, mentre [BlockScreen] lo disegnava in un
+ * punto suo, fisso. Nessuna posizione statica poteva quindi coincidere con
+ * entrambe, e all'avvio della pausa l'elemento condiviso animava la
+ * differenza: l'otter scivolava. Non era colpa della transizione, ma del
+ * fatto che le due schermate lo mettevano in punti diversi.
+ *
+ * Con lo slot fisso non c'è più nulla da interpolare — verificato misurando
+ * l'otter a schermo con l'oscillazione congelata: righe 706-790 identiche in
+ * Home a cronologia vuota, in Home con sessioni e in [BlockScreen]. Resta
+ * immobile mentre il resto sfuma (vedi MainActivity).
+ *
+ * Effetto collaterale voluto: anche la Home da sola smette di riassestarsi
+ * quando registri la prima sessione.
+ */
+internal val OtterSlotHeight = 320.dp
+
+/**
  * Schermata home ("Living Pond" — vedi specs/home-and-settings): lo stagno
  * con l'otter è l'unico pulsante di avvio (si tocca l'otter stesso), un
  * anello colorato attorno a lei mostra l'avanzamento mentre una sessione è
@@ -105,6 +141,7 @@ private val DURATION_LABELS = arrayOf(
  * vanno ricalcolati manualmente a ogni onResume() dell'Activity tramite
  * [resumeSignal] (vedi MainActivity).
  */
+
 @Composable
 fun MainScreen(
     resumeSignal: Int,
@@ -122,6 +159,10 @@ fun MainScreen(
     // Vedi il parametro omonimo di [BlockScreen]: è lo stesso otter, ed è
     // [MainActivity] a legarli come elemento condiviso.
     otterModifier: Modifier = Modifier,
+    // Vedi [rememberOtterFloatOffset]: passato dall'esterno quando la stessa
+    // oscillazione deve proseguire anche in [BlockScreen], null quando questa
+    // schermata è sola e può gestirsela da sé.
+    otterFloatOffset: Float? = null,
 ) {
     val context = LocalContext.current
 
@@ -188,12 +229,12 @@ fun MainScreen(
             }
         }
 
-        // Il titolo sopra e la card sotto restano alla loro dimensione
-        // naturale; questa Column intermedia si prende tutto lo spazio che
-        // avanza. Al suo interno, PondScene si prende a sua volta tutto lo
-        // spazio sopra ai chip di durata (vedi il suo Modifier.weight(1f) più
-        // sotto) e vi centra l'otter — così l'otter risulta centrato tra il
-        // titolo e i chip, non tra il titolo e la card statistiche in fondo.
+        // Questa Column intermedia si prende lo spazio che avanza, ma al suo
+        // interno PondScene ha ormai altezza fissa ([OtterSlotHeight]): lo
+        // spazio in eccesso finisce sotto, tra il bottone "Tempo insieme" e
+        // la card della cronologia, invece di essere distribuito attorno
+        // all'otter. È ciò che tiene l'otter a un'altezza costante qualunque
+        // sia il contenuto della card — vedi [OtterSlotHeight] per il perché.
         Column(
             modifier = Modifier
                 .weight(1f)
@@ -201,7 +242,7 @@ fun MainScreen(
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             PondScene(
-                modifier = Modifier.weight(1f),
+                modifier = Modifier,
                 sessionActive = sessionActive,
                 remainingMillis = remainingMillis,
                 totalMillis = totalMillis,
@@ -233,6 +274,7 @@ fun MainScreen(
                     }
                 },
                 otterModifier = otterModifier,
+                otterFloatOffset = otterFloatOffset,
             )
 
             if (!sessionActive) {
@@ -394,6 +436,7 @@ private fun PondScene(
     onSelectDuration: (Int) -> Unit,
     onStart: () -> Unit,
     otterModifier: Modifier = Modifier,
+    otterFloatOffset: Float? = null,
 ) {
     var isStarting by remember { mutableStateOf(false) }
     val otterScale by animateFloatAsState(
@@ -417,13 +460,12 @@ private fun PondScene(
         modifier = modifier.fillMaxWidth(),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
-        // Lo stagno (increspature/anello + otter) occupa tutto lo spazio che
-        // avanza sopra la riga dei chip e si centra al suo interno — così
-        // l'otter risulta centrato tra il titolo e i chip di durata (i
-        // "bottoni"), non tra il titolo e la card statistiche in fondo, che
-        // lascerebbe l'otter visibilmente più in alto rispetto ai chip.
+        // Lo stagno (increspature/anello + otter) ha altezza fissa e l'otter
+        // è centrato al suo interno: la sua posizione dipende così solo da
+        // [OtterSlotTopInset] + [OtterSlotHeight], mai dal contenuto sotto.
+        // Vedi [OtterSlotHeight] per cosa faceva prima e perché è cambiato.
         Box(
-            modifier = Modifier.weight(1f).fillMaxWidth(),
+            modifier = Modifier.height(OtterSlotHeight).fillMaxWidth(),
             contentAlignment = Alignment.Center,
         ) {
             Box(
@@ -444,7 +486,8 @@ private fun PondScene(
                     ProgressRing(fraction = fraction, modifier = Modifier.size(176.dp))
                 }
 
-                val floatOffset = rememberOtterFloatOffset(periodMillis = if (sessionActive) 5200 else 3200)
+                val floatOffset = otterFloatOffset
+                    ?: rememberOtterFloatOffset(periodMillis = if (sessionActive) 5200 else 3200)
 
                 Box(
                     modifier = Modifier

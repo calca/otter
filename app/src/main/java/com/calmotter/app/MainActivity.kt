@@ -26,6 +26,7 @@ import androidx.compose.ui.Modifier
 import androidx.core.content.ContextCompat
 import com.calmotter.app.ui.screens.BlockScreen
 import com.calmotter.app.ui.screens.MainScreen
+import com.calmotter.app.ui.screens.rememberOtterFloatOffset
 import com.calmotter.app.ui.theme.CalmOtterTheme
 import com.google.android.material.color.MaterialColors
 
@@ -150,6 +151,27 @@ class MainActivity : BaseActivity() {
                 // e scivola alla sua nuova posizione, mentre tutto il resto
                 // (increspature e chip di durata da una parte, anello di
                 // avanzamento e frase dall'altra) si dissolve attorno.
+                // Il galleggiamento dell'otter vive *fuori* da AnimatedContent
+                // e viene passato a entrambe le schermate. Prima ognuna
+                // avviava la propria, per giunta con periodi diversi (3200 in
+                // Home, 5200 in pausa): due oscillatori indipendenti, quindi
+                // allo scambio quello entrante partiva dal proprio valore
+                // iniziale mentre l'uscente si trovava a una fase qualsiasi.
+                // La differenza può arrivare all'intera ampiezza, 10dp.
+                //
+                // Non si vede come uno scatto — l'elemento condiviso quella
+                // differenza la *anima*, lungo il suo boundsTransform — ma è
+                // esattamente questo che la fa leggere come un otter che
+                // scivola, ed è ciò che era stato segnalato. Allineare le due
+                // posizioni di layout (vedi OtterSlotHeight) toglie la causa
+                // principale; questa istanza unica toglie quella residua, che
+                // altrimenti resterebbe a sorte a seconda della fase.
+                //
+                // Conseguenza accettata: sparisce il periodo più lento durante
+                // la pausa, perché cambiarlo a metà corsa riavvierebbe
+                // l'animazione, reintroducendo il salto che qui si toglie.
+                val otterFloatOffset = rememberOtterFloatOffset(periodMillis = 3200)
+
                 SharedTransitionLayout {
                     AnimatedContent(
                         targetState = showBlockScreen,
@@ -195,6 +217,7 @@ class MainActivity : BaseActivity() {
                                 allowedApps = loadAllowedAppLaunchItems(applicationContext),
                                 onLaunchApp = { pkg -> launchAllowedApp(applicationContext, pkg) },
                                 otterModifier = otterModifier,
+                                otterFloatOffset = otterFloatOffset,
                             )
                         } else {
                             MainScreen(
@@ -211,6 +234,7 @@ class MainActivity : BaseActivity() {
                                 onGroupPauseHost = { startActivity(Intent(this@MainActivity, GroupPauseHostActivity::class.java)) },
                                 onGroupPauseJoin = { startActivity(Intent(this@MainActivity, GroupPauseJoinActivity::class.java)) },
                                 otterModifier = otterModifier,
+                                otterFloatOffset = otterFloatOffset,
                             )
                         }
                     }

@@ -610,24 +610,51 @@ a shared element across the two.
   `MainActivity.onCreate`**, the single place in the app that uses the
   API, rather than being opted into project-wide.
 
-### Verification note: why the effect is subtler than it sounds
+### The otter has to be in the *same place*, or it slides
 
-On a 1080×2220 device the otter's Home position (centre y ≈ 785px) and
-its BlockScreen position (y ≈ 813px) are barely 28px apart — the two
-screens had already converged on nearly the same composition. So the
-shared element travels almost no distance, and the visible improvement is
-mostly that the otter stays *continuous and crisp* while everything
-around it dissolves, rather than a dramatic glide.
+The first version of this animated the otter between the two screens, and
+that was reported as wrong: "l'otter che si sposta in avvio non mi piace,
+vorrei stesse fermo in pagina mentre il resto fade-out e fade-in."
 
-That near-coincidence also made the change impossible to verify by
-screenshot alone: two independent otters crossfading while perfectly
-aligned look identical to one shared otter holding still. It was
-confirmed instead by temporarily offsetting `BlockScreen`'s otter by
-90dp horizontally, capturing the transition frame by frame with
-`animator_duration_scale` set to 10 (Compose honours the system animator
-scale, so this slows its own animations too, not just the platform's),
-and checking that the otter's x position *interpolated* across
-intermediate frames rather than jumping. It did; the temporary offset was
-then removed. Worth remembering as the technique for any future
-shared-element work here — the scale trick turns a 460ms morph into
-something `adb exec-out screencap` can actually sample.
+Measuring showed the slide wasn't the transition's doing — the two screens
+simply drew the otter in different places. On a 1080x2220 device the Home
+otter's centre sat at y=812 with an empty history and y=760 once a few
+sessions existed, because `PondScene` was centred in `weight(1f)` space
+that shrinks as the bottom card grows; `BlockScreen` meanwhile centred its
+own column, landing somewhere else again. No static position could match
+both Home states, so the shared element always had a gap to animate.
+
+The fix is therefore layout, not animation: `OtterSlotTopInset` +
+`OtterSlotHeight` (both in `MainScreen.kt`) give the otter a fixed slot at
+a fixed offset, used verbatim by both screens — `BlockScreen` reserves the
+same space Home spends on padding + header, despite having no header, and
+is anchored to the top instead of vertically centred. With identical
+bounds the shared element has nothing to interpolate, so the otter is
+genuinely motionless while everything around it crossfades.
+
+A side benefit: Home itself stops reflowing the moment you record your
+first session.
+
+The float animation (`rememberOtterFloatOffset`) is also hoisted into
+`MainActivity` and passed to both screens. Each used to run its own, at
+different periods (3200 vs 5200), so at the swap the incoming one started
+from its initial value while the outgoing one was at an arbitrary phase —
+a difference of up to the full 10dp amplitude. That never showed as a
+jump, because the shared element *animates* such a difference, but that
+animation is precisely what reads as the otter sliding. One shared
+instance removes the residual cause. The cost, accepted: no more slower
+bob during a session, since changing the period mid-flight would restart
+the animation and reintroduce exactly this.
+
+### How this was verified
+
+Position was measured on-device rather than eyeballed, because the otter
+bobs (+/-5dp) and the tap burst scales it 1.18x — both large enough to
+swamp the effect being measured, and both of which did mislead an earlier
+attempt at this measurement. With the bob temporarily frozen, the otter
+occupied rows 706-790 identically in all three states: Home with an empty
+history, Home with sessions, and `BlockScreen`. Capturing the transition
+frame by frame under `animator_duration_scale 10`, with the burst also
+frozen, the centre moved from y=736 to y=740 across the whole swap - the
+residue of the bob, with no discontinuity. Both temporary freezes were
+reverted before committing.

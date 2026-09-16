@@ -8,7 +8,9 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawingPadding
@@ -82,6 +84,10 @@ fun BlockScreen(
     // apre già bloccata senza passare dalla Home) non hanno una schermata di
     // partenza da cui animare, e mostrano questa così com'è.
     otterModifier: Modifier = Modifier,
+    // Vedi [rememberOtterFloatOffset]: quando si arriva qui dalla Home,
+    // l'oscillazione dev'essere la *stessa* istanza, non una nuova con la
+    // propria fase — vedi il commento al punto d'uso.
+    otterFloatOffset: Float? = null,
 ) {
     val context = LocalContext.current
 
@@ -127,16 +133,24 @@ fun BlockScreen(
             .calmBackground()
             .safeDrawingPadding()
             .verticalScroll(rememberScrollState())
-            .padding(40.dp),
+            .padding(horizontal = 40.dp, vertical = 0.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
     ) {
+        // Ancorata in alto, non più centrata verticalmente: l'otter deve
+        // cadere nello stesso identico punto di quello della Home, e la
+        // centratura lo legava all'altezza del testo sotto (che cambia con
+        // la frase riflessiva e con la presenza dell'indicatore di gruppo).
+        // Questo Spacer riserva lo spazio che in Home occupano padding e
+        // intestazione — vedi [OtterSlotTopInset] in MainScreen.kt.
+        Spacer(modifier = Modifier.height(OtterSlotTopInset))
+
         // Stesso anello di avanzamento + otter fluttuante della Home durante
         // una sessione attiva (vedi PondScene/ProgressRing in MainScreen.kt),
         // al posto del vecchio badge statico PausePawsMark — stesso
         // linguaggio visivo ovunque una sessione sia in corso, non solo qui.
+        // Stesso slot ad altezza fissa della Home, per la stessa ragione.
         Box(
-            modifier = Modifier.size(200.dp).padding(bottom = 16.dp),
+            modifier = Modifier.height(OtterSlotHeight).fillMaxWidth(),
             contentAlignment = Alignment.Center,
         ) {
             val fraction = if (totalMillis > 0) {
@@ -146,7 +160,10 @@ fun BlockScreen(
             }
             ProgressRing(fraction = fraction, modifier = Modifier.size(176.dp))
 
-            val floatOffset = rememberOtterFloatOffset(periodMillis = 5200)
+            // Se il chiamante non ne fornisce una, questa schermata avvia la
+            // propria oscillazione: è il caso di BlockOverlayActivity, che non
+            // arriva da nessuna transizione.
+            val floatOffset = otterFloatOffset ?: rememberOtterFloatOffset(periodMillis = 5200)
             Box(modifier = Modifier.offset(y = floatOffset.dp)) {
                 OtterFloatMark(modifier = otterModifier, markSize = 124.dp)
             }
