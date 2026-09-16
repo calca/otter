@@ -9,6 +9,7 @@ import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -122,15 +123,7 @@ fun GroupPauseBluetoothLobbyHostScreen(
 
     val participantNames = host.participantNames
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .calmBackground()
-            .safeDrawingPadding()
-            .padding(32.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center,
-    ) {
+    CalmScreenColumn(contentPadding = PaddingValues(32.dp)) {
         ParticipantRing(participantNames = participantNames, ready = allReady)
 
         // Titolo e sottotitolo raccontano lo stato *vero*. Prima dipendevano

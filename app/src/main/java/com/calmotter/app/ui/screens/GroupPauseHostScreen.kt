@@ -5,6 +5,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
@@ -74,15 +75,11 @@ private sealed class HostFlowStep {
 fun GroupPauseHostScreen(
     onStarted: (durationMinutes: Int, companions: List<String>, groupTag: Int) -> Unit,
     onCancel: () -> Unit,
-    // Preselezione dalla scorciatoia "Di nuovo con…": null quando si entra dal
-    // percorso normale, che parte dal default di sempre.
-    initialDurationMinutes: Int? = null,
 ) {
     var step by remember { mutableStateOf<HostFlowStep>(HostFlowStep.Setup) }
 
     when (val current = step) {
         HostFlowStep.Setup -> GroupPauseSetupScreen(
-            initialDurationMinutes = initialDurationMinutes,
             onContinue = { durationMinutes -> step = HostFlowStep.BluetoothLobby(durationMinutes) },
             onCancel = onCancel,
         )
@@ -123,24 +120,10 @@ fun GroupPauseHostScreen(
 private fun GroupPauseSetupScreen(
     onContinue: (durationMinutes: Int) -> Unit,
     onCancel: () -> Unit,
-    initialDurationMinutes: Int? = null,
 ) {
-    // Solo se è una delle opzioni offerte: una durata registrata che qui non
-    // esiste (arrivata da un host con una versione diversa) selezionerebbe un
-    // chip inesistente, lasciando la riga senza nulla di evidenziato.
-    var selectedDuration by remember {
-        mutableIntStateOf(initialDurationMinutes?.takeIf { it in DURATION_OPTIONS } ?: 30)
-    }
+    var selectedDuration by remember { mutableIntStateOf(30) }
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .calmBackground()
-            .safeDrawingPadding()
-            .padding(32.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center,
-    ) {
+    CalmScreenColumn(contentPadding = PaddingValues(32.dp)) {
         OtterFloatMark(markSize = 88.dp)
         Text(
             text = stringResource(R.string.group_pause_host_title),
@@ -196,15 +179,7 @@ private fun GroupPauseQrDelayScreen(
 ) {
     var selectedDelay by remember { mutableIntStateOf(1) }
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .calmBackground()
-            .safeDrawingPadding()
-            .padding(32.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center,
-    ) {
+    CalmScreenColumn(contentPadding = PaddingValues(32.dp)) {
         Text(
             text = stringResource(R.string.group_pause_qr_delay_title),
             fontSize = 20.sp,

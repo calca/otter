@@ -2,6 +2,7 @@ package com.calmotter.app.ui.screens
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -73,15 +74,7 @@ fun GroupPauseCountdownScreen(
     val minutes = totalSeconds / 60
     val seconds = totalSeconds % 60
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .calmBackground()
-            .safeDrawingPadding()
-            .padding(32.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center,
-    ) {
+    CalmScreenColumn(contentPadding = PaddingValues(32.dp)) {
         header()
 
         Text(

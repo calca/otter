@@ -30,8 +30,6 @@ class GroupPauseHostActivity : BaseActivity() {
         setContent {
             CalmOtterTheme(appTheme = ThemeManager.getTheme(this)) {
                 GroupPauseHostScreen(
-                    initialDurationMinutes = intent.getIntExtra(EXTRA_DURATION_MINUTES, 0)
-                        .takeIf { it > 0 },
                     onStarted = { durationMinutes, companions, groupTag ->
                         sessionManager.startSession(
                             durationMinutes,
@@ -48,12 +46,4 @@ class GroupPauseHostActivity : BaseActivity() {
         }
     }
 
-    companion object {
-        /**
-         * Durata da preselezionare, passata dalla scorciatoia "Di nuovo con…"
-         * della Home: si riparte con la stessa di quella volta invece di
-         * ricominciare dal valore di default.
-         */
-        const val EXTRA_DURATION_MINUTES = "duration_minutes"
-    }
 }

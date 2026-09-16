@@ -30,6 +30,9 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -155,9 +158,6 @@ fun MainScreen(
     onSessionStarted: () -> Unit = {},
     onGroupPauseHost: () -> Unit = {},
     onGroupPauseJoin: () -> Unit = {},
-    // Riapre direttamente il percorso "Crea" con la durata data — vedi la
-    // scorciatoia "Di nuovo con…" più sotto.
-    onGroupPauseAgain: (durationMinutes: Int) -> Unit = {},
     // Vedi il parametro omonimo di [BlockScreen]: è lo stesso otter, ed è
     // [MainActivity] a legarli come elemento condiviso.
     otterModifier: Modifier = Modifier,
@@ -175,10 +175,6 @@ fun MainScreen(
     var totalMillis by remember { mutableStateOf(0L) }
     var streakDays by remember { mutableIntStateOf(0) }
     var hasHistory by remember { mutableStateOf(false) }
-    // Ultima pausa condivisa di cui si sappiano i nomi, per la scorciatoia
-    // "Di nuovo con…": ricalcolata insieme al resto a ogni onResume, così
-    // compare subito dopo che una pausa insieme è finita.
-    var lastCompanion by remember { mutableStateOf<Pair<String, Int>?>(null) }
     var weekSummary by remember { mutableStateOf(WeekSummary(List(7) { 0 }, List(7) { 0 }, 0, 0)) }
     var selectedDurationIndex by remember { mutableIntStateOf(1) }
     var showPermissionDialog by remember { mutableStateOf(false) }
@@ -194,14 +190,6 @@ fun MainScreen(
         streakDays = SessionStreak.currentStreakDays(history)
         hasHistory = history.isNotEmpty()
         weekSummary = weekSummaryOf(history)
-        // Primo nome soltanto: la scorciatoia deve nominare una persona, e con
-        // "Marco, Anna e Luca" smetterebbe di essere una riga breve.
-        lastCompanion = history
-            .firstOrNull { it.isGroupSession && it.companions.isNotBlank() }
-            ?.let { record ->
-                record.companions.split("\n").firstOrNull { it.isNotBlank() }
-                    ?.let { name -> name to record.plannedMinutes }
-            }
     }
 
     // Rieseguito a ogni onResume() dell'Activity (resumeSignal incrementato
@@ -213,13 +201,29 @@ fun MainScreen(
 
     val sessionStartedText = stringResource(R.string.session_started)
 
+    // Scorrevole, con altezza minima pari al viewport e SpaceBetween: a
+    // dimensione carattere normale l'aspetto resta quello di prima (titolo in
+    // alto, card in fondo, otter in mezzo), ma quando il contenuto non ci sta
+    // — carattere di sistema ingrandito, schermo corto — scorre invece di
+    // essere tagliato via in silenzio.
+    //
+    // Prima questa Column non scorreva e la parte centrale aveva weight(1f):
+    // a font_scale 1.5 il bottone "Tempo insieme" e la scorciatoia "Di nuovo
+    // con…" sparivano del tutto, senza comparire nemmeno nell'albero delle
+    // semantiche. `weight` non è utilizzabile dentro verticalScroll (l'altezza
+    // disponibile è infinita), da cui heightIn(min) + SpaceBetween, che
+    // distribuisce lo spazio in eccesso senza pesi.
+    val scrollState = rememberScrollState()
+    BoxWithConstraints(modifier = Modifier.fillMaxSize().calmBackground()) {
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .calmBackground()
             .safeDrawingPadding()
+            .verticalScroll(scrollState)
+            .heightIn(min = maxHeight)
             .padding(24.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.SpaceBetween,
     ) {
         Row(
             modifier = Modifier
@@ -250,9 +254,7 @@ fun MainScreen(
         // all'otter. È ciò che tiene l'otter a un'altezza costante qualunque
         // sia il contenuto della card — vedi [OtterSlotHeight] per il perché.
         Column(
-            modifier = Modifier
-                .weight(1f)
-                .fillMaxWidth(),
+            modifier = Modifier.fillMaxWidth(),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             PondScene(
@@ -314,20 +316,6 @@ fun MainScreen(
                         modifier = Modifier.padding(start = 8.dp),
                     )
                 }
-
-                // Scorciatoia verso la stessa persona dell'ultima volta: salta
-                // il selettore Crea/Unisciti e riparte dalla stessa durata.
-                // Risparmia i tocchi, non l'accoppiamento: il Bluetooth va
-                // rifatto comunque, perché la connessione si chiude all'avvio
-                // della pausa (vedi specs/group-pause, "handshake-then-autonomy").
-                lastCompanion?.let { (name, minutes) ->
-                    TextButton(onClick = { onGroupPauseAgain(minutes) }) {
-                        Text(
-                            text = stringResource(R.string.home_again_with, name),
-                            style = MaterialTheme.typography.labelMedium,
-                        )
-                    }
-                }
             }
         }
 
@@ -338,6 +326,7 @@ fun MainScreen(
             dimmed = sessionActive,
             onHistory = onHistory,
         )
+    }
     }
 
     if (showPermissionDialog) {
@@ -852,6 +841,11 @@ private fun SessionsChartCard(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically,
             ) {
+                // weight(fill = false) sul titolo: senza vincoli di larghezza i
+                // due Text di questa riga si contendevano lo spazio e a
+                // dimensione carattere grande finivano uno sopra l'altro. Così
+                // il titolo cede per primo (va a capo), e il link alla
+                // Cronologia — che è l'azione — resta intero.
                 Text(
                     text = if (streakDays >= 1) {
                         stringResource(R.string.streak_days, streakDays)
@@ -860,6 +854,7 @@ private fun SessionsChartCard(
                     },
                     fontWeight = FontWeight.SemiBold,
                     color = MaterialTheme.colorScheme.onSurface,
+                    modifier = Modifier.weight(1f, fill = false).padding(end = 12.dp),
                 )
                 Text(
                     text = stringResource(R.string.home_history_cta),

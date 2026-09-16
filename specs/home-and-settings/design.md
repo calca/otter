@@ -395,3 +395,34 @@ and plain checkbox with the same list-row/toggle idioms already used by
   `PermissionStatusCard` no longer the only one — `HomeCard`, `ThemeListCard`,
   `PasswordCard`, `PhrasesCard`, and the pre-existing `InfoCard` all share
   the same visual grammar.
+
+## Every full screen scrolls: `CalmScreenColumn`
+
+The app's screens were `Column(fillMaxSize)` with no scrolling. When the
+content didn't fit — a larger system font, a shorter screen — it was simply
+clipped, **silently**. Measured on Home at `font_scale 1.5`: the "Tempo
+insieme" button and the "again with…" shortcut disappeared entirely,
+absent even from the semantics tree, with nothing on screen suggesting
+anything was missing. Two entry points to a whole feature, gone. The
+history card's title also overlapped its "History →" link, two `Text`s in
+a `SpaceBetween` row with no width constraint between them.
+
+`CalmScreenColumn` (`CalmBackground.kt`) is now the standard container:
+`verticalScroll` plus `heightIn(min = maxHeight)` from a
+`BoxWithConstraints`. The minimum height is what keeps the normal case
+looking unchanged — while the content fits, the column is exactly the
+viewport and `verticalArrangement` lays it out as before; past that it
+grows and scrolls.
+
+Applied to every full screen that lacked it: both group-pause lobbies, the
+countdown, the host setup and QR-delay steps, the join code entry, and the
+release step. Home uses the same idiom inline with
+`Arrangement.SpaceBetween`, which preserves "header at top, card at the
+bottom" without `weight`.
+
+**`Modifier.weight` cannot be used inside a vertical scroll** — the
+available height is infinite there. Home's middle column previously relied
+on `weight(1f)`; distributing space is now `verticalArrangement`'s job.
+That constraint is the single thing to remember when adding to these
+screens.
+

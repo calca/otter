@@ -19,6 +19,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.Spacer
@@ -431,15 +432,7 @@ private fun ReleaseOthersStep(groupTag: Int, onDone: () -> Unit) {
         onDispose { GroupPauseHceService.pendingMarker = null }
     }
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .calmBackground()
-            .safeDrawingPadding()
-            .padding(40.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center,
-    ) {
+    CalmScreenColumn(contentPadding = PaddingValues(40.dp)) {
         OtterFloatMark(markSize = 96.dp)
         Text(
             text = stringResource(R.string.release_others_title),

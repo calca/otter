@@ -180,7 +180,6 @@
     <string name="onb_finish">Iniziamo</string>
 
     <!-- Tempo Insieme, ex "Pausa di gruppo" (specs/group-pause/) -->
-    <string name="home_again_with">Di nuovo con %1$s</string>
     <string name="group_pause_entry_button">Tempo insieme</string>
     <string name="group_pause_chooser_intro">Volete fermarvi insieme?</string>
     <string name="group_pause_chooser_create_desc">Scegli la durata e invita chi vuoi</string>

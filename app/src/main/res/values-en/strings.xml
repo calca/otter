@@ -170,7 +170,6 @@
     <string name="onb_finish">Let\'s go</string>
 
     <!-- Time Together, formerly "Group pause" (specs/group-pause/) -->
-    <string name="home_again_with">Again with %1$s</string>
     <string name="group_pause_entry_button">Time together</string>
     <string name="group_pause_chooser_intro">Want to pause together?</string>
     <string name="group_pause_chooser_create_desc">Choose how long, then invite whoever you want</string>
