@@ -5,6 +5,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -249,7 +250,18 @@ private fun MinutePillRow(
     onSelect: (Int) -> Unit,
     labelFor: (Int) -> String,
 ) {
-    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+    // FlowRow e non Row: con cinque opzioni ("15m 30m 1h 1h30 2h") la riga
+    // piatta non ci stava in larghezza e l'ultimo chip veniva compresso fino
+    // a mandare a capo la propria etichetta — "2h" diventava "2" sopra e "h"
+    // sotto, con il chip più alto degli altri. Andando a capo per intero
+    // restano tutte le opzioni visibili insieme (utile: si sta scegliendo fra
+    // loro) e non serve uno scorrimento che ne nasconda qualcuna. Regge anche
+    // etichette più lunghe in altre lingue, che è il vero motivo per non
+    // limitarsi a ridurre il padding.
+    FlowRow(
+        horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterHorizontally),
+        verticalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
         options.forEach { value ->
             val isSelected = value == selected
             Surface(
@@ -259,6 +271,7 @@ private fun MinutePillRow(
             ) {
                 Text(
                     text = labelFor(value),
+                    maxLines = 1,
                     modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
                     color = MaterialTheme.colorScheme.onSurface.copy(alpha = if (isSelected) 1f else 0.65f),
                     fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Normal,

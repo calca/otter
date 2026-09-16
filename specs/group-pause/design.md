@@ -535,6 +535,25 @@ branch was then checked by temporarily forcing `allReady = true`,
 confirming the dashed ring and "Waiting for someone…" come back and the
 banner disappears, and reverting that immediately afterwards.
 
+## Duration chips: FlowRow, not a flat Row
+
+`MinutePillRow` laid its options out in a plain `Row`. With the five
+durations (15m / 30m / 1h / 1h30 / 2h) that row didn't fit the screen
+width, so the last chip was squeezed until its own label wrapped: "2h"
+rendered as "2" above "h", making that chip visibly taller than the rest
+and breaking the line.
+
+Now a `FlowRow` (stable in this Compose version — checked against the
+resolved `foundation-layout` artifact, not assumed), centred, with the
+chip `Text` also pinned to `maxLines = 1`. Options that don't fit move to
+a second centred line intact.
+
+Wrapping rather than horizontal scrolling, deliberately: the user is
+choosing *between* these values, so all of them should stay visible at
+once — scrolling would hide some behind an edge. It also survives longer
+labels in other locales, which is the real reason not to just shrink the
+padding until it happens to fit on this one device.
+
 ## Verification performed (single device)
 
 **Phase 1:**
