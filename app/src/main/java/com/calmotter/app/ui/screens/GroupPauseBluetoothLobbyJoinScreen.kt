@@ -52,6 +52,7 @@ import com.calmotter.app.GroupPauseRecipe
 import com.calmotter.app.R
 import com.calmotter.app.bluetooth.GroupPauseBluetoothJoin
 import com.calmotter.app.bluetooth.bluetoothAdapterOrNull
+import com.calmotter.app.bluetooth.localBluetoothDisplayName
 import com.calmotter.app.decodeGroupPauseRecipe
 import com.calmotter.app.groupPauseBluetoothRuntimePermissions
 import com.calmotter.app.hasGroupPauseBluetoothPermissions
@@ -102,6 +103,11 @@ fun GroupPauseBluetoothLobbyJoinScreen(
     val mainHandler = remember { Handler(Looper.getMainLooper()) }
 
     var state by remember { mutableStateOf(if (nfcAvailable) JoinLobbyState.NfcHero else JoinLobbyState.SearchHero) }
+    // Popolati dal LOBBY: dell'host appena connessi. Restano null se all'altro
+    // capo gira una versione che non lo invia — in quel caso la schermata
+    // ricade sul vecchio "in attesa dell'host", senza rompersi.
+    var hostName by remember { mutableStateOf<String?>(null) }
+    var hostDurationMinutes by remember { mutableStateOf<Int?>(null) }
     val invalidCodeText = stringResource(R.string.group_pause_invalid_code)
     val connectionLostText = stringResource(R.string.group_pause_join_error)
 
@@ -124,6 +130,12 @@ fun GroupPauseBluetoothLobbyJoinScreen(
             device = device,
             localDisplayName = localName,
             onConnected = { mainHandler.post { state = JoinLobbyState.WaitingForHost } },
+            onLobbyInfo = { name, minutes ->
+                mainHandler.post {
+                    hostName = name
+                    hostDurationMinutes = minutes
+                }
+            },
             onRecipe = { code -> mainHandler.post { onRecipeCode(code) } },
             onError = { mainHandler.post { state = JoinLobbyState.Error(connectionLostText) } },
         )
@@ -262,11 +274,34 @@ fun GroupPauseBluetoothLobbyJoinScreen(
             }
             JoinLobbyState.WaitingForHost -> {
                 OtterFloatMark(markSize = 88.dp)
+                // Chi ospita e per quanto, appena l'host lo comunica: è ciò a
+                // cui si sta dicendo di sì, e va detto prima che la pausa
+                // cominci, non quando è già cominciata.
+                val name = hostName
+                val minutes = hostDurationMinutes
+                if (name != null) {
+                    Text(
+                        text = name,
+                        fontSize = 19.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.primary,
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier.padding(top = 14.dp)
+                    )
+                }
+                if (minutes != null) {
+                    Text(
+                        text = stringResource(R.string.group_pause_join_lobby_duration, minutesLabel(minutes)),
+                        color = MaterialTheme.colorScheme.onSurface,
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier.padding(top = 4.dp)
+                    )
+                }
                 Text(
                     text = stringResource(R.string.group_pause_join_waiting_host),
-                    color = MaterialTheme.colorScheme.onSurface,
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
                     textAlign = TextAlign.Center,
-                    modifier = Modifier.padding(top = 14.dp)
+                    modifier = Modifier.padding(top = if (name != null) 12.dp else 14.dp)
                 )
             }
             is JoinLobbyState.Error -> {
@@ -362,13 +397,3 @@ private fun SearchingIllustration(hasResults: Boolean, searching: Boolean) {
     }
 }
 
-/**
- * Nome da annunciare all'host via HELLO — il nome che l'utente ha dato al
- * proprio telefono (Impostazioni > Info telefono > Nome dispositivo),
- * leggibile senza alcun permesso Bluetooth; se non impostato, il modello
- * del dispositivo come fallback generico.
- */
-private fun localBluetoothDisplayName(context: android.content.Context): String =
-    Settings.Global.getString(context.contentResolver, Settings.Global.DEVICE_NAME)
-        ?: Build.MODEL
-        ?: "Calm Otter"

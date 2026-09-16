@@ -211,6 +211,27 @@ paths I want before committing to one.
    option's label may be truncated or wrapped mid-label to make the row
    fit.
 
+## User Story 8: Knowing what you're joining
+
+As the person joining a live lobby, I want to know who is hosting and how
+long the pause will be before it starts, because I am agreeing to have my
+phone blocked.
+
+### Acceptance Criteria
+
+1. WHEN a joiner connects to a lobby THEN the host SHALL send its display
+   name and the chosen duration immediately, without waiting for Start.
+2. WHEN that information arrives THEN the joiner's waiting screen SHALL
+   show both, so the decision is made before the pause begins rather than
+   discovered once it has.
+3. WHEN the other end is a build that does not send it THEN the joiner
+   SHALL fall back to its previous waiting text rather than fail — an
+   unrecognised message is ignored, never fatal.
+4. WHEN a received duration is absent or not a positive number THEN the
+   message SHALL be discarded rather than displayed as a zero or default.
+5. A host name SHALL NOT be able to break the protocol's framing,
+   whichever characters it contains.
+
 ## Known limitations (accepted, not bugs)
 
 - **QR/manual-code mode has no participant count or names.** Because it

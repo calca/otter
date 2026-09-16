@@ -45,6 +45,7 @@ import com.calmotter.app.R
 import com.calmotter.app.bluetooth.GroupPauseBluetoothHost
 import com.calmotter.app.bluetooth.bluetoothAdapterOrNull
 import com.calmotter.app.bluetooth.groupPauseLobbyNameMarker
+import com.calmotter.app.bluetooth.localBluetoothDisplayName
 import com.calmotter.app.encode
 import com.calmotter.app.groupPauseBluetoothRuntimePermissions
 import com.calmotter.app.hasGroupPauseBluetoothPermissions
@@ -94,6 +95,9 @@ fun GroupPauseBluetoothLobbyHostScreen(
     val groupTag = remember { Random.nextInt(0, 65536) }
     val markerName = remember(groupTag) { groupPauseLobbyNameMarker(groupTag) }
     val host = remember { GroupPauseBluetoothHost(context) }
+    // Non `adapter.name`: durante la lobby vale "CalmOtter-<tag>", riscritto
+    // apposta per il discovery. Serve il nome vero del telefono.
+    val hostName = remember { localBluetoothDisplayName(context) }
 
     // Non appena permessi+Bluetooth sono pronti: chiede la visibilità una
     // sola volta (discoverableRequested) e avvia davvero la lobby — nessuna
@@ -107,7 +111,7 @@ fun GroupPauseBluetoothLobbyHostScreen(
                     .putExtra(BluetoothAdapter.EXTRA_DISCOVERABLE_DURATION, 300)
                 discoverableLauncher.launch(intent)
             }
-            host.start(markerName)
+            host.start(markerName, hostName, durationMinutes)
             if (nfcAvailable) GroupPauseHceService.pendingMarker = markerName
         }
         onDispose {

@@ -3,6 +3,8 @@ package com.calmotter.app.bluetooth
 import android.bluetooth.BluetoothAdapter
 import android.bluetooth.BluetoothManager
 import android.content.Context
+import android.provider.Settings
+import android.os.Build
 import java.io.InputStream
 import java.io.OutputStream
 import java.nio.charset.StandardCharsets
@@ -34,20 +36,55 @@ val GROUP_PAUSE_SERVICE_UUID: UUID = UUID.fromString("7e5a1c9e-7c2b-4b8b-9d1c-6f
 
 private const val HELLO_PREFIX = "HELLO:"
 private const val RECIPE_PREFIX = "RECIPE:"
+private const val LOBBY_PREFIX = "LOBBY:"
+private const val LOBBY_SEPARATOR = '|'
 
 sealed class GroupPauseBtMessage {
     data class Hello(val displayName: String) : GroupPauseBtMessage()
     data class Recipe(val code: String) : GroupPauseBtMessage()
+
+    /**
+     * Host → joiner, subito dopo l'HELLO: chi sta ospitando e per quanto.
+     *
+     * Aggiunto perché il protocollo era asimmetrico — l'host imparava il
+     * nome del joiner dall'HELLO, il joiner non sapeva nulla fino al
+     * `RECIPE`, che arriva solo all'avvio. Si accettava quindi di farsi
+     * bloccare il telefono per una durata scoperta a pausa già cominciata,
+     * e senza sapere di chi fosse la lobby: nella lista dei dispositivi
+     * l'host compare come "CalmOtter-<tag>", perché è così che si rinomina
+     * l'adattatore (vedi [groupPauseLobbyNameMarker]).
+     */
+    data class LobbyInfo(val hostName: String, val durationMinutes: Int) : GroupPauseBtMessage()
 }
 
 fun formatHello(displayName: String): String = HELLO_PREFIX + sanitizeDisplayName(displayName)
 
 fun formatRecipe(code: String): String = RECIPE_PREFIX + code
 
-/** Ritorna `null` per una riga che non corrisponde a nessun messaggio noto. */
+fun formatLobbyInfo(hostName: String, durationMinutes: Int): String =
+    LOBBY_PREFIX + sanitizeDisplayName(hostName) + LOBBY_SEPARATOR + durationMinutes
+
+/**
+ * Ritorna `null` per una riga che non corrisponde a nessun messaggio noto —
+ * il che rende l'aggiunta di [GroupPauseBtMessage.LobbyInfo] compatibile con
+ * una versione precedente all'altro capo: chi non la conosce la ignora e
+ * prosegue, invece di rompere la connessione.
+ */
 fun parseGroupPauseBtMessage(line: String): GroupPauseBtMessage? = when {
     line.startsWith(HELLO_PREFIX) -> GroupPauseBtMessage.Hello(line.removePrefix(HELLO_PREFIX))
     line.startsWith(RECIPE_PREFIX) -> GroupPauseBtMessage.Recipe(line.removePrefix(RECIPE_PREFIX))
+    line.startsWith(LOBBY_PREFIX) -> {
+        val payload = line.removePrefix(LOBBY_PREFIX)
+        val separator = payload.lastIndexOf(LOBBY_SEPARATOR)
+        val minutes = if (separator >= 0) payload.substring(separator + 1).toIntOrNull() else null
+        // Una durata mancante o non numerica rende il messaggio inutile:
+        // meglio ignorarlo del tutto che mostrare "0 minuti" al joiner.
+        if (minutes != null && minutes > 0) {
+            GroupPauseBtMessage.LobbyInfo(payload.substring(0, separator), minutes)
+        } else {
+            null
+        }
+    }
     else -> null
 }
 
@@ -55,7 +92,11 @@ fun parseGroupPauseBtMessage(line: String): GroupPauseBtMessage? = when {
 // fidare dell'input dell'altro estremo del socket: un newline incorporato
 // spezzerebbe il framing a righe di questo protocollo.
 private fun sanitizeDisplayName(name: String): String =
-    name.replace('\n', ' ').replace('\r', ' ').trim().take(40)
+    name.replace('\n', ' ').replace('\r', ' ')
+        // Il separatore di LOBBY: un nome che lo contenesse spezzerebbe il
+        // parsing tanto quanto un newline spezza il framing a righe.
+        .replace(LOBBY_SEPARATOR, ' ')
+        .trim().take(40)
 
 /**
  * Nome che l'host imposta come nome del proprio adattatore Bluetooth
@@ -83,3 +124,19 @@ fun readLine(input: InputStream): String? {
         if (next != '\r'.code) builder.append(next.toChar())
     }
 }
+
+/**
+ * Nome con cui questo dispositivo si presenta all'altro capo: quello che
+ * l'utente ha dato al telefono (Impostazioni > Info telefono > Nome
+ * dispositivo), leggibile senza alcun permesso Bluetooth; se non impostato,
+ * il modello come ripiego generico.
+ *
+ * Usato da entrambi i lati: dal joiner nell'HELLO, e dall'host nel
+ * [GroupPauseBtMessage.LobbyInfo]. Nell'host **non** si può leggere
+ * `adapter.name`, che durante la lobby vale "CalmOtter-<tag>" perché è stato
+ * riscritto apposta per farsi riconoscere nel discovery.
+ */
+fun localBluetoothDisplayName(context: Context): String =
+    Settings.Global.getString(context.contentResolver, Settings.Global.DEVICE_NAME)
+        ?: Build.MODEL
+        ?: "Calm Otter"

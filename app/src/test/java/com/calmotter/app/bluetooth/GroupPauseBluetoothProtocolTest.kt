@@ -64,4 +64,48 @@ class GroupPauseBluetoothProtocolTest {
         assertEquals(groupPauseLobbyNameMarker(1234), groupPauseLobbyNameMarker(1234))
         assertTrue(groupPauseLobbyNameMarker(1234).startsWith("CalmOtter-"))
     }
+
+    @Test
+    fun lobbyInfoRoundTrips() {
+        val parsed = parseGroupPauseBtMessage(formatLobbyInfo("Pixel di Marco", 45))
+        assertTrue(parsed is GroupPauseBtMessage.LobbyInfo)
+        parsed as GroupPauseBtMessage.LobbyInfo
+        assertEquals("Pixel di Marco", parsed.hostName)
+        assertEquals(45, parsed.durationMinutes)
+    }
+
+    /**
+     * Il separatore dentro al nome spezzerebbe il parsing come un newline
+     * spezza il framing: va neutralizzato prima di finire sul filo.
+     */
+    @Test
+    fun lobbyInfoSurvivesASeparatorInsideTheName() {
+        val parsed = parseGroupPauseBtMessage(formatLobbyInfo("Marco|Rossi", 30))
+        assertTrue(parsed is GroupPauseBtMessage.LobbyInfo)
+        parsed as GroupPauseBtMessage.LobbyInfo
+        assertEquals(30, parsed.durationMinutes)
+        assertTrue(!parsed.hostName.contains('|'))
+    }
+
+    /**
+     * Una durata assente o non numerica rende il messaggio inutile: meglio
+     * scartarlo che mostrare "0 minuti" a chi deve decidere se unirsi.
+     */
+    @Test
+    fun lobbyInfoWithoutAUsableDurationIsRejected() {
+        assertNull(parseGroupPauseBtMessage("LOBBY:Marco"))
+        assertNull(parseGroupPauseBtMessage("LOBBY:Marco|"))
+        assertNull(parseGroupPauseBtMessage("LOBBY:Marco|abc"))
+        assertNull(parseGroupPauseBtMessage("LOBBY:Marco|0"))
+    }
+
+    /**
+     * Il motivo per cui aggiungere un messaggio non rompe una versione
+     * precedente all'altro capo: chi non lo conosce lo ignora e prosegue.
+     */
+    @Test
+    fun unknownMessagesAreIgnoredRatherThanFatal() {
+        assertNull(parseGroupPauseBtMessage("SOMETHING:new"))
+        assertNull(parseGroupPauseBtMessage(""))
+    }
 }

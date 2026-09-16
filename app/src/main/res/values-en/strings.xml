@@ -224,6 +224,7 @@
     <string name="group_pause_join_code_link">I have a code or a QR</string>
     <string name="group_pause_join_searching">Looking for a friend…</string>
     <string name="group_pause_join_connecting">Connecting…</string>
+    <string name="group_pause_join_lobby_duration">A %1$s pause</string>
     <string name="group_pause_join_waiting_host">Connected — waiting for the host to start…</string>
     <string name="group_pause_join_error">Connection lost.</string>
     <string name="group_pause_join_retry_button">Retry</string>

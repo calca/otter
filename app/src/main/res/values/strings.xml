@@ -234,6 +234,7 @@
     <string name="group_pause_join_code_link">Ho un codice o un QR</string>
     <string name="group_pause_join_searching">Alla ricerca di un amico…</string>
     <string name="group_pause_join_connecting">Connessione in corso…</string>
+    <string name="group_pause_join_lobby_duration">Pausa di %1$s</string>
     <string name="group_pause_join_waiting_host">Connesso — in attesa che l\'host inizi…</string>
     <string name="group_pause_join_error">Connessione persa.</string>
     <string name="group_pause_join_retry_button">Riprova</string>

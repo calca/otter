@@ -73,6 +73,7 @@ class GroupPauseBluetoothJoin(private val context: Context) {
         device: BluetoothDevice,
         localDisplayName: String,
         onConnected: () -> Unit = {},
+        onLobbyInfo: (hostName: String, durationMinutes: Int) -> Unit = { _, _ -> },
         onRecipe: (String) -> Unit,
         onError: () -> Unit,
     ) {
@@ -86,10 +87,19 @@ class GroupPauseBluetoothJoin(private val context: Context) {
                 onConnected()
                 while (true) {
                     val line = readLine(newSocket.inputStream) ?: break
-                    val message = parseGroupPauseBtMessage(line)
-                    if (message is GroupPauseBtMessage.Recipe) {
-                        onRecipe(message.code)
-                        break
+                    when (val message = parseGroupPauseBtMessage(line)) {
+                        is GroupPauseBtMessage.Recipe -> {
+                            onRecipe(message.code)
+                            break
+                        }
+                        // Arriva subito dopo l'HELLO: dice di chi è la lobby e
+                        // per quanto. Non interrompe il ciclo — si continua ad
+                        // aspettare la ricetta vera, che arriva solo all'avvio.
+                        is GroupPauseBtMessage.LobbyInfo ->
+                            onLobbyInfo(message.hostName, message.durationMinutes)
+                        // Righe sconosciute (o un HELLO di ritorno, che non ci
+                        // si aspetta qui) vengono ignorate, non chiudono nulla.
+                        else -> Unit
                     }
                 }
             } catch (e: IOException) {

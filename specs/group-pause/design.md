@@ -574,6 +574,51 @@ Verified on-device that each row still reaches its Activity
 (`GroupPauseHostActivity` / `GroupPauseJoinActivity`) and that Cancel
 dismisses.
 
+## Closing the asymmetry: `LOBBY:` tells the joiner what they're agreeing to
+
+The Bluetooth protocol had exactly two messages: `HELLO:<name>`
+(joiner → host) and `RECIPE:<code>` (host → joiner, sent **only when the
+host presses Start**). Read together with the join screen, that meant the
+joiner agreed to have their phone blocked:
+
+- **for an unknown length of time** — the duration arrives inside the
+  recipe, by which point the pause has already begun; and
+- **by an unknown person** — `GroupPauseBluetoothHost.start()` does
+  `adapter.name = lobbyMarkerName`, so in the discovery list the host
+  appears as `CalmOtter-<tag>`, not as anybody. Two friends hosting in the
+  same room are indistinguishable.
+
+For a feature whose whole premise is a consented pact, that is a consent
+gap rather than a polish issue, which is why it was fixed first.
+
+A third message closes it: `LOBBY:<hostName>|<durationMinutes>`, sent by
+the host immediately after receiving `HELLO`, long before Start. The
+joiner's waiting state now shows the host's name and the duration.
+
+Details worth keeping:
+
+- **`|` is sanitised out of the name**, for the same reason newlines
+  already were: it would break parsing exactly as a newline breaks the
+  line framing.
+- **A missing or non-numeric duration makes the whole message invalid**
+  (parsed as `null`) rather than yielding "0 minutes" to someone deciding
+  whether to join.
+- **Backwards compatible by construction.** `parseGroupPauseBtMessage`
+  already returned `null` for unrecognised lines and callers skip those,
+  so an older build at either end ignores `LOBBY:` and keeps working; the
+  joiner's two fields stay `null` and the screen falls back to its
+  previous "waiting for the host" text. There is a test pinning this.
+- **The host cannot read its own name from `adapter.name`** while hosting —
+  that is the `CalmOtter-<tag>` marker. `localBluetoothDisplayName()` moved
+  from a private function in the join screen into the `bluetooth` package
+  so both sides derive the name the same way.
+- A write failure when sending `LOBBY:` does not drop the participant:
+  they stay in the list and the recipe is still attempted at Start. Losing
+  a nicety is not a reason to reject someone already connected.
+
+The name is *not* yet carried past the lobby into the session or History —
+that remains the open gap already noted in this file and in README.
+
 ## Verification performed (single device)
 
 **Phase 1:**

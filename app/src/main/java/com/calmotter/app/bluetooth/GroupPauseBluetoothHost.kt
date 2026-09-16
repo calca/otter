@@ -36,8 +36,15 @@ class GroupPauseBluetoothHost(private val context: Context) {
     /** Nomi dichiarati dai partecipanti collegati finora — osservabile direttamente da Compose. */
     val participantNames = mutableStateListOf<String>()
 
+    private var lobbyHostName: String = ""
+    private var lobbyDurationMinutes: Int = 0
+
     @SuppressLint("MissingPermission")
-    fun start(lobbyMarkerName: String) {
+    fun start(lobbyMarkerName: String, hostName: String, durationMinutes: Int) {
+        // Memorizzati perché acceptSocket() gira per ogni partecipante, molto
+        // dopo questa chiamata, e deve poterli rispedire a ciascuno.
+        lobbyHostName = hostName
+        lobbyDurationMinutes = durationMinutes
         val adapter = bluetoothAdapterOrNull(context) ?: return
         originalAdapterName = adapter.name
         adapter.name = lobbyMarkerName
@@ -71,6 +78,15 @@ class GroupPauseBluetoothHost(private val context: Context) {
                 }
                 synchronized(sockets) { sockets.add(socket) }
                 participantNames.add(hello.displayName)
+                // Risposta immediata: chi si è appena unito deve sapere di chi
+                // è la lobby e per quanto tempo, *prima* che la pausa parta —
+                // vedi GroupPauseBtMessage.LobbyInfo. Se la scrittura fallisce
+                // il partecipante resta comunque in lista: la ricetta verrà
+                // tentata lo stesso a "Avvia", e un errore qui non è una buona
+                // ragione per rifiutare qualcuno che si è già collegato.
+                runCatching {
+                    writeLine(socket.outputStream, formatLobbyInfo(lobbyHostName, lobbyDurationMinutes))
+                }
             } catch (e: IOException) {
                 // Connessione caduta prima dell'HELLO — nessun partecipante aggiunto.
             }

@@ -230,7 +230,7 @@ private fun SetupLabel(text: String, topPadding: androidx.compose.ui.unit.Dp = 0
     )
 }
 
-private fun minutesLabel(minutes: Int): String {
+internal fun minutesLabel(minutes: Int): String {
     if (minutes < 60) return "${minutes}m"
     val hours = minutes / 60
     val remainder = minutes % 60
