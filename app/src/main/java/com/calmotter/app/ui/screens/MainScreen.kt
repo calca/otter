@@ -282,7 +282,7 @@ fun MainScreen(
             Spacer(modifier = Modifier.height(10.dp))
             DurationChipRow(
                 selectedIndex = selectedDurationIndex,
-                onSelect = onSelectDuration,
+                onSelect = { selectedDurationIndex = it },
             )
 
             SessionsSummaryLink(
