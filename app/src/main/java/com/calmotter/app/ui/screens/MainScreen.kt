@@ -225,96 +225,109 @@ fun MainScreen(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.SpaceBetween,
     ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(bottom = 24.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Text(
-                text = stringResource(R.string.app_name),
-                fontSize = 24.sp,
-                fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.primary,
-                modifier = Modifier.weight(1f)
-            )
-            IconButton(onClick = onSettings) {
-                Icon(
-                    imageVector = Icons.Default.Settings,
-                    contentDescription = stringResource(R.string.settings_title),
-                    tint = MaterialTheme.colorScheme.primary
-                )
-            }
-        }
-
-        // Questa Column intermedia si prende lo spazio che avanza, ma al suo
-        // interno PondScene ha ormai altezza fissa ([OtterSlotHeight]): lo
-        // spazio in eccesso finisce sotto, tra il bottone "Tempo insieme" e
-        // la card della cronologia, invece di essere distribuito attorno
-        // all'otter. È ciò che tiene l'otter a un'altezza costante qualunque
-        // sia il contenuto della card — vedi [OtterSlotHeight] per il perché.
-        Column(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalAlignment = Alignment.CenterHorizontally,
-        ) {
-            PondScene(
-                modifier = Modifier,
-                sessionActive = sessionActive,
-                remainingMillis = remainingMillis,
-                totalMillis = totalMillis,
-                selectedDurationIndex = selectedDurationIndex,
-                onSelectDuration = { selectedDurationIndex = it },
-                onStart = {
-                    // In debug (incluso quello prodotto in CI) i permessi
-                    // Accessibilità/DND non bloccano l'avvio di una sessione,
-                    // per poter testare il resto del flusso (Settings,
-                    // History, schermata di blocco...) senza doverli
-                    // concedere davvero a ogni installazione pulita — vedi
-                    // SessionManager.setOnlyCallsAllowed(), che già ignora
-                    // silenziosamente il DND se non concesso, quindi questo
-                    // bypass non nasconde un crash, solo il blocco vero e
-                    // proprio non scatta. In release il controllo resta
-                    // invariato.
-                    if (BuildConfig.DEBUG || (accessibilityOk && dndOk)) {
-                        val durationMinutes = selectedDurationIndex * 30
-                        sessionManager.startSession(durationMinutes)
-                        Toast.makeText(context, sessionStartedText, Toast.LENGTH_SHORT).show()
-                        refreshDerivedState()
-                        // Passa subito a BlockScreen invece di restare su
-                        // MainScreen mostrando il progress ring: le due
-                        // schermate ora sono unificate, vedi
-                        // MainActivity.enterBlockScreen().
-                        onSessionStarted()
-                    } else {
-                        showPermissionDialog = true
-                    }
-                },
-                otterModifier = otterModifier,
-                otterFloatOffset = otterFloatOffset,
-            )
-
-            if (!sessionActive) {
+        // Header e otter raggruppati in un'unica Column, così SpaceBetween
+        // vede solo DUE figli diretti — questo gruppo e SessionsChartCard —
+        // e mette *tutto* lo spazio in eccesso nell'unico spazio fra loro,
+        // sotto l'otter. Con tre figli diretti (Header, questa Column,
+        // SessionsChartCard, come subito dopo l'introduzione dello scroll)
+        // SpaceBetween lo avrebbe invece diviso in due spazi uguali, uno
+        // anche fra header e otter — rendendo lo scarto header-otter
+        // dipendente dall'altezza dello schermo e dal contenuto della card,
+        // invece che fisso come [OtterSlotTopInset] (l'offset che
+        // BlockScreen usa per lo stesso otter). Bug reale osservato: l'otter
+        // "salta" nella transizione condivisa verso BlockScreen — vedi
+        // specs/app-blocking-and-home-lock/design.md, "the otter has to be
+        // in the same place, or it slides".
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 24.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
                 Text(
-                    text = weeklySummaryText(weekSummary),
-                    style = MaterialTheme.typography.labelSmall,
-                    fontFamily = FontFamily.Monospace,
-                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.55f),
-                    modifier = Modifier.padding(vertical = 20.dp)
+                    text = stringResource(R.string.app_name),
+                    fontSize = 24.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.weight(1f)
                 )
-                // Non compete con il tap sull'otter (l'azione primaria):
-                // testo piccolo e defilato, non un altro bottone pieno —
-                // vedi specs/group-pause/design.md. TogetherMark (le due
-                // zampe di PactPawsMark senza il badge circolare) come
-                // icona leading, su richiesta esplicita ("un po' anonima"):
-                // un'icona rende il bottone più riconoscibile a colpo
-                // d'occhio invece di solo testo tra i due CTA della Home.
-                TextButton(onClick = { showGroupPauseChooser = true }) {
-                    TogetherMark(markSize = 18.dp)
-                    Text(
-                        text = stringResource(R.string.group_pause_entry_button),
-                        style = MaterialTheme.typography.labelMedium,
-                        modifier = Modifier.padding(start = 8.dp),
+                IconButton(onClick = onSettings) {
+                    Icon(
+                        imageVector = Icons.Default.Settings,
+                        contentDescription = stringResource(R.string.settings_title),
+                        tint = MaterialTheme.colorScheme.primary
                     )
+                }
+            }
+
+            // PondScene ha altezza fissa ([OtterSlotHeight]): lo spazio in
+            // eccesso finisce sotto, tra il bottone "Tempo insieme" e la
+            // card della cronologia (nell'unico spazio SpaceBetween di cui
+            // sopra), non qui dentro.
+            Column(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalAlignment = Alignment.CenterHorizontally,
+            ) {
+                PondScene(
+                    modifier = Modifier,
+                    sessionActive = sessionActive,
+                    remainingMillis = remainingMillis,
+                    totalMillis = totalMillis,
+                    selectedDurationIndex = selectedDurationIndex,
+                    onSelectDuration = { selectedDurationIndex = it },
+                    onStart = {
+                        // In debug (incluso quello prodotto in CI) i permessi
+                        // Accessibilità/DND non bloccano l'avvio di una sessione,
+                        // per poter testare il resto del flusso (Settings,
+                        // History, schermata di blocco...) senza doverli
+                        // concedere davvero a ogni installazione pulita — vedi
+                        // SessionManager.setOnlyCallsAllowed(), che già ignora
+                        // silenziosamente il DND se non concesso, quindi questo
+                        // bypass non nasconde un crash, solo il blocco vero e
+                        // proprio non scatta. In release il controllo resta
+                        // invariato.
+                        if (BuildConfig.DEBUG || (accessibilityOk && dndOk)) {
+                            val durationMinutes = selectedDurationIndex * 30
+                            sessionManager.startSession(durationMinutes)
+                            Toast.makeText(context, sessionStartedText, Toast.LENGTH_SHORT).show()
+                            refreshDerivedState()
+                            // Passa subito a BlockScreen invece di restare su
+                            // MainScreen mostrando il progress ring: le due
+                            // schermate ora sono unificate, vedi
+                            // MainActivity.enterBlockScreen().
+                            onSessionStarted()
+                        } else {
+                            showPermissionDialog = true
+                        }
+                    },
+                    otterModifier = otterModifier,
+                    otterFloatOffset = otterFloatOffset,
+                )
+
+                if (!sessionActive) {
+                    Text(
+                        text = weeklySummaryText(weekSummary),
+                        style = MaterialTheme.typography.labelSmall,
+                        fontFamily = FontFamily.Monospace,
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.55f),
+                        modifier = Modifier.padding(vertical = 20.dp)
+                    )
+                    // Non compete con il tap sull'otter (l'azione primaria):
+                    // testo piccolo e defilato, non un altro bottone pieno —
+                    // vedi specs/group-pause/design.md. TogetherMark (le due
+                    // zampe di PactPawsMark senza il badge circolare) come
+                    // icona leading, su richiesta esplicita ("un po' anonima"):
+                    // un'icona rende il bottone più riconoscibile a colpo
+                    // d'occhio invece di solo testo tra i due CTA della Home.
+                    TextButton(onClick = { showGroupPauseChooser = true }) {
+                        TogetherMark(markSize = 18.dp)
+                        Text(
+                            text = stringResource(R.string.group_pause_entry_button),
+                            style = MaterialTheme.typography.labelMedium,
+                            modifier = Modifier.padding(start = 8.dp),
+                        )
+                    }
                 }
             }
         }
@@ -527,6 +540,15 @@ private fun PondScene(
             burstProgress.snapTo(0f)
             burstProgress.animateTo(1f, animationSpec = tween(380, easing = FastOutSlowInEasing))
             onStart()
+            // Se onStart() ha davvero avviato la sessione, questo Composable
+            // sta per uscire di scena (MainActivity passa a BlockScreen) e il
+            // reset è ininfluente. Se invece mancano i permessi, onStart()
+            // si limita a mostrare il dialogo esplicativo: questa schermata
+            // resta a video, e senza il reset l'otter restava permanentemente
+            // non toccabile (clickable è enabled solo quando !isStarting) —
+            // bug reale: tap sull'otter senza permessi concessi, poi più
+            // nessun tap ha effetto, nemmeno chiudendo il dialogo.
+            isStarting = false
         }
     }
 
