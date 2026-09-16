@@ -127,10 +127,18 @@ fun GroupPauseBluetoothLobbyHostScreen(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center,
     ) {
-        ParticipantRing(participantNames = participantNames)
+        ParticipantRing(participantNames = participantNames, ready = allReady)
 
+        // Titolo e sottotitolo raccontano lo stato *vero*. Prima dipendevano
+        // solo dal numero di partecipanti: a permessi mancanti o Bluetooth
+        // spento la schermata annunciava comunque "In attesa di qualcuno…"
+        // e "Avvicinate i telefoni", cioè un'attesa che non era in corso e
+        // un'istruzione che non si poteva eseguire. Il banner qui sotto dice
+        // già *quale* cosa manca e come rimediare, quindi qui basta essere
+        // onesti sul fatto che manchi qualcosa, senza ripeterlo.
         Text(
-            text = lobbyTitleFor(participantNames),
+            text = if (allReady) lobbyTitleFor(participantNames)
+            else stringResource(R.string.group_pause_notready_title),
             fontSize = 18.sp,
             fontWeight = FontWeight.Bold,
             color = MaterialTheme.colorScheme.primary,
@@ -139,8 +147,11 @@ fun GroupPauseBluetoothLobbyHostScreen(
         )
         Text(
             text = stringResource(
-                if (participantNames.isEmpty()) R.string.group_pause_lobby_waiting_subtitle
-                else R.string.group_pause_lobby_ready_subtitle
+                when {
+                    !allReady -> R.string.group_pause_notready_subtitle
+                    participantNames.isEmpty() -> R.string.group_pause_lobby_waiting_subtitle
+                    else -> R.string.group_pause_lobby_ready_subtitle
+                }
             ),
             color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.75f),
             textAlign = TextAlign.Center,
@@ -213,17 +224,27 @@ private fun lobbyTitleFor(participantNames: List<String>): String = when (partic
  * comunque leggibile dal testo sopra ([lobbyTitleFor]).
  */
 @Composable
-private fun ParticipantRing(participantNames: List<String>) {
+private fun ParticipantRing(participantNames: List<String>, ready: Boolean) {
     val ringColor = MaterialTheme.colorScheme.primary
     val hasParticipants = participantNames.isNotEmpty()
 
     Box(modifier = Modifier.size(200.dp), contentAlignment = Alignment.Center) {
         Canvas(modifier = Modifier.size(180.dp)) {
             val strokeWidth = 2.dp.toPx()
-            if (hasParticipants) {
-                drawCircle(color = ringColor.copy(alpha = 0.22f), style = Stroke(width = strokeWidth))
-            } else {
-                drawCircle(
+            when {
+                // Il tratteggio dice "sto aspettando qualcuno": va mostrato
+                // solo quando la lobby sta davvero ascoltando. Finché manca un
+                // permesso o il Bluetooth non c'è nessuna attesa in corso, e
+                // l'anello resta una traccia neutra e più tenue.
+                !ready -> drawCircle(
+                    color = ringColor.copy(alpha = 0.12f),
+                    style = Stroke(width = strokeWidth),
+                )
+                hasParticipants -> drawCircle(
+                    color = ringColor.copy(alpha = 0.22f),
+                    style = Stroke(width = strokeWidth),
+                )
+                else -> drawCircle(
                     color = ringColor.copy(alpha = 0.22f),
                     style = Stroke(width = strokeWidth, cap = StrokeCap.Round, pathEffect = dashedEffect()),
                 )

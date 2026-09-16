@@ -161,8 +161,15 @@ fun GroupPauseBluetoothLobbyJoinScreen(
         when (val current = state) {
             JoinLobbyState.NfcHero -> {
                 OtterTapMark(markSize = 88.dp)
+                // Come sul lato host: finché manca un permesso o il
+                // Bluetooth, "Avvicinati a chi ti aspetta" è un'istruzione
+                // che non si può eseguire — il lettore NFC non è nemmeno
+                // partito (vedi il DisposableEffect su allReady più sopra).
                 Text(
-                    text = stringResource(R.string.group_pause_join_nfc_title),
+                    text = stringResource(
+                        if (allReady) R.string.group_pause_join_nfc_title
+                        else R.string.group_pause_notready_title
+                    ),
                     fontSize = 19.sp,
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.primary,
@@ -170,7 +177,10 @@ fun GroupPauseBluetoothLobbyJoinScreen(
                     modifier = Modifier.padding(top = 14.dp, bottom = 6.dp)
                 )
                 Text(
-                    text = stringResource(R.string.group_pause_join_nfc_subtitle),
+                    text = stringResource(
+                        if (allReady) R.string.group_pause_join_nfc_subtitle
+                        else R.string.group_pause_notready_subtitle_join
+                    ),
                     color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.75f),
                     textAlign = TextAlign.Center,
                 )
@@ -185,16 +195,27 @@ fun GroupPauseBluetoothLobbyJoinScreen(
                 }
             }
             JoinLobbyState.SearchHero -> {
-                SearchingIllustration(hasResults = join.discovered.isNotEmpty())
+                SearchingIllustration(hasResults = join.discovered.isNotEmpty(), searching = allReady)
                 Text(
-                    text = stringResource(R.string.group_pause_join_search_hero_title),
+                    text = stringResource(
+                        if (allReady) R.string.group_pause_join_search_hero_title
+                        else R.string.group_pause_notready_title
+                    ),
                     fontSize = 18.sp,
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.primary,
                     textAlign = TextAlign.Center,
                     modifier = Modifier.padding(top = 14.dp, bottom = 6.dp)
                 )
-                if (join.discovered.isEmpty()) {
+                if (!allReady) {
+                    // "Sto cercando…" sarebbe falso: la discovery parte solo
+                    // quando allReady diventa vero.
+                    Text(
+                        text = stringResource(R.string.group_pause_notready_subtitle_join),
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.75f),
+                        textAlign = TextAlign.Center,
+                    )
+                } else if (join.discovered.isEmpty()) {
                     Text(
                         text = stringResource(R.string.group_pause_join_searching),
                         color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.75f),
@@ -309,9 +330,14 @@ private fun GentleReadinessBanner(hasPermissions: Boolean, onAction: () -> Unit)
  * essere vuota.
  */
 @Composable
-private fun SearchingIllustration(hasResults: Boolean) {
+private fun SearchingIllustration(hasResults: Boolean, searching: Boolean) {
     Box(modifier = Modifier.size(140.dp), contentAlignment = Alignment.Center) {
-        if (!hasResults) {
+        // Le onde che si espandono raccontano una ricerca in corso: vanno
+        // mostrate solo quando la discovery Bluetooth sta davvero girando.
+        // Con permessi o Bluetooth mancanti non parte nulla (vedi il
+        // DisposableEffect su allReady), e animarle comunque sarebbe una
+        // scansione finta.
+        if (!hasResults && searching) {
             val transition = rememberInfiniteTransition(label = "searching")
             val t by transition.animateFloat(
                 initialValue = 0f,

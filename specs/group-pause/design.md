@@ -491,6 +491,50 @@ decodable by that pipeline, pinning the reason the dark theme needs a
 plate; if zxing ever starts handling inversion, that test fails and the
 decision can be revisited.
 
+## Honest lobby state: the screen stops claiming to wait
+
+Both lobby screens chose their hero title and subtitle purely from how
+many participants had joined, ignoring readiness. With Bluetooth
+permissions missing or Bluetooth off, the host lobby still announced
+"In attesa di qualcuno…" / "Tap phones together or share via Bluetooth" —
+an act of waiting that was not happening (the `DisposableEffect` only
+calls `host.start()` once `allReady`), and an instruction the user could
+not carry out. The gentle banner immediately below said the opposite.
+That is the kind of copy this project explicitly refuses elsewhere, so it
+was fixed on a request to improve the flow generally.
+
+The structure is unchanged — no new screens, no return of the
+`PERMISSIONS`/`ENABLE_BLUETOOTH` step pages removed in the refinement pass
+above. Only what the screen *says* about itself changed:
+
+- `!allReady` now selects `group_pause_notready_title` ("Quasi pronti" /
+  "Almost ready") and a subtitle admitting something is still missing. The
+  banner already names *which* thing and offers the action, so the hero
+  deliberately does not repeat it.
+- The joiner gets its own subtitle, `group_pause_notready_subtitle_join`
+  ("…prima di poterti unire" / "…before you can join"): the host's wording
+  is about inviting, which is not what a joiner is doing. Reusing one
+  string here would have traded one inaccuracy for another.
+- **The illustrations stop miming activity.** The host's
+  `ParticipantRing` drew its dashed "waiting" circle regardless of
+  readiness; it now draws a plain, fainter ring until the lobby is really
+  listening (the dashes mean "waiting for someone", which has to be true
+  to be shown). The joiner's `SearchingIllustration` is the stronger case:
+  it *animates* expanding radar rings, and was doing so while no discovery
+  was running at all — a fake scan. It now takes `searching` and animates
+  only when discovery is actually live.
+
+### Verification
+
+The emulator's Bluetooth stack cannot be brought up
+("Reach maximum retry to restart Bluetooth!" in logcat, adapter stuck at
+`state: OFF` even after `svc bluetooth enable`), so the ready branch is
+not reachable there normally. The not-ready states were checked directly
+by revoking the three runtime permissions and walking the flow; the ready
+branch was then checked by temporarily forcing `allReady = true`,
+confirming the dashed ring and "Waiting for someone…" come back and the
+banner disappears, and reverting that immediately afterwards.
+
 ## Verification performed (single device)
 
 **Phase 1:**

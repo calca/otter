@@ -171,6 +171,29 @@ was in it.
    (see design.md's "History icon system"); no participant names, same
    reasoning as criterion 1.
 
+## User Story 6: The lobby tells the truth about its own state
+
+As someone opening a live lobby, I want the screen to say what is actually
+happening, so I don't stare at "waiting for someone" while nothing is in
+fact listening.
+
+### Acceptance Criteria
+
+1. WHEN Bluetooth permissions are missing, or Bluetooth is off, THEN the
+   lobby screens SHALL NOT claim to be waiting, searching, or ready to be
+   tapped — neither in the title/subtitle nor through an illustration that
+   mimes activity.
+2. WHEN in that not-ready state THEN the screen SHALL say that something is
+   still missing, and the existing inline banner SHALL remain the place
+   that names which thing and offers the action. The two SHALL NOT repeat
+   each other.
+3. The not-ready wording SHALL match the role: the host is prevented from
+   *inviting*, the joiner from *joining*.
+4. WHEN permissions and Bluetooth are both in place THEN the screens SHALL
+   return to their normal wording and animated/dashed illustrations.
+5. This SHALL NOT reintroduce the dedicated permission/Bluetooth-off step
+   screens removed earlier — the lobby stays one screen throughout.
+
 ## Known limitations (accepted, not bugs)
 
 - **QR/manual-code mode has no participant count or names.** Because it
