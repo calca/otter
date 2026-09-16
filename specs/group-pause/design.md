@@ -554,6 +554,26 @@ once — scrolling would hide some behind an edge. It also survives longer
 labels in other locales, which is the real reason not to just shrink the
 padding until it happens to fit on this one device.
 
+## The Create/Join chooser: two peers, not confirm/dismiss
+
+The Home chooser dialog wired **Create as `confirmButton` and Join as
+`dismissButton`**. They are two equally valid paths, so putting them in the
+affirmative and negative slots was arbitrary at best; worse, Material's
+conventions and TalkBack treat the dismiss slot as "cancel", so the Join
+action was announced as the way out. And there was no declared way out at
+all — only system back or a tap outside.
+
+Both choices now live in the dialog body as two tappable rows
+(`GroupPauseChoiceRow`), each with a one-line description, and the single
+trailing action is Cancel, which is genuinely what it does. The
+descriptions are not decoration: "Crea" and "Unisciti" alone left the
+difference between the two journeys to be guessed. The intro string lost
+its second half accordingly, which now would only repeat them.
+
+Verified on-device that each row still reaches its Activity
+(`GroupPauseHostActivity` / `GroupPauseJoinActivity`) and that Cancel
+dismisses.
+
 ## Verification performed (single device)
 
 **Phase 1:**

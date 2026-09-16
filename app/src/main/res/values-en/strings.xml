@@ -171,7 +171,9 @@
 
     <!-- Time Together, formerly "Group pause" (specs/group-pause/) -->
     <string name="group_pause_entry_button">Time together</string>
-    <string name="group_pause_chooser_intro">Want to pause together? Create a new one or join one that\'s ready.</string>
+    <string name="group_pause_chooser_intro">Want to pause together?</string>
+    <string name="group_pause_chooser_create_desc">Choose how long, then invite whoever you want</string>
+    <string name="group_pause_chooser_join_desc">Join one that\'s already set up</string>
     <string name="group_pause_chooser_create">Create</string>
     <string name="group_pause_chooser_join">Join</string>
 

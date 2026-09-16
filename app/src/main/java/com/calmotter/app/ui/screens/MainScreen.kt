@@ -328,23 +328,80 @@ fun MainScreen(
     }
 
     if (showGroupPauseChooser) {
+        // Crea e Unisciti sono due percorsi pari grado, e stanno nel corpo del
+        // dialogo come due righe toccabili. Prima occupavano gli slot
+        // `confirmButton`/`dismissButton`: "Crea" finiva nella posizione
+        // affermativa e "Unisciti" in quella del rifiuto, che oltre a essere
+        // arbitrario è quanto TalkBack e le convenzioni Material annunciano
+        // come "annulla". Mancava inoltre qualunque uscita dichiarata: solo
+        // tasto indietro o tap fuori. Ora l'unica azione in fondo è Annulla,
+        // che è davvero ciò che fa.
         AlertDialog(
             onDismissRequest = { showGroupPauseChooser = false },
             title = { Text(stringResource(R.string.group_pause_entry_button)) },
-            text = { Text(stringResource(R.string.group_pause_chooser_intro)) },
-            confirmButton = {
-                TextButton(onClick = {
-                    showGroupPauseChooser = false
-                    onGroupPauseHost()
-                }) { Text(stringResource(R.string.group_pause_chooser_create)) }
+            text = {
+                Column {
+                    Text(stringResource(R.string.group_pause_chooser_intro))
+                    GroupPauseChoiceRow(
+                        title = stringResource(R.string.group_pause_chooser_create),
+                        description = stringResource(R.string.group_pause_chooser_create_desc),
+                        onClick = {
+                            showGroupPauseChooser = false
+                            onGroupPauseHost()
+                        },
+                        modifier = Modifier.padding(top = 16.dp),
+                    )
+                    GroupPauseChoiceRow(
+                        title = stringResource(R.string.group_pause_chooser_join),
+                        description = stringResource(R.string.group_pause_chooser_join_desc),
+                        onClick = {
+                            showGroupPauseChooser = false
+                            onGroupPauseJoin()
+                        },
+                        modifier = Modifier.padding(top = 8.dp),
+                    )
+                }
             },
-            dismissButton = {
-                TextButton(onClick = {
-                    showGroupPauseChooser = false
-                    onGroupPauseJoin()
-                }) { Text(stringResource(R.string.group_pause_chooser_join)) }
+            confirmButton = {
+                TextButton(onClick = { showGroupPauseChooser = false }) {
+                    Text(stringResource(android.R.string.cancel))
+                }
             },
         )
+    }
+}
+
+/**
+ * Una delle due scelte del dialogo Tempo Insieme: titolo più una riga che
+ * dice cosa comporta. La descrizione non è decorativa — "Crea" e "Unisciti",
+ * da soli, lasciavano indovinare la differenza fra i due percorsi.
+ */
+@Composable
+private fun GroupPauseChoiceRow(
+    title: String,
+    description: String,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Surface(
+        onClick = onClick,
+        shape = RoundedCornerShape(12.dp),
+        color = MaterialTheme.colorScheme.primary.copy(alpha = 0.08f),
+        modifier = modifier.fillMaxWidth(),
+    ) {
+        Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp)) {
+            Text(
+                text = title,
+                fontWeight = FontWeight.SemiBold,
+                color = MaterialTheme.colorScheme.primary,
+            )
+            Text(
+                text = description,
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
+                modifier = Modifier.padding(top = 2.dp),
+            )
+        }
     }
 }
 

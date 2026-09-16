@@ -181,7 +181,9 @@
 
     <!-- Tempo Insieme, ex "Pausa di gruppo" (specs/group-pause/) -->
     <string name="group_pause_entry_button">Tempo insieme</string>
-    <string name="group_pause_chooser_intro">Volete fermarvi insieme? Crea un momento nuovo o unisciti a uno già pronto.</string>
+    <string name="group_pause_chooser_intro">Volete fermarvi insieme?</string>
+    <string name="group_pause_chooser_create_desc">Scegli la durata e invita chi vuoi</string>
+    <string name="group_pause_chooser_join_desc">Entra in uno già pronto</string>
     <string name="group_pause_chooser_create">Crea</string>
     <string name="group_pause_chooser_join">Unisciti</string>
 

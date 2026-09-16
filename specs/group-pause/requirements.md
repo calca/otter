@@ -194,6 +194,23 @@ fact listening.
 5. This SHALL NOT reintroduce the dedicated permission/Bluetooth-off step
    screens removed earlier — the lobby stays one screen throughout.
 
+## User Story 7: Choosing between creating and joining
+
+As someone opening Tempo Insieme, I want to understand which of the two
+paths I want before committing to one.
+
+### Acceptance Criteria
+
+1. Create and Join SHALL be presented as two equally-weighted choices —
+   neither occupying a dialog's affirmative or dismissive action slot,
+   since neither is a confirmation or a cancellation.
+2. Each choice SHALL carry a short description of what it leads to.
+3. The chooser SHALL offer an explicit way out, not only system back or a
+   tap outside.
+4. Duration options SHALL all remain visible and legible at once; no
+   option's label may be truncated or wrapped mid-label to make the row
+   fit.
+
 ## Known limitations (accepted, not bugs)
 
 - **QR/manual-code mode has no participant count or names.** Because it
