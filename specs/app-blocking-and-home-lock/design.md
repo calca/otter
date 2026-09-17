@@ -17,10 +17,29 @@
 
 Always-exempt set, recomputed per event (not cached):
 `TelecomManager.defaultDialerPackage`, `com.android.systemui`, `android`,
-Calm Otter's own package — unioned with
+Calm Otter's own package, every **enabled keyboard**
+(`InputMethodManager.enabledInputMethodList`) — unioned with
 `AllowedAppsManager.getAllowedPackages()`. If `sessionManager.isSessionActive()`
 is false, the service returns immediately without even computing the exempt
 set (cheap common case).
+
+**Why keyboards are in there.** Opening the keyboard fires a
+`TYPE_WINDOW_STATE_CHANGED` carrying the IME's package, which without this
+fell straight into the "not an allowed app" branch. Reported symptom: during
+a session, opening the unlock dialog and starting to type made the block
+screen appear on top of it — sometimes for a moment, sometimes closing the
+dialog outright, which made ending the pause with the password impossible
+from Home. Reproduced on the emulator with `dumpsys activity activities`
+showing `BlockOverlayActivity` taking over while the password field had
+focus; with the fix, `MainActivity` stays on top through the whole typing.
+
+A keyboard is not an app coming to the foreground: it is a window opening
+*over* whatever is already there, and that one has already been judged. The
+whole enabled list rather than just `DEFAULT_INPUT_METHOD`, since switching
+keyboard mid-typing is ordinary and the new one must not trip the block.
+This does not weaken anything meaningfully — the lock is openly "soft"
+(README, "Known Limits"), and these are keyboards the user has already
+enabled in system settings.
 
 ## The XML config alone did not subscribe the service to any event
 

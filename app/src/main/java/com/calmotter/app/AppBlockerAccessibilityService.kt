@@ -14,6 +14,7 @@ import android.util.Log
 import android.view.View
 import android.view.WindowManager
 import android.view.accessibility.AccessibilityEvent
+import android.view.inputmethod.InputMethodManager
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.WindowInsets
@@ -308,7 +309,31 @@ class AppBlockerAccessibilityService : AccessibilityService() {
             "com.android.systemui",               // status bar, tendina notifiche, schermata di blocco
             "android",                             // dialog di sistema
             packageName                            // questa stessa app, per mostrare il blocco
-        ) + extraAllowed
+        ) + keyboardPackages() + extraAllowed
+    }
+
+    /**
+     * Le tastiere installate sul dispositivo.
+     *
+     * Aprire la tastiera genera un TYPE_WINDOW_STATE_CHANGED con il package
+     * dell'IME, che senza questo finiva dritto nel ramo "app non consentita":
+     * bug reale segnalato — durante una sessione, aprendo il dialog di
+     * sblocco, la schermata di blocco compariva sopra proprio mentre si
+     * digitava la password (a volte solo per un istante, a volte chiudendo il
+     * dialog e rendendo impossibile terminare la pausa). Una tastiera non è
+     * un'app in primo piano: è una finestra che si apre *sopra* quella che
+     * c'è già, e quella l'abbiamo già decisa.
+     *
+     * Tutte le tastiere abilitate, non solo quella predefinita
+     * (`DEFAULT_INPUT_METHOD`): cambiare tastiera mentre si scrive è normale,
+     * e la nuova deve poter comparire senza far scattare il blocco. Non è un
+     * buco: il blocco è dichiaratamente "morbido" (vedi README, "Known
+     * Limits"), e comunque queste sono le tastiere che l'utente ha già
+     * abilitato nelle impostazioni di sistema.
+     */
+    private fun keyboardPackages(): Set<String> {
+        val imm = getSystemService(Context.INPUT_METHOD_SERVICE) as? InputMethodManager ?: return emptySet()
+        return imm.enabledInputMethodList.mapNotNull { it.packageName }.toSet()
     }
 
     override fun onInterrupt() {
