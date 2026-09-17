@@ -20,6 +20,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.height
@@ -58,6 +59,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.calmotter.app.BuildConfig
@@ -152,7 +154,11 @@ fun MainScreen(
     onHistory: () -> Unit,
     onSettings: () -> Unit,
     onSessionStarted: () -> Unit = {},
-    onGroupPauseHost: () -> Unit = {},
+    // Riceve la durata scelta qui in Home (vedi selectedDurationIndex sotto),
+    // in minuti: il flow di creazione la usa come valore iniziale del proprio
+    // selettore, invece di ripartire sempre da un default indipendente — vedi
+    // GroupPauseBluetoothLobbyHostScreen.
+    onGroupPauseHost: (durationMinutes: Int) -> Unit = {},
     onGroupPauseJoin: () -> Unit = {},
     // Vedi il parametro omonimo di [BlockScreen]: è lo stesso otter, ed è
     // [MainActivity] a legarli come elemento condiviso.
@@ -198,6 +204,15 @@ fun MainScreen(
     OtterAnchoredScreen(
         horizontalPadding = 24.dp,
         headerHeight = HomeHeaderHeight,
+        background = { otterCenterY ->
+            // Solo qui, non nella schermata di blocco (che non passa questo
+            // slot): le increspature sono l'attesa di avviare una pausa, non
+            // qualcosa da mostrare mentre è in corso — vedi anche
+            // [AmbientRipples].
+            if (!sessionActive) {
+                AmbientRipples(centerY = otterCenterY, modifier = Modifier.fillMaxSize())
+            }
+        },
         header = {
             // Altezza fissa (vedi [HomeHeaderHeight]): questa intestazione non
             // deve poter spingere giù l'otter, che nella schermata di blocco
@@ -243,7 +258,22 @@ fun MainScreen(
                         val durationMinutes = selectedDurationIndex * 30
                         sessionManager.startSession(durationMinutes)
                         Toast.makeText(context, sessionStartedText, Toast.LENGTH_SHORT).show()
-                        refreshDerivedState()
+                        // Niente refreshDerivedState() qui: questa istanza di
+                        // MainScreen sta per essere sostituita da BlockScreen
+                        // (vedi subito sotto) e resta comunque composta
+                        // durante la sua dissolvenza in uscita (AnimatedContent
+                        // tiene vivo l'uscente per tutta la durata del fade).
+                        // Aggiornare sessionActive qui la farebbe ricomporre
+                        // con il proprio ramo "sessionActive" — un "Paused"
+                        // spoglio (solo testo, niente frase/avatar/lucchetto)
+                        // che lampeggia per la durata della dissolvenza prima
+                        // che compaia BlockScreen: due transizioni percepite
+                        // invece di una, segnalato come "comportamento
+                        // pesante" nel passaggio Home -> sessione. Lasciando
+                        // sessionActive=false, l'istanza uscente continua a
+                        // mostrare esattamente ciò che si vedeva un istante
+                        // prima del tap (increspature e chip) mentre sfuma.
+                        //
                         // Passa subito a BlockScreen invece di restare su
                         // MainScreen mostrando il progress ring: le due
                         // schermate ora sono unificate, vedi
@@ -345,7 +375,7 @@ fun MainScreen(
                         description = stringResource(R.string.group_pause_chooser_create_desc),
                         onClick = {
                             showGroupPauseChooser = false
-                            onGroupPauseHost()
+                            onGroupPauseHost(selectedDurationIndex * 30)
                         },
                         modifier = Modifier.padding(top = 16.dp),
                     )
@@ -521,7 +551,10 @@ private fun PondOtter(
         contentAlignment = Alignment.Center,
     ) {
         if (!sessionActive) {
-            AmbientRipples(modifier = Modifier.matchParentSize())
+            // Le increspature vere e proprie sono ora uno sfondo a piena
+            // pagina passato a [OtterAnchoredScreen] (vedi il parametro
+            // `background` nella chiamata in [MainScreen]) invece che un
+            // figlio di questo Box: qui restava solo [TapConfirmBurst].
             if (isStarting) {
                 TapConfirmBurst(progress = burstProgress.value, modifier = Modifier.matchParentSize())
             }
@@ -612,9 +645,21 @@ private fun SessionsSummaryLink(
  * loop): puramente decorative, segnalano "stagno in attesa". Tinte di
  * "primary" a opacità molto bassa (max ~0.18) — seguono la palette scelta
  * (Sage/Lavender/Terracotta) restando comunque tenui, non un colore acceso.
+ *
+ * Disegnate su un `Canvas` a piena pagina (passato come `background` a
+ * [OtterAnchoredScreen], non più un figlio del piccolo `Box` dell'otter —
+ * richiesto esplicitamente: "le onde dietro l'otter si estendono su tutta
+ * la pagina, anche uscendo"), quindi il centro non è più quello del proprio
+ * riquadro ma [centerY] passato dal chiamante, l'unico punto che
+ * [OtterAnchoredScreen] garantisce identico in entrambe le schermate. Il
+ * raggio massimo è ancorato a `size.height` (non più a `size.minDimension`
+ * del vecchio riquadro 260dp) apposta perché ecceda le dimensioni della
+ * pagina prima che l'ultimo anello sparisca: a quel punto l'alpha è già
+ * vicina a zero, quindi "uscire dai bordi" si vede come una dissolvenza sul
+ * limite dello schermo, non come un cerchio che si taglia di netto.
  */
 @Composable
-private fun AmbientRipples(modifier: Modifier = Modifier) {
+private fun AmbientRipples(centerY: Dp, modifier: Modifier = Modifier) {
     val transition = rememberInfiniteTransition(label = "ripples")
     val t by transition.animateFloat(
         initialValue = 0f,
@@ -627,14 +672,16 @@ private fun AmbientRipples(modifier: Modifier = Modifier) {
     val ringColor = MaterialTheme.colorScheme.primary
 
     Canvas(modifier = modifier) {
-        val baseRadius = size.minDimension / 5f
-        val maxExtra = size.minDimension / 2.4f
+        val center = Offset(size.width / 2f, centerY.toPx())
+        val baseRadius = size.height / 6f
+        val maxExtra = size.height / 1.1f
         val strokeWidth = 2.dp.toPx()
         listOf(0f, 0.33f, 0.66f).forEach { phase ->
             val localT = (t + phase) % 1f
             drawCircle(
                 color = ringColor,
                 radius = baseRadius + localT * maxExtra,
+                center = center,
                 alpha = (1f - localT) * 0.18f,
                 style = Stroke(width = strokeWidth),
             )

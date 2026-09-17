@@ -43,19 +43,41 @@ import androidx.compose.ui.unit.dp
  *
  * ## Dove finisce l'otter
  *
- * Al centro verticale del viewport, sempre: `gapAboveOtter` è quello che
- * serve perché lo slot alto [OtterSlotHeight] cada esattamente a metà, e
- * [headerHeight] viene sottratto proprio perché l'intestazione della Home
+ * Non esattamente al centro geometrico del viewport — un po' più in alto,
+ * di [OtterBelowReserveHeight] / 2 — perché "centrare lo slot" e "far
+ * *sembrare* centrata la composizione" non sono la stessa cosa: sopra
+ * l'otter c'è solo [headerHeight] (spesso 0) più spazio vuoto, sotto c'è
+ * sempre del contenuto vero (chip e riepilogo in Home, frase e avatar in
+ * blocco). Con lo slot esattamente a metà, quel contenuto reale sotto
+ * l'otter e il vuoto sopra non si bilanciano: il centro *percepito* — dove
+ * l'occhio vede effettivamente qualcosa, non dove il layout mette il
+ * centro dello slot — cade più in basso del centro dello schermo, segnalato
+ * come "il contenuto è troppo in basso". [OtterBelowReserveHeight] è una
+ * stima fissa, uguale per entrambe le schermate nonostante i loro
+ * contenuti sotto l'otter abbiano altezze reali diverse, di quanto sotto
+ * l'otter pesa in media — non è misurata dal `below` reale (che differisce
+ * fra le due schermate e *quindi* non può entrare in questo calcolo, vedi
+ * sotto), quindi resta identica sulle due schermate e non introduce alcuna
+ * divergenza fra loro.
+ *
+ * `gapAboveOtter` è quindi quello che serve perché lo slot alto
+ * [OtterSlotHeight] cada a metà **meno la metà di [OtterBelowReserveHeight]**,
+ * e [headerHeight] viene sottratto proprio perché l'intestazione della Home
  * (che la schermata di blocco non ha) non sposti di un pixel ciò che viene
  * dopo. La posizione dipende quindi **solo dall'altezza dello schermo**, che
  * è identica nelle due schermate per definizione — non dal contenuto sopra
  * né da quello sotto, che sono diversi (Home: riga sessioni e "Tempo
- * insieme"; blocco: conto alla rovescia, frase, azioni).
+ * insieme"; blocco: conto alla rovescia, frase, azioni) e la cui altezza
+ * reale non compare in nessun calcolo qui, per lo stesso motivo per cui non
+ * ci compare quella dell'intestazione: farla entrare (invece di una
+ * costante fissa uguale per entrambe) è esattamente il tipo di modifica che
+ * ha già fatto scivolare l'otter due volte, vedi sotto.
  *
  * [headerHeight] è un'altezza *fissa*: l'intestazione ci sta dentro, non se
  * la contratta. È deliberato — se potesse crescere (carattere di sistema
  * ingrandito) tornerebbe a spingere giù l'otter nella sola Home, cioè
  * esattamente il bug che questo contenitore esiste per rendere impossibile.
+ * [OtterBelowReserveHeight] è fissa per lo stesso motivo.
  *
  * ## I due casi limite, dichiarati
  *
@@ -67,15 +89,24 @@ import androidx.compose.ui.unit.dp
  * - **Viewport così basso che `gapAboveOtter` va a zero** (schermo molto
  *   corto, o orizzontale): si degrada a una normale colonna impilata
  *   dall'alto. Le due schermate si disallineano di [headerHeight], perché
- *   solo la Home ce l'ha. Su un telefono in verticale non succede — il
- *   centro sta a ~240dp, l'intestazione ne occupa 96 — ma è bene sapere
- *   da dove arriverebbe, se dovesse ricapitare.
+ *   solo la Home ce l'ha. Su un telefono in verticale non succede — il gap
+ *   sta sulle ~160dp anche dopo aver tolto metà di
+ *   [OtterBelowReserveHeight], l'intestazione ne occupa 96 — ma è bene
+ *   sapere da dove arriverebbe, se dovesse ricapitare.
  */
 @Composable
 fun OtterAnchoredScreen(
     modifier: Modifier = Modifier,
     horizontalPadding: Dp = 0.dp,
     headerHeight: Dp = 0.dp,
+    // Livello decorativo a piena pagina, disegnato per primo (quindi sotto
+    // tutto il resto) e ricevuto già insieme al centro Y dell'otter — vedi
+    // [AmbientRipples] in MainScreen.kt, l'unico chiamante: le onde partono
+    // dallo stesso punto fisso in cui questo contenitore mette l'otter,
+    // invece che dal centro del proprio, piccolo riquadro. Non è
+    // sessionActive-gated qui: quella decisione resta a chi lo passa
+    // (BlockScreen non passa nulla, quindi resta vuoto di default).
+    background: @Composable BoxScope.(otterCenterY: Dp) -> Unit = {},
     header: @Composable BoxScope.() -> Unit = {},
     otter: @Composable BoxScope.() -> Unit,
     below: @Composable ColumnScope.() -> Unit,
@@ -89,8 +120,12 @@ fun OtterAnchoredScreen(
         // calcolato qui sotto sia heightIn(min) risulterebbero sbagliati
         // esattamente di quegli inset — vedi [CalmScreenColumn].
         BoxWithConstraints(modifier = Modifier.fillMaxSize().safeDrawingPadding()) {
-            val gapAboveOtter = ((maxHeight - OtterSlotHeight) / 2 - headerHeight)
-                .coerceAtLeast(0.dp)
+            val gapAboveOtter = (
+                (maxHeight - OtterSlotHeight - OtterBelowReserveHeight) / 2 - headerHeight
+                ).coerceAtLeast(0.dp)
+            val otterCenterY = headerHeight + gapAboveOtter + OtterSlotHeight / 2
+
+            Box(modifier = Modifier.fillMaxSize()) { background(otterCenterY) }
 
             Column(
                 modifier = Modifier
@@ -118,3 +153,23 @@ fun OtterAnchoredScreen(
         }
     }
 }
+
+/**
+ * Stima fissa e condivisa di quanto pesa, visivamente, il contenuto sotto
+ * l'otter — vedi il commento di classe di [OtterAnchoredScreen], sezione
+ * "Dove finisce l'otter". Le due schermate vorrebbero valori diversi (Home,
+ * che ha un'intestazione a mangiarsi parte del vuoto sopra, tornerebbe
+ * bilanciata già a ~35dp; il blocco, senza intestazione, vorrebbe qualcosa
+ * fra ~70dp e ~110dp a seconda che la frase pescata vada su una riga o due)
+ * — misurato sul dispositivo scattando screenshot e confrontando quanto
+ * spazio vuoto resta sopra l'otter contro quanto ne resta sotto l'ultimo
+ * elemento del `below` di ciascuna schermata. Questo valore è una via di
+ * mezzo pesata verso Home (schermata vista per prima, ad ogni apertura
+ * dell'app) piuttosto che il punto di minimo sbilanciamento assoluto:
+ * quest'ultimo (~65dp) lascia Home leggermente spinta in alto, un errore
+ * nella direzione opposta a quella segnalata — meglio restare un po' corti
+ * sul blocco (che comunque migliora, e non di poco, rispetto a 0) che
+ * introdurre un nuovo "troppo in alto" proprio dove l'errore originale era
+ * stato notato.
+ */
+private val OtterBelowReserveHeight = 100.dp
