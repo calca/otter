@@ -39,6 +39,21 @@ class GroupPauseBluetoothHost(private val context: Context) {
     private var lobbyHostName: String = ""
     private var lobbyDurationMinutes: Int = 0
 
+    /**
+     * Aggiorna la durata annunciata ai partecipanti che si collegano da qui
+     * in avanti — l'host può cambiarla nella lobby stessa (vedi
+     * [GroupPauseBluetoothLobbyHostScreen]) senza dover riavviare
+     * [start]/[stop]. Chi si è già collegato prima del cambio ha letto il
+     * valore precedente nel proprio `LobbyInfo` (un solo messaggio, subito
+     * dopo l'HELLO — vedi `GroupPauseBluetoothProtocol.kt`) e non lo
+     * aggiorna: la durata *effettiva* della sessione è comunque quella
+     * dell'ultima ricetta trasmessa a fine lobby, questo valore è solo
+     * l'anteprima mostrata a chi deve ancora decidere se unirsi.
+     */
+    fun updateDuration(durationMinutes: Int) {
+        lobbyDurationMinutes = durationMinutes
+    }
+
     @SuppressLint("MissingPermission")
     fun start(lobbyMarkerName: String, hostName: String, durationMinutes: Int) {
         // Memorizzati perché acceptSocket() gira per ogni partecipante, molto

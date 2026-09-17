@@ -174,15 +174,10 @@
     <string name="group_pause_chooser_create">Create</string>
     <string name="group_pause_chooser_join">Join</string>
 
-    <string name="group_pause_host_title">Prepare your time together</string>
-    <string name="group_pause_host_intro">Choose how long, then invite whoever you want with you.</string>
     <string name="group_pause_duration_label">Duration</string>
-    <string name="group_pause_host_continue_button">Continue</string>
 
     <string name="group_pause_prefer_code_link">Prefer a code or a QR?</string>
-    <string name="group_pause_qr_delay_title">Starting in how long?</string>
     <string name="group_pause_start_in_label">Starts in</string>
-    <string name="group_pause_create_button">Create the code</string>
     <string name="group_pause_share_hint">Have this QR scanned, or share the code below</string>
     <string name="group_pause_countdown_label">Starting in %1$d:%2$02d</string>
     <string name="group_pause_duration_reminder">Duration: %1$d min</string>
@@ -191,6 +186,8 @@
     <string name="group_pause_join_scan_tab">Scan</string>
     <string name="group_pause_join_manual_tab">Manual code</string>
     <string name="group_pause_camera_permission_rationale">Camera permission is needed to scan the QR.</string>
+    <string name="group_pause_scan_instruction">Point your camera at the QR code</string>
+    <string name="group_pause_manual_entry_link">Enter a code manually</string>
     <string name="group_pause_manual_code_hint">Paste or type the code</string>
     <string name="group_pause_manual_code_join_button">Join</string>
     <string name="group_pause_invalid_code">Invalid or expired code</string>
@@ -228,7 +225,7 @@
     <string name="group_pause_join_nfc_subtitle">Hold the phones close for a second</string>
     <string name="group_pause_join_search_hero_title">Look for whoever\'s waiting for you</string>
     <string name="group_pause_join_search_link">Look for a nearby friend</string>
-    <string name="group_pause_join_code_link">I have a code or a QR</string>
+    <string name="group_pause_join_code_link">Scan or enter a code</string>
     <string name="group_pause_join_searching">Looking for a friend…</string>
     <string name="group_pause_join_connecting">Connecting…</string>
     <string name="group_pause_join_lobby_duration">A %1$s pause</string>

@@ -21,15 +21,29 @@ import com.calmotter.app.ui.theme.CalmOtterTheme
  */
 class GroupPauseHostActivity : BaseActivity() {
 
+    companion object {
+        /**
+         * Durata (minuti) scelta in Home, passata da [MainActivity] così
+         * che il flow di creazione (ora un'unica schermata, la lobby — vedi
+         * GroupPauseBluetoothLobbyHostScreen) riparta da lì invece che da un
+         * default indipendente. 30 di fallback se l'extra manca (chiamanti
+         * futuri che non lo passano) — lo stesso default che Home stessa usa
+         * per `selectedDurationIndex`.
+         */
+        const val EXTRA_DURATION_MINUTES = "duration_minutes"
+    }
+
     private lateinit var sessionManager: SessionManager
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         sessionManager = SessionManager.getInstance(applicationContext)
+        val initialDurationMinutes = intent.getIntExtra(EXTRA_DURATION_MINUTES, 30)
 
         setContent {
             CalmOtterTheme(appTheme = ThemeManager.getTheme(this)) {
                 GroupPauseHostScreen(
+                    initialDurationMinutes = initialDurationMinutes,
                     onStarted = { durationMinutes, companions, groupTag ->
                         sessionManager.startSession(
                             durationMinutes,

@@ -26,7 +26,9 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -66,15 +68,28 @@ import kotlin.random.Random
  * supporta) si attiva da solo entrando qui, nessun interruttore da
  * accendere a parte. Chi preferisce QR/codice può tornare a
  * [GroupPauseQrDelayScreen] tramite [onWantCodeInstead].
+ *
+ * Include anche il selettore di durata (prima un passo separato,
+ * [GroupPauseHostScreen] ora entra qui direttamente) — [initialDurationMinutes]
+ * è solo il valore di partenza (quello scelto in Home), la selezione vera è
+ * stato locale e resta modificabile per tutta la permanenza in lobby: non
+ * ha senso bloccarla dopo un certo punto, dato che l'host non ha ancora
+ * comunicato nulla a nessuno finché non tocca "Iniziamo". Il cambio viene
+ * comunque propagato a [GroupPauseBluetoothHost.updateDuration] così i
+ * prossimi partecipanti che si collegano leggono il valore aggiornato — chi
+ * si è già collegato prima del cambio ha visto il valore precedente
+ * nell'anteprima, ma la durata *effettiva* resta comunque quella
+ * dell'ultima ricetta trasmessa a "Iniziamo".
  */
 @Composable
 fun GroupPauseBluetoothLobbyHostScreen(
-    durationMinutes: Int,
+    initialDurationMinutes: Int,
     onRecipeReady: (GroupPauseRecipe, companions: List<String>) -> Unit,
-    onWantCodeInstead: () -> Unit,
+    onWantCodeInstead: (durationMinutes: Int) -> Unit,
     onCancel: () -> Unit,
 ) {
     val context = LocalContext.current
+    var durationMinutes by remember { mutableIntStateOf(initialDurationMinutes) }
     var hasPermissions by remember { mutableStateOf(hasGroupPauseBluetoothPermissions(context)) }
     val permissionLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.RequestMultiplePermissions()
@@ -100,6 +115,11 @@ fun GroupPauseBluetoothLobbyHostScreen(
     // apposta per il discovery. Serve il nome vero del telefono.
     val hostName = remember { localBluetoothDisplayName(context) }
 
+    // Propaga ogni cambio del selettore all'host già in ascolto (se lo è
+    // già — altrimenti è un no-op ininfluente, perché start() qui sotto
+    // legge comunque durationMinutes al momento in cui gira davvero).
+    LaunchedEffect(durationMinutes) { host.updateDuration(durationMinutes) }
+
     // Non appena permessi+Bluetooth sono pronti: chiede la visibilità una
     // sola volta (discoverableRequested) e avvia davvero la lobby — nessuna
     // schermata dedicata per questi due passi, solo l'avviso gentile sopra
@@ -124,86 +144,102 @@ fun GroupPauseBluetoothLobbyHostScreen(
     val participantNames = host.participantNames
 
     CalmScreenColumn(contentPadding = PaddingValues(32.dp)) {
-        ParticipantRing(participantNames = participantNames, ready = allReady)
+        CalmCard {
+            ParticipantRing(participantNames = participantNames, ready = allReady)
 
-        // Titolo e sottotitolo raccontano lo stato *vero*. Prima dipendevano
-        // solo dal numero di partecipanti: a permessi mancanti o Bluetooth
-        // spento la schermata annunciava comunque "In attesa di qualcuno…"
-        // e "Avvicinate i telefoni", cioè un'attesa che non era in corso e
-        // un'istruzione che non si poteva eseguire. Il banner qui sotto dice
-        // già *quale* cosa manca e come rimediare, quindi qui basta essere
-        // onesti sul fatto che manchi qualcosa, senza ripeterlo.
-        Text(
-            text = if (allReady) lobbyTitleFor(participantNames)
-            else stringResource(R.string.group_pause_notready_title),
-            fontSize = 18.sp,
-            fontWeight = FontWeight.Bold,
-            color = MaterialTheme.colorScheme.primary,
-            textAlign = TextAlign.Center,
-            modifier = Modifier.padding(top = 16.dp, bottom = 6.dp)
-        )
-        Text(
-            text = stringResource(
-                when {
-                    !allReady -> R.string.group_pause_notready_subtitle
-                    participantNames.isEmpty() -> R.string.group_pause_lobby_waiting_subtitle
-                    else -> R.string.group_pause_lobby_ready_subtitle
-                }
-            ),
-            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.75f),
-            textAlign = TextAlign.Center,
-        )
-
-        if (!allReady) {
-            GentleBanner(
-                text = stringResource(
-                    if (!hasPermissions) R.string.group_pause_bt_permission_notice
-                    else R.string.group_pause_bt_gentle_notice
-                ),
-                actionLabel = stringResource(
-                    if (!hasPermissions) R.string.group_pause_bt_permission_action
-                    else R.string.group_pause_bt_gentle_action
-                ),
-                onAction = {
-                    if (!hasPermissions) {
-                        permissionLauncher.launch(groupPauseBluetoothRuntimePermissions())
-                    } else {
-                        enableBtLauncher.launch(Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE))
-                    }
-                },
+            // Titolo e sottotitolo raccontano lo stato *vero*. Prima dipendevano
+            // solo dal numero di partecipanti: a permessi mancanti o Bluetooth
+            // spento la schermata annunciava comunque "In attesa di qualcuno…"
+            // e "Avvicinate i telefoni", cioè un'attesa che non era in corso e
+            // un'istruzione che non si poteva eseguire. Il banner qui sotto dice
+            // già *quale* cosa manca e come rimediare, quindi qui basta essere
+            // onesti sul fatto che manchi qualcosa, senza ripeterlo.
+            Text(
+                text = if (allReady) lobbyTitleFor(participantNames)
+                else stringResource(R.string.group_pause_notready_title),
+                fontSize = 18.sp,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.primary,
+                textAlign = TextAlign.Center,
             )
-        }
+            Text(
+                text = stringResource(
+                    when {
+                        !allReady -> R.string.group_pause_notready_subtitle
+                        participantNames.isEmpty() -> R.string.group_pause_lobby_waiting_subtitle
+                        else -> R.string.group_pause_lobby_ready_subtitle
+                    }
+                ),
+                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.75f),
+                textAlign = TextAlign.Center,
+                modifier = Modifier.padding(top = 6.dp)
+            )
 
-        TextButton(onClick = onWantCodeInstead, modifier = Modifier.padding(top = 20.dp)) {
-            Text(stringResource(R.string.group_pause_prefer_code_link))
-        }
+            // Il selettore di durata prima viveva su un passo separato prima
+            // della lobby (GroupPauseSetupScreen, rimosso): incorporarlo qui
+            // toglie uno schermo intero dal percorso di creazione, e non c'è
+            // motivo per bloccarlo mentre si aspetta — l'host non comunica
+            // nulla a nessuno finché non tocca "Iniziamo" (vedi il commento di
+            // classe di questo file).
+            SetupLabel(stringResource(R.string.group_pause_duration_label), topPadding = 20.dp)
+            MinutePillRow(
+                options = DURATION_OPTIONS,
+                selected = durationMinutes,
+                onSelect = { durationMinutes = it },
+                labelFor = { minutesLabel(it) },
+            )
 
-        Row(modifier = Modifier.fillMaxWidth().padding(top = 12.dp)) {
-            OutlinedButton(
-                onClick = onCancel,
-                modifier = Modifier.weight(1f).padding(end = 8.dp)
-            ) {
-                Text(stringResource(android.R.string.cancel))
+            if (!allReady) {
+                GentleBanner(
+                    text = stringResource(
+                        if (!hasPermissions) R.string.group_pause_bt_permission_notice
+                        else R.string.group_pause_bt_gentle_notice
+                    ),
+                    actionLabel = stringResource(
+                        if (!hasPermissions) R.string.group_pause_bt_permission_action
+                        else R.string.group_pause_bt_gentle_action
+                    ),
+                    onAction = {
+                        if (!hasPermissions) {
+                            permissionLauncher.launch(groupPauseBluetoothRuntimePermissions())
+                        } else {
+                            enableBtLauncher.launch(Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE))
+                        }
+                    },
+                )
             }
-            Button(
-                onClick = {
-                    val recipe = GroupPauseRecipe(
-                        durationMinutes = durationMinutes,
-                        startAtEpochMillis = System.currentTimeMillis() + 5_000L,
-                        groupTag = groupTag,
-                    )
-                    // Copiati prima di broadcastRecipeAndClose(), che chiude
-                    // le connessioni: participantNames è la lista viva della
-                    // lobby, e dopo la chiusura non è più ciò che si vuole
-                    // registrare.
-                    val companions = participantNames.toList()
-                    host.broadcastRecipeAndClose(recipe.encode())
-                    onRecipeReady(recipe, companions)
-                },
-                enabled = participantNames.isNotEmpty(),
-                modifier = Modifier.weight(1f)
-            ) {
-                Text(stringResource(R.string.group_pause_start_button))
+
+            TextButton(onClick = { onWantCodeInstead(durationMinutes) }, modifier = Modifier.padding(top = 12.dp)) {
+                Text(stringResource(R.string.group_pause_prefer_code_link))
+            }
+
+            Row(modifier = Modifier.fillMaxWidth().padding(top = 20.dp)) {
+                OutlinedButton(
+                    onClick = onCancel,
+                    modifier = Modifier.weight(1f).padding(end = 8.dp)
+                ) {
+                    Text(stringResource(android.R.string.cancel))
+                }
+                Button(
+                    onClick = {
+                        val recipe = GroupPauseRecipe(
+                            durationMinutes = durationMinutes,
+                            startAtEpochMillis = System.currentTimeMillis() + 5_000L,
+                            groupTag = groupTag,
+                        )
+                        // Copiati prima di broadcastRecipeAndClose(), che chiude
+                        // le connessioni: participantNames è la lista viva della
+                        // lobby, e dopo la chiusura non è più ciò che si vuole
+                        // registrare.
+                        val companions = participantNames.toList()
+                        host.broadcastRecipeAndClose(recipe.encode())
+                        onRecipeReady(recipe, companions)
+                    },
+                    enabled = participantNames.isNotEmpty(),
+                    modifier = Modifier.weight(1f)
+                ) {
+                    Text(stringResource(R.string.group_pause_start_button))
+                }
             }
         }
     }

@@ -10,6 +10,8 @@ import androidx.camera.core.ImageProxy
 import androidx.camera.core.Preview
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.view.PreviewView
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -26,8 +28,8 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
@@ -36,6 +38,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -69,8 +73,10 @@ private sealed class JoinFlowStep {
  * Unisciti al Tempo Insieme: la lobby dal vivo (Bluetooth+NFC — vedi
  * GroupPauseBluetoothLobbyJoinScreen) è il punto di ingresso predefinito;
  * chi preferisce un codice/QR può passare a [GroupPauseCodeEntryScreen]
- * tramite il link "Ho un codice o un QR" dentro alla lobby stessa. Stesso
- * conto alla rovescia condiviso alla fine di entrambi i percorsi.
+ * tramite il link "Scansiona o inserisci un codice" dentro alla lobby
+ * stessa (prima "Ho un codice o un QR" — poco intuitivo come link, non
+ * descriveva un'azione). Stesso conto alla rovescia condiviso alla fine di
+ * entrambi i percorsi.
  */
 @Composable
 fun GroupPauseJoinScreen(
@@ -98,63 +104,69 @@ fun GroupPauseJoinScreen(
     }
 }
 
-/** Ripiego QR/codice manuale — invariato rispetto alla Fase 1, solo raggiunto diversamente. */
+/**
+ * Ripiego QR/codice manuale, raggiunto dal link "Scansiona o inserisci un
+ * codice" dentro alla lobby dal vivo. La modalità Scansiona è ora **a
+ * schermo intero** (richiesto esplicitamente): la fotocamera è l'unico
+ * contenuto reale di quella schermata, quindi non ha senso comprimerla in
+ * un riquadro dentro una colonna con padding come il resto dell'app — vedi
+ * [ScanFullScreen]. La modalità manuale, che non ha nulla da mostrare a
+ * piena pagina (solo un campo di testo), resta sul layout standard
+ * [CalmScreenColumn].
+ */
 @Composable
 private fun GroupPauseCodeEntryScreen(onRecipeReady: (GroupPauseRecipe) -> Unit, onCancel: () -> Unit) {
     var mode by remember { mutableStateOf(JoinMode.SCAN) }
 
-    CalmScreenColumn(contentPadding = PaddingValues(32.dp)) {
-        Text(
-            text = stringResource(R.string.group_pause_join_title),
-            fontSize = 22.sp,
-            fontWeight = FontWeight.Bold,
-            color = MaterialTheme.colorScheme.primary,
-            textAlign = TextAlign.Center,
-            modifier = Modifier.padding(bottom = 20.dp)
+    when (mode) {
+        JoinMode.SCAN -> ScanFullScreen(
+            onRecipeReady = onRecipeReady,
+            onSwitchToManual = { mode = JoinMode.MANUAL },
+            onCancel = onCancel,
         )
-
-        Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.padding(bottom = 20.dp)) {
-            JoinModePill(
-                label = stringResource(R.string.group_pause_join_scan_tab),
-                selected = mode == JoinMode.SCAN,
-                onClick = { mode = JoinMode.SCAN },
-            )
-            JoinModePill(
-                label = stringResource(R.string.group_pause_join_manual_tab),
-                selected = mode == JoinMode.MANUAL,
-                onClick = { mode = JoinMode.MANUAL },
-            )
-        }
-
-        when (mode) {
-            JoinMode.SCAN -> ScanTab(onRecipeReady)
-            JoinMode.MANUAL -> ManualCodeTab(onRecipeReady)
-        }
-
-        OutlinedButton(onClick = onCancel, modifier = Modifier.fillMaxWidth().padding(top = 24.dp)) {
-            Text(stringResource(android.R.string.cancel))
+        JoinMode.MANUAL -> CalmScreenColumn(contentPadding = PaddingValues(32.dp)) {
+            CalmCard {
+                Text(
+                    text = stringResource(R.string.group_pause_join_title),
+                    fontSize = 22.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.primary,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.padding(bottom = 20.dp)
+                )
+                ManualCodeTab(onRecipeReady)
+                TextButton(onClick = { mode = JoinMode.SCAN }, modifier = Modifier.padding(top = 8.dp)) {
+                    Text(stringResource(R.string.group_pause_join_scan_tab))
+                }
+                OutlinedButton(onClick = onCancel, modifier = Modifier.fillMaxWidth().padding(top = 20.dp)) {
+                    Text(stringResource(android.R.string.cancel))
+                }
+            }
         }
     }
 }
 
+/**
+ * Fotocamera a piena pagina per la scansione del QR — prima confinata in un
+ * riquadro di 260dp dentro alla stessa colonna con padding di tutte le altre
+ * schermate (Fase 1, mai messo in discussione finché non segnalato).
+ * [QrScannerView] riempie l'intero schermo, dietro a tutto il resto;
+ * controlli e istruzioni stanno sopra come overlay, con un velo scuro
+ * sfumato dietro al testo — l'anteprima della fotocamera può essere di
+ * qualunque colore/luminosità reale, un testo colorato dal tema non
+ * garantirebbe leggibilità sopra di essa.
+ *
+ * Prima del permesso fotocamera non c'è ancora nulla da mostrare a piena
+ * pagina: quello stato usa lo sfondo/i colori standard dell'app
+ * ([calmBackground]), non l'overlay scuro pensato per stare sopra
+ * l'anteprima live.
+ */
 @Composable
-private fun JoinModePill(label: String, selected: Boolean, onClick: () -> Unit) {
-    Surface(
-        onClick = onClick,
-        shape = RoundedCornerShape(50),
-        color = MaterialTheme.colorScheme.primary.copy(alpha = if (selected) 0.22f else 0.08f),
-    ) {
-        Text(
-            text = label,
-            modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
-            color = MaterialTheme.colorScheme.onSurface.copy(alpha = if (selected) 1f else 0.65f),
-            fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Normal,
-        )
-    }
-}
-
-@Composable
-private fun ScanTab(onRecipeReady: (GroupPauseRecipe) -> Unit) {
+private fun ScanFullScreen(
+    onRecipeReady: (GroupPauseRecipe) -> Unit,
+    onSwitchToManual: () -> Unit,
+    onCancel: () -> Unit,
+) {
     val context = LocalContext.current
     var hasPermission by remember {
         mutableStateOf(
@@ -166,27 +178,11 @@ private fun ScanTab(onRecipeReady: (GroupPauseRecipe) -> Unit) {
         ActivityResultContracts.RequestPermission()
     ) { granted -> hasPermission = granted }
 
-    if (!hasPermission) {
-        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            Text(
-                text = stringResource(R.string.group_pause_camera_permission_rationale),
-                color = MaterialTheme.colorScheme.onSurface,
-                textAlign = TextAlign.Center,
-                modifier = Modifier.padding(bottom = 12.dp)
-            )
-            Button(onClick = { permissionLauncher.launch(Manifest.permission.CAMERA) }) {
-                Text(stringResource(R.string.permission_action_grant))
-            }
-        }
-    } else {
-        var errorText by remember { mutableStateOf<String?>(null) }
-        val invalidCodeText = stringResource(R.string.group_pause_invalid_code)
+    Box(modifier = Modifier.fillMaxSize()) {
+        if (hasPermission) {
+            var errorText by remember { mutableStateOf<String?>(null) }
+            val invalidCodeText = stringResource(R.string.group_pause_invalid_code)
 
-        Box(
-            modifier = Modifier
-                .size(260.dp)
-                .padding(bottom = 12.dp)
-        ) {
             QrScannerView(
                 onDecoded = { raw ->
                     val recipe = decodeGroupPauseRecipe(raw)
@@ -194,9 +190,83 @@ private fun ScanTab(onRecipeReady: (GroupPauseRecipe) -> Unit) {
                 },
                 modifier = Modifier.fillMaxSize()
             )
+
+            // Riquadro guida puramente decorativo (zxing analizza l'intero
+            // fotogramma, non solo quest'area) — indica dove inquadrare senza
+            // costringere a una geometria di scansione che il decoder non ha.
+            Box(
+                modifier = Modifier
+                    .align(Alignment.Center)
+                    .size(240.dp)
+                    .border(3.dp, Color.White.copy(alpha = 0.85f), RoundedCornerShape(24.dp))
+            )
+
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                modifier = Modifier
+                    .align(Alignment.BottomCenter)
+                    .fillMaxWidth()
+                    .background(
+                        Brush.verticalGradient(
+                            colors = listOf(Color.Transparent, Color.Black.copy(alpha = 0.6f))
+                        )
+                    )
+                    .safeDrawingPadding()
+                    .padding(24.dp)
+            ) {
+                Text(
+                    text = stringResource(R.string.group_pause_scan_instruction),
+                    color = Color.White,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.padding(bottom = errorText?.let { 8.dp } ?: 0.dp)
+                )
+                errorText?.let {
+                    Text(it, color = MaterialTheme.colorScheme.error, textAlign = TextAlign.Center)
+                }
+                TextButton(onClick = onSwitchToManual, modifier = Modifier.padding(top = 8.dp)) {
+                    Text(stringResource(R.string.group_pause_manual_entry_link))
+                }
+            }
+        } else {
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center,
+                modifier = Modifier
+                    .fillMaxSize()
+                    .calmBackground()
+                    .safeDrawingPadding()
+                    .padding(32.dp)
+            ) {
+                Text(
+                    text = stringResource(R.string.group_pause_camera_permission_rationale),
+                    color = MaterialTheme.colorScheme.onSurface,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.padding(bottom = 12.dp)
+                )
+                Button(onClick = { permissionLauncher.launch(Manifest.permission.CAMERA) }) {
+                    Text(stringResource(R.string.permission_action_grant))
+                }
+            }
         }
-        errorText?.let {
-            Text(it, color = MaterialTheme.colorScheme.error, textAlign = TextAlign.Center)
+
+        // Barra superiore: sempre visibile, indipendentemente dal permesso —
+        // uscire non deve dipendere dall'aver concesso la fotocamera.
+        Row(
+            modifier = Modifier
+                .align(Alignment.TopCenter)
+                .fillMaxWidth()
+                .background(
+                    Brush.verticalGradient(
+                        colors = listOf(Color.Black.copy(alpha = 0.45f), Color.Transparent)
+                    )
+                )
+                .safeDrawingPadding()
+                .padding(horizontal = 8.dp, vertical = 4.dp),
+            horizontalArrangement = Arrangement.Start,
+        ) {
+            TextButton(onClick = onCancel) {
+                Text(stringResource(android.R.string.cancel), color = Color.White)
+            }
         }
     }
 }

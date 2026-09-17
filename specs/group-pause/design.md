@@ -39,8 +39,8 @@ data class GroupPauseRecipe(
 |---|---|
 | `GroupPauseRecipe.kt` | `GroupPauseRecipe` data class + `encode()`/`decodeGroupPauseRecipe()`. Pure Kotlin, no `Context` — directly unit-testable (`GroupPauseRecipeTest.kt`), same "pure state machine" shape as `LockoutPolicy.kt`. |
 | `QrCodeGenerator.kt` | `generateQrCodeBitmap(content, sizePx, darkColor, lightColor)` — wraps `com.google.zxing.qrcode.QRCodeWriter`, paints the result into a `Bitmap.Config.ARGB_8888` manually. Colours are parameters (see "QR colours" below); `ARGB_8888` rather than `RGB_565` because `lightColor` may be `TRANSPARENT`. |
-| `ui/screens/GroupPauseHostScreen.kt` | Duration picker → the live Bluetooth/NFC lobby by default (`GroupPauseBluetoothLobbyHostScreen`), or (via its "Prefer a code or a QR?" link) a private `GroupPauseQrDelayScreen` step asking only the start-delay → generates a recipe → shows QR + text code + the shared countdown. See "UI/UX refinement pass" below for why the delay picker moved here. |
-| `ui/screens/GroupPauseJoinScreen.kt` | The live Bluetooth/NFC lobby by default (`GroupPauseBluetoothLobbyJoinScreen`), or (via its "I have a code or a QR" link) a private `GroupPauseCodeEntryScreen` with Scan (CameraX + zxing) or manual-code entry → decodes a recipe → the shared countdown. |
+| `ui/screens/GroupPauseHostScreen.kt` | Goes **directly** into the live Bluetooth/NFC lobby (`GroupPauseBluetoothLobbyHostScreen`), which now also carries the duration picker (there is no separate duration-picker step any more — see "Two more steps folded away" below); its "Prefer a code or a QR?" link opens a private `GroupPauseQrShareScreen` that shows the QR **immediately**, with the start-delay picker sitting above it (no separate delay-picker step either) → the shared countdown. |
+| `ui/screens/GroupPauseJoinScreen.kt` | The live Bluetooth/NFC lobby by default (`GroupPauseBluetoothLobbyJoinScreen`), or (via its "Scan or enter a code" link — renamed, see "Two more steps folded away") a private `GroupPauseCodeEntryScreen`: Scan is now a **full-screen** camera view (CameraX + zxing) with the guide/instructions overlaid on the live preview, not a small box inside a padded column; manual-code entry is unchanged. Either path decodes a recipe → the shared countdown. |
 | `ui/screens/GroupPauseCountdownScreen.kt` | Shared by both flows — ticks "starting in mm:ss", calls back once at zero. |
 | `GroupPauseHostActivity.kt` / `GroupPauseJoinActivity.kt` | Thin `BaseActivity` wrappers: on the countdown reaching zero, call `sessionManager.startSession(durationMinutes, isGroupSession = true)` and `finish()`. |
 
@@ -342,18 +342,53 @@ via that mockup review, not guessed at directly.
 screen asked for pairing mode (QR/Codice vs Bluetooth) *and* duration *and*
 (for QR) start-delay, all before doing anything — "too confusionaria," per
 the request. Now:
-- `GroupPauseHostScreen`'s `GroupPauseSetupScreen` asks only for duration,
-  with the app's `OtterFloatMark` shown above the title (the same mark
-  Home uses) instead of no illustration at all, then always continues into
-  `GroupPauseBluetoothLobbyHostScreen` (the live lobby) — QR/manual code is
-  now a fallback reached via that lobby's "Prefer a code or a QR?" link,
-  which opens the private `GroupPauseQrDelayScreen` (just the start-delay
-  picker, since duration was already chosen) before generating the code.
+- `GroupPauseHostScreen` goes straight into `GroupPauseBluetoothLobbyHostScreen`
+  (the live lobby) — QR/manual code is a fallback reached via that lobby's
+  "Prefer a code or a QR?" link, which opens `GroupPauseQrShareScreen`
+  (generates the code immediately) before showing the countdown.
 - `GroupPauseJoinScreen` mirrors this: `GroupPauseBluetoothLobbyJoinScreen`
   is the default screen (no more three-way Scan/Manual/Bluetooth pill up
-  front), with an "I have a code or a QR" link opening the private
-  `GroupPauseCodeEntryScreen` (the original Scan/Manual pill screen,
-  unchanged, just reached differently).
+  front), with a "Scan or enter a code" link opening the private
+  `GroupPauseCodeEntryScreen` (Scan/Manual, reached differently — see
+  below for what changed inside it).
+
+**Two more steps folded away: duration into the lobby, start-delay into the
+QR page.** Once the flattening above had made the live-Bluetooth path
+Setup → Lobby → Countdown and the QR path Setup → Lobby → QrDelayPicker →
+Countdown, both remaining "ask one thing, then move on" screens were
+themselves reported as unnecessary friction — "velocizziamo," per the
+request — and removed:
+- `GroupPauseSetupScreen` (the standalone duration picker) is gone.
+  `GroupPauseBluetoothLobbyHostScreen` now takes `initialDurationMinutes`
+  (Home's `selectedDurationIndex`, passed via `MainActivity` →
+  `GroupPauseHostActivity.EXTRA_DURATION_MINUTES`) and renders the same
+  `MinutePillRow` **inside** the lobby, as local `mutableIntStateOf` state
+  — adjustable for as long as the lobby is on screen, not locked at entry.
+  Changing it calls `GroupPauseBluetoothHost.updateDuration()` so the next
+  participant to connect sees the current value in their `LobbyInfo`
+  preview (participants already connected keep whatever they saw at
+  connect time — the *actual* duration is always whatever the final
+  recipe says at "Let's go", so this is a preview-only staleness, not a
+  correctness issue).
+- `GroupPauseQrDelayScreen` (the standalone start-delay picker) is gone
+  too. `GroupPauseQrShareScreen` shows the QR **immediately** on entry
+  (default delay 2 minutes), with the same `MinutePillRow` sitting above
+  the QR image. Changing the delay rebuilds the `GroupPauseRecipe` (new
+  `startAtEpochMillis`, same `groupTag`), which regenerates the QR
+  (`GroupPauseShareHeader` already keys its bitmap off `code`) and
+  restarts the countdown (`GroupPauseCountdownScreen` already keys its
+  `LaunchedEffect` off `startAtEpochMillis`) — no new plumbing needed in
+  either, both were already reactive by construction. Accepted tradeoff:
+  if someone scans the code and the host then changes the delay, that
+  joiner counts down to the old target with no channel to correct them —
+  the same class of risk the "handshake then autonomy" architecture (see
+  above) already accepts elsewhere in this flow, and the window here is
+  the same few-minutes scale.
+- The host's own duration-picker options were widened from the original
+  fixed `[15, 30, 60, 90, 120]` to the same 8 values Home's
+  `DurationChipRow` offers (`30..240` step 30), specifically so the value
+  handed in from Home always lands on an exact option instead of needing
+  to be normalized to the nearest one.
 
 **No more dedicated permission/Bluetooth-off/discoverable screens.** The
 original Phase 2 had the host and joiner lobby screens gate on three
@@ -381,14 +416,37 @@ to present NFC and manual Bluetooth search as two equal buttons
 `nfcAvailable`: if the device has NFC, the screen lands directly on the
 NFC hero state (`OtterTapMark` illustration, reader mode started
 automatically via `DisposableEffect`, no toggle or extra tap needed) with
-"Cerca un amico nelle vicinanze"/"Look for a nearby friend" and "Ho un
-codice o un QR"/"I have a code or a QR" as secondary text links below; if
+"Cerca un amico nelle vicinanze"/"Look for a nearby friend" and "Scansiona
+o inserisci un codice"/"Scan or enter a code" (`group_pause_join_code_link`
+— renamed from "Ho un codice o un QR"/"I have a code or a QR", reported as
+not reading like an actionable link) as secondary text links below; if
 the device has no NFC, it lands on the search-hero state instead
 (`group_pause_join_search_hero_title`), same secondary code/QR link, no
 NFC option shown. The host's NFC advertising (`GroupPauseHceService
 .pendingMarker`) is likewise now automatic — set whenever
 `NfcAdapter.getDefaultAdapter()` is non-null and the lobby is ready, no
 user-facing toggle any more.
+
+**The Scan tab is now full-screen.** `GroupPauseCodeEntryScreen`'s camera
+view used to sit in a fixed 260dp box inside the same padded
+`CalmScreenColumn` as everything else — unchallenged since Phase 1, then
+reported as worth fixing once the rest of this flow had been tightened up.
+`ScanFullScreen` now renders `QrScannerView` at `Modifier.fillMaxSize()`
+as the base layer of a `Box`, with a purely decorative guide frame
+centered over it (zxing decodes the whole frame regardless, so this
+doesn't constrain what can be scanned — it just tells the eye where to
+point), an instruction string plus the "enter a code manually" fallback
+link at the bottom, and Cancel at the top — all on top of the live
+preview, over a dark vertical-gradient scrim rather than the app's usual
+theme-colored text, since theme colors give no legibility guarantee over
+an arbitrary real-world camera feed. The pre-permission state (nothing to
+show full-screen yet) keeps the app's ordinary `calmBackground()` instead
+of that scrim treatment. The old always-visible Scan/Manual pill row is
+gone with it: Scan is reached by default (from the lobby's link) or via
+the "scan instead" text link on the Manual screen, and Manual is reached
+via the new "enter a code manually" link on the Scan screen or its own
+pill-turned-link on the way back — one explicit link each way instead of
+two pills always both visible.
 
 **Otter mascot throughout, not just Home.** `ui/mascot/OtterMarks.kt`
 gained three new marks for this feature specifically:

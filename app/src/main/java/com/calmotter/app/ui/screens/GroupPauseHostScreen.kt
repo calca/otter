@@ -4,19 +4,12 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.FlowRow
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -41,67 +34,78 @@ import com.calmotter.app.GroupPauseRecipe
 import com.calmotter.app.R
 import com.calmotter.app.encode
 import com.calmotter.app.generateQrCodeBitmap
-import com.calmotter.app.ui.mascot.OtterFloatMark
 import kotlin.random.Random
 
-private val DURATION_OPTIONS = listOf(15, 30, 60, 90, 120)
+/**
+ * Opzioni di durata offerte sia dal selettore della lobby dal vivo
+ * ([GroupPauseBluetoothLobbyHostScreen]) sia — indirettamente, tramite
+ * [minutesLabel]/[MinutePillRow] — da nessun altro selettore proprio: stesso
+ * elenco di `DURATION_LABELS` in `MainScreen.kt` (30 min → 4h a passi di 30)
+ * e non un elenco indipendente, apposta perché il valore scelto in Home
+ * (passato come durata iniziale della lobby) cada sempre su un'opzione
+ * esistente qui invece di un valore "fuori lista" da normalizzare.
+ */
+internal val DURATION_OPTIONS = (1..8).map { it * 30 }
 private val DELAY_OPTIONS = listOf(1, 2, 5)
 
+/** Ritardo di partenza preselezionato sulla pagina QR — vedi [GroupPauseQrShareScreen]. */
+private const val DEFAULT_QR_DELAY_MINUTES = 2
+
 private sealed class HostFlowStep {
-    data object Setup : HostFlowStep()
     data class BluetoothLobby(val durationMinutes: Int) : HostFlowStep()
-    data class QrDelayPicker(val durationMinutes: Int) : HostFlowStep()
+    data class QrShare(val durationMinutes: Int) : HostFlowStep()
     // I nomi raccolti nella lobby viaggiano fin qui per poter finire nella
     // sessione: il percorso QR non ne ha (lista vuota), ed è il motivo per cui
     // lì l'indicazione resta generica.
     data class Countdown(
         val recipe: GroupPauseRecipe,
-        val showShareHeader: Boolean,
         val companions: List<String> = emptyList(),
     ) : HostFlowStep()
 }
 
 /**
- * Prepara il Tempo Insieme lato host: durata → lobby dal vivo (Bluetooth+NFC,
- * predefinita — vedi GroupPauseBluetoothLobbyHostScreen) → conto alla
- * rovescia condiviso. Chi preferisce QR/codice invece del vivo può tornare
- * indietro dalla lobby stessa ("Preferisci un codice o un QR?") verso
- * [GroupPauseQrDelayScreen], che chiede solo il "tra quanto iniziare" che il
- * percorso dal vivo non usa. Nessuno stato persistito prima che il conto
- * alla rovescia arrivi a zero: uscire da questa schermata prima (onCancel)
- * non lascia nulla in sospeso.
+ * Prepara il Tempo Insieme lato host: si entra **direttamente** nella lobby
+ * dal vivo (Bluetooth+NFC, predefinita — vedi
+ * GroupPauseBluetoothLobbyHostScreen), che include ora anche il selettore
+ * della durata invece di essere un secondo passo separato — richiesto
+ * esplicitamente per velocizzare la creazione, dato che prima occorreva
+ * confermare la durata su una schermata a sé prima ancora di iniziare ad
+ * ascoltare i partecipanti. [initialDurationMinutes] arriva da Home
+ * (l'ultima scelta lì, vedi `DurationChipRow`/`selectedDurationIndex` in
+ * `MainScreen.kt`) ed è solo il punto di partenza: resta modificabile nella
+ * lobby stessa in qualsiasi momento prima di "Iniziamo".
+ *
+ * Chi preferisce QR/codice invece del vivo può tornare indietro dalla lobby
+ * stessa ("Preferisci un codice o un QR?") verso [GroupPauseQrShareScreen],
+ * che mostra **subito** il QR (stesso principio: una schermata dedicata solo
+ * al "tra quanto iniziare" prima ancora di vedere il codice è stata rimossa,
+ * il selettore ora sta sopra al QR stesso) — la durata scelta nella lobby lo
+ * segue lì. Nessuno stato persistito prima che il conto alla rovescia arrivi
+ * a zero: uscire da questa schermata prima (onCancel) non lascia nulla in
+ * sospeso.
  */
 @Composable
 fun GroupPauseHostScreen(
+    initialDurationMinutes: Int,
     onStarted: (durationMinutes: Int, companions: List<String>, groupTag: Int) -> Unit,
     onCancel: () -> Unit,
 ) {
-    var step by remember { mutableStateOf<HostFlowStep>(HostFlowStep.Setup) }
+    var step by remember {
+        mutableStateOf<HostFlowStep>(HostFlowStep.BluetoothLobby(initialDurationMinutes))
+    }
 
     when (val current = step) {
-        HostFlowStep.Setup -> GroupPauseSetupScreen(
-            onContinue = { durationMinutes -> step = HostFlowStep.BluetoothLobby(durationMinutes) },
-            onCancel = onCancel,
-        )
         is HostFlowStep.BluetoothLobby -> GroupPauseBluetoothLobbyHostScreen(
-            durationMinutes = current.durationMinutes,
+            initialDurationMinutes = current.durationMinutes,
             onRecipeReady = { recipe, companions ->
-                step = HostFlowStep.Countdown(recipe, showShareHeader = false, companions = companions)
+                step = HostFlowStep.Countdown(recipe, companions = companions)
             },
-            onWantCodeInstead = { step = HostFlowStep.QrDelayPicker(current.durationMinutes) },
+            onWantCodeInstead = { durationMinutes -> step = HostFlowStep.QrShare(durationMinutes) },
             onCancel = onCancel,
         )
-        is HostFlowStep.QrDelayPicker -> GroupPauseQrDelayScreen(
-            onCreate = { delayMinutes ->
-                step = HostFlowStep.Countdown(
-                    recipe = GroupPauseRecipe(
-                        durationMinutes = current.durationMinutes,
-                        startAtEpochMillis = System.currentTimeMillis() + delayMinutes * 60_000L,
-                        groupTag = Random.nextInt(0, 65536),
-                    ),
-                    showShareHeader = true,
-                )
-            },
+        is HostFlowStep.QrShare -> GroupPauseQrShareScreen(
+            durationMinutes = current.durationMinutes,
+            onReady = { recipe -> onStarted(recipe.durationMinutes, emptyList(), recipe.groupTag) },
             onCancel = onCancel,
         )
         is HostFlowStep.Countdown -> GroupPauseCountdownScreen(
@@ -109,113 +113,66 @@ fun GroupPauseHostScreen(
             startAtEpochMillis = current.recipe.startAtEpochMillis,
             onReady = { onStarted(current.recipe.durationMinutes, current.companions, current.recipe.groupTag) },
             onCancel = onCancel,
-            header = {
-                if (current.showShareHeader) GroupPauseShareHeader(code = current.recipe.encode())
-            },
         )
-    }
-}
-
-@Composable
-private fun GroupPauseSetupScreen(
-    onContinue: (durationMinutes: Int) -> Unit,
-    onCancel: () -> Unit,
-) {
-    var selectedDuration by remember { mutableIntStateOf(30) }
-
-    CalmScreenColumn(contentPadding = PaddingValues(32.dp)) {
-        OtterFloatMark(markSize = 88.dp)
-        Text(
-            text = stringResource(R.string.group_pause_host_title),
-            fontSize = 22.sp,
-            fontWeight = FontWeight.Bold,
-            color = MaterialTheme.colorScheme.primary,
-            textAlign = TextAlign.Center,
-            modifier = Modifier.padding(top = 12.dp, bottom = 8.dp)
-        )
-        Text(
-            text = stringResource(R.string.group_pause_host_intro),
-            color = MaterialTheme.colorScheme.onSurface,
-            textAlign = TextAlign.Center,
-            modifier = Modifier.padding(bottom = 28.dp)
-        )
-
-        SetupLabel(stringResource(R.string.group_pause_duration_label))
-        MinutePillRow(
-            options = DURATION_OPTIONS,
-            selected = selectedDuration,
-            onSelect = { selectedDuration = it },
-            labelFor = { minutesLabel(it) },
-        )
-
-        Row(modifier = Modifier.fillMaxWidth().padding(top = 32.dp)) {
-            OutlinedButton(
-                onClick = onCancel,
-                modifier = Modifier.weight(1f).padding(end = 8.dp)
-            ) {
-                Text(stringResource(android.R.string.cancel))
-            }
-            Button(
-                onClick = { onContinue(selectedDuration) },
-                modifier = Modifier.weight(1f)
-            ) {
-                Text(stringResource(R.string.group_pause_host_continue_button))
-            }
-        }
     }
 }
 
 /**
  * Ripiego per chi preferisce un codice/QR invece della lobby dal vivo —
  * raggiunta dal link "Preferisci un codice o un QR?" dentro
- * [GroupPauseBluetoothLobbyHostScreen]. Chiede solo il "tra quanto
- * iniziare", l'unico dato che il percorso dal vivo non usa (lì l'avvio è
- * un'azione dell'host, non pianificata).
+ * [GroupPauseBluetoothLobbyHostScreen]. Mostra il QR **subito**, con il
+ * selettore "tra quanto iniziare" sopra di esso invece che su una schermata
+ * dedicata a sé (rimossa: chiedere solo quello prima ancora di vedere il
+ * codice era un passo in più senza un vero motivo — l'host non ha comunque
+ * ancora condiviso nulla con nessuno in quel momento).
+ *
+ * Il ritardo resta modificabile mentre la pagina è a schermo: cambiarlo
+ * rigenera la ricetta (nuovo `startAtEpochMillis`, stesso `groupTag`), che a
+ * sua volta rigenera il QR ([GroupPauseShareHeader] già osserva `code`) e
+ * riavvia il conto alla rovescia da capo ([GroupPauseCountdownScreen] è già
+ * keyed su `startAtEpochMillis`). Compromesso accettato: se qualcuno ha già
+ * scansionato il codice precedente prima del cambio, quel dispositivo conta
+ * alla rovescia verso l'orario vecchio — nessun canale per avvisarlo del
+ * contrario, stesso limite già accettato altrove per questo percorso (vedi
+ * "handshake poi autonomia", specs/group-pause/design.md); la finestra è
+ * comunque quella di pochi minuti tipica di questo flow.
  */
 @Composable
-private fun GroupPauseQrDelayScreen(
-    onCreate: (delayMinutes: Int) -> Unit,
+private fun GroupPauseQrShareScreen(
+    durationMinutes: Int,
+    onReady: (GroupPauseRecipe) -> Unit,
     onCancel: () -> Unit,
 ) {
-    var selectedDelay by remember { mutableIntStateOf(1) }
-
-    CalmScreenColumn(contentPadding = PaddingValues(32.dp)) {
-        Text(
-            text = stringResource(R.string.group_pause_qr_delay_title),
-            fontSize = 20.sp,
-            fontWeight = FontWeight.Bold,
-            color = MaterialTheme.colorScheme.primary,
-            textAlign = TextAlign.Center,
-            modifier = Modifier.padding(bottom = 24.dp)
+    var delayMinutes by remember { mutableIntStateOf(DEFAULT_QR_DELAY_MINUTES) }
+    val groupTag = remember { Random.nextInt(0, 65536) }
+    val recipe = remember(durationMinutes, delayMinutes, groupTag) {
+        GroupPauseRecipe(
+            durationMinutes = durationMinutes,
+            startAtEpochMillis = System.currentTimeMillis() + delayMinutes * 60_000L,
+            groupTag = groupTag,
         )
-
-        SetupLabel(stringResource(R.string.group_pause_start_in_label))
-        MinutePillRow(
-            options = DELAY_OPTIONS,
-            selected = selectedDelay,
-            onSelect = { selectedDelay = it },
-            labelFor = { minutesLabel(it) },
-        )
-
-        Row(modifier = Modifier.fillMaxWidth().padding(top = 32.dp)) {
-            OutlinedButton(
-                onClick = onCancel,
-                modifier = Modifier.weight(1f).padding(end = 8.dp)
-            ) {
-                Text(stringResource(android.R.string.cancel))
-            }
-            Button(
-                onClick = { onCreate(selectedDelay) },
-                modifier = Modifier.weight(1f)
-            ) {
-                Text(stringResource(R.string.group_pause_create_button))
-            }
-        }
     }
+
+    GroupPauseCountdownScreen(
+        durationMinutes = recipe.durationMinutes,
+        startAtEpochMillis = recipe.startAtEpochMillis,
+        onReady = { onReady(recipe) },
+        onCancel = onCancel,
+        header = {
+            GroupPauseShareHeader(code = recipe.encode())
+            SetupLabel(stringResource(R.string.group_pause_start_in_label), topPadding = 20.dp)
+            MinutePillRow(
+                options = DELAY_OPTIONS,
+                selected = delayMinutes,
+                onSelect = { delayMinutes = it },
+                labelFor = { minutesLabel(it) },
+            )
+        },
+    )
 }
 
 @Composable
-private fun SetupLabel(text: String, topPadding: androidx.compose.ui.unit.Dp = 0.dp) {
+internal fun SetupLabel(text: String, topPadding: androidx.compose.ui.unit.Dp = 0.dp) {
     Text(
         text = text,
         style = MaterialTheme.typography.labelMedium,
@@ -238,10 +195,12 @@ internal fun minutesLabel(minutes: Int): String {
  * Riga di pillole generica per un valore in minuti — stesso stile a bassa
  * opacità di `DurationChipRow`/`GoalChipRow` (privati ai rispettivi file,
  * da cui la duplicazione qui, stessa convenzione già seguita altrove in
- * questo codebase).
+ * questo codebase). Non `private`: usata anche da
+ * [GroupPauseBluetoothLobbyHostScreen] per il selettore di durata ora
+ * incorporato lì.
  */
 @Composable
-private fun MinutePillRow(
+internal fun MinutePillRow(
     options: List<Int>,
     selected: Int,
     onSelect: (Int) -> Unit,

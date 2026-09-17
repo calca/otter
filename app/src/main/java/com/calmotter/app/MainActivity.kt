@@ -231,7 +231,12 @@ class MainActivity : BaseActivity() {
                                 onHistory = { startActivity(Intent(this@MainActivity, HistoryActivity::class.java)) },
                                 onSettings = { startActivity(Intent(this@MainActivity, SettingsActivity::class.java)) },
                                 onSessionStarted = { enterBlockScreen() },
-                                onGroupPauseHost = { startActivity(Intent(this@MainActivity, GroupPauseHostActivity::class.java)) },
+                                onGroupPauseHost = { durationMinutes ->
+                                    startActivity(
+                                        Intent(this@MainActivity, GroupPauseHostActivity::class.java)
+                                            .putExtra(GroupPauseHostActivity.EXTRA_DURATION_MINUTES, durationMinutes)
+                                    )
+                                },
                                 onGroupPauseJoin = { startActivity(Intent(this@MainActivity, GroupPauseJoinActivity::class.java)) },
                                 otterModifier = otterModifier,
                                 otterFloatOffset = otterFloatOffset,

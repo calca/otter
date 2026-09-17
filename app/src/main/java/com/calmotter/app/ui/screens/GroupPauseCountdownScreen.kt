@@ -75,29 +75,29 @@ fun GroupPauseCountdownScreen(
     val seconds = totalSeconds % 60
 
     CalmScreenColumn(contentPadding = PaddingValues(32.dp)) {
-        header()
+        CalmCard {
+            header()
 
-        Text(
-            text = stringResource(R.string.group_pause_countdown_label, minutes, seconds),
-            fontSize = 22.sp,
-            fontWeight = FontWeight.SemiBold,
-            color = MaterialTheme.colorScheme.primary,
-            textAlign = TextAlign.Center,
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(top = 24.dp, bottom = 8.dp)
-        )
-        Text(
-            text = stringResource(R.string.group_pause_duration_reminder, durationMinutes),
-            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
-            textAlign = TextAlign.Center,
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(bottom = 32.dp)
-        )
+            Text(
+                text = stringResource(R.string.group_pause_countdown_label, minutes, seconds),
+                fontSize = 22.sp,
+                fontWeight = FontWeight.SemiBold,
+                color = MaterialTheme.colorScheme.primary,
+                textAlign = TextAlign.Center,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 8.dp, bottom = 8.dp)
+            )
+            Text(
+                text = stringResource(R.string.group_pause_duration_reminder, durationMinutes),
+                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
+                textAlign = TextAlign.Center,
+                modifier = Modifier.fillMaxWidth()
+            )
 
-        OutlinedButton(onClick = onCancel) {
-            Text(stringResource(android.R.string.cancel))
+            OutlinedButton(onClick = onCancel, modifier = Modifier.padding(top = 24.dp)) {
+                Text(stringResource(android.R.string.cancel))
+            }
         }
     }
 }

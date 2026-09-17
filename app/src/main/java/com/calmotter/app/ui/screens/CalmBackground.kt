@@ -1,7 +1,9 @@
 package com.calmotter.app.ui.screens
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.foundation.layout.Arrangement
@@ -11,6 +13,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawingPadding
@@ -82,6 +85,31 @@ fun Modifier.calmBackground(): Modifier {
  * `Modifier.weight`** — l'altezza disponibile è infinita. Per distribuire
  * spazio, [verticalArrangement] (`Center`, `SpaceBetween`) fa quel lavoro.
  */
+/**
+ * Card tinta arrotondata per raggruppare il contenuto di una schermata —
+ * stesso linguaggio visivo di `WeekOverviewCard` in HistoryScreen.kt
+ * (`Surface` con `RoundedCornerShape(20.dp)` e `primary` al 6% di opacità),
+ * qui reso condiviso perché richiesto per le schermate di Tempo Insieme
+ * (lobby host/join, pagina QR, conto alla rovescia) — non un'ennesima
+ * duplicazione privata per file come altrove in questo codebase, dato che
+ * qui l'obiettivo esplicito è la coerenza visiva fra più schermate, non uno
+ * stile solo simile.
+ */
+@Composable
+fun CalmCard(modifier: Modifier = Modifier, content: @Composable ColumnScope.() -> Unit) {
+    Surface(
+        shape = RoundedCornerShape(20.dp),
+        color = MaterialTheme.colorScheme.primary.copy(alpha = 0.06f),
+        modifier = modifier.fillMaxWidth(),
+    ) {
+        Column(
+            modifier = Modifier.padding(20.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            content = content,
+        )
+    }
+}
+
 @Composable
 fun CalmScreenColumn(
     modifier: Modifier = Modifier,
