@@ -93,7 +93,17 @@
     <string name="weekly_summary_many">%1$d sessions this week · %2$s</string>
 
     <string name="history_title">History</string>
-    <string name="history_empty">No sessions yet.\nStart your first pause</string>
+    <string name="history_empty">No sessions yet</string>
+    <!-- History empty state: one of these shows under the otter, picked at
+         random each time the screen opens. Deliberately separate from
+         pause_phrases, which the user can switch off in Settings ("show
+         phrases during the pause") — this page would be left with a hole
+         where the text should be. -->
+    <string-array name="history_empty_phrases">
+        <item>This is where the time you take back will show up. Start whenever you like.</item>
+        <item>No sessions is a fine place to start from, too.</item>
+        <item>The first pause is the hardest. The rest follow on their own.</item>
+    </string-array>
     <string name="history_clear">Clear history</string>
     <string name="history_clear_confirm">Delete all history? This action cannot be undone.</string>
     <string name="history_item_natural">Completed naturally</string>
@@ -105,6 +115,7 @@
 
     <string name="streak_days">%1$d day streak</string>
 
+    <string name="weekly_goal_none">No goal set for this week</string>
     <string name="weekly_goal_set_button">Set goal</string>
     <string name="weekly_goal_edit_button">Edit goal</string>
     <string name="weekly_goal_dialog_title">Weekly goal</string>

@@ -209,3 +209,43 @@ removing theme attributes risks regressions that wouldn't surface until
 some future screen adds a menu, and that future screen would want it
 back. If it's still unused when other cleanup happens, that's the time to
 drop it.
+
+## The empty state, when there is nothing to show yet
+
+Before the first session, the page was a 100dp otter, two lines of grey
+text, and the weekly-goal card — which, with no goal set, contained a
+single centred button and nothing else. Three loose elements on an
+otherwise white page: it read as a screen that had failed to load rather
+than as a page waiting to fill up.
+
+`EmptyHistory` now opens with the otter at 132dp — the same size Home
+draws it — inside a 180dp circle tinted `primary` at 5%. The halo is what
+ties this page to Home's pond; it is deliberately **static**, because
+Home's animated ripples mean "waiting for you to start", which is true
+there and not on a read-only page.
+
+Under it sits one line from `history_empty_phrases`, picked at random per
+screen opening (`stringArrayResource` + `remember`), italic inside a
+`CalmCard`. That array is its own, **not** `pause_phrases`: those go
+through `PhraseManager`, which returns null when the user has switched
+off phrases during the pause — a preference about a different context
+that would leave this page with a hole where the text belongs. The
+existing `history_empty` string lost its second line ("Avvia la tua prima
+pausa") and became just the title, since the phrase now carries the
+invitation.
+
+**And nothing else — no weekly goal here.** `WeeklyGoalSection` used to
+be rendered in the empty state too, with `weekSessions`/`weekMinutes` at
+0, to keep "Imposta obiettivo" reachable at all times. That was asked for
+once and then withdrawn: before the first pause, a goal prompt reads as a
+commitment to sign up to before you are allowed to begin, and this app
+does not push. The goal now lives only in `WeekOverviewCard`, which
+exists only once there are sessions to measure — see User Story 3's
+fourth acceptance criterion.
+
+`WeeklyGoalSection` did gain a `weekly_goal_none` line ("Nessun obiettivo
+per questa settimana"), shown in place of the progress bar when
+`goal == null`. Without it the section was a page-wide card containing
+one centred button and no indication of what the card was for. It is
+phrased as the missing datum, not as a second invitation: the button
+underneath is already the call to action.

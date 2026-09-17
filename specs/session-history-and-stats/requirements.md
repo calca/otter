@@ -53,6 +53,11 @@ sessions or a number of minutes), so I have something concrete to aim for.
    or less.
 3. WHEN a goal is set THEN the history screen SHALL show progress toward it
    using the current week's sessions/minutes.
+4. WHILE there are no recorded sessions the history screen SHALL NOT offer
+   to set a goal: asking for a target before the first pause reads as a
+   commitment to make before starting, which is the opposite of what this
+   app does. The entry point lives in the week card, which only exists once
+   there is something to measure.
 
 ## User Story 4: Exporting and clearing history
 

@@ -98,7 +98,17 @@
     <string name="weekly_summary_many">%1$d sessioni questa settimana · %2$s</string>
 
     <string name="history_title">Cronologia</string>
-    <string name="history_empty">Nessuna sessione ancora.\nAvvia la tua prima pausa</string>
+    <string name="history_empty">Nessuna sessione ancora</string>
+    <!-- Stato vuoto della cronologia: una di queste compare sotto l'otter,
+         scelta a caso a ogni apertura della schermata. Deliberatamente
+         separate da pause_phrases: quelle l'utente può disattivarle dalle
+         impostazioni ("mostra frasi durante la pausa"), e questa pagina
+         resterebbe con un buco al posto del testo. -->
+    <string-array name="history_empty_phrases">
+        <item>Qui comparirà il tempo che ti sei ripreso. Inizia quando vuoi.</item>
+        <item>Nessuna sessione è anche un buon punto di partenza.</item>
+        <item>La prima pausa è la più difficile. Le altre vengono da sole.</item>
+    </string-array>
     <string name="history_clear">Svuota cronologia</string>
     <string name="history_clear_confirm">Vuoi eliminare tutta la cronologia? L\'operazione non è reversibile.</string>
     <string name="history_item_natural">Completata naturalmente</string>
@@ -110,6 +120,7 @@
 
     <string name="streak_days">%1$d giorni di fila</string>
 
+    <string name="weekly_goal_none">Nessun obiettivo per questa settimana</string>
     <string name="weekly_goal_set_button">Imposta obiettivo</string>
     <string name="weekly_goal_edit_button">Modifica obiettivo</string>
     <string name="weekly_goal_dialog_title">Obiettivo settimanale</string>

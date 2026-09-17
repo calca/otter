@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ButtonDefaults
@@ -34,7 +35,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringArrayResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -86,7 +89,7 @@ fun HistoryScreen(
     onEditGoal: () -> Unit,
 ) {
     if (sessions.isEmpty()) {
-        EmptyHistory(goal = goal, onEditGoal = onEditGoal)
+        EmptyHistory()
         return
     }
 
@@ -312,6 +315,20 @@ private fun WeeklyGoalSection(
                     .fillMaxWidth()
                     .padding(bottom = 8.dp)
             )
+        } else {
+            // Senza obiettivo la sezione era il solo bottone dentro una card
+            // larga tutta la pagina: un blocco vuoto con qualcosa in mezzo,
+            // che non diceva di cosa fosse la card. Questa riga è il dato
+            // mancante — "obiettivo: nessuno" — non un invito in più.
+            Text(
+                text = stringResource(R.string.weekly_goal_none),
+                fontSize = 13.sp,
+                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
+                textAlign = TextAlign.Center,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 10.dp)
+            )
         }
 
         // FilledTonalButton, non TextButton: azione con più peso visivo,
@@ -441,16 +458,33 @@ private fun SessionOutcomeIcon(isGroupSession: Boolean, completedNaturally: Bool
 // ── Stato vuoto ──────────────────────────────────────────────────────────
 
 /**
- * Prima ancora di avere sessioni, l'obiettivo settimanale resta comunque
- * impostabile: [WeeklyGoalSection] (con `weekSessions`/`weekMinutes` a 0,
- * un dato onesto — l'obiettivo esiste già, il progresso parte da zero)
- * viene riusata qui invece di sparire del tutto come prima di questa
- * revisione, su richiesta esplicita ("il set goal dovrebbe essere sempre
- * visibile"). L'Otter (lo stesso mascotte di Home) sostituisce la pagina
- * altrimenti spoglia di solo testo centrato.
+ * Otter, titolo, una frase. Nient'altro: niente obiettivo settimanale.
+ *
+ * [WeeklyGoalSection] compariva anche qui (con `weekSessions`/`weekMinutes`
+ * a 0), per una richiesta precedente di tenere "Imposta obiettivo" sempre
+ * visibile; la richiesta è stata poi ritirata — chiedere un obiettivo a chi
+ * non ha ancora fatto una pausa suona come un impegno da prendere prima di
+ * cominciare, e questa app non spinge. L'obiettivo resta dov'è utile:
+ * dentro [WeekOverviewCard], cioè quando c'è già qualcosa da misurare.
+ *
+ * L'otter è grande quanto quello della Home e sta dentro un alone
+ * circolare tinto: a 100dp su una pagina per il resto bianca sembrava un
+ * segnaposto più che il mascotte, e l'alone è ciò che rende questa pagina
+ * parte dello stesso "stagno" invece di una schermata di errore. È statico
+ * di proposito — le increspature animate della Home dicono "in attesa di
+ * cominciare", che è vero lì, non su una pagina di sola lettura.
+ *
+ * La frase sotto è pescata a caso da `history_empty_phrases` a ogni
+ * apertura (`remember`, quindi non cambia a ogni ricomposizione). Array
+ * suo, **non** `pause_phrases`: quelle passano da [PhraseManager], che le
+ * restituisce null se l'utente ha disattivato le frasi durante la pausa —
+ * una preferenza su tutt'altro contesto che qui lascerebbe un buco.
  */
 @Composable
-private fun EmptyHistory(goal: WeeklyGoal?, onEditGoal: () -> Unit) {
+private fun EmptyHistory() {
+    val phrases = stringArrayResource(R.array.history_empty_phrases)
+    val phrase = remember(phrases) { phrases.random() }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -459,25 +493,33 @@ private fun EmptyHistory(goal: WeeklyGoal?, onEditGoal: () -> Unit) {
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center,
     ) {
-        OtterFloatMark(markSize = 100.dp)
+        Box(contentAlignment = Alignment.Center) {
+            Box(
+                modifier = Modifier
+                    .size(180.dp)
+                    .background(
+                        color = MaterialTheme.colorScheme.primary.copy(alpha = 0.05f),
+                        shape = CircleShape,
+                    )
+            )
+            OtterFloatMark(markSize = 132.dp)
+        }
         Text(
             text = stringResource(R.string.history_empty),
-            fontSize = 16.sp,
-            lineHeight = 24.sp,
-            color = MaterialTheme.colorScheme.onSurface,
+            fontSize = 20.sp,
+            fontWeight = FontWeight.SemiBold,
+            color = MaterialTheme.colorScheme.primary,
             textAlign = TextAlign.Center,
-            modifier = Modifier.padding(top = 20.dp, bottom = 28.dp)
+            modifier = Modifier.padding(top = 20.dp, bottom = 20.dp)
         )
-        Surface(
-            shape = RoundedCornerShape(20.dp),
-            color = MaterialTheme.colorScheme.primary.copy(alpha = 0.06f),
-            modifier = Modifier.fillMaxWidth(),
-        ) {
-            WeeklyGoalSection(
-                goal = goal,
-                weekSessions = 0,
-                weekMinutes = 0,
-                onEditGoal = onEditGoal,
+        CalmCard {
+            Text(
+                text = phrase,
+                fontSize = 15.sp,
+                lineHeight = 23.sp,
+                fontStyle = FontStyle.Italic,
+                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.75f),
+                textAlign = TextAlign.Center,
             )
         }
     }
