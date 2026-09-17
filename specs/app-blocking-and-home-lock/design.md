@@ -22,6 +22,102 @@ Calm Otter's own package — unioned with
 is false, the service returns immediately without even computing the exempt
 set (cheap common case).
 
+## The XML config alone did not subscribe the service to any event
+
+Blocking did not work *at all* — the reported symptom was "the overlay
+never shows on other apps, even with every permission granted", which is
+this feature's entire point. It was not a permissions problem, not a
+background-activity-launch problem, and not an allow-list problem:
+**the service was being bound subscribed to zero event types**, so the
+system never delivered it a single `TYPE_WINDOW_STATE_CHANGED`.
+
+How it was pinned down, on an API 37 emulator with the service enabled
+through the real Settings UI:
+
+- `dumpsys accessibility` showed the bound service as
+  `Service[label=Calm Otter Beta, feedbackType[], capabilities=0,
+  eventTypes=, notificationTimeout=0]` — every field empty.
+- Temporary logging in `onServiceConnected()` confirmed it from the app
+  side too: `getServiceInfo().eventTypes == 0`.
+- The APK itself was fine: `aapt2 dump xmltree` on
+  `res/xml/accessibility_service_config.xml` showed
+  `accessibilityEventTypes=0x20` (`typeWindowStateChanged`),
+  `accessibilityFeedbackType=0x10`, `notificationTimeout=100`. So the
+  declared config shipped correctly and simply was not applied to the
+  running service.
+
+The fix is to re-assert the info at runtime in `onServiceConnected()`
+(`serviceInfo = (serviceInfo ?: AccessibilityServiceInfo()).apply { ... }`)
+rather than trusting the manifest meta-data to have been honoured. It
+starts from the existing info when there is one, so anything the system
+*did* populate is kept. The XML config stays: it is still what makes the
+service appear in Settings, with label and description, before the user
+ever turns it on.
+
+After the fix the same `dumpsys` line reads `feedbackType[FEEDBACK_GENERIC],
+eventTypes=TYPE_WINDOW_STATE_CHANGED, notificationTimeout=100`, and
+opening a non-allowed app during a session produces
+`ActivityTaskManager: START ... BlockOverlayActivity ... (BAL_ALLOW_TOKEN)
+result code=0` — worth noting that background activity launch was never
+the blocker here: an accessibility service is allowed one by token.
+
+**Verified on the recording, not by eye**: `screenrecord` during the
+transition, frames extracted at 5fps, shows the bridge overlay (see below)
+covering the screen ~1.2s after the blocked app was launched and the block
+screen in place by ~1.8s, with no frame in between where the blocked app's
+own content is visible.
+
+## The bridge overlay shows the otter, not a black rectangle
+
+`BlockOverlayActivity` takes ~0.6s to be up and drawn after the
+accessibility event arrives (measured: the activity's `START` lands 1.7–2.0s
+after the blocked app is launched, the event itself somewhat before that).
+The `TYPE_ACCESSIBILITY_OVERLAY` bridge window covers that gap — it used to
+do it with a plain black `View`, which read as a glitch rather than as the
+app. It now renders, through a `ComposeView`, the same thing the real screen
+shows: `CalmOtterTheme` + `OtterAnchoredScreen` + `ProgressRing` +
+`OtterFloatMark(124.dp)`, with the ring's fraction taken from
+`SessionManager` so it does not jump to the real value a moment later.
+
+Two things make this safe rather than a second place to keep in sync:
+
+- **The position is not recomputed.** The bridge composes the *same*
+  `OtterAnchoredScreen` the block screen uses, with the same
+  `horizontalPadding` and no header, so the otter's anchor is decided once,
+  by the container that exists precisely to make the two agree.
+- **The window is not an Activity**, so two things have to be re-added by
+  hand: an opaque `Box` behind the content (`calmBackground()` is a
+  translucent veil that counts on the XML theme's window background — with
+  nothing behind it the blocked app would show through), and a
+  `LifecycleOwner`/`SavedStateRegistryOwner` pair on the view tree, which
+  `ComposeView` requires and would otherwise find only inside an Activity.
+
+**The overlay window does not get the same insets as an Activity.**
+Measured on the emulator: it sees the status bar but not the navigation bar
+(bottom inset 0 instead of 72px), so `safeDrawingPadding()` inside
+`OtterAnchoredScreen` computed an area 72px taller and centred the otter
+36px lower — the otter mask sat at rows 1284–1409 against the real screen's
+1242–1367. Neither `FLAG_LAYOUT_IN_SCREEN | FLAG_LAYOUT_INSET_DECOR` nor
+`fitInsetsTypes = 0` changed that. The fix is to subtract the difference
+between the real system-bar inset (read from
+`WindowManager.currentWindowMetrics`) and the one Compose sees, as bottom
+padding around the container — so the single positioning formula stays in
+`OtterAnchoredScreen`, and the compensation collapses to zero by itself if
+the window ever starts reporting insets properly.
+
+Verified by capturing the bridge in isolation (temporary build with the
+dismissal disabled and the timeout raised, reverted before committing —
+same technique as the otter-position measurements further down): the bridge
+otter's centre landed at row 1310, against 1295–1325 for the real screen,
+whose otter is bobbing ±15px. In other words the bridge draws it at the
+exact midpoint of the real one's float, so the handoff shows no jump.
+
+`notificationTimeout` is also set to 0 rather than the XML's 100ms: it is
+the minimum delay the system waits before delivering another event of the
+same type, and every millisecond of it is time the blocked app stays
+uncovered. The handler returns immediately when no session is active, which
+is the common case, so there is nothing to throttle.
+
 ## One Activity, two roles: `MainActivity` merges the old `HomeActivity`
 
 `MainActivity` used to be purely `CATEGORY_LAUNCHER` (the app icon); a
