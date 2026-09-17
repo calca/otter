@@ -194,12 +194,19 @@ fun GroupPauseBluetoothLobbyJoinScreen(
                     if (!allReady) {
                         GentleReadinessBanner(hasPermissions, onReadinessAction)
                     }
+                    // Lo switch NFC↔ricerca resta un link di testo: cambia
+                    // solo il modo di cercare, e restando in questa lobby.
+                    // Il codice/QR invece è l'uscita di sicurezza quando il
+                    // Bluetooth non basta — una sola CTA secondaria per
+                    // schermata prende il contenitore tinto, altrimenti si
+                    // torna al punto di partenza, con tutto uguale.
                     TextButton(onClick = { state = JoinLobbyState.SearchHero }, modifier = Modifier.padding(top = 20.dp)) {
                         Text(stringResource(R.string.group_pause_join_search_link))
                     }
-                    TextButton(onClick = onWantCodeInstead) {
-                        Text(stringResource(R.string.group_pause_join_code_link))
-                    }
+                    CalmSecondaryButton(
+                        text = stringResource(R.string.group_pause_join_code_link),
+                        onClick = onWantCodeInstead,
+                    )
                 }
                 JoinLobbyState.SearchHero -> {
                     SearchingIllustration(hasResults = join.discovered.isNotEmpty(), searching = allReady)
@@ -256,9 +263,12 @@ fun GroupPauseBluetoothLobbyJoinScreen(
                             Text(stringResource(R.string.group_pause_join_nfc_title))
                         }
                     }
-                    TextButton(onClick = onWantCodeInstead) {
-                        Text(stringResource(R.string.group_pause_join_code_link))
-                    }
+                    // Stessa CTA dello stato NfcHero qui sopra, stesso
+                    // trattamento: è la stessa schermata in due stati, non due.
+                    CalmSecondaryButton(
+                        text = stringResource(R.string.group_pause_join_code_link),
+                        onClick = onWantCodeInstead,
+                    )
                 }
                 JoinLobbyState.Connecting -> {
                     OtterFloatMark(markSize = 88.dp)

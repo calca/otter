@@ -23,7 +23,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -209,9 +208,15 @@ fun GroupPauseBluetoothLobbyHostScreen(
                 )
             }
 
-            TextButton(onClick = { onWantCodeInstead(durationMinutes) }, modifier = Modifier.padding(top = 12.dp)) {
-                Text(stringResource(R.string.group_pause_prefer_code_link))
-            }
+            // L'unica via d'uscita dalla lobby se l'altro telefono non si
+            // fa trovare via Bluetooth, quindi l'unica CTA secondaria di
+            // questa schermata a meritare il contenitore tinto (vedi
+            // [CalmSecondaryButton]): da link nudo si perdeva fra i testi.
+            CalmSecondaryButton(
+                text = stringResource(R.string.group_pause_prefer_code_link),
+                onClick = { onWantCodeInstead(durationMinutes) },
+                modifier = Modifier.padding(top = 12.dp),
+            )
 
             Row(modifier = Modifier.fillMaxWidth().padding(top = 20.dp)) {
                 OutlinedButton(

@@ -443,3 +443,44 @@ on `weight(1f)`; distributing space is now `verticalArrangement`'s job.
 That constraint is the single thing to remember when adding to these
 screens.
 
+
+## Secondary CTAs that read as tappable: `CalmSecondaryButton`
+
+Reported plainly: the secondary calls to action "look uninviting", and on
+Home specifically "they aren't clear". Both of Home's non-primary entry
+points were bare text — `SessionsSummaryLink` ("1 day streak ›" /
+"No sessions this week ›") and a `TextButton` for "Tempo insieme" — so
+neither announced itself as something to touch. Which is right for the
+*primary* action (tapping the otter is deliberately the only way to start
+a pause, and nothing should compete with it) but wrong for two entries
+into whole other parts of the app.
+
+`CalmSecondaryButton` (`CalmBackground.kt`) is the shared treatment: a
+`FilledTonalButton` whose container is `primary` at 14% and whose content
+is `primary`, with an optional leading icon slot. The colours are passed
+**explicitly** — `ButtonDefaults.filledTonalButtonColors()` would use
+`secondaryContainer`/`onSecondaryContainer`, roles `CalmOtterTheme.kt`
+doesn't customise per palette, so a stock Material 3 purple would appear
+regardless of Sage/Lavender/Terracotta (the same trap CLAUDE.md documents
+for `surfaceVariant`). The recipe already existed as the weekly-goal
+button in `HistoryScreen.kt`; with five call sites it now lives in one
+place instead of being copied.
+
+The rule applied when converting: **one secondary CTA per screen**, the
+most useful one. On Home that's "Tempo insieme" (keeping `TogetherMark` as
+its leading icon); in the group-pause lobbies it's the code/QR fallback,
+not the NFC↔search switch, which stays a text link because it only changes
+how the same screen searches. Anything that would make every link on a
+screen look equally important is back where this started.
+
+`SessionsSummaryLink` gets the weaker half of the treatment: the same
+pill shape with `primary` at **8%** — the token the unselected duration
+chips already use — plus its text raised from 55% to 70% opacity. It is
+the less important of Home's two shortcuts and shouldn't weigh the same as
+"Tempo insieme"; 8% vs 14% is what says so.
+
+Spacing was then reported as off, and fixed to an even 24dp rhythm down
+the lower half of Home: duration chips → summary chip (`padding(top =
+24.dp)`) → "Tempo insieme" (`padding(top = 20.dp)`, the 4dp difference
+absorbed by the button's own minimum height). Before that, the two tinted
+pills nearly touched and read as one block instead of two destinations.

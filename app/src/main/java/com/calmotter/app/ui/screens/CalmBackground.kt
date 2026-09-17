@@ -2,7 +2,10 @@ package com.calmotter.app.ui.screens
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -12,6 +15,8 @@ import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
@@ -85,6 +90,30 @@ fun Modifier.calmBackground(): Modifier {
  * `Modifier.weight`** — l'altezza disponibile è infinita. Per distribuire
  * spazio, [verticalArrangement] (`Center`, `SpaceBetween`) fa quel lavoro.
  */
+@Composable
+fun CalmScreenColumn(
+    modifier: Modifier = Modifier,
+    contentPadding: PaddingValues = PaddingValues(0.dp),
+    horizontalAlignment: Alignment.Horizontal = Alignment.CenterHorizontally,
+    verticalArrangement: Arrangement.Vertical = Arrangement.Center,
+    content: @Composable ColumnScope.() -> Unit,
+) {
+    Box(modifier = modifier.fillMaxSize().calmBackground()) {
+        BoxWithConstraints(modifier = Modifier.fillMaxSize().safeDrawingPadding()) {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .verticalScroll(rememberScrollState())
+                    .heightIn(min = maxHeight)
+                    .padding(contentPadding),
+                horizontalAlignment = horizontalAlignment,
+                verticalArrangement = verticalArrangement,
+                content = content,
+            )
+        }
+    }
+}
+
 /**
  * Card tinta arrotondata per raggruppare il contenuto di una schermata —
  * stesso linguaggio visivo di `WeekOverviewCard` in HistoryScreen.kt
@@ -110,26 +139,43 @@ fun CalmCard(modifier: Modifier = Modifier, content: @Composable ColumnScope.() 
     }
 }
 
+/**
+ * Azione secondaria "invitante": un `FilledTonalButton` tinta di palette,
+ * per le scorciatoie che prima erano `TextButton` nudi e si leggevano come
+ * testo invece che come qualcosa da toccare (segnalato: "le CTA secondarie
+ * sembrano poco invitanti").
+ *
+ * Stessa ricetta del bottone dell'obiettivo settimanale in
+ * `HistoryScreen.kt`, qui condivisa invece che ricopiata: i colori sono
+ * **espliciti** perché `ButtonDefaults.filledTonalButtonColors()` userebbe
+ * `secondaryContainer`/`onSecondaryContainer`, ruoli che
+ * `CalmOtterTheme.kt` non personalizza per palette e che cadrebbero sul
+ * viola di base di Material3 qualunque tema sia scelto (stessa trappola di
+ * `surfaceVariant` documentata in CLAUDE.md). Con cinque punti d'uso, quel
+ * dettaglio è meglio che viva in un posto solo.
+ *
+ * Resta comunque *sotto* all'azione primaria della schermata, che è un
+ * `Button` pieno: il contenitore qui è al 14% di `primary`, non pieno.
+ */
 @Composable
-fun CalmScreenColumn(
+fun CalmSecondaryButton(
+    text: String,
+    onClick: () -> Unit,
     modifier: Modifier = Modifier,
-    contentPadding: PaddingValues = PaddingValues(0.dp),
-    horizontalAlignment: Alignment.Horizontal = Alignment.CenterHorizontally,
-    verticalArrangement: Arrangement.Vertical = Arrangement.Center,
-    content: @Composable ColumnScope.() -> Unit,
+    leadingIcon: @Composable (() -> Unit)? = null,
 ) {
-    Box(modifier = modifier.fillMaxSize().calmBackground()) {
-        BoxWithConstraints(modifier = Modifier.fillMaxSize().safeDrawingPadding()) {
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .verticalScroll(rememberScrollState())
-                    .heightIn(min = maxHeight)
-                    .padding(contentPadding),
-                horizontalAlignment = horizontalAlignment,
-                verticalArrangement = verticalArrangement,
-                content = content,
-            )
+    FilledTonalButton(
+        onClick = onClick,
+        modifier = modifier,
+        colors = ButtonDefaults.filledTonalButtonColors(
+            containerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.14f),
+            contentColor = MaterialTheme.colorScheme.primary,
+        ),
+    ) {
+        if (leadingIcon != null) {
+            leadingIcon()
+            Spacer(modifier = Modifier.width(8.dp))
         }
+        Text(text = text)
     }
 }

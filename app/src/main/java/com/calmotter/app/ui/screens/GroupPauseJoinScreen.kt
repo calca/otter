@@ -135,9 +135,14 @@ private fun GroupPauseCodeEntryScreen(onRecipeReady: (GroupPauseRecipe) -> Unit,
                     modifier = Modifier.padding(bottom = 20.dp)
                 )
                 ManualCodeTab(onRecipeReady)
-                TextButton(onClick = { mode = JoinMode.SCAN }, modifier = Modifier.padding(top = 8.dp)) {
-                    Text(stringResource(R.string.group_pause_join_scan_tab))
-                }
+                // Scansionare è la strada più rapida delle due: chi arriva
+                // qui e vede il campo di testo deve accorgersi che può
+                // ancora inquadrare il QR invece di ricopiare un codice.
+                CalmSecondaryButton(
+                    text = stringResource(R.string.group_pause_join_scan_tab),
+                    onClick = { mode = JoinMode.SCAN },
+                    modifier = Modifier.padding(top = 8.dp),
+                )
                 OutlinedButton(onClick = onCancel, modifier = Modifier.fillMaxWidth().padding(top = 20.dp)) {
                     Text(stringResource(android.R.string.cancel))
                 }
@@ -245,6 +250,17 @@ private fun ScanFullScreen(
                 )
                 Button(onClick = { permissionLauncher.launch(Manifest.permission.CAMERA) }) {
                     Text(stringResource(R.string.permission_action_grant))
+                }
+                // Senza questo, negare la fotocamera era un vicolo cieco:
+                // restavano solo "Concedi" e "Annulla", mentre il codice si
+                // può benissimo digitare. Resta un link di testo e non un
+                // [CalmSecondaryButton] perché qui l'azione principale
+                // ("Concedi") è già un Button pieno.
+                TextButton(
+                    onClick = onSwitchToManual,
+                    modifier = Modifier.padding(top = 8.dp),
+                ) {
+                    Text(stringResource(R.string.group_pause_manual_entry_link))
                 }
             }
         }

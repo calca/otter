@@ -782,6 +782,35 @@ one availability check, which was then reverted.
 this environment does not have — the same honest limit that applies to
 every Bluetooth and NFC path in this feature.
 
+## Secondary CTAs: tonal, one per screen
+
+The code/QR fallback was a bare `TextButton` on all three screens that
+offer it, and read as a caption rather than a way out. It now uses the
+shared `CalmSecondaryButton` (`primary` at 14%, explicit colours — see
+specs/home-and-settings/design.md for why the defaults can't be used):
+
+- `GroupPauseBluetoothLobbyHostScreen` — "Preferisci un codice o un QR?"
+- `GroupPauseBluetoothLobbyJoinScreen` — "Scansiona o inserisci un codice",
+  in **both** hero states (NFC and search): one screen in two states, not
+  two screens.
+- `GroupPauseJoinScreen`'s manual-entry card — "Scansiona", below the
+  filled "Unisciti" button.
+
+Deliberately left as plain text links: the NFC↔search switch in the join
+lobby (it only changes how this same screen looks for a host, and making
+both links tonal would put the screen back where it started), and the
+full-screen scanner's own links, which are white-on-scrim over the camera
+feed and have no theme colour to borrow.
+
+**Dead end found while verifying this.** With the camera permission
+denied, `ScanFullScreen`'s pre-permission branch offered only "Concedi"
+and "Annulla" — the "enter a code manually" link lived in the *granted*
+branch, overlaid on the live preview. Anyone declining the camera was
+therefore locked out of a code they could perfectly well type. That
+branch now carries the same `group_pause_manual_entry_link` `TextButton`
+(a text link, not a tonal one: "Concedi" is already a filled `Button`
+there).
+
 ## Verification performed (single device)
 
 **Phase 1:**

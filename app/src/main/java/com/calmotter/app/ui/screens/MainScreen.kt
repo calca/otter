@@ -13,6 +13,7 @@ import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
@@ -321,21 +322,25 @@ fun MainScreen(
                 onHistory = onHistory,
             )
 
-            // Non compete con il tap sull'otter (l'azione primaria):
-            // testo piccolo e defilato, non un altro bottone pieno —
-            // vedi specs/group-pause/design.md. TogetherMark (le due
-            // zampe di PactPawsMark senza il badge circolare) come
-            // icona leading, su richiesta esplicita ("un po' anonima"):
-            // un'icona rende il bottone più riconoscibile a colpo
-            // d'occhio invece di solo testo tra i due CTA della Home.
-            TextButton(onClick = { showGroupPauseChooser = true }) {
-                TogetherMark(markSize = 18.dp)
-                Text(
-                    text = stringResource(R.string.group_pause_entry_button),
-                    style = MaterialTheme.typography.labelMedium,
-                    modifier = Modifier.padding(start = 8.dp),
-                )
-            }
+            // Non compete con il tap sull'otter, che resta l'azione
+            // primaria (vedi specs/group-pause/design.md) — ma come
+            // `TextButton` nudo non si leggeva affatto come qualcosa da
+            // toccare ("anche in home non sono chiari"): [CalmSecondaryButton]
+            // gli dà un contenitore tinto senza farne un bottone pieno.
+            // TogetherMark (le due zampe di PactPawsMark senza il badge
+            // circolare) resta l'icona leading, su richiesta precedente
+            // ("un po' anonima"): rende il bottone riconoscibile a colpo
+            // d'occhio invece di solo testo.
+            // 20dp sotto la riga di riepilogo: da quando entrambe hanno un
+            // contenitore tinto, senza questo spazio le due pastiglie si
+            // sfioravano e si leggevano come un blocco unico invece che
+            // come due destinazioni diverse.
+            CalmSecondaryButton(
+                text = stringResource(R.string.group_pause_entry_button),
+                onClick = { showGroupPauseChooser = true },
+                leadingIcon = { TogetherMark(markSize = 18.dp) },
+                modifier = Modifier.padding(top = 20.dp),
+            )
         }
     }
 
@@ -609,7 +614,7 @@ private fun SessionsSummaryLink(
 ) {
     Row(
         modifier = Modifier
-            .padding(top = 20.dp)
+            .padding(top = 24.dp)
             .clip(RoundedCornerShape(50))
             // onClickLabel invece di una stringa in più: TalkBack annuncia
             // "apri Cronologia" come azione della riga, senza che il "›"
@@ -618,6 +623,14 @@ private fun SessionsSummaryLink(
                 onClickLabel = stringResource(R.string.history_title),
                 onClick = onHistory,
             )
+            // Contenitore appena accennato (`primary` all'8%, la stessa
+            // tinta delle pillole di durata non selezionate qui sopra):
+            // come sola riga di testo non si capiva che si potesse
+            // toccare. Volutamente più debole del 14% di
+            // [CalmSecondaryButton] sotto — questa è la scorciatoia meno
+            // importante delle due, e le due CTA secondarie della Home
+            // non devono pesare uguale.
+            .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.08f))
             .padding(horizontal = 12.dp, vertical = 6.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
@@ -629,12 +642,12 @@ private fun SessionsSummaryLink(
             },
             style = MaterialTheme.typography.labelSmall,
             fontFamily = FontFamily.Monospace,
-            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.55f),
+            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
         )
         Text(
             text = "›",
             style = MaterialTheme.typography.labelSmall,
-            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.55f),
+            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
             modifier = Modifier.padding(start = 6.dp),
         )
     }
