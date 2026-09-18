@@ -514,9 +514,39 @@ wider "Tempo insieme" pill (72% of the width).
 What was **not** taken: the bottom navigation bar and the user avatar in the
 header (asked for explicitly — neither has anything to lead to), the
 seconds-level countdown, and the "Breathe gently with otter" pill, which
-promises a breathing exercise the app does not have. The full-page ambient
-ripples also stay as they are, wider than the mockup's contained rings: that
-was a deliberate earlier request.
+promises a breathing exercise the app does not have.
+
+### The pond, measured rather than guessed
+
+`AmbientRipples` draws **four concentric filled discs** — pale around the
+mascot, then white, then pale, then a veil — with the ripples starting at the
+outer edge and travelling off the page, so they leave the still pond instead
+of crossing the otter.
+
+The radii come from the mockup itself, dumped as raw RGB and walked row by
+row for colour boundaries. Three rounds of eyeballing had produced three
+wrong ponds, and the measurement corrected two distinct mistakes:
+
+- **Which row.** The first measurement used y=127 and read the wrong circles;
+  the pond's centre is y=145. On the right row the boundaries fall at 27, 48,
+  64 and 80px from the centre — 47, 83, 110 and 138dp at the mockup's 390dp
+  width, rescaled here to 54, 91, 121 and 151dp.
+- **Which disc is white.** It is the *second*, not the innermost. One attempt
+  inverted the order; another took the inner pale disc for the halo
+  `OtterZenMark` draws for itself and dropped it altogether — but it is a
+  disc of the pond, and without it the mascot floats in the middle of the
+  white with nothing holding it.
+
+The otter is 88dp and the progress ring 182dp, running along the white disc's
+edge, which is where the mockup puts the progress dot.
+
+Two constants moved as a consequence, and both stay fixed and shared —
+they are heights *reserved*, not measurements of content, which is the whole
+point of them: `OtterSlotHeight` 272dp → 400dp, because a 151dp radius plus
+margin does not fit in 272dp and the pond landed on "Tocca l'otter per
+iniziare"; `OtterBelowReserveHeight` 100dp → 295dp, because the pond fills
+the upper half — measured on screen there were 190px of emptiness above it
+and 20 below.
 
 
 ## Redesign pass: Settings
