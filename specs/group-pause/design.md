@@ -695,8 +695,20 @@ Two departures from the mockup:
 - **No bottom navigation bar**, as everywhere else in the redesign.
   Consequence worth stating: the mockup's lower half was that bar, so with
   it gone the content would sit high with half a screen of nothing below.
-  The body is therefore centred in what remains of the page, scrolling
-  instead of clipping when the system font makes it too tall.
+
+  Centring the whole block in what remained was the first answer and was
+  not good enough: the content bunched at mid-height with an empty band
+  above it and another below. The body is now **four blocks distributed
+  over the height** (`Arrangement.SpaceBetween`) — medallion, heading,
+  the two cards, closing line — which puts the title at 49% of the page,
+  measured. Grouping matters: title+subtitle are one child and the two
+  cards are another, so the distribution never pushes apart things that
+  belong together. This also matches the mockup, whose `main` uses
+  `justify-between` to push its closing line to the bottom.
+
+  The distributed space only exists while the content fits; when it stops
+  fitting (enlarged system font) the four blocks pack together and
+  `verticalScroll` scrolls them rather than clipping.
 - **No title in the top bar.** The mockup prints "Time Together" both there
   and under the medallion — the same words a finger's width apart. Same
   reason Home dropped its "Home" heading: the bar says where you go back

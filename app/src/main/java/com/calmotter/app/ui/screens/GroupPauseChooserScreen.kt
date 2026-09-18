@@ -69,57 +69,66 @@ fun GroupPauseChooserScreen(
         Column(modifier = Modifier.fillMaxSize().safeDrawingPadding()) {
             GroupPauseChooserTopBar(onBack = onBack)
 
-            // Il corpo si centra in quello che resta invece di impilarsi
-            // sotto la barra. Il mockup riempiva la metà bassa con la barra
-            // di navigazione, che qui non c'è: appoggiato in alto, il
-            // contenuto lasciava mezzo schermo vuoto sotto di sé.
+            // **Quattro blocchi distribuiti sull'altezza**, non una pila
+            // centrata. Centrato, il contenuto si stringeva a metà pagina
+            // lasciando due fasce vuote, sopra e sotto: l'emblema ora sta in
+            // alto, la testata cade più o meno a metà, le due strade
+            // occupano la parte bassa e la riga di chiusura chiude la
+            // pagina. È anche la distribuzione del mockup, che con
+            // `justify-between` spinge la sua riga di chiusura in fondo.
             //
-            // `verticalScroll` insieme ad `Arrangement.Center`: finché ci
-            // sta, sta al centro; quando non ci sta più (carattere di
-            // sistema ingrandito) scorre invece di farsi tagliare.
+            // Lo spazio distribuito esiste solo finché il contenuto ci sta:
+            // quando non ci sta più (carattere di sistema ingrandito) i
+            // quattro blocchi si compattano e `verticalScroll` li fa
+            // scorrere, invece di tagliarli.
             Column(
                 modifier = Modifier
                     .weight(1f)
                     .verticalScroll(rememberScrollState())
-                    .padding(horizontal = 24.dp),
+                    .padding(horizontal = 24.dp, vertical = 12.dp),
                 horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Center,
+                verticalArrangement = Arrangement.SpaceBetween,
             ) {
                 TandemPawsMedallion()
 
-                Spacer(modifier = Modifier.height(24.dp))
-                Text(
-                    text = stringResource(R.string.group_pause_entry_button),
-                    style = MaterialTheme.typography.headlineSmall,
-                    fontWeight = FontWeight.SemiBold,
-                    color = MaterialTheme.colorScheme.primary,
-                )
-                Text(
-                    text = stringResource(R.string.group_pause_chooser_subtitle),
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
-                    textAlign = TextAlign.Center,
-                    modifier = Modifier.padding(top = 8.dp),
-                )
+                // Titolo e sottotitolo restano un blocco solo: sono una
+                // frase in due righe, non due elementi da allontanare.
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Text(
+                        text = stringResource(R.string.group_pause_entry_button),
+                        style = MaterialTheme.typography.headlineSmall,
+                        fontWeight = FontWeight.SemiBold,
+                        color = MaterialTheme.colorScheme.primary,
+                    )
+                    Text(
+                        text = stringResource(R.string.group_pause_chooser_subtitle),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier.padding(top = 8.dp),
+                    )
+                }
 
-                Spacer(modifier = Modifier.height(28.dp))
-                GroupPauseChoiceCard(
-                    title = stringResource(R.string.group_pause_chooser_create),
-                    role = stringResource(R.string.group_pause_chooser_create_role),
-                    description = stringResource(R.string.group_pause_chooser_create_desc),
-                    icon = { TogetherMark(markSize = 22.dp) },
-                    onClick = onCreate,
-                )
-                GroupPauseChoiceCard(
-                    title = stringResource(R.string.group_pause_chooser_join),
-                    role = stringResource(R.string.group_pause_chooser_join_role),
-                    description = stringResource(R.string.group_pause_chooser_join_desc),
-                    icon = { OtterSatelliteMark(markSize = 22.dp) },
-                    onClick = onJoin,
-                    modifier = Modifier.padding(top = 12.dp),
-                )
+                // Le due card sono un blocco anche loro: sono la scelta, e
+                // separarle le farebbe leggere come due cose diverse.
+                Column {
+                    GroupPauseChoiceCard(
+                        title = stringResource(R.string.group_pause_chooser_create),
+                        role = stringResource(R.string.group_pause_chooser_create_role),
+                        description = stringResource(R.string.group_pause_chooser_create_desc),
+                        icon = { TogetherMark(markSize = 22.dp) },
+                        onClick = onCreate,
+                    )
+                    GroupPauseChoiceCard(
+                        title = stringResource(R.string.group_pause_chooser_join),
+                        role = stringResource(R.string.group_pause_chooser_join_role),
+                        description = stringResource(R.string.group_pause_chooser_join_desc),
+                        icon = { OtterSatelliteMark(markSize = 22.dp) },
+                        onClick = onJoin,
+                        modifier = Modifier.padding(top = 12.dp),
+                    )
+                }
 
-                Spacer(modifier = Modifier.height(28.dp))
                 GroupPauseChooserFooter()
             }
         }
