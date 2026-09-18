@@ -107,6 +107,11 @@
             android:theme="@style/Theme.CalmOtter" />
 
         <activity
+            android:name=".GroupPauseChooserActivity"
+            android:exported="false"
+            android:theme="@style/Theme.CalmOtter" />
+
+        <activity
             android:name=".BlockOverlayActivity"
             android:exported="false"
             android:launchMode="singleInstance"

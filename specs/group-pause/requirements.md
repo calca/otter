@@ -204,10 +204,13 @@ paths I want before committing to one.
 1. Create and Join SHALL be presented as two equally-weighted choices —
    neither occupying a dialog's affirmative or dismissive action slot,
    since neither is a confirmation or a cancellation.
-2. Each choice SHALL carry a short description of what it leads to.
+2. Each choice SHALL carry a short description of what it leads to, and
+   SHALL name the role it puts the person in.
 3. The chooser SHALL offer an explicit way out, not only system back or a
    tap outside.
-4. Duration options SHALL all remain visible and legible at once; no
+4. The chooser SHALL be a screen of its own, consistent with every later
+   step of the flow, not a dialog on top of Home.
+5. Duration options SHALL all remain visible and legible at once; no
    option's label may be truncated or wrapped mid-label to make the row
    fit.
 

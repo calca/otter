@@ -78,7 +78,6 @@ import com.calmotter.app.SessionRecord
 import com.calmotter.app.SessionStreak
 import com.calmotter.app.ui.mascot.OtterFloatMark
 import com.calmotter.app.ui.mascot.OtterZenMark
-import com.calmotter.app.ui.mascot.OtterSatelliteMark
 import com.calmotter.app.ui.mascot.SprigMark
 import com.calmotter.app.ui.mascot.TogetherMark
 import kotlinx.coroutines.delay
@@ -189,8 +188,7 @@ fun MainScreen(
     // in minuti: il flow di creazione la usa come valore iniziale del proprio
     // selettore, invece di ripartire sempre da un default indipendente — vedi
     // GroupPauseBluetoothLobbyHostScreen.
-    onGroupPauseHost: (durationMinutes: Int) -> Unit = {},
-    onGroupPauseJoin: () -> Unit = {},
+    onGroupPause: (durationMinutes: Int) -> Unit = {},
     // Vedi il parametro omonimo di [BlockScreen]: è lo stesso otter, ed è
     // [MainActivity] a legarli come elemento condiviso.
     otterModifier: Modifier = Modifier,
@@ -210,7 +208,6 @@ fun MainScreen(
     var weekSummary by remember { mutableStateOf(WeekSummary(0, 0)) }
     var selectedDurationIndex by remember { mutableIntStateOf(1) }
     var showPermissionDialog by remember { mutableStateOf(false) }
-    var showGroupPauseChooser by remember { mutableStateOf(false) }
 
     fun refreshDerivedState() {
         accessibilityOk = isAccessibilityServiceEnabled()
@@ -384,7 +381,7 @@ fun MainScreen(
             // come due destinazioni diverse.
             CalmSecondaryButton(
                 text = stringResource(R.string.group_pause_entry_button),
-                onClick = { showGroupPauseChooser = true },
+                onClick = { onGroupPause(selectedDurationIndex * 30) },
                 // 22dp e non 18: le due impronte hanno otto polpastrelli fra
                 // loro, e sotto i 20dp si impastavano in una macchia sola.
                 leadingIcon = { TogetherMark(markSize = 22.dp) },
@@ -407,108 +404,6 @@ fun MainScreen(
             },
             onDismiss = { showPermissionDialog = false },
         )
-    }
-
-    if (showGroupPauseChooser) {
-        // Crea e Unisciti sono due percorsi pari grado, e stanno nel corpo del
-        // dialogo come due righe toccabili. Prima occupavano gli slot
-        // `confirmButton`/`dismissButton`: "Crea" finiva nella posizione
-        // affermativa e "Unisciti" in quella del rifiuto, che oltre a essere
-        // arbitrario è quanto TalkBack e le convenzioni Material annunciano
-        // come "annulla". Mancava inoltre qualunque uscita dichiarata: solo
-        // tasto indietro o tap fuori. Ora l'unica azione in fondo è Annulla,
-        // che è davvero ciò che fa.
-        AlertDialog(
-            onDismissRequest = { showGroupPauseChooser = false },
-            title = { Text(stringResource(R.string.group_pause_entry_button)) },
-            text = {
-                Column {
-                    Text(stringResource(R.string.group_pause_chooser_intro))
-                    GroupPauseChoiceRow(
-                        title = stringResource(R.string.group_pause_chooser_create),
-                        description = stringResource(R.string.group_pause_chooser_create_desc),
-                        icon = { TogetherMark(markSize = 20.dp) },
-                        onClick = {
-                            showGroupPauseChooser = false
-                            onGroupPauseHost(selectedDurationIndex * 30)
-                        },
-                        modifier = Modifier.padding(top = 16.dp),
-                    )
-                    GroupPauseChoiceRow(
-                        title = stringResource(R.string.group_pause_chooser_join),
-                        description = stringResource(R.string.group_pause_chooser_join_desc),
-                        icon = { OtterSatelliteMark(markSize = 20.dp) },
-                        onClick = {
-                            showGroupPauseChooser = false
-                            onGroupPauseJoin()
-                        },
-                        modifier = Modifier.padding(top = 8.dp),
-                    )
-                }
-            },
-            confirmButton = {
-                TextButton(onClick = { showGroupPauseChooser = false }) {
-                    Text(stringResource(android.R.string.cancel))
-                }
-            },
-        )
-    }
-}
-
-/**
- * Una delle due scelte del dialogo Tempo Insieme: titolo più una riga che
- * dice cosa comporta. La descrizione non è decorativa — "Crea" e "Unisciti",
- * da soli, lasciavano indovinare la differenza fra i due percorsi.
- */
-@Composable
-private fun GroupPauseChoiceRow(
-    title: String,
-    description: String,
-    onClick: () -> Unit,
-    modifier: Modifier = Modifier,
-    icon: @Composable () -> Unit,
-) {
-    // Icona a sinistra e freccia a destra (redesign): le due scelte hanno
-    // testi lunghi simili e si distinguevano solo leggendoli. Il "›" dice
-    // che da qui si prosegue — nessuna delle due conclude qualcosa.
-    Surface(
-        onClick = onClick,
-        shape = RoundedCornerShape(16.dp),
-        color = MaterialTheme.colorScheme.primary.copy(alpha = 0.08f),
-        modifier = modifier.fillMaxWidth(),
-    ) {
-        Row(
-            modifier = Modifier.padding(horizontal = 16.dp, vertical = 14.dp),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Box(
-                modifier = Modifier
-                    .size(38.dp)
-                    .clip(CircleShape)
-                    .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.12f)),
-                contentAlignment = Alignment.Center,
-                content = { icon() },
-            )
-            Column(modifier = Modifier.weight(1f).padding(start = 12.dp)) {
-                Text(
-                    text = title,
-                    fontWeight = FontWeight.SemiBold,
-                    color = MaterialTheme.colorScheme.primary,
-                )
-                Text(
-                    text = description,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
-                    modifier = Modifier.padding(top = 2.dp),
-                )
-            }
-            Text(
-                text = "\u203a",
-                color = MaterialTheme.colorScheme.primary,
-                fontWeight = FontWeight.SemiBold,
-                modifier = Modifier.padding(start = 8.dp),
-            )
-        }
     }
 }
 

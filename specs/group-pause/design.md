@@ -632,6 +632,53 @@ Verified on-device that each row still reaches its Activity
 (`GroupPauseHostActivity` / `GroupPauseJoinActivity`) and that Cancel
 dismisses.
 
+### …and then the dialog became a page
+
+`GroupPauseChooserScreen` / `GroupPauseChooserActivity` (mockup: "Time
+Together Chooser Page"). The reasoning that kept it a dialog — "a fork in a
+flow, not a place" — reads well but did not survive using it: every step
+*after* this fork (host lobby, join lobby, QR/code, countdown) is already a
+full screen, so the flow opened in one register and continued in another.
+A dialog also has nowhere to say what each path involves beyond one line,
+which is exactly what a first step has to do.
+
+What the page adds over the dialog body:
+
+- A **role badge** next to each title — "chi ospita" / "chi si unisce".
+  "Crea" and "Unisciti" say what the tap does; the badge says what you
+  *are* afterwards, which is the thing two people deciding between
+  themselves actually need.
+- A `TandemPawsMedallion` hero, the pond treatment of Home reduced to
+  140dp with `TogetherMark` inside. It does not reuse `PondStill`: that one
+  is full-page and anchored to a centre shared with `BlockScreen`, an
+  invariant with its own file (`OtterAnchoredScreen.kt`) that has no reason
+  to be dragged in here.
+- The closing line, which says why the screen exists rather than asking for
+  anything.
+
+Two departures from the mockup:
+
+- **No bottom navigation bar**, as everywhere else in the redesign.
+  Consequence worth stating: the mockup's lower half was that bar, so with
+  it gone the content would sit high with half a screen of nothing below.
+  The body is therefore centred in what remains of the page, scrolling
+  instead of clipping when the system font makes it too tall.
+- **No title in the top bar.** The mockup prints "Time Together" both there
+  and under the medallion — the same words a finger's width apart. Same
+  reason Home dropped its "Home" heading: the bar says where you go back
+  to, not where you are.
+
+`GroupPauseChooserActivity` holds no state of its own. It forwards Home's
+chosen duration to `GroupPauseHostActivity` and `finish()`es itself on both
+paths, so back from a lobby returns to Home rather than to the fork —
+once the road is chosen there is nothing to come back to. Verified
+on-device: back → Home, Create → host lobby, Join → join, back from the
+lobby → Home.
+
+The Cancel action went with the dialog; the requirement it satisfied (an
+explicit way out, not just system back) is met by the top bar's back
+arrow.
+
 ## Closing the asymmetry: `LOBBY:` tells the joiner what they're agreeing to
 
 The Bluetooth protocol had exactly two messages: `HELLO:<name>`
@@ -906,14 +953,16 @@ here:
   duration pills on Home. Same gesture, same shape, in both.
 - The Create/Join rows in the chooser gained an icon pastille and a "›". The
   two options have similarly long descriptions and were told apart only by
-  reading them; the chevron says that neither one concludes anything.
+  reading them; the chevron says that neither one concludes anything. Both
+  carried over to the page that replaced the dialog.
 - The Zen otter replaces `OtterFloatMark` on every hero here (both lobbies,
   the release step) and in History's empty state, so one face runs through
   the whole app.
 
-The chooser stays a **dialog**, where the mockup makes it a full page: it is
-a fork in a flow, not a place — and the flow was the part explicitly meant to
-stay as it is.
+The chooser was kept as a **dialog** in this pass, where the mockup makes it
+a full page, on the grounds that it is a fork in a flow rather than a place.
+That did not hold up and was reversed straight after — see "…and then the
+dialog became a page" above.
 
 Not taken: the mockup's "Both otters drift together — timer pauses
 simultaneously if either screen…" note, which describes a live sync this
