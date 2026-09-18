@@ -35,6 +35,8 @@ import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.runtime.State
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -104,7 +106,7 @@ fun BlockScreen(
     // Vedi [rememberOtterFloatOffset]: quando si arriva qui dalla Home,
     // l'oscillazione dev'essere la *stessa* istanza, non una nuova con la
     // propria fase — vedi il commento al punto d'uso.
-    otterFloatOffset: Float? = null,
+    otterFloatOffset: State<Float>? = null,
 ) {
     val context = LocalContext.current
 
@@ -227,7 +229,10 @@ fun BlockScreen(
             // propria oscillazione: è il caso di BlockOverlayActivity, che non
             // arriva da nessuna transizione.
             val floatOffset = otterFloatOffset ?: rememberOtterFloatOffset(periodMillis = 5200)
-            Box(modifier = Modifier.offset(y = floatOffset.dp)) {
+            // Lettura in fase di disegno (vedi steppedFraction in
+            // MainScreen.kt): con `Modifier.offset(y = valore.dp)` il valore
+            // si legge in composizione e ogni scatto ricompone la schermata.
+            Box(modifier = Modifier.graphicsLayer { translationY = floatOffset.value * density }) {
                 OtterZenMark(modifier = otterModifier, markSize = 118.dp)
             }
         },

@@ -43,6 +43,8 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.State
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.animation.core.withInfiniteAnimationFrameMillis
 import androidx.compose.runtime.mutableFloatStateOf
@@ -183,7 +185,7 @@ fun MainScreen(
     // Vedi [rememberOtterFloatOffset]: passato dall'esterno quando la stessa
     // oscillazione deve proseguire anche in [BlockScreen], null quando questa
     // schermata è sola e può gestirsela da sé.
-    otterFloatOffset: Float? = null,
+    otterFloatOffset: State<Float>? = null,
 ) {
     val context = LocalContext.current
 
@@ -578,7 +580,7 @@ private fun PondOtter(
     totalMillis: Long,
     onStart: () -> Unit,
     otterModifier: Modifier = Modifier,
-    otterFloatOffset: Float? = null,
+    otterFloatOffset: State<Float>? = null,
     // Cambia a ogni onResume: fa ripartire l'oscillazione quando si torna
     // sulla schermata, vedi [rememberOtterFloatOffset].
     restartKey: Int = 0,
@@ -639,7 +641,7 @@ private fun PondOtter(
 
         Box(
             modifier = Modifier
-                .graphicsLayer { translationY = floatOffset * density }
+                .graphicsLayer { translationY = floatOffset.value * density }
                 .scale(otterScale)
                 .clip(CircleShape)
                 .clickable(enabled = !sessionActive && !isStarting, onClick = { isStarting = true }),
@@ -811,7 +813,7 @@ private fun AmbientRipples(centerY: Dp, restartKey: Int, modifier: Modifier = Mo
     val running = active || fade > 0.01f
     // 9 secondi per giro, non 3,6: è un sasso caduto nell'acqua, non una
     // scansione radar. L'avanzamento è a scatti, vedi [steppedFraction].
-    val t = steppedFraction(RIPPLE_PERIOD_MILLIS, stepsPerSecond = 15, running = running)
+    val tState = steppedFraction(RIPPLE_PERIOD_MILLIS, stepsPerSecond = 10, running = running)
     if (!running) return
     // Le onde usano `tertiary` (#d5e0d5 nelle palette verdi), che nel design
     // system è esattamente il colore dei "ripple borders" — non `primary` a
@@ -823,7 +825,8 @@ private fun AmbientRipples(centerY: Dp, restartKey: Int, modifier: Modifier = Mo
     // Misurarne il guadagno su questo emulatore non è riuscito — la CPU del
     // processo oscillava fra il 17% e il 77% fra campioni identici — ma è
     // comunque la forma giusta per un livello che si anima da solo.
-    Canvas(modifier = modifier.graphicsLayer()) {
+    Canvas(modifier = modifier) {
+        val t = tState.value
         val center = Offset(size.width / 2f, centerY.toPx())
         val veilRadius = 151.dp.toPx()
         // Quanto cresce un anello prima di spegnersi. **Non** piu'
@@ -883,20 +886,40 @@ private fun AmbientRipples(centerY: Dp, restartKey: Int, modifier: Modifier = Mo
  * "rimuovi animazioni".
  */
 @Composable
-private fun steppedFraction(periodMillis: Int, stepsPerSecond: Int = 20, running: Boolean = true): Float {
-    var fraction by remember { mutableFloatStateOf(0f) }
+private fun steppedFraction(periodMillis: Int, stepsPerSecond: Int = 20, running: Boolean = true): State<Float> {
+    // **Lo stato torna come `State`, non come `Float`.** Se il valore venisse
+    // letto qui in fase di composizione, ogni scatto ricomporrebbe chi lo
+    // legge; letto invece dentro la lambda di disegno, Compose salta
+    // composizione e layout e ridisegna soltanto. Misurato su Galaxy S22 con
+    // `dumpsys gfxinfo`: GPU 3ms per fotogramma ma fotogramma totale 16ms,
+    // con "Slow UI thread" su tutti — il costo era la ricomposizione, non il
+    // disegno.
+    val fractionState = remember { mutableFloatStateOf(0f) }
+    var fraction by fractionState
     LaunchedEffect(periodMillis, stepsPerSecond, running) {
         if (!running) return@LaunchedEffect
         val steps = (periodMillis / 1000f * stepsPerSecond).toInt().coerceAtLeast(1)
+        val stepMillis = (1000f / stepsPerSecond).toLong()
         while (true) {
+            // L'aggancio all'orologio delle animazioni di Compose, e non un
+            // timer proprio, è ciò che fa fermare tutto quando la schermata
+            // non è visibile: nessun fotogramma, nessun risveglio. Verificato:
+            // con l'app in background il processo sta a 0%.
             withInfiniteAnimationFrameMillis { now ->
                 val step = ((now % periodMillis) / periodMillis.toFloat() * steps).toInt()
                 val next = step / steps.toFloat()
                 if (next != fraction) fraction = next
             }
+            // **L'attesa qui in mezzo è il punto.** Senza, il ciclo si
+            // riaggancia subito al fotogramma successivo: su un telefono a
+            // 120Hz sono 120 risvegli al secondo per cambiare lo stato 15
+            // volte, e la pipeline grafica non torna mai a riposo. Misurato
+            // su Galaxy S22: 38-48% di un core contro il 3-5% che resta
+            // aspettando fra un passo e l'altro.
+            delay(stepMillis)
         }
     }
-    return fraction
+    return fractionState
 }
 
 /**
@@ -945,7 +968,7 @@ private fun TapConfirmBurst(progress: Float, modifier: Modifier = Modifier) {
  * altrove è che [PondOtter] è stata la prima a usarla.
  */
 @Composable
-fun rememberOtterFloatOffset(periodMillis: Int, restartKey: Int = 0): Float {
+fun rememberOtterFloatOffset(periodMillis: Int, restartKey: Int = 0): State<Float> {
     // Anche l'otter si acquieta, come lo stagno (vedi [AmbientRipples]): non
     // è un dettaglio di risparmio ma la voce grossa. Misurato sul Mac che
     // ospita l'emulatore: a schermata ferma, con le sole onde spente, il
@@ -960,17 +983,20 @@ fun rememberOtterFloatOffset(periodMillis: Int, restartKey: Int = 0): Float {
         delay(SCENE_QUIET_AFTER_MILLIS)
         active = false
     }
-    val amplitude by animateFloatAsState(
+    val amplitudeState = animateFloatAsState(
         targetValue = if (active) 5f else 0f,
         animationSpec = tween(2500, easing = LinearEasing),
         label = "otterBobAmplitude",
     )
-    val running = active || amplitude > 0.05f
+    val running = active || amplitudeState.value > 0.05f
     // Una sinusoide sulla sorgente a scatti delle increspature: il periodo
     // completo è andata+ritorno, quindi il doppio di quello che chiedeva
     // `RepeatMode.Reverse`.
-    val t = steppedFraction(periodMillis * 2, stepsPerSecond = 10, running = running)
-    return sin(t * 2f * PI.toFloat()) * amplitude
+    val tState = steppedFraction(periodMillis * 2, stepsPerSecond = 6, running = running)
+    // `derivedStateOf`: il seno si ricalcola quando serve, ma chi legge il
+    // risultato lo fa in fase di disegno (vedi `graphicsLayer` in PondOtter),
+    // quindi nessuna ricomposizione per oscillare di 10dp.
+    return remember { derivedStateOf { sin(tState.value * 2f * PI.toFloat()) * amplitudeState.value } }
 }
 
 /**

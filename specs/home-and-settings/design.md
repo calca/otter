@@ -603,8 +603,41 @@ coming back to the screen brings the pond back to life.
 It is not only a saving. A stone thrown in water makes ripples that *end* —
 the endless ones were the artifice.
 
-**Measured host-side**, which is the metric that matches the complaint ("the
-Mac's fan is spinning"), because in-guest numbers proved useless: `/proc` and
+**On a real phone** (Galaxy S22, 120Hz), which is what actually matters and
+where the user had felt the device get warm:
+
+| state | app CPU |
+|---|---|
+| scene animating | ~25% of one core |
+| scene settled | ~0.1% |
+| app backgrounded | ~0.2% |
+
+Two things had to be fixed before that number came down, and one had to be
+un-fixed:
+
+- **Animated values are read in the draw phase, not in composition.**
+  `steppedFraction` returns a `State<Float>`; the ripples read it inside the
+  `Canvas` lambda and the otter's bob inside `graphicsLayer`. Read at the call
+  site instead, every step recomposed the screen: `dumpsys gfxinfo` showed
+  GPU at 3ms against a 16ms frame with "Slow UI thread" on every frame, and a
+  per-thread breakdown put 42% of a core on the main thread against 0.3% on
+  the RenderThread. It was never the drawing.
+- **`graphicsLayer()` on the two full-page canvases was removed again.** It
+  measured no better than without, and a full-screen offscreen layer is not
+  free.
+- Step rates and ripple size barely moved the needle: 15 steps/s versus 10,
+  and 300dp of travel versus 60dp, measured the same. The cost is per update,
+  not per pixel.
+
+**Measuring this was harder than fixing it**, and the numbers above are the
+third set: in-guest `top` and `/proc` on the emulator swung between 17% and
+77% across identical samples; one emulator reading was taken with its screen
+asleep (which is how "27% → 5.3%" reached a commit message); and on the phone
+the first readings were taken while it was *dozing* or still JIT-compiling
+after an install. Anything measured within a few seconds of an install, or
+without checking `mWakefulness=Awake`, is noise.
+
+For reference, the emulator on the host, the metric that matched the fan: `/proc` and
 `top` inside the emulator swung between 17% and 77% across identical samples,
 and one of those readings was taken while the emulator's screen had gone to
 sleep, which is how an earlier claim of "27% → 5.3%" ended up in a commit
