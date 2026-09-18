@@ -293,11 +293,10 @@ private fun ManualCodeTab(onRecipeReady: (GroupPauseRecipe) -> Unit) {
     var errorText by remember { mutableStateOf("") }
     val invalidCodeText = stringResource(R.string.group_pause_invalid_code)
 
-    OutlinedTextField(
+    CalmTextField(
         value = code,
         onValueChange = { code = it; errorText = "" },
-        label = { Text(stringResource(R.string.group_pause_manual_code_hint)) },
-        singleLine = true,
+        label = stringResource(R.string.group_pause_manual_code_hint),
         keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.None),
         modifier = Modifier
             .fillMaxWidth()

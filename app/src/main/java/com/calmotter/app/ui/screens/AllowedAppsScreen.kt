@@ -101,11 +101,10 @@ fun AllowedAppsScreen(
     }
 
     Column(modifier = Modifier.fillMaxSize().safeDrawingPadding()) {
-        OutlinedTextField(
+        CalmTextField(
             value = searchQuery,
             onValueChange = { searchQuery = it },
-            label = { Text(stringResource(R.string.allowed_apps_search)) },
-            singleLine = true,
+            label = stringResource(R.string.allowed_apps_search),
             leadingIcon = {
                 Icon(imageVector = Icons.Default.Search, contentDescription = null)
             },

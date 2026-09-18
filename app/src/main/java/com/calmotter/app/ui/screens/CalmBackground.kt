@@ -27,6 +27,12 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.text.input.VisualTransformation
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.material3.OutlinedTextFieldDefaults
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.foundation.text.KeyboardOptions
 
 /**
  * Velo tenue di "primary" sullo sfondo (più percepibile in alto, sfuma verso
@@ -178,4 +184,83 @@ fun CalmSecondaryButton(
         }
         Text(text = text)
     }
+}
+
+/**
+ * Il campo di testo dell'app, uno solo per tutti i punti in cui si scrive:
+ * password, nome della persona di fiducia, codice invito, ricerca fra le
+ * app consentite.
+ *
+ * Prima ogni punto usava `OutlinedTextField` con i valori di serie di
+ * Material 3 — contorno sottile, angoli appena smussati, etichetta che
+ * galleggia dentro la tacca del bordo. Il design del redesign li vuole
+ * diversi, ed è stato segnalato: **contenitore pieno, angoli da 16, e un
+ * segnaposto al posto dell'etichetta flottante** (nel mockup la `<label>` è
+ * marcata `sr-only`, cioè esiste solo per i lettori di schermo).
+ *
+ * Le tinte non sono gli hex del mockup ma ruoli di tema, come per ogni
+ * altro pezzo condiviso: `#f3f4f0` e `#dce3dc` resterebbero grigio-verdi in
+ * tutte e otto le combinazioni di palette e tema. Il contenitore è
+ * `primary` al 6% — appena più tenue del 8% delle pastiglie non
+ * selezionate, perché un campo vuoto non deve competere con un bottone — e
+ * il bordo passa da `primary` al 18% a `primary` pieno quando il campo ha
+ * il fuoco, che è il modo del mockup di dire "stai scrivendo qui".
+ *
+ * **L'etichetta resta, ma per chi non vede.** Un segnaposto sparisce appena
+ * si digita: chi usa TalkBack si ritroverebbe un campo muto a metà
+ * compilazione. Qui [label] fa da segnaposto *e* da `contentDescription`
+ * del campo, quindi il lettore di schermo continua ad annunciarlo anche a
+ * campo pieno.
+ */
+@Composable
+fun CalmTextField(
+    value: String,
+    onValueChange: (String) -> Unit,
+    label: String,
+    modifier: Modifier = Modifier,
+    enabled: Boolean = true,
+    singleLine: Boolean = true,
+    keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
+    visualTransformation: VisualTransformation = VisualTransformation.None,
+    leadingIcon: @Composable (() -> Unit)? = null,
+    trailingIcon: @Composable (() -> Unit)? = null,
+) {
+    val primary = MaterialTheme.colorScheme.primary
+    val onSurface = MaterialTheme.colorScheme.onSurface
+    OutlinedTextField(
+        value = value,
+        onValueChange = onValueChange,
+        enabled = enabled,
+        singleLine = singleLine,
+        keyboardOptions = keyboardOptions,
+        visualTransformation = visualTransformation,
+        // Niente `label`: al suo posto il segnaposto, come nel mockup.
+        placeholder = { Text(label) },
+        leadingIcon = leadingIcon,
+        trailingIcon = trailingIcon,
+        shape = RoundedCornerShape(16.dp),
+        // Colori passati a uno a uno: i valori di serie pescano da
+        // `surfaceVariant`/`onSurfaceVariant`, ruoli che CalmOtterTheme non
+        // personalizza e che comparirebbero quindi nel viola di serie di
+        // Material 3, indipendentemente dalla palette scelta (la stessa
+        // trappola documentata in CLAUDE.md).
+        colors = OutlinedTextFieldDefaults.colors(
+            focusedContainerColor = primary.copy(alpha = 0.06f),
+            unfocusedContainerColor = primary.copy(alpha = 0.06f),
+            disabledContainerColor = primary.copy(alpha = 0.04f),
+            focusedBorderColor = primary,
+            unfocusedBorderColor = primary.copy(alpha = 0.18f),
+            disabledBorderColor = primary.copy(alpha = 0.10f),
+            focusedTextColor = onSurface,
+            unfocusedTextColor = onSurface,
+            focusedPlaceholderColor = onSurface.copy(alpha = 0.45f),
+            unfocusedPlaceholderColor = onSurface.copy(alpha = 0.45f),
+            focusedLeadingIconColor = primary,
+            unfocusedLeadingIconColor = onSurface.copy(alpha = 0.55f),
+            focusedTrailingIconColor = primary,
+            unfocusedTrailingIconColor = onSurface.copy(alpha = 0.55f),
+            cursorColor = primary,
+        ),
+        modifier = modifier.semantics { contentDescription = label },
+    )
 }

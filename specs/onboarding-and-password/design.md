@@ -9,7 +9,7 @@
 | `PasswordManager.kt` | Password hashing, storage (`EncryptedSharedPreferences`), verification |
 | `LockoutPolicy.kt` | Pure rate-limiting state machine (no Context/Keystore dependency) |
 | `ui/screens/CalmBackground.kt` | `Modifier.calmBackground()` — the same light `primary`-tinted background applied to `MainScreen.kt`'s root `Column`, applied here too; see `home-and-settings/design.md`'s "Tinted background" for why it's a low-alpha gradient and not `primary` as a solid fill |
-| `ui/screens/PasswordOutlinedTextField.kt` | Shared password `OutlinedTextField` with a show/hide toggle — see "Show/hide password" below |
+| `ui/screens/PasswordOutlinedTextField.kt` | Shared password field with a show/hide toggle — built on `CalmTextField`, see "Show/hide password" below |
 
 ## Flow
 
@@ -33,6 +33,45 @@ screen that depended on state which could change while the Activity was
 backgrounded. `OnboardingScreen` now takes only `passwordManager` and
 `onFinished` — no `resumeSignal`, no permission-check lambdas — and
 `OnboardingActivity` has no `onResume()` override at all.
+
+## One text field for the whole app: `CalmTextField`
+
+Reported plainly: "gli input non sono come quelli di Stitch". They weren't —
+every field in the app was a stock Material 3 `OutlinedTextField`: hairline
+outline, barely-rounded corners, label floating up into a notch in the
+border. The redesign draws them differently, and its markup says so
+explicitly: a filled container, `rounded-2xl` (16px), and a **placeholder**
+where the `<label>` exists only as `sr-only`.
+
+`CalmTextField` (`CalmBackground.kt`, next to `CalmSecondaryButton` — same
+idea: one shared treatment instead of the same details retyped per screen)
+is now used by all four places the app takes typing: passwords (via
+`PasswordOutlinedTextField`), the trusted person's name in onboarding, the
+invite code in group pause, and the app-list search.
+
+- **Container `primary` at 6%**, a touch lighter than the 8% of unselected
+  duration chips: an empty field should not compete with a button.
+- **Border `primary` at 18%, going to full `primary` on focus** — the
+  mockup's way of saying "you are typing here". Its soft outer ring
+  (`ring-2 ring-pine/20`) was not copied: it is a web affordance, and the
+  border already carries the state.
+- **Colours are passed one by one**, not left to
+  `OutlinedTextFieldDefaults.colors()`, which reads `surfaceVariant` and
+  `onSurfaceVariant` — roles `CalmOtterTheme` does not customise, so stock
+  Material 3 purple would show through whatever palette is chosen. The same
+  trap CLAUDE.md documents.
+- The mockup's hexes (`#f3f4f0`, `#dce3dc`) are deliberately not used, for
+  the reason every shared piece here gives: they would stay grey-green
+  across all eight palette/theme combinations.
+
+**The label survives for screen readers.** A placeholder disappears the
+moment you type, which would leave a TalkBack user with a mute field
+half-way through filling it in. `label` is therefore both the placeholder
+*and* the field's `contentDescription`, so it keeps being announced once
+there is text in it.
+
+Verified on device, focused and unfocused, on the password prompt that
+guards the allowed-apps list.
 
 ## Show/hide password: `PasswordOutlinedTextField`
 

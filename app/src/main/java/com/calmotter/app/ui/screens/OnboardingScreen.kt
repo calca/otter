@@ -141,11 +141,10 @@ fun OnboardingScreen(
                         modifier = Modifier.padding(bottom = 16.dp),
                     )
 
-                    OutlinedTextField(
+                    CalmTextField(
                         value = partnerName,
                         onValueChange = { partnerName = it },
-                        label = { Text(stringResource(R.string.hint_partner_name)) },
-                        singleLine = true,
+                        label = stringResource(R.string.hint_partner_name),
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(bottom = 10.dp)
