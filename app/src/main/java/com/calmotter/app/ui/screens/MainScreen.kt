@@ -724,14 +724,41 @@ private fun AmbientRipples(centerY: Dp, modifier: Modifier = Modifier) {
 
     Canvas(modifier = modifier) {
         val center = Offset(size.width / 2f, centerY.toPx())
-        val baseRadius = size.height / 6f
-        val maxExtra = size.height / 1.1f
         val strokeWidth = 2.dp.toPx()
+
+        // Lo stagno fermo: due anelli concentrici attorno all'otter, più un
+        // velo appena percepibile dentro il secondo. Raggi in dp e non
+        // proporzionali allo schermo, perché sono in rapporto con l'otter e
+        // con l'anello di avanzamento (176dp di diametro, cioè 88 di raggio:
+        // il primo anello ci cade sopra, così da fermo si vede dove passerà
+        // l'avanzamento quando la pausa parte).
+        val innerRadius = 88.dp.toPx()
+        val outerRadius = 124.dp.toPx()
+        drawCircle(color = ringColor, radius = outerRadius, center = center, alpha = 0.04f)
+        drawCircle(
+            color = ringColor,
+            radius = innerRadius,
+            center = center,
+            alpha = 0.16f,
+            style = Stroke(width = strokeWidth),
+        )
+        drawCircle(
+            color = ringColor,
+            radius = outerRadius,
+            center = center,
+            alpha = 0.12f,
+            style = Stroke(width = strokeWidth),
+        )
+
+        // L'onda parte dal secondo anello, non dal centro: nasce dal bordo
+        // dello stagno fermo e se ne va verso i bordi della pagina, invece di
+        // attraversare l'otter.
+        val maxExtra = size.height / 1.1f
         listOf(0f, 0.33f, 0.66f).forEach { phase ->
             val localT = (t + phase) % 1f
             drawCircle(
                 color = ringColor,
-                radius = baseRadius + localT * maxExtra,
+                radius = outerRadius + localT * maxExtra,
                 center = center,
                 alpha = (1f - localT) * 0.18f,
                 style = Stroke(width = strokeWidth),
