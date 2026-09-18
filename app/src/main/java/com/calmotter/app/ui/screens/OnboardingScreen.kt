@@ -41,6 +41,7 @@ import androidx.compose.ui.unit.sp
 import com.calmotter.app.PasswordManager
 import com.calmotter.app.R
 import com.calmotter.app.ui.mascot.OtterFloatMark
+import com.calmotter.app.ui.mascot.OtterZenMark
 import com.calmotter.app.ui.mascot.PactPawsMark
 import com.calmotter.app.ui.mascot.SprigMark
 
@@ -98,7 +99,7 @@ fun OnboardingScreen(
                     // MainScreen.kt) invece di un'illustrazione dedicata:
                     // la prima cosa che l'utente vede in assoluto è così
                     // già l'otter che ritroverà a ogni apertura dell'app.
-                    illustration = { OtterFloatMark(markSize = 120.dp) },
+                    illustration = { OtterZenMark(markSize = 120.dp) },
                     titleRes = R.string.onb1_title,
                     bodyRes = R.string.onb1_body
                 )

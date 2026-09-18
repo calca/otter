@@ -1,26 +1,67 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-    "Still Otter": testa vista di fronte, orecchie che sbucano, occhi chiusi.
-    Coordinate pensate per il canvas adaptive-icon 108x108dp con contenuto
-    entro la safe zone centrale (cerchio di 66dp), così sopravvive a
-    qualunque maschera (cerchio, squircle, quadrato arrotondato) applicata
-    dal launcher — vedi specs/ per il resto della famiglia di marchi.
+    "Zen Otter": la mascotte del redesign (design system "Calm Otter
+    Sanctuary") — muso di fronte, occhi chiusi in due archi, guance rosate.
+    Geometria presa dall'SVG originale, non ridisegnata a mano; la versione
+    precedente ("Still Otter") resta in
+    ic_launcher_foreground_still_otter.xml.
+
+    Viewport 120 come l'SVG di partenza, mentre width/height restano 108dp:
+    il contenuto occupa 66 unità su 120, cioè meno del cerchio di sicurezza
+    dell'adaptive icon (66 su 108 → 73 su 120), quindi sopravvive a
+    qualunque maschera applicata dal launcher.
+
+    Colori fissi e non della palette: è l'icona nel launcher, dove il tema
+    scelto dentro l'app non ha modo di arrivare.
 -->
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
     android:width="108dp"
     android:height="108dp"
-    android:viewportWidth="108"
-    android:viewportHeight="108">
-    <!-- testa + orecchie (stessa tinta, un'unica silhouette) -->
+    android:viewportWidth="120"
+    android:viewportHeight="120">
+    <!-- orecchie (pelo) -->
     <path
-        android:fillColor="#F3F5EF"
-        android:pathData="M29,58 a25,25 0 1,0 50,0 a25,25 0 1,0 -50,0
-                           M30,42 a10,10 0 1,0 20,0 a10,10 0 1,0 -20,0
-                           M58,42 a10,10 0 1,0 20,0 a10,10 0 1,0 -20,0" />
-    <!-- occhi chiusi + naso -->
+        android:fillColor="#8FA693"
+        android:pathData="M27,38 a9,9 0 1,0 18,0 a9,9 0 1,0 -18,0
+                           M75,38 a9,9 0 1,0 18,0 a9,9 0 1,0 -18,0" />
+    <!-- padiglioni -->
+    <path
+        android:fillColor="#EEF3ED"
+        android:pathData="M31,38 a5,5 0 1,0 10,0 a5,5 0 1,0 -10,0
+                           M79,38 a5,5 0 1,0 10,0 a5,5 0 1,0 -10,0" />
+    <!-- testa -->
+    <path
+        android:fillColor="#8FA693"
+        android:pathData="M34,56 C34,40 45,32 60,32 C75,32 86,40 86,56
+                           C89,64 88,74 82,81 C75,88 68,89 60,89
+                           C52,89 45,88 38,81 C32,74 31,64 34,56 Z" />
+    <!-- muso -->
+    <path
+        android:fillColor="#EEF3ED"
+        android:pathData="M44,67 a16,12 0 1,0 32,0 a16,12 0 1,0 -32,0" />
+    <!-- guance -->
+    <path
+        android:fillColor="#73D7A99C"
+        android:pathData="M36.5,63 a4.5,4.5 0 1,0 9,0 a4.5,4.5 0 1,0 -9,0
+                           M74.5,63 a4.5,4.5 0 1,0 9,0 a4.5,4.5 0 1,0 -9,0" />
+    <!-- occhi chiusi -->
+    <path
+        android:strokeColor="#16241D"
+        android:strokeWidth="2.5"
+        android:strokeLineCap="round"
+        android:pathData="M44,54 Q49,50 54,54 M66,54 Q71,50 76,54" />
+    <!-- naso, filtro e sorriso -->
     <path
         android:fillColor="#16241D"
-        android:pathData="M40,62 a6,2.2 0 1,0 12,0 a6,2.2 0 1,0 -12,0
-                           M56,62 a6,2.2 0 1,0 12,0 a6,2.2 0 1,0 -12,0
-                           M51.5,72 a2.5,2.5 0 1,0 5,0 a2.5,2.5 0 1,0 -5,0" />
+        android:pathData="M56.5,63 a3.5,2.6 0 1,0 7,0 a3.5,2.6 0 1,0 -7,0" />
+    <path
+        android:strokeColor="#16241D"
+        android:strokeWidth="2"
+        android:strokeLineCap="round"
+        android:pathData="M60,65.5 L60,68" />
+    <path
+        android:strokeColor="#16241D"
+        android:strokeWidth="1.8"
+        android:strokeLineCap="round"
+        android:pathData="M56,68.5 Q60,71 64,68.5" />
 </vector>

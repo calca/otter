@@ -70,6 +70,7 @@ import com.calmotter.app.SessionManager
 import com.calmotter.app.SessionRecord
 import com.calmotter.app.SessionStreak
 import com.calmotter.app.ui.mascot.OtterFloatMark
+import com.calmotter.app.ui.mascot.OtterZenMark
 import com.calmotter.app.ui.mascot.TogetherMark
 import java.util.Calendar
 
@@ -583,7 +584,7 @@ private fun PondOtter(
                 .clickable(enabled = !sessionActive && !isStarting, onClick = { isStarting = true }),
             contentAlignment = Alignment.Center,
         ) {
-            OtterFloatMark(modifier = otterModifier, markSize = 124.dp)
+            OtterZenMark(modifier = otterModifier, markSize = 124.dp)
         }
     }
 }

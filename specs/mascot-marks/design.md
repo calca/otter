@@ -278,3 +278,47 @@ near-white shape on the *widget's* own background
 `ic_otter_widget.xml` is the same silhouette with the two fills swapped
 (dark `#2C4A3E` head, light `#EAF0E8` details) to match the widget's
 existing fixed palette instead.
+
+
+## The Zen Otter: the redesign's face
+
+`OtterZenMark` is the mascot from the app redesign (Stitch design system
+"Calm Otter Sanctuary"): front-facing muzzle, eyes closed in two serene
+arcs, blushed cheeks, a soft halo behind. Its geometry is the original
+SVG's path data handed to `PathParser`, not redrawn by eye — the same
+method already used for the eye icon in `PasswordOutlinedTextField`.
+
+It replaces `OtterFloatMark` **inside the ring** (Home, `BlockScreen`, and
+the accessibility bridge window that has to show the same thing) and on the
+opening screens (onboarding). `OtterFloatMark` stays: it is still used by
+the group-pause screens and the history empty state, and it is the version
+to fall back to.
+
+Two colour decisions worth keeping:
+
+- **The ink is `primary` pushed toward black**, not a theme role. `onSurface`
+  is light in dark mode and would vanish against the fur, which is light
+  there too; a fixed black would ignore the palette. Mixed this way it stays
+  dark in both themes and keeps the hue of whichever palette is selected.
+- **The blush is the one colour that does not follow the palette.** It reads
+  as skin, not as brand accent: tinted green or terracotta it stops reading
+  as a cheek at all. It stays `#D7A99C` at 45%.
+
+### The launcher icon follows
+
+`ic_launcher_foreground.xml` and `ic_launcher_monochrome.xml` are now the Zen
+face; the previous "Still Otter" pair is kept beside them as
+`*_still_otter.xml`. The adaptive background moves from Sage green to Deep
+Forest pine (`#1B3B2B`) and the fur to `#8FA693`, the design system's "Muted
+Mountain Sage" — the in-app mascot takes its colours from the palette, but
+the launcher has no way to know which palette was chosen.
+
+The viewport is 120 (the SVG's) while width/height stay 108dp: the content
+spans 66 units of 120, comfortably inside the adaptive icon's safe circle
+(66 of 108, i.e. 73 of 120), so it survives any mask.
+
+The monochrome version keeps the winding trick documented above — eyes and
+nose cut out by drawing them with the opposite sweep flag under the nonzero
+rule, never `evenOdd`, which would eat the ears where they overlap the head.
+Verified again the same way: rendering the path data outside Android and
+looking at the whole silhouette, ears included.

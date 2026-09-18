@@ -39,6 +39,7 @@ import androidx.savedstate.SavedStateRegistryController
 import androidx.savedstate.SavedStateRegistryOwner
 import androidx.savedstate.setViewTreeSavedStateRegistryOwner
 import com.calmotter.app.ui.mascot.OtterFloatMark
+import com.calmotter.app.ui.mascot.OtterZenMark
 import com.calmotter.app.ui.screens.OtterAnchoredScreen
 import com.calmotter.app.ui.screens.ProgressRing
 import com.calmotter.app.ui.theme.CalmOtterTheme
@@ -215,7 +216,7 @@ class AppBlockerAccessibilityService : AccessibilityService() {
                                 horizontalPadding = 40.dp,
                                 otter = {
                                     ProgressRing(fraction = fraction, modifier = Modifier.size(176.dp))
-                                    OtterFloatMark(markSize = 124.dp)
+                                    OtterZenMark(markSize = 124.dp)
                                 },
                                 below = {},
                             )

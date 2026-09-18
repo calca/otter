@@ -10,6 +10,11 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
+import androidx.compose.runtime.remember
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.drawscope.scale
+import androidx.compose.ui.graphics.lerp
+import androidx.compose.ui.graphics.vector.PathParser
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
@@ -309,5 +314,116 @@ fun TogetherMark(modifier: Modifier = Modifier, markSize: Dp = 20.dp, tint: Colo
                 cornerRadius = CornerRadius(v(4.5f), v(4.5f)),
             )
         }
+    }
+}
+
+// ── Zen Otter (redesign) ─────────────────────────────────────────────────
+
+// Geometria presa dal logo "Calm Otter Zen" del redesign (SVG con viewport
+// 120×120, progetto Stitch 3158702940609906617). I path curvi sono i dati
+// originali passati a PathParser invece di essere riprodotti a occhio —
+// stesso metodo già usato per l'icona "occhio" di PasswordOutlinedTextField.
+private const val ZEN_HEAD_PATH =
+    "M34 56 C34 40 45 32 60 32 C75 32 86 40 86 56 C89 64 88 74 82 81 " +
+        "C75 88 68 89 60 89 C52 89 45 88 38 81 C32 74 31 64 34 56 Z"
+private const val ZEN_EYE_LEFT_PATH = "M44 54 Q49 50 54 54"
+private const val ZEN_EYE_RIGHT_PATH = "M66 54 Q71 50 76 54"
+private const val ZEN_SMILE_PATH = "M56 68.5 Q60 71 64 68.5"
+
+// Le guance rosate sono l'unico colore del marchio che non segue la palette:
+// è un incarnato, non un accento di marca — tinto di verde o di terracotta
+// smetterebbe di leggersi come tale. Resta comunque al 45% di opacità.
+private val ZenBlush = Color(0xFFD7A99C)
+
+/**
+ * La lontra del redesign: muso di fronte, occhi chiusi in due archi sereni,
+ * guance rosate, alone tenue attorno. Sostituisce [OtterFloatMark] dentro
+ * l'anello di Home e BlockScreen; [OtterFloatMark] resta però in vita, sia
+ * perché ancora usata altrove, sia come versione precedente a cui tornare.
+ *
+ * Come le altre mascotte, i colori vengono dai ruoli di MaterialTheme e non
+ * dagli hex del mockup, così la lontra segue la palette scelta e il tema
+ * chiaro/scuro invece di restare verde salvia in tutti e otto i casi.
+ *
+ * L'inchiostro di occhi, naso e bocca non è un ruolo di tema ma `primary`
+ * spinta verso il nero: `onSurface` sarebbe chiaro in tema scuro e
+ * sparirebbe sul pelo (che lì è chiaro anch'esso), mentre un nero fisso non
+ * seguirebbe la palette. Mescolato così resta scuro in entrambi i temi e
+ * mantiene la tinta di quello scelto.
+ */
+@Composable
+fun OtterZenMark(modifier: Modifier = Modifier, markSize: Dp = 96.dp) {
+    val primary = MaterialTheme.colorScheme.primary
+    val muzzle = MaterialTheme.colorScheme.surface
+    val ink = lerp(primary, Color.Black, 0.45f)
+
+    val head = remember { PathParser().parsePathString(ZEN_HEAD_PATH).toPath() }
+    val eyeLeft = remember { PathParser().parsePathString(ZEN_EYE_LEFT_PATH).toPath() }
+    val eyeRight = remember { PathParser().parsePathString(ZEN_EYE_RIGHT_PATH).toPath() }
+    val smile = remember { PathParser().parsePathString(ZEN_SMILE_PATH).toPath() }
+
+    Canvas(modifier = modifier.size(markSize)) {
+        val s = size.width / 120f
+        fun v(value: Float) = value * s
+
+        val fur = Brush.linearGradient(
+            colors = listOf(primary.copy(alpha = 0.52f), primary.copy(alpha = 0.72f)),
+            start = Offset.Zero,
+            end = Offset(size.width, size.height),
+        )
+
+        // Alone: lo stesso "respiro" dello stagno della Home, qui fermo.
+        drawCircle(
+            brush = Brush.radialGradient(
+                colors = listOf(primary.copy(alpha = 0.12f), Color.Transparent),
+                center = Offset(v(60f), v(60f)),
+                radius = v(54f),
+            ),
+            radius = v(54f),
+            center = Offset(v(60f), v(60f)),
+        )
+
+        // Orecchie, con il padiglione più chiaro.
+        listOf(36f, 84f).forEach { cx ->
+            drawCircle(brush = fur, radius = v(9f), center = Offset(v(cx), v(38f)))
+            drawCircle(color = muzzle, radius = v(5f), center = Offset(v(cx), v(38f)))
+        }
+
+        scale(s, s, pivot = Offset.Zero) {
+            drawPath(head, brush = fur)
+        }
+
+        drawOval(
+            color = muzzle,
+            topLeft = Offset(v(44f), v(55f)),
+            size = Size(v(32f), v(24f)),
+        )
+
+        listOf(41f, 79f).forEach { cx ->
+            drawCircle(
+                color = ZenBlush.copy(alpha = 0.45f),
+                radius = v(4.5f),
+                center = Offset(v(cx), v(63f)),
+            )
+        }
+
+        scale(s, s, pivot = Offset.Zero) {
+            drawPath(eyeLeft, color = ink, style = Stroke(width = 2.5f, cap = StrokeCap.Round))
+            drawPath(eyeRight, color = ink, style = Stroke(width = 2.5f, cap = StrokeCap.Round))
+            drawPath(smile, color = ink, style = Stroke(width = 1.8f, cap = StrokeCap.Round))
+        }
+
+        drawOval(
+            color = ink,
+            topLeft = Offset(v(56.5f), v(60.4f)),
+            size = Size(v(7f), v(5.2f)),
+        )
+        drawLine(
+            color = ink,
+            start = Offset(v(60f), v(65.5f)),
+            end = Offset(v(60f), v(68f)),
+            strokeWidth = v(2f),
+            cap = StrokeCap.Round,
+        )
     }
 }

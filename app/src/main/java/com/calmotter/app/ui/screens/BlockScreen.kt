@@ -53,6 +53,7 @@ import com.calmotter.app.PasswordManager
 import com.calmotter.app.R
 import com.calmotter.app.SessionManager
 import com.calmotter.app.ui.mascot.OtterFloatMark
+import com.calmotter.app.ui.mascot.OtterZenMark
 import kotlinx.coroutines.delay
 
 /**
@@ -220,7 +221,7 @@ fun BlockScreen(
             // arriva da nessuna transizione.
             val floatOffset = otterFloatOffset ?: rememberOtterFloatOffset(periodMillis = 5200)
             Box(modifier = Modifier.offset(y = floatOffset.dp)) {
-                OtterFloatMark(modifier = otterModifier, markSize = 124.dp)
+                OtterZenMark(modifier = otterModifier, markSize = 124.dp)
             }
         },
     ) {

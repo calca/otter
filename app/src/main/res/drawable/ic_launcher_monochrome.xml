@@ -1,43 +1,42 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-    Versione per l'icona "themed"/monocromatica (Android 13+, Material You):
-    il sistema tinge tutto con un solo colore, leggendo solo il canale alfa
-    del vector — un'icona composta solo dalla sagoma testa+orecchie
-    (una versione precedente di questo file, senza occhi/naso) risultava una
-    macchia tonda indistinguibile accanto alle icone di altre app, che
-    restano riconoscibili anche ridotte a un solo colore.
+    Versione monocromatica ("themed icon", Android 13+) della mascotte Zen:
+    il sistema legge solo il canale alfa e tinge tutto di un colore, quindi
+    qui non ci sono colori ma buchi.
 
-    Occhi e naso sono "ritagliati" nella sagoma disegnandoli nello stesso
-    path ma con **verso di percorrenza opposto** (flag di sweep 1 invece di
-    0), sfruttando la regola "nonzero": le sotto-forme concordi si sommano,
-    quelle discordi si sottraggono.
+    Occhi e naso sono ritagliati nella sagoma disegnandoli nello **stesso
+    path con verso di percorrenza opposto** (sweep 0 contro sweep 1),
+    sfruttando la regola "nonzero": sotto-forme concordi si sommano,
+    discordi si sottraggono. La sagoma della testa è percorsa in senso
+    orario, quindi le orecchie usano sweep 1 per sommarsi e i buchi sweep 0
+    per sottrarsi.
 
-    NON usare fillType="evenOdd" qui, anche se a prima vista sembra la via
-    più semplice per fare i buchi (lo è, in generale: evenOdd non dipende
-    dal verso, quindi non costringe a invertire nulla a mano). Su *questa*
-    sagoma rompe le orecchie: i due cerchi delle orecchie si sovrappongono
-    a quello della testa, e con evenOdd la zona comune conta come "dentro
-    due sotto-forme" — numero pari — quindi diventa trasparente. Il
-    risultato è un otter con due mezzelune bianche al posto delle orecchie.
-    È successo davvero, segnalato con screenshot dal launcher, dopo che una
-    modifica precedente era passata a evenOdd verificando solo che occhi e
-    naso venissero bucati, senza guardare le orecchie.
+    NON passare a fillType="evenOdd" per fare i buchi, per quanto sembri più
+    semplice: le orecchie si sovrappongono alla testa, e con evenOdd la zona
+    comune conta come "dentro due sotto-forme" — pari — quindi diventa
+    trasparente, lasciando due mezzelune al posto delle orecchie. È già
+    successo su questa stessa icona, segnalato con screenshot dal launcher.
 
-    Verificato renderizzando i pathData fuori da Android, tutte e tre le
-    varianti a confronto (evenOdd; nonzero a versi concordi; nonzero con i
-    buchi invertiti), e controllando *l'intera* sagoma, orecchie comprese.
+    Verificato renderizzando il pathData fuori da Android (senza Android non
+    si vedrebbero i buchi finché non si installa) e guardando *tutta* la
+    sagoma, orecchie comprese.
+
+    La versione precedente ("Still Otter") resta in
+    ic_launcher_monochrome_still_otter.xml.
 -->
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
     android:width="108dp"
     android:height="108dp"
-    android:viewportWidth="108"
-    android:viewportHeight="108">
+    android:viewportWidth="120"
+    android:viewportHeight="120">
     <path
         android:fillColor="#FFFFFF"
-        android:pathData="M29,58 a25,25 0 1,0 50,0 a25,25 0 1,0 -50,0
-                           M30,42 a10,10 0 1,0 20,0 a10,10 0 1,0 -20,0
-                           M58,42 a10,10 0 1,0 20,0 a10,10 0 1,0 -20,0
-                           M40,62 a6,2.2 0 1,1 12,0 a6,2.2 0 1,1 -12,0
-                           M56,62 a6,2.2 0 1,1 12,0 a6,2.2 0 1,1 -12,0
-                           M51.5,72 a2.5,2.5 0 1,1 5,0 a2.5,2.5 0 1,1 -5,0" />
+        android:pathData="M34,56 C34,40 45,32 60,32 C75,32 86,40 86,56
+                           C89,64 88,74 82,81 C75,88 68,89 60,89
+                           C52,89 45,88 38,81 C32,74 31,64 34,56 Z
+                           M27,38 a9,9 0 1,1 18,0 a9,9 0 1,1 -18,0
+                           M75,38 a9,9 0 1,1 18,0 a9,9 0 1,1 -18,0
+                           M43,54 a6,2.2 0 1,0 12,0 a6,2.2 0 1,0 -12,0
+                           M65,54 a6,2.2 0 1,0 12,0 a6,2.2 0 1,0 -12,0
+                           M56.5,64 a3.5,2.6 0 1,0 7,0 a3.5,2.6 0 1,0 -7,0" />
 </vector>
