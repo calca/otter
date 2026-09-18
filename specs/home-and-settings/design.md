@@ -576,10 +576,22 @@ Three things were fixed, in order of how much they mattered:
 3. The otter's bob moved from `Modifier.offset`, which relayouts and repaints
    it, to a `graphicsLayer` translation, which only moves the layer.
 
-Only the first one moved the numbers. Points 2 and 3 are still right, but
-the lesson is that on this emulator the cost was the *frame*, not what was
-being drawn in it — and the fix was therefore to ask for fewer frames rather
-than to draw less.
+4. **The ripples live in their own `graphicsLayer`.** Without one they shared
+   a layer with everything else on the screen, so each step repainted the
+   whole Home — header, pills, buttons and all — to move three thin arcs.
+   Measured properly (kernel CPU time from `/proc/<pid>/stat` over ten
+   seconds, since `top`'s instantaneous percentage is both noisy and
+   relative to all four cores): **26.8% → 5.3% of one core.**
+
+Steps 1 and 4 are what moved the numbers; 2 and 3 are right but made little
+difference on their own. Two lessons worth keeping: the cost was the *frame*
+rather than what was drawn in it, so the fix was to ask for fewer frames and
+to repaint less of the screen per frame — and `top` was misleading enough to
+send this in the wrong direction twice, which is why the figures above come
+from `/proc`.
+
+Rates: ripples step 15 times a second, the otter's bob 10 — it travels 10dp
+in 3.2s, so it has nothing to gain from more.
 
 ### The pond, measured rather than guessed
 

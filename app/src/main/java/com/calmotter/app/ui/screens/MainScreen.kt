@@ -776,13 +776,16 @@ private fun AmbientRipples(centerY: Dp, modifier: Modifier = Modifier) {
     // 9 secondi per giro, non 3,6: è un sasso caduto nell'acqua, non una
     // scansione radar. L'avanzamento è a scatti di 1/20 di secondo, vedi
     // [steppedFraction].
-    val t = steppedFraction(RIPPLE_PERIOD_MILLIS)
+    val t = steppedFraction(RIPPLE_PERIOD_MILLIS, stepsPerSecond = 15)
     // Le onde usano `tertiary` (#d5e0d5 nelle palette verdi), che nel design
     // system è esattamente il colore dei "ripple borders" — non `primary` a
     // bassa opacità, che dava un grigio.
     val ringColor = MaterialTheme.colorScheme.tertiary
 
-    Canvas(modifier = modifier) {
+    // `graphicsLayer()` mette le onde in un livello grafico proprio: quando
+    // cambiano, il sistema ridipinge quel livello e ricompone, invece di
+    // ridisegnare anche tutto ciò che sta sopra e sotto nello stesso strato.
+    Canvas(modifier = modifier.graphicsLayer()) {
         val center = Offset(size.width / 2f, centerY.toPx())
         val veilRadius = 151.dp.toPx()
         // Quanto cresce un anello prima di spegnersi. **Non** piu'
@@ -901,7 +904,7 @@ fun rememberOtterFloatOffset(periodMillis: Int): Float {
     // Una sinusoide sulla stessa sorgente a scatti delle increspature: il
     // periodo completo è andata+ritorno, quindi il doppio di quello che
     // chiedeva `RepeatMode.Reverse`. Cinque dp di escursione, come prima.
-    val t = steppedFraction(periodMillis * 2)
+    val t = steppedFraction(periodMillis * 2, stepsPerSecond = 10)
     return sin(t * 2f * PI.toFloat()) * 5f
 }
 
