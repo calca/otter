@@ -590,8 +590,46 @@ to repaint less of the screen per frame — and `top` was misleading enough to
 send this in the wrong direction twice, which is why the figures above come
 from `/proc`.
 
-Rates: ripples step 15 times a second, the otter's bob 10 — it travels 10dp
-in 3.2s, so it has nothing to gain from more.
+Rates: see "How fast the scene steps" below — the first answer here was too
+slow and had to be revisited.
+
+### How fast the scene steps
+
+The rates landed at 10 steps/s for the ripples and 6 for the otter, and at
+that speed the ripples visibly *stutter*: the ring's edge jumps about ten
+pixels at a time, and because the radius is eased with `t^0.8` the first
+jumps are the longest — exactly where the ring is brightest and thinnest.
+
+Re-measured on the phone, warm process, debug build, five samples each, first
+sample of every run discarded (it is the launch burst, not steady state):
+
+| ripple steps/s | app CPU while animating |
+|---|---|
+| 10 | 10–20% of one core |
+| 20 | 20–30% |
+| 30 | 30–40% |
+
+So cost is roughly linear in redraws, which contradicts the earlier note that
+step rate "barely moved the needle". That earlier comparison was measured
+with `am start` on an already-foreground activity — which does not call
+`onResume`, so `restartKey` never changed and some samples were taken on a
+scene that had already settled and was drawing nothing. Any measurement here
+has to force a real return to the screen (HOME, then relaunch) and stay
+inside the 30s window.
+
+**30 steps/s is what ships.** The stutter goes, and the bill is bounded by
+`SCENE_QUIET_AFTER_MILLIS`: thirty seconds at 30% of one core warms nothing,
+and it was the *endless* animation that cooked the phone, not its frame rate.
+
+The otter's bob also went to 30, and cost nothing measurable, because its
+consumer reads it inside `graphicsLayer` — each step moves an already-drawn
+layer instead of repainting one. That asymmetry is the useful thing to
+remember: raising the rate of a value read in the draw phase of a `Canvas`
+costs a repaint every step; raising the rate of one read in a
+`graphicsLayer` transform costs almost nothing.
+
+Re-confirmed here too: adding `graphicsLayer()` back to the ripple canvas
+measured 30% with it and 30% without.
 
 ### The scene settles, and that is what actually quieted the fan
 
@@ -625,9 +663,10 @@ un-fixed:
 - **`graphicsLayer()` on the two full-page canvases was removed again.** It
   measured no better than without, and a full-screen offscreen layer is not
   free.
-- Step rates and ripple size barely moved the needle: 15 steps/s versus 10,
-  and 300dp of travel versus 60dp, measured the same. The cost is per update,
-  not per pixel.
+- Ripple *size* barely moved the needle: 300dp of travel versus 60dp
+  measured the same. The cost is per update, not per pixel. (Step *rate*
+  was once written up here as equally irrelevant. That was wrong — see
+  below.)
 
 **Measuring this was harder than fixing it**, and the numbers above are the
 third set: in-guest `top` and `/proc` on the emulator swung between 17% and

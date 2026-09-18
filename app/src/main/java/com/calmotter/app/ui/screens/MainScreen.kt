@@ -827,18 +827,18 @@ private fun AmbientRipples(centerY: Dp, restartKey: Int, modifier: Modifier = Mo
     val running = active || fade > 0.01f
     // 9 secondi per giro, non 3,6: è un sasso caduto nell'acqua, non una
     // scansione radar. L'avanzamento è a scatti, vedi [steppedFraction].
-    val tState = steppedFraction(RIPPLE_PERIOD_MILLIS, stepsPerSecond = 10, running = running)
+    val tState = steppedFraction(RIPPLE_PERIOD_MILLIS, stepsPerSecond = RIPPLE_STEPS_PER_SECOND, running = running)
     if (!running) return
     // Le onde usano `tertiary` (#d5e0d5 nelle palette verdi), che nel design
     // system è esattamente il colore dei "ripple borders" — non `primary` a
     // bassa opacità, che dava un grigio.
     val ringColor = MaterialTheme.colorScheme.tertiary
 
-    // `graphicsLayer()` mette le onde in un livello grafico proprio, così il
-    // sistema ridipinge quel livello invece dell'intera schermata sotto.
-    // Misurarne il guadagno su questo emulatore non è riuscito — la CPU del
-    // processo oscillava fra il 17% e il 77% fra campioni identici — ma è
-    // comunque la forma giusta per un livello che si anima da solo.
+    // Nessun `graphicsLayer()` qui: misurato su Galaxy S22, con e senza, la
+    // CPU del processo resta sul 30% — un livello proprio non aiuta, perché
+    // il costo non è propagare l'invalidazione ai vicini ma ridisegnare
+    // questa tela, che è grande quanto lo schermo. Non aggiungiamo un
+    // livello che non paga.
     Canvas(modifier = modifier) {
         val t = tState.value
         val center = Offset(size.width / 2f, centerY.toPx())
@@ -885,14 +885,13 @@ private fun AmbientRipples(centerY: Dp, restartKey: Int, modifier: Modifier = Mo
 
 
 /**
- * Frazione 0f→1f che avanza a **20 scatti al secondo** invece che a ogni
- * fotogramma.
+ * Frazione 0f→1f che avanza a scatti discreti invece che a ogni fotogramma.
  *
  * Le due animazioni della Home — increspature e oscillazione dell'otter —
  * durano 9 e 3,2 secondi: a 60fps ridisegnavano 60 volte al secondo per
- * spostare le cose di frazioni di pixel. Qui lo stato cambia solo 20 volte
- * al secondo, quindi Compose ridisegna 20 volte: invisibile a questa
- * lentezza, un terzo del lavoro.
+ * spostare le cose di frazioni di pixel. Scandirle più lentamente costa
+ * proporzionalmente meno, ma sotto una certa soglia lo scatto si vede: vedi
+ * [RIPPLE_STEPS_PER_SECOND] per dove è finito il compromesso e perché.
  *
  * `withInfiniteAnimationFrameMillis` e non un timer proprio: segue
  * l'orologio delle animazioni di Compose, quindi si ferma da sé quando la
@@ -941,6 +940,31 @@ private fun steppedFraction(periodMillis: Int, stepsPerSecond: Int = 20, running
  * guardarla. Riparte al rientro nella schermata.
  */
 internal const val SCENE_QUIET_AFTER_MILLIS = 30_000L
+
+/** Scatti al secondo delle increspature, vedi [steppedFraction]. */
+// A 10 scatti al secondo le onde si vedevano avanzare a strappi: il bordo
+// dell'anello salta una decina di pixel per volta, e l'easing `t^0.8` rende
+// i primi salti i più lunghi, proprio dove l'anello è più nitido.
+//
+// Il costo è lineare nel numero di ridisegni. Misurato su Galaxy S22 a
+// processo caldo, build debug, scartando il primo campione di ogni serie
+// (che è il picco di avvio, non il regime):
+//
+//     10 scatti/s → 10-20% di un core
+//     20 scatti/s → 20-30%
+//     30 scatti/s → 30-40%
+//
+// Si paga 30: lo scatto sparisce, e la spesa è comunque limitata ai primi
+// [SCENE_QUIET_AFTER_MILLIS] — dopo, la scena si ferma e il processo torna
+// a zero. Trenta secondi al 30% di un core non scaldano niente; era
+// l'animazione infinita a farlo.
+private const val RIPPLE_STEPS_PER_SECOND = 30
+
+// L'oscillazione dell'otter sta anch'essa a 30: chi la legge lo fa dentro un
+// `graphicsLayer` (vedi [PondOtter]), quindi ogni scatto sposta soltanto un
+// livello già disegnato invece di ridisegnarlo. Misurato: alzarla da 6 a 30
+// non ha spostato la CPU del processo.
+private const val OTTER_STEPS_PER_SECOND = 30
 
 /** Durata di un giro completo di un'increspatura, vedi [AmbientRipples]. */
 private const val RIPPLE_PERIOD_MILLIS = 9000
@@ -1006,7 +1030,7 @@ fun rememberOtterFloatOffset(periodMillis: Int, restartKey: Int = 0): State<Floa
     // Una sinusoide sulla sorgente a scatti delle increspature: il periodo
     // completo è andata+ritorno, quindi il doppio di quello che chiedeva
     // `RepeatMode.Reverse`.
-    val tState = steppedFraction(periodMillis * 2, stepsPerSecond = 6, running = running)
+    val tState = steppedFraction(periodMillis * 2, stepsPerSecond = OTTER_STEPS_PER_SECOND, running = running)
     // `derivedStateOf`: il seno si ricalcola quando serve, ma chi legge il
     // risultato lo fa in fase di disegno (vedi `graphicsLayer` in PondOtter),
     // quindi nessuna ricomposizione per oscillare di 10dp.
