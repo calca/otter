@@ -71,72 +71,109 @@
         <item name="actionBarPopupTheme">@style/ThemeOverlay.CalmOtter.Sage.PopupMenu</item>
     </style>
 
-    <!-- LAVENDER THEME -->
-    <style name="Theme.CalmOtter.Lavender" parent="Theme.CalmOtter.Base">
-        <item name="colorPrimary">@color/lavender_primary</item>
-        <item name="colorOnPrimary">@color/lavender_on_primary</item>
-        <item name="colorPrimaryContainer">@color/lavender_primary_container</item>
-        <item name="colorOnPrimaryContainer">@color/lavender_on_primary_container</item>
-        <item name="colorSecondary">@color/lavender_secondary</item>
-        <item name="colorOnSecondary">@color/lavender_on_secondary</item>
-        <item name="colorSecondaryContainer">@color/lavender_secondary_container</item>
-        <item name="colorOnSecondaryContainer">@color/lavender_on_secondary_container</item>
-        <item name="android:windowBackground">@color/lavender_background</item>
-        <item name="colorSurface">@color/lavender_surface</item>
-        <item name="colorOnSurface">@color/lavender_on_surface</item>
-        <item name="colorSurfaceVariant">@color/lavender_surface_variant</item>
-        <item name="colorOnSurfaceVariant">#49454f</item>
+    <!-- DEEP FOREST THEME — vedi values/colors.xml per la provenienza dei
+         valori. Stessa struttura delle altre palette: base, variante Block e
+         variante con ActionBar, quest'ultima col proprio ThemeOverlay per il
+         popup dell'overflow (senza, resterebbe del colore della libreria). -->
+    <style name="Theme.CalmOtter.DeepForest" parent="Theme.CalmOtter.Base">
+        <item name="colorPrimary">@color/deep_forest_primary</item>
+        <item name="colorOnPrimary">@color/deep_forest_on_primary</item>
+        <item name="colorPrimaryContainer">@color/deep_forest_primary_container</item>
+        <item name="colorOnPrimaryContainer">@color/deep_forest_on_primary_container</item>
+        <item name="colorSecondary">@color/deep_forest_secondary</item>
+        <item name="colorOnSecondary">@color/deep_forest_on_secondary</item>
+        <item name="colorSecondaryContainer">@color/deep_forest_secondary_container</item>
+        <item name="colorOnSecondaryContainer">@color/deep_forest_on_secondary_container</item>
+        <item name="android:windowBackground">@color/deep_forest_background</item>
+        <item name="colorSurface">@color/deep_forest_surface</item>
+        <item name="colorOnSurface">@color/deep_forest_on_surface</item>
+        <item name="colorSurfaceVariant">@color/deep_forest_surface_variant</item>
+        <item name="colorOnSurfaceVariant">#424843</item>
     </style>
-    <style name="Theme.CalmOtter.Lavender.Block" parent="Theme.CalmOtter.Lavender" />
-    <style name="Theme.CalmOtter.Lavender.WithActionBar" parent="Theme.CalmOtter.Base.WithActionBar">
-        <item name="colorPrimary">@color/lavender_primary</item>
-        <item name="colorOnPrimary">@color/lavender_on_primary</item>
-        <item name="colorPrimaryContainer">@color/lavender_primary_container</item>
-        <item name="colorOnPrimaryContainer">@color/lavender_on_primary_container</item>
-        <item name="colorSecondary">@color/lavender_secondary</item>
-        <item name="colorOnSecondary">@color/lavender_on_secondary</item>
-        <item name="colorSecondaryContainer">@color/lavender_secondary_container</item>
-        <item name="colorOnSecondaryContainer">@color/lavender_on_secondary_container</item>
-        <item name="android:windowBackground">@color/lavender_background</item>
-        <item name="colorSurface">@color/lavender_surface</item>
-        <item name="colorOnSurface">@color/lavender_on_surface</item>
-        <item name="colorSurfaceVariant">@color/lavender_surface_variant</item>
-        <item name="colorOnSurfaceVariant">#49454f</item>
-        <item name="actionBarPopupTheme">@style/ThemeOverlay.CalmOtter.Lavender.PopupMenu</item>
+    <style name="Theme.CalmOtter.DeepForest.Block" parent="Theme.CalmOtter.DeepForest" />
+    <style name="Theme.CalmOtter.DeepForest.WithActionBar" parent="Theme.CalmOtter.Base.WithActionBar">
+        <item name="colorPrimary">@color/deep_forest_primary</item>
+        <item name="colorOnPrimary">@color/deep_forest_on_primary</item>
+        <item name="colorPrimaryContainer">@color/deep_forest_primary_container</item>
+        <item name="colorOnPrimaryContainer">@color/deep_forest_on_primary_container</item>
+        <item name="colorSecondary">@color/deep_forest_secondary</item>
+        <item name="colorOnSecondary">@color/deep_forest_on_secondary</item>
+        <item name="colorSecondaryContainer">@color/deep_forest_secondary_container</item>
+        <item name="colorOnSecondaryContainer">@color/deep_forest_on_secondary_container</item>
+        <item name="android:windowBackground">@color/deep_forest_background</item>
+        <item name="colorSurface">@color/deep_forest_surface</item>
+        <item name="colorOnSurface">@color/deep_forest_on_surface</item>
+        <item name="colorSurfaceVariant">@color/deep_forest_surface_variant</item>
+        <item name="colorOnSurfaceVariant">#424843</item>
+        <item name="actionBarPopupTheme">@style/ThemeOverlay.CalmOtter.DeepForest.PopupMenu</item>
     </style>
 
-    <!-- TERRACOTTA THEME -->
-    <style name="Theme.CalmOtter.Terracotta" parent="Theme.CalmOtter.Base">
-        <item name="colorPrimary">@color/terracotta_primary</item>
-        <item name="colorOnPrimary">@color/terracotta_on_primary</item>
-        <item name="colorPrimaryContainer">@color/terracotta_primary_container</item>
-        <item name="colorOnPrimaryContainer">@color/terracotta_on_primary_container</item>
-        <item name="colorSecondary">@color/terracotta_secondary</item>
-        <item name="colorOnSecondary">@color/terracotta_on_secondary</item>
-        <item name="colorSecondaryContainer">@color/terracotta_secondary_container</item>
-        <item name="colorOnSecondaryContainer">@color/terracotta_on_secondary_container</item>
-        <item name="android:windowBackground">@color/terracotta_background</item>
-        <item name="colorSurface">@color/terracotta_surface</item>
-        <item name="colorOnSurface">@color/terracotta_on_surface</item>
-        <item name="colorSurfaceVariant">@color/terracotta_surface_variant</item>
+    <!-- DUSK SAND THEME -->
+    <style name="Theme.CalmOtter.DuskSand" parent="Theme.CalmOtter.Base">
+        <item name="colorPrimary">@color/dusk_sand_primary</item>
+        <item name="colorOnPrimary">@color/dusk_sand_on_primary</item>
+        <item name="colorPrimaryContainer">@color/dusk_sand_primary_container</item>
+        <item name="colorOnPrimaryContainer">@color/dusk_sand_on_primary_container</item>
+        <item name="colorSecondary">@color/dusk_sand_secondary</item>
+        <item name="colorOnSecondary">@color/dusk_sand_on_secondary</item>
+        <item name="colorSecondaryContainer">@color/dusk_sand_secondary_container</item>
+        <item name="colorOnSecondaryContainer">@color/dusk_sand_on_secondary_container</item>
+        <item name="android:windowBackground">@color/dusk_sand_background</item>
+        <item name="colorSurface">@color/dusk_sand_surface</item>
+        <item name="colorOnSurface">@color/dusk_sand_on_surface</item>
+        <item name="colorSurfaceVariant">@color/dusk_sand_surface_variant</item>
+        <item name="colorOnSurfaceVariant">#49454f</item>
+    </style>
+    <style name="Theme.CalmOtter.DuskSand.Block" parent="Theme.CalmOtter.DuskSand" />
+    <style name="Theme.CalmOtter.DuskSand.WithActionBar" parent="Theme.CalmOtter.Base.WithActionBar">
+        <item name="colorPrimary">@color/dusk_sand_primary</item>
+        <item name="colorOnPrimary">@color/dusk_sand_on_primary</item>
+        <item name="colorPrimaryContainer">@color/dusk_sand_primary_container</item>
+        <item name="colorOnPrimaryContainer">@color/dusk_sand_on_primary_container</item>
+        <item name="colorSecondary">@color/dusk_sand_secondary</item>
+        <item name="colorOnSecondary">@color/dusk_sand_on_secondary</item>
+        <item name="colorSecondaryContainer">@color/dusk_sand_secondary_container</item>
+        <item name="colorOnSecondaryContainer">@color/dusk_sand_on_secondary_container</item>
+        <item name="android:windowBackground">@color/dusk_sand_background</item>
+        <item name="colorSurface">@color/dusk_sand_surface</item>
+        <item name="colorOnSurface">@color/dusk_sand_on_surface</item>
+        <item name="colorSurfaceVariant">@color/dusk_sand_surface_variant</item>
+        <item name="colorOnSurfaceVariant">#49454f</item>
+        <item name="actionBarPopupTheme">@style/ThemeOverlay.CalmOtter.DuskSand.PopupMenu</item>
+    </style>
+
+    <!-- DAWN CLAY THEME -->
+    <style name="Theme.CalmOtter.DawnClay" parent="Theme.CalmOtter.Base">
+        <item name="colorPrimary">@color/dawn_clay_primary</item>
+        <item name="colorOnPrimary">@color/dawn_clay_on_primary</item>
+        <item name="colorPrimaryContainer">@color/dawn_clay_primary_container</item>
+        <item name="colorOnPrimaryContainer">@color/dawn_clay_on_primary_container</item>
+        <item name="colorSecondary">@color/dawn_clay_secondary</item>
+        <item name="colorOnSecondary">@color/dawn_clay_on_secondary</item>
+        <item name="colorSecondaryContainer">@color/dawn_clay_secondary_container</item>
+        <item name="colorOnSecondaryContainer">@color/dawn_clay_on_secondary_container</item>
+        <item name="android:windowBackground">@color/dawn_clay_background</item>
+        <item name="colorSurface">@color/dawn_clay_surface</item>
+        <item name="colorOnSurface">@color/dawn_clay_on_surface</item>
+        <item name="colorSurfaceVariant">@color/dawn_clay_surface_variant</item>
         <item name="colorOnSurfaceVariant">#53433f</item>
     </style>
-    <style name="Theme.CalmOtter.Terracotta.Block" parent="Theme.CalmOtter.Terracotta" />
-    <style name="Theme.CalmOtter.Terracotta.WithActionBar" parent="Theme.CalmOtter.Base.WithActionBar">
-        <item name="colorPrimary">@color/terracotta_primary</item>
-        <item name="colorOnPrimary">@color/terracotta_on_primary</item>
-        <item name="colorPrimaryContainer">@color/terracotta_primary_container</item>
-        <item name="colorOnPrimaryContainer">@color/terracotta_on_primary_container</item>
-        <item name="colorSecondary">@color/terracotta_secondary</item>
-        <item name="colorOnSecondary">@color/terracotta_on_secondary</item>
-        <item name="colorSecondaryContainer">@color/terracotta_secondary_container</item>
-        <item name="colorOnSecondaryContainer">@color/terracotta_on_secondary_container</item>
-        <item name="android:windowBackground">@color/terracotta_background</item>
-        <item name="colorSurface">@color/terracotta_surface</item>
-        <item name="colorOnSurface">@color/terracotta_on_surface</item>
-        <item name="colorSurfaceVariant">@color/terracotta_surface_variant</item>
+    <style name="Theme.CalmOtter.DawnClay.Block" parent="Theme.CalmOtter.DawnClay" />
+    <style name="Theme.CalmOtter.DawnClay.WithActionBar" parent="Theme.CalmOtter.Base.WithActionBar">
+        <item name="colorPrimary">@color/dawn_clay_primary</item>
+        <item name="colorOnPrimary">@color/dawn_clay_on_primary</item>
+        <item name="colorPrimaryContainer">@color/dawn_clay_primary_container</item>
+        <item name="colorOnPrimaryContainer">@color/dawn_clay_on_primary_container</item>
+        <item name="colorSecondary">@color/dawn_clay_secondary</item>
+        <item name="colorOnSecondary">@color/dawn_clay_on_secondary</item>
+        <item name="colorSecondaryContainer">@color/dawn_clay_secondary_container</item>
+        <item name="colorOnSecondaryContainer">@color/dawn_clay_on_secondary_container</item>
+        <item name="android:windowBackground">@color/dawn_clay_background</item>
+        <item name="colorSurface">@color/dawn_clay_surface</item>
+        <item name="colorOnSurface">@color/dawn_clay_on_surface</item>
+        <item name="colorSurfaceVariant">@color/dawn_clay_surface_variant</item>
         <item name="colorOnSurfaceVariant">#53433f</item>
-        <item name="actionBarPopupTheme">@style/ThemeOverlay.CalmOtter.Terracotta.PopupMenu</item>
+        <item name="actionBarPopupTheme">@style/ThemeOverlay.CalmOtter.DawnClay.PopupMenu</item>
     </style>
 
     <!-- Overlay del popup dell'ActionBar per palette (vedi actionBarPopupTheme
@@ -150,15 +187,20 @@
         <item name="colorOnSurface">@color/sage_on_surface</item>
         <item name="popupMenuBackground">@color/sage_surface</item>
     </style>
-    <style name="ThemeOverlay.CalmOtter.Lavender.PopupMenu" parent="ThemeOverlay.Material3.Light">
-        <item name="colorSurface">@color/lavender_surface</item>
-        <item name="colorOnSurface">@color/lavender_on_surface</item>
-        <item name="popupMenuBackground">@color/lavender_surface</item>
+    <style name="ThemeOverlay.CalmOtter.DeepForest.PopupMenu" parent="ThemeOverlay.Material3.Light">
+        <item name="colorSurface">@color/deep_forest_surface</item>
+        <item name="colorOnSurface">@color/deep_forest_on_surface</item>
+        <item name="popupMenuBackground">@color/deep_forest_surface</item>
     </style>
-    <style name="ThemeOverlay.CalmOtter.Terracotta.PopupMenu" parent="ThemeOverlay.Material3.Light">
-        <item name="colorSurface">@color/terracotta_surface</item>
-        <item name="colorOnSurface">@color/terracotta_on_surface</item>
-        <item name="popupMenuBackground">@color/terracotta_surface</item>
+    <style name="ThemeOverlay.CalmOtter.DuskSand.PopupMenu" parent="ThemeOverlay.Material3.Light">
+        <item name="colorSurface">@color/dusk_sand_surface</item>
+        <item name="colorOnSurface">@color/dusk_sand_on_surface</item>
+        <item name="popupMenuBackground">@color/dusk_sand_surface</item>
+    </style>
+    <style name="ThemeOverlay.CalmOtter.DawnClay.PopupMenu" parent="ThemeOverlay.Material3.Light">
+        <item name="colorSurface">@color/dawn_clay_surface</item>
+        <item name="colorOnSurface">@color/dawn_clay_on_surface</item>
+        <item name="popupMenuBackground">@color/dawn_clay_surface</item>
     </style>
 
     <!-- Shared Styles -->

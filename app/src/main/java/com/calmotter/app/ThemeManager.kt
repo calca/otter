@@ -5,11 +5,29 @@ import androidx.appcompat.app.AppCompatActivity
 
 enum class AppTheme(val key: String) {
     SAGE("sage"),
-    LAVENDER("lavender"),
-    TERRACOTTA("terracotta");
+    DUSK_SAND("dusk_sand"),
+    DAWN_CLAY("dawn_clay"),
+
+    /**
+     * Quarta palette, importata dal redesign (vedi
+     * specs/multi-theme-system/design.md). Aggiunta in coda e non come nuovo
+     * default: chi ha già l'app non deve vedersi cambiare i colori sotto le
+     * mani, e [fromKey] continua a ricadere su [SAGE].
+     */
+    DEEP_FOREST("deep_forest");
 
     companion object {
-        fun fromKey(key: String) = entries.firstOrNull { it.key == key } ?: SAGE
+        /**
+         * Chiavi storiche delle palette sostituite dal redesign: chi aveva
+         * scelto Lavanda o Terracotta si ritrova sulla palette che ne ha
+         * preso il posto invece che riportato al default. La preferenza su
+         * disco resta la vecchia stringa finche' l'utente non ne sceglie
+         * un'altra — nessuna migrazione da scrivere, solo da leggere.
+         */
+        private val renamed = mapOf("lavender" to DUSK_SAND, "terracotta" to DAWN_CLAY)
+
+        fun fromKey(key: String) =
+            entries.firstOrNull { it.key == key } ?: renamed[key] ?: SAGE
     }
 }
 
@@ -37,15 +55,20 @@ object ThemeManager {
                 ThemeVariant.BLOCK        -> R.style.Theme_CalmOtter_Sage_Block
                 ThemeVariant.WITH_ACTION_BAR -> R.style.Theme_CalmOtter_Sage_WithActionBar
             }
-            AppTheme.LAVENDER    -> when (variant) {
-                ThemeVariant.BASE         -> R.style.Theme_CalmOtter_Lavender
-                ThemeVariant.BLOCK        -> R.style.Theme_CalmOtter_Lavender_Block
-                ThemeVariant.WITH_ACTION_BAR -> R.style.Theme_CalmOtter_Lavender_WithActionBar
+            AppTheme.DUSK_SAND    -> when (variant) {
+                ThemeVariant.BASE         -> R.style.Theme_CalmOtter_DuskSand
+                ThemeVariant.BLOCK        -> R.style.Theme_CalmOtter_DuskSand_Block
+                ThemeVariant.WITH_ACTION_BAR -> R.style.Theme_CalmOtter_DuskSand_WithActionBar
             }
-            AppTheme.TERRACOTTA  -> when (variant) {
-                ThemeVariant.BASE         -> R.style.Theme_CalmOtter_Terracotta
-                ThemeVariant.BLOCK        -> R.style.Theme_CalmOtter_Terracotta_Block
-                ThemeVariant.WITH_ACTION_BAR -> R.style.Theme_CalmOtter_Terracotta_WithActionBar
+            AppTheme.DAWN_CLAY  -> when (variant) {
+                ThemeVariant.BASE         -> R.style.Theme_CalmOtter_DawnClay
+                ThemeVariant.BLOCK        -> R.style.Theme_CalmOtter_DawnClay_Block
+                ThemeVariant.WITH_ACTION_BAR -> R.style.Theme_CalmOtter_DawnClay_WithActionBar
+            }
+            AppTheme.DEEP_FOREST -> when (variant) {
+                ThemeVariant.BASE         -> R.style.Theme_CalmOtter_DeepForest
+                ThemeVariant.BLOCK        -> R.style.Theme_CalmOtter_DeepForest_Block
+                ThemeVariant.WITH_ACTION_BAR -> R.style.Theme_CalmOtter_DeepForest_WithActionBar
             }
         }
         activity.setTheme(styleId)
@@ -55,8 +78,9 @@ object ThemeManager {
     fun accentColor(context: Context): Int {
         return when (getTheme(context)) {
             AppTheme.SAGE        -> 0xFF0F5238.toInt()
-            AppTheme.LAVENDER    -> 0xFF6750A4.toInt()
-            AppTheme.TERRACOTTA  -> 0xFF8F4C38.toInt()
+            AppTheme.DUSK_SAND    -> 0xFF61462B.toInt()
+            AppTheme.DAWN_CLAY  -> 0xFF6E352B.toInt()
+            AppTheme.DEEP_FOREST -> 0xFF1B3B2B.toInt()
         }
     }
 }

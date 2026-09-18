@@ -379,17 +379,24 @@ private fun ThemeListCard(currentTheme: AppTheme, onPickTheme: (AppTheme) -> Uni
             )
             HorizontalDivider(color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.08f))
             ThemeListRow(
-                label = stringResource(R.string.theme_lavender),
-                swatchColor = colorResource(R.color.lavender_primary),
-                selected = currentTheme == AppTheme.LAVENDER,
-                onClick = { onPickTheme(AppTheme.LAVENDER) },
+                label = stringResource(R.string.theme_dusk_sand),
+                swatchColor = colorResource(R.color.dusk_sand_primary),
+                selected = currentTheme == AppTheme.DUSK_SAND,
+                onClick = { onPickTheme(AppTheme.DUSK_SAND) },
             )
             HorizontalDivider(color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.08f))
             ThemeListRow(
-                label = stringResource(R.string.theme_terracotta),
-                swatchColor = colorResource(R.color.terracotta_primary),
-                selected = currentTheme == AppTheme.TERRACOTTA,
-                onClick = { onPickTheme(AppTheme.TERRACOTTA) },
+                label = stringResource(R.string.theme_dawn_clay),
+                swatchColor = colorResource(R.color.dawn_clay_primary),
+                selected = currentTheme == AppTheme.DAWN_CLAY,
+                onClick = { onPickTheme(AppTheme.DAWN_CLAY) },
+            )
+            HorizontalDivider(color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.08f))
+            ThemeListRow(
+                label = stringResource(R.string.theme_deep_forest),
+                swatchColor = colorResource(R.color.deep_forest_primary),
+                selected = currentTheme == AppTheme.DEEP_FOREST,
+                onClick = { onPickTheme(AppTheme.DEEP_FOREST) },
             )
         }
     }

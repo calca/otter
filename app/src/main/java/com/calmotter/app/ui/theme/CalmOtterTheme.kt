@@ -11,7 +11,7 @@ import androidx.compose.ui.graphics.compositeOver
 import com.calmotter.app.AppTheme
 
 /**
- * Schemi colore Material3 per le 3 palette dell'app (Sage/Lavender/Terracotta),
+ * Schemi colore Material3 per le 3 palette dell'app (Sage/DuskSand/DawnClay),
  * chiaro e scuro. Le due modalità NON condividono la stessa fonte XML, quindi
  * NON aspettarti che i valori chiaro/scuro siano una semplice variazione di
  * tonalità l'uno dell'altro:
@@ -68,13 +68,13 @@ private fun dialogContainerFor(primary: Color, surface: Color): Color =
 // riusa lo stesso valore di onSurface (@color/sage_on_surface) anziché un
 // default M3 indovinato.
 private val SageLight = run {
-    val surface = Color(0xFFF9F9F8)   // @color/sage_surface
+    val surface = Color(0xFFF9FAF6)   // @color/sage_surface
     val primary = Color(0xFF0F5238)   // @color/sage_primary
     lightColorScheme(
         background = surface,             // @color/sage_background
         surface = surface,
-        onBackground = Color(0xFF191C1C), // @color/sage_on_surface
-        onSurface = Color(0xFF191C1C),    // @color/sage_on_surface
+        onBackground = Color(0xFF191C1A), // @color/sage_on_surface
+        onSurface = Color(0xFF191C1A),    // @color/sage_on_surface
         primary = primary,
         onPrimary = Color(0xFFFFFFFF),    // @color/sage_on_primary
         error = Color(0xFFBA1A1A),        // @color/m3_error
@@ -84,22 +84,22 @@ private val SageLight = run {
 }
 
 private val SageDark = run {
-    val surface = Color(0xFF223040)
-    val primary = Color(0xFF6BBFA0)
+    val surface = Color(0xFF151D17)
+    val primary = Color(0xFF9ED3A8)
     darkColorScheme(
-        background = Color(0xFF1A2B38),
+        background = Color(0xFF0E1510),
         surface = surface,
-        onBackground = Color(0xFFD4E8DC),
-        onSurface = Color(0xFF8AADA0),
+        onBackground = Color(0xFFDDE5DC),
+        onSurface = Color(0xFF9AB3A3),
         primary = primary,
-        onPrimary = Color(0xFF1A2B38),
+        onPrimary = Color(0xFF02391A),
         error = Color(0xFFE07A78),
         onError = OnError,
         surfaceContainerHigh = dialogContainerFor(primary, surface),
     )
 }
 
-private val LavenderLight = run {
+private val DuskSandLight = run {
     val surface = Color(0xFFFDF7FF)   // @color/lavender_surface
     val primary = Color(0xFF7C6FA0)   // @color/lavender_primary
     lightColorScheme(
@@ -115,23 +115,23 @@ private val LavenderLight = run {
     )
 }
 
-private val LavenderDark = run {
-    val surface = Color(0xFF262240)
-    val primary = Color(0xFFA99ED0)
+private val DuskSandDark = run {
+    val surface = Color(0xFF1C1711)
+    val primary = Color(0xFFE3C39A)
     darkColorScheme(
-        background = Color(0xFF1E1A2E),
+        background = Color(0xFF15110B),
         surface = surface,
-        onBackground = Color(0xFFE0D8F5),
-        onSurface = Color(0xFF9B8FC0),
+        onBackground = Color(0xFFECE5DA),
+        onSurface = Color(0xFFBDA98D),
         primary = primary,
-        onPrimary = Color(0xFF1E1A2E),
+        onPrimary = Color(0xFF3A2A16),
         error = Color(0xFFE07A78),
         onError = OnError,
         surfaceContainerHigh = dialogContainerFor(primary, surface),
     )
 }
 
-private val TerracottaLight = run {
+private val DawnClayLight = run {
     val surface = Color(0xFFFFFBFF)   // @color/terracotta_surface
     val primary = Color(0xFFA0604A)   // @color/terracotta_primary
     lightColorScheme(
@@ -147,16 +147,48 @@ private val TerracottaLight = run {
     )
 }
 
-private val TerracottaDark = run {
-    val surface = Color(0xFF381F15)
-    val primary = Color(0xFFC4927A)
+private val DawnClayDark = run {
+    val surface = Color(0xFF1E1512)
+    val primary = Color(0xFFF0B3A2)
     darkColorScheme(
-        background = Color(0xFF2A1812),
+        background = Color(0xFF170F0C),
         surface = surface,
-        onBackground = Color(0xFFF0DDD8),
-        onSurface = Color(0xFFC09080),
+        onBackground = Color(0xFFEFE2DD),
+        onSurface = Color(0xFFC79B8D),
         primary = primary,
-        onPrimary = Color(0xFF2A1812),
+        onPrimary = Color(0xFF3E1A12),
+        error = Color(0xFFE07A78),
+        onError = OnError,
+        surfaceContainerHigh = dialogContainerFor(primary, surface),
+    )
+}
+
+private val DeepForestLight = run {
+    val surface = Color(0xFFF8F9F5)   // @color/deep_forest_surface
+    val primary = Color(0xFF1B3B2B)   // @color/deep_forest_primary
+    lightColorScheme(
+        background = surface,             // @color/deep_forest_background
+        surface = surface,
+        onBackground = Color(0xFF1A1C1A), // @color/deep_forest_on_surface
+        onSurface = Color(0xFF1A1C1A),    // @color/deep_forest_on_surface
+        primary = primary,
+        onPrimary = Color(0xFFFFFFFF),    // @color/deep_forest_on_primary
+        error = Color(0xFFBA1A1A),        // @color/m3_error
+        onError = OnError,
+        surfaceContainerHigh = dialogContainerFor(primary, surface),
+    )
+}
+
+private val DeepForestDark = run {
+    val surface = Color(0xFF101711)
+    val primary = Color(0xFFABCFB8)
+    darkColorScheme(
+        background = Color(0xFF0B110D),
+        surface = surface,
+        onBackground = Color(0xFFE0EAE2),
+        onSurface = Color(0xFF94AC9C),
+        primary = primary,
+        onPrimary = Color(0xFF00281A),
         error = Color(0xFFE07A78),
         onError = OnError,
         surfaceContainerHigh = dialogContainerFor(primary, surface),
@@ -165,14 +197,16 @@ private val TerracottaDark = run {
 
 private fun lightSchemeFor(appTheme: AppTheme): ColorScheme = when (appTheme) {
     AppTheme.SAGE -> SageLight
-    AppTheme.LAVENDER -> LavenderLight
-    AppTheme.TERRACOTTA -> TerracottaLight
+    AppTheme.DUSK_SAND -> DuskSandLight
+    AppTheme.DAWN_CLAY -> DawnClayLight
+    AppTheme.DEEP_FOREST -> DeepForestLight
 }
 
 private fun darkSchemeFor(appTheme: AppTheme): ColorScheme = when (appTheme) {
     AppTheme.SAGE -> SageDark
-    AppTheme.LAVENDER -> LavenderDark
-    AppTheme.TERRACOTTA -> TerracottaDark
+    AppTheme.DUSK_SAND -> DuskSandDark
+    AppTheme.DAWN_CLAY -> DawnClayDark
+    AppTheme.DEEP_FOREST -> DeepForestDark
 }
 
 /**
@@ -188,5 +222,5 @@ fun CalmOtterTheme(
     content: @Composable () -> Unit
 ) {
     val colorScheme = if (isSystemInDarkTheme()) darkSchemeFor(appTheme) else lightSchemeFor(appTheme)
-    MaterialExpressiveTheme(colorScheme = colorScheme, content = content)
+    MaterialExpressiveTheme(colorScheme = colorScheme, typography = CalmOtterTypography, content = content)
 }

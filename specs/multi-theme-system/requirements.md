@@ -8,8 +8,8 @@ XML-driven window chrome and the Compose content within it.
 
 ## User Story 1: Choosing a palette
 
-As the phone's user, I want to pick between three palettes (Sage, Lavender,
-Terracotta), so the app matches my preference.
+As the phone's user, I want to pick between four palettes (Sage, Deep
+Forest, Dusk Sand, Dawn Clay), so the app matches my preference.
 
 ### Acceptance Criteria
 
@@ -37,6 +37,6 @@ Terracotta), so the app matches my preference.
 
 ## Out of scope
 
-- The actual color values per palette (Sage/Lavender/Terracotta ×
+- The actual color values per palette (Sage/Deep Forest/Dusk Sand/Dawn Clay ×
   light/dark) are asset content, not behavior — see `design.md` for where
   they live if a value needs correcting.

@@ -8,54 +8,86 @@
     <color name="m3_outline">#707973</color>
     <color name="m3_outline_variant">#bfc9c1</color>
 
+    <!-- LE QUATTRO PALETTE
+         Valori importati dai design system generati in Stitch (progetto
+         3158702940609906617): "Sage Sanctuary", "Calm Otter Sanctuary"
+         (= Deep Forest), "Dusk Sand Sanctuary", "Dawn Clay". Dusk Sand e
+         Dawn Clay prendono il posto di Lavanda e Terracotta, anche nelle
+         preferenze gia' salvate (vedi AppTheme.fromKey).
+
+         Un'eccezione dichiarata: i sistemi "Sage" e "Calm Otter" generano
+         lo stesso primary (#1b3b2b), il che renderebbe Salvia e Deep Forest
+         due temi identici nell'elenco. Salvia tiene quindi il proprio verde
+         (#0f5238), piu' chiaro e saturo, e adotta dal redesign solo
+         superfici, neutri e contenitori. -->
     <!-- SAGE THEME -->
+    <!-- DEEP FOREST — quarta palette, importata dal redesign Stitch
+         ("Calm Otter Sanctuary", progetto 3158702940609906617). Valori presi
+         dai token del design system, non riportati a occhio: primary =
+         Deep Forest Pine, secondary = la sua variante leggibile su chiaro
+         (#8fa693, la "Muted Mountain Sage" del documento, non regge il
+         contrasto come colore di testo), surface = Warm Alabaster. -->
+    <color name="deep_forest_primary">#1b3b2b</color>
+    <color name="deep_forest_on_primary">#ffffff</color>
+    <color name="deep_forest_primary_container">#2d4d3c</color>
+    <color name="deep_forest_on_primary_container">#c7ebd4</color>
+    <color name="deep_forest_secondary">#4e6353</color>
+    <color name="deep_forest_on_secondary">#ffffff</color>
+    <color name="deep_forest_secondary_container">#cee6d1</color>
+    <color name="deep_forest_on_secondary_container">#526857</color>
+    <color name="deep_forest_background">#f8f9f5</color>
+    <color name="deep_forest_surface">#f8f9f5</color>
+    <color name="deep_forest_on_surface">#1a1c1a</color>
+    <color name="deep_forest_surface_variant">#e2e3df</color>
+
     <color name="sage_primary">#0f5238</color>
     <color name="sage_on_primary">#ffffff</color>
     <color name="sage_primary_container">#2d6a4f</color>
-    <color name="sage_on_primary_container">#a8e7c5</color>
-    <color name="sage_secondary">#57615c</color>
+    <color name="sage_on_primary_container">#c7ebd4</color>
+    <color name="sage_secondary">#4e6353</color>
     <color name="sage_on_secondary">#ffffff</color>
-    <color name="sage_secondary_container">#d8e2dc</color>
-    <color name="sage_on_secondary_container">#5b6560</color>
-    <color name="sage_background">#f9f9f8</color>
-    <color name="sage_surface">#f9f9f8</color>
-    <color name="sage_on_surface">#191c1c</color>
-    <color name="sage_surface_variant">#edeeed</color>
+    <color name="sage_secondary_container">#cee6d1</color>
+    <color name="sage_on_secondary_container">#526857</color>
+    <color name="sage_background">#f9faf6</color>
+    <color name="sage_surface">#f9faf6</color>
+    <color name="sage_on_surface">#191c1a</color>
+    <color name="sage_surface_variant">#e2e3df</color>
 
-    <!-- LAVENDER THEME -->
-    <color name="lavender_primary">#7C6FA0</color>
-    <color name="lavender_on_primary">#ffffff</color>
-    <color name="lavender_primary_container">#E0D8F5</color>
-    <color name="lavender_on_primary_container">#262240</color>
-    <color name="lavender_secondary">#605B71</color>
-    <color name="lavender_on_secondary">#ffffff</color>
-    <color name="lavender_secondary_container">#E6E0F9</color>
-    <color name="lavender_on_secondary_container">#1D172B</color>
-    <color name="lavender_background">#FDF7FF</color>
-    <color name="lavender_surface">#FDF7FF</color>
-    <color name="lavender_on_surface">#1C1B1F</color>
-    <color name="lavender_surface_variant">#E7E1EB</color>
+    <!-- DUSK SAND THEME -->
+    <color name="dusk_sand_primary">#61462d</color>
+    <color name="dusk_sand_on_primary">#ffffff</color>
+    <color name="dusk_sand_primary_container">#7c6047</color>
+    <color name="dusk_sand_on_primary_container">#ffddb9</color>
+    <color name="dusk_sand_secondary">#74593f</color>
+    <color name="dusk_sand_on_secondary">#ffffff</color>
+    <color name="dusk_sand_secondary_container">#fed9b8</color>
+    <color name="dusk_sand_on_secondary_container">#5a4227</color>
+    <color name="dusk_sand_background">#fcf9f4</color>
+    <color name="dusk_sand_surface">#fcf9f4</color>
+    <color name="dusk_sand_on_surface">#1c1c19</color>
+    <color name="dusk_sand_surface_variant">#e5e2dd</color>
 
-    <!-- TERRACOTTA THEME -->
-    <color name="terracotta_primary">#A0604A</color>
-    <color name="terracotta_on_primary">#ffffff</color>
-    <color name="terracotta_primary_container">#FFDAD0</color>
-    <color name="terracotta_on_primary_container">#3D0700</color>
-    <color name="terracotta_secondary">#77574E</color>
-    <color name="terracotta_on_secondary">#ffffff</color>
-    <color name="terracotta_secondary_container">#FFDAD0</color>
-    <color name="terracotta_on_secondary_container">#2C150F</color>
-    <color name="terracotta_background">#FFFBFF</color>
-    <color name="terracotta_surface">#FFFBFF</color>
-    <color name="terracotta_on_surface">#201A18</color>
-    <color name="terracotta_surface_variant">#F5DED8</color>
+    <!-- DAWN CLAY THEME -->
+    <color name="dawn_clay_primary">#6e352b</color>
+    <color name="dawn_clay_on_primary">#ffffff</color>
+    <color name="dawn_clay_primary_container">#8a4a3d</color>
+    <color name="dawn_clay_on_primary_container">#ffdad2</color>
+    <color name="dawn_clay_secondary">#884f44</color>
+    <color name="dawn_clay_on_secondary">#ffffff</color>
+    <color name="dawn_clay_secondary_container">#ffb4a6</color>
+    <color name="dawn_clay_on_secondary_container">#5c2b22</color>
+    <color name="dawn_clay_background">#fdf8f6</color>
+    <color name="dawn_clay_surface">#fdf8f6</color>
+    <color name="dawn_clay_on_surface">#1c1b1a</color>
+    <color name="dawn_clay_surface_variant">#e6e1e0</color>
 
-    <!-- Default (mai risolto in pratica) per i 3 nomi *_dark_surface definiti
+    <!-- Default (mai risolto in pratica) per i 4 nomi *_dark_surface definiti
          davvero in values-night/colors.xml: lint richiede una dichiarazione
          di base per ogni risorsa qualificata, anche se questi nomi sono
          consultati solo da values-night/themes.xml (mai da una config
          chiara) — vedi ThemeOverlay.CalmOtter.*.PopupMenu lì. -->
+    <color name="deep_forest_dark_surface">@color/deep_forest_surface</color>
     <color name="sage_dark_surface">@color/sage_surface</color>
-    <color name="lavender_dark_surface">@color/lavender_surface</color>
-    <color name="terracotta_dark_surface">@color/terracotta_surface</color>
+    <color name="dusk_sand_dark_surface">@color/dusk_sand_surface</color>
+    <color name="dawn_clay_dark_surface">@color/dawn_clay_surface</color>
 </resources>

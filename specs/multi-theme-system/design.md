@@ -7,8 +7,8 @@
 | `ThemeManager.kt` | Reads/writes the chosen `AppTheme` (plain `SharedPreferences`); resolves the correct `@style` for an Activity+variant combination |
 | `BaseActivity.kt` | Calls `ThemeManager.applyTheme()` before `super.onCreate()` |
 | `res/values/themes.xml` (+ `values-night/themes.xml`) | 3 palettes × 3 variants of AppCompat/Material3 XML themes |
-| `res/values/colors.xml` | Color values referenced by `themes.xml` (`sage_*`, `lavender_*`, `terracotta_*`, plus shared `m3_*` structural colors) |
-| `res/values-night/colors.xml` | Overrides only `sage_primary`/`lavender_primary`/`terracotta_primary` with their dark-mode values — the one place any of `colors.xml` gets a night variant, added so the theme-list swatches (`ThemeListRow`, which reads these 3 names via `colorResource()`) show the right color in dark mode |
+| `res/values/colors.xml` | Color values referenced by `themes.xml` (`sage_*`, `dusk_sand_*`, `dawn_clay_*`, plus shared `m3_*` structural colors) |
+| `res/values-night/colors.xml` | Overrides only `sage_primary`/`dusk_sand_primary`/`dawn_clay_primary` with their dark-mode values — the one place any of `colors.xml` gets a night variant, added so the theme-list swatches (`ThemeListRow`, which reads these 3 names via `colorResource()`) show the right color in dark mode |
 | `ui/theme/CalmOtterTheme.kt` | Independent Compose `MaterialExpressiveTheme` color schemes, one per palette × light/dark |
 
 ## Two parallel systems — this is intentional, keep them in sync manually
@@ -65,7 +65,7 @@ Three variants per palette, chosen per-Activity via
 reported directly as wrong-colored ("il menù di export ha il colore
 errato e non del tema") — a fixed Material3 lavender in light mode, a
 fixed neutral dark grey (`#121212`-ish) in dark mode, neither tracking
-Sage/Lavender/Terracotta.
+Sage/Dusk Sand/Dawn Clay.
 
 **Why setting `colorSurface` (already correctly per-palette) and even
 `popupMenuBackground` directly on `Theme.CalmOtter.<Palette>.WithActionBar`
@@ -91,7 +91,7 @@ at it from each `.WithActionBar` style:
 - `values-night/themes.xml` (dark, still MaterialComponents-based — see
   "Two parallel systems"): the same 3 overlays extend
   `ThemeOverlay.MaterialComponents.Dark` instead, and use their own
-  `sage_dark_surface`/`lavender_dark_surface`/`terracotta_dark_surface`
+  `sage_dark_surface`/`dusk_sand_dark_surface`/`dawn_clay_dark_surface`
   color names (new, in `values-night/colors.xml`, mirroring the palette's
   existing inline hex `colorSurface`) rather than a `values/colors.xml`
   name, consistent with this file's established pattern of not touching
@@ -196,7 +196,7 @@ fixes the other:
    would have needed its own light/dark branching to get this right, and
    would still have been wrong if it had reused
    `ThemeManager.accentColor()` — that function's hardcoded
-   Lavender/Terracotta hex values have drifted from `colors.xml` and don't
+   Dusk Sand/Dawn Clay hex values have drifted from `colors.xml` and don't
    match either; it's currently unused anywhere else, so the drift had
    gone unnoticed.
 
@@ -253,3 +253,44 @@ on the active row, in place of the dot's selection-ring styling.
 outright once nothing referenced them, rather than left orphaned — the
 selection-ring visual (dot-based) is gone; the active row is now indicated
 by the "Selected" label alone.
+
+
+## The four palettes come from the redesign, and two replaced older ones
+
+The palettes are no longer hand-picked: their values are imported from the
+design systems generated in Stitch for the app redesign (project
+`3158702940609906617`) — "Sage Sanctuary", "Calm Otter Sanctuary" (Deep
+Forest), "Dusk Sand Sanctuary" and "Dawn Clay". Dusk Sand and Dawn Clay took
+the place of Lavender and Terracotta, which no longer exist.
+
+**Stored preferences are not migrated, they are re-read.** `AppTheme.fromKey`
+maps the historical keys `"lavender"` and `"terracotta"` onto the palettes
+that replaced them, so someone who had picked one of them lands on its
+successor rather than being bounced back to the default. The old string stays
+on disk until they pick something else: there is nothing to rewrite, only
+something to read.
+
+**Sage keeps its own green, on purpose.** The generated "Sage Sanctuary" and
+"Calm Otter Sanctuary" systems produce the *same* primary (`#1b3b2b`), which
+would have made Sage and Deep Forest two identical entries in a list of four.
+Sage therefore keeps `#0f5238` — lighter and more saturated — and takes from
+the redesign only its surfaces, neutrals and containers.
+
+**Dark mode is derived, not copied.** The redesign also ships a dark system,
+"Nocturnal Sanctuary" (`#0e1510` ground, light desaturated green accent).
+Adopting it as-is would have made all four palettes look the same at night,
+so what is reused is its *structure* — near-black ground, surface a step
+lighter, light accent — with each palette's own hue for the accent and the
+ground. That also finally replaces the hand-written dark values this document
+used to describe as "never updated by the redesign".
+
+**Typography is now part of the theme.** `CalmOtterTheme` passes a
+`CalmOtterTypography` built on Plus Jakarta Sans (`ui/theme/Type.kt`), the
+typeface the design system prescribes. The font ships inside the APK as two
+variable files (upright and italic, ~360KB together, SIL OFL — see
+THIRD_PARTY_LICENSES.md); Downloadable Fonts would have routed through Google
+Play Services, which this app does not do. Sizes stay at Material 3's
+defaults — the screens set their own `fontSize` almost everywhere, so
+rescaling here would only have moved library components out of step with
+them; what changes is the typeface, the heavier headline weights and their
+tighter tracking.

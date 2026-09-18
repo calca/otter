@@ -86,8 +86,9 @@
     <string name="accessibility_service_description">Permette a PauseLock di rilevare quale app è in primo piano per applicare il blocco durante le sessioni di pausa.</string>
 
     <string name="theme_sage">Salvia</string>
-    <string name="theme_lavender">Lavanda</string>
-    <string name="theme_terracotta">Terracotta</string>
+    <string name="theme_dusk_sand">Sabbia al tramonto</string>
+    <string name="theme_dawn_clay">Argilla all’alba</string>
+    <string name="theme_deep_forest">Foresta profonda</string>
 
     <string name="notification_channel_name">Sessione in corso</string>
     <string name="notification_channel_description">Mostra lo stato della sessione di pausa attiva</string>

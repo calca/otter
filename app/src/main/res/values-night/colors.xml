@@ -10,9 +10,13 @@
          values/colors.xml continua a valere anche in dark mode
          (values-night/themes.xml ha i propri valori scuri inline, non
          passa da colors.xml — vedi specs/multi-theme-system/design.md). -->
-    <color name="sage_primary">#6BBFA0</color>
-    <color name="lavender_primary">#A99ED0</color>
-    <color name="terracotta_primary">#C4927A</color>
+    <!-- Deep Forest in scuro: primary = `inverse-primary` del design system
+         Stitch (#abcfb8), cioè il verde che quel sistema prevede già per
+         fondo scuro — non una schiaritura inventata qui. -->
+    <color name="deep_forest_primary">#abcfb8</color>
+    <color name="sage_primary">#9ed3a8</color>
+    <color name="dusk_sand_primary">#e3c39a</color>
+    <color name="dawn_clay_primary">#f0b3a2</color>
 
     <!-- Stessi valori di colorSurface inline in values-night/themes.xml, come
          @color/ invece che #hex letterale: popupMenuBackground è un attr
@@ -20,7 +24,8 @@
          ("expected reference but got raw string"), serve passare da un
          @color/ nominato (vedi ThemeOverlay.CalmOtter.*.PopupMenu nello
          stesso file). -->
-    <color name="sage_dark_surface">#223040</color>
-    <color name="lavender_dark_surface">#262240</color>
-    <color name="terracotta_dark_surface">#381F15</color>
+    <color name="deep_forest_dark_surface">#101711</color>
+    <color name="sage_dark_surface">#151d17</color>
+    <color name="dusk_sand_dark_surface">#1c1711</color>
+    <color name="dawn_clay_dark_surface">#1e1512</color>
 </resources>
