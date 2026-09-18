@@ -521,6 +521,22 @@ header (asked for explicitly — neither has anything to lead to), the
 seconds-level countdown, and the "Breathe gently with otter" pill, which
 promises a breathing exercise the app does not have.
 
+### The ripples behave like a stone in water
+
+Asked for on review: slower, like a stone dropped in a pond. The old version
+was a 3.6s loop at constant speed, constant stroke width and linear fade —
+closer to a radar sweep than to water. Each ring now:
+
+- **runs for 9 seconds**, with a new one starting every 3;
+- **slows as it widens** (`t^0.8`). A stronger deceleration was tried first
+  (`1-(1-t)²`, which is what water actually does) and looked worse: the ring
+  shot away from the pond's edge and spent nearly its whole life far out and
+  faint, which is to say invisible;
+- **thins from 3.5dp to 0.9dp**, because the same energy is spread over an
+  ever longer circumference;
+- **fades on `(1-t)^1.3`**, so it is gone before it would reach the edges of
+  the page rather than being cut off there.
+
 ### What the pond costs, measured
 
 Reported while reviewing: the emulator's CPU spins with the Home open. It

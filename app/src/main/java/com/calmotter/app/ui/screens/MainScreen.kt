@@ -77,6 +77,7 @@ import com.calmotter.app.ui.mascot.OtterSatelliteMark
 import com.calmotter.app.ui.mascot.SprigMark
 import com.calmotter.app.ui.mascot.TogetherMark
 import java.util.Calendar
+import kotlin.math.pow
 
 // Indice 1 = 30 min, indice 2 = 60 min, ... fino a 4 ore, a passi di 30 minuti
 // (stessa tabella usata da MainActivity prima della migrazione a Compose;
@@ -773,36 +774,52 @@ private fun AmbientRipples(centerY: Dp, modifier: Modifier = Modifier) {
         initialValue = 0f,
         targetValue = 1f,
         animationSpec = infiniteRepeatable(
-            animation = tween(3600, easing = LinearEasing),
+            // 9 secondi per giro, non 3,6: è un sasso caduto nell'acqua, non
+            // una scansione radar. E l'avanzamento non è lineare — vedi sotto.
+            animation = tween(RIPPLE_PERIOD_MILLIS, easing = LinearEasing),
         ),
         label = "rippleT",
     )
-    // Anelli e onde usano `tertiary` (#d5e0d5 nelle palette verdi), che nel
-    // design system è esattamente il colore dei "ripple borders" — non
-    // `primary` a bassa opacità, che dava un grigio.
+    // Le onde usano `tertiary` (#d5e0d5 nelle palette verdi), che nel design
+    // system è esattamente il colore dei "ripple borders" — non `primary` a
+    // bassa opacità, che dava un grigio.
     val ringColor = MaterialTheme.colorScheme.tertiary
-    val brightColor = MaterialTheme.colorScheme.surfaceBright
 
     Canvas(modifier = modifier) {
         val center = Offset(size.width / 2f, centerY.toPx())
-        val strokeWidth = 2.dp.toPx()
         val veilRadius = 151.dp.toPx()
-
-        // L'onda parte dal bordo esterno dello stagno fermo e se ne va verso
-        // i bordi della pagina, invece di attraversare l'otter.
         val maxExtra = size.height / 1.1f
+
+        // Tre anelli sfasati, ciascuno con la sua vita indipendente. Ogni
+        // anello imita ciò che fa un'increspatura vera:
+        //
+        // - **rallenta**: il raggio segue 1-(1-t)^2 invece di t, quindi parte
+        //   svelto dal bordo dello stagno e si allarga sempre più piano.
+        // - **si assottiglia**: il tratto passa da 3dp a 0,8dp mentre si
+        //   allarga, perché la stessa energia si distribuisce su una
+        //   circonferenza più lunga.
+        // - **svanisce prima della fine**: l'opacità cala con (1-t)^1.8, così
+        //   l'onda è già sparita quando arriverebbe ai bordi, invece di
+        //   spegnersi di colpo là dove il cerchio si taglierebbe.
         listOf(0f, 0.33f, 0.66f).forEach { phase ->
             val localT = (t + phase) % 1f
+            // t^0.8: rallenta, ma appena — con una decelerazione forte
+            // (1-(1-t)^2) l'anello schizzava via dal bordo e passava quasi
+            // tutta la sua vita lontano e sbiadito, cioè invisibile.
+            val eased = localT.pow(0.8f)
             drawCircle(
                 color = ringColor,
-                radius = veilRadius + localT * maxExtra,
+                radius = veilRadius + eased * maxExtra,
                 center = center,
-                alpha = (1f - localT) * 0.85f,
-                style = Stroke(width = strokeWidth),
+                alpha = (1f - localT).pow(1.3f) * 0.9f,
+                style = Stroke(width = (3.5f - 2.6f * eased).dp.toPx()),
             )
         }
     }
 }
+
+/** Durata di un giro completo di un'increspatura, vedi [AmbientRipples]. */
+private const val RIPPLE_PERIOD_MILLIS = 9000
 
 /**
  * Impulso "a tocco": un anello che si espande e sfuma più un lampo pieno al
