@@ -212,6 +212,34 @@ the screen became the otter's rather than a cramped top section's.
 
 ## Permissions off Home: `PermissionExplainerDialog` and `PermissionStatusCard`
 
+### Both ways into a pause are gated, not just the otter
+
+The check lived only on the otter tap. "Tempo insieme" had none at all, and
+neither does anything downstream of it: `GroupPauseHostActivity` and
+`GroupPauseJoinActivity` call `SessionManager.startSession()` without ever
+consulting `isAccessibilityServiceEnabled`/`isDndAccessGranted` (the only
+permissions the group flow checks are the Bluetooth ones). So in release you
+could agree a pause with someone, run the lobby and the countdown, and end up
+with a session that blocked nothing and silenced nothing — while *their*
+phone was blocked for real.
+
+The button now runs the same `if (BuildConfig.DEBUG || (accessibilityOk &&
+dndOk))` as the otter. Two things about where it sits:
+
+- **On the button, not at the moment the session starts.** By then someone
+  else has already agreed and is already locked. Stopping here stops while
+  it still concerns you alone.
+- **One check covers both roles**, because Create and Join now both go
+  through this button (the chooser is a page — see
+  `specs/group-pause/design.md`).
+
+The `BuildConfig.DEBUG` bypass is kept deliberately, for the reason it
+exists on the otter: the flow has to be walkable on a clean install without
+granting anything. Which also means a debug build cannot show this gate —
+verified by building once with the bypass removed (dialog appears, Home
+stays put), then restoring it and confirming the debug build still walks
+through.
+
 A fourth pass removed `MainScreen`'s permission-missing text, "Grant
 permissions" button, and "Set as Home" button entirely, replacing them
 with two separate, more targeted pieces of UI.

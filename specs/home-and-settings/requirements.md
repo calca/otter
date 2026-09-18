@@ -40,12 +40,17 @@ buttons for things I rarely touch.
    duration; otherwise it SHALL show [PermissionExplainerDialog] instead —
    the otter is always tappable while idle, never disabled, and is the only
    Start-Pause control (no separate "Start" button).
-3. WHEN a session is active THEN the system SHALL replace the ambient
+3. WHEN the "Tempo insieme" button is tapped THEN the system SHALL apply
+   the same permission check as the otter tap, showing
+   [PermissionExplainerDialog] instead of entering the flow if either
+   access is missing — a group pause blocks the same way a solo one does,
+   and the other person's phone really is blocked.
+4. WHEN a session is active THEN the system SHALL replace the ambient
    ripples with a functional progress ring around the otter (fraction of
    time elapsed) and replace the duration chips with a status readout
    ("Paused" + minutes remaining); the duration chips are not shown while a
    session is active.
-4. WHEN the settings icon is tapped THEN the system SHALL open Settings.
+5. WHEN the settings icon is tapped THEN the system SHALL open Settings.
 
 ## User Story 2: Settings holds the occasional stuff
 

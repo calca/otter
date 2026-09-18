@@ -381,7 +381,29 @@ fun MainScreen(
             // come due destinazioni diverse.
             CalmSecondaryButton(
                 text = stringResource(R.string.group_pause_entry_button),
-                onClick = { onGroupPause(selectedDurationIndex * 30) },
+                // **Stesso controllo del tap sull'otter, bypass DEBUG
+                // compreso.** Qui non c'era affatto: si poteva attraversare
+                // tutto Tempo Insieme — accordarsi con qualcuno, la lobby, il
+                // conto alla rovescia — e far partire una sessione che poi non
+                // bloccava e non silenziava niente, perché nessuna delle due
+                // Activity del flusso guarda accessibilità e DND prima di
+                // chiamare `startSession`. Il danno peggiore lo prendeva
+                // l'altra persona, che invece veniva bloccata davvero.
+                //
+                // Il controllo sta **qui e non all'avvio della sessione**: a
+                // quel punto qualcuno si è già accordato con te e ha già la
+                // schermata bloccata. Fermare prima significa fermare mentre
+                // la cosa riguarda ancora te soltanto. E ora che entrambe le
+                // strade passano da questo bottone (il bivio è una pagina,
+                // vedi GroupPauseChooserScreen), un controllo solo le copre
+                // tutte e due.
+                onClick = {
+                    if (BuildConfig.DEBUG || (accessibilityOk && dndOk)) {
+                        onGroupPause(selectedDurationIndex * 30)
+                    } else {
+                        showPermissionDialog = true
+                    }
+                },
                 // 22dp e non 18: le due impronte hanno otto polpastrelli fra
                 // loro, e sotto i 20dp si impastavano in una macchia sola.
                 leadingIcon = { TogetherMark(markSize = 22.dp) },

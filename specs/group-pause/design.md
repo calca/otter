@@ -632,6 +632,16 @@ Verified on-device that each row still reaches its Activity
 (`GroupPauseHostActivity` / `GroupPauseJoinActivity`) and that Cancel
 dismisses.
 
+### Getting in requires the same permissions as any pause
+
+Entering the flow is gated on Home, on the "Tempo insieme" button, with the
+same accessibility+DND check as the otter tap — see
+`specs/home-and-settings/design.md`. Nothing inside this flow checks them:
+both Activities here call `startSession()` directly, and the only
+permissions these screens know about are the Bluetooth ones. That is by
+design now, but it means the Home gate is the *only* one, and anything that
+later opens Tempo Insieme from somewhere else has to carry it too.
+
 ### …and then the dialog became a page
 
 `GroupPauseChooserScreen` / `GroupPauseChooserActivity` (mockup: "Time
