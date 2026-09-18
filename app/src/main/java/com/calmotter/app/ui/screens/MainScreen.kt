@@ -608,7 +608,7 @@ private fun PondOtter(
             } else {
                 0f
             }
-            ProgressRing(fraction = fraction, modifier = Modifier.size(166.dp))
+            ProgressRing(fraction = fraction, modifier = Modifier.size(182.dp))
         }
 
         val floatOffset = otterFloatOffset
@@ -622,7 +622,7 @@ private fun PondOtter(
                 .clickable(enabled = !sessionActive && !isStarting, onClick = { isStarting = true }),
             contentAlignment = Alignment.Center,
         ) {
-            OtterZenMark(modifier = otterModifier, markSize = 72.dp)
+            OtterZenMark(modifier = otterModifier, markSize = 88.dp)
         }
     }
 }
@@ -740,22 +740,25 @@ private fun AmbientRipples(centerY: Dp, modifier: Modifier = Modifier) {
         // due anelli di contorno: segnalato con l'immagine alla mano, "sono
         // 3 cerchi concentrici"). Il disco di mezzo usa `surfaceBright`
         // perché nel mockup è più chiaro dello sfondo, non uguale.
-        // Misurati sul mockup pixel per pixel (226px = 390dp), non a occhio:
-        // lungo la riga che passa per l'otter i confini cadono a 44, 61 e 81
-        // px dal centro, cioè 76, 105 e 140dp — qui riscalati sulla larghezza
-        // di questo schermo.
+        // Misurati sul mockup pixel per pixel, sulla riga che passa per il
+        // **centro vero** dello stagno (y=145 del mockup, non y=127: la prima
+        // lettura era presa più in alto e leggeva il disco sbagliato).
+        // Confini a 27, 48, 64 e 80px dal centro su 226px di larghezza,
+        // cioè 47, 83, 110 e 138dp su 390dp — qui riscalati.
         //
-        // E l'ordine è questo: il **bianco sta dentro**, poi il pallido, poi
-        // il velo. Un primo tentativo li aveva invertiti (pallido dentro,
-        // bianco in mezzo) perché nel ritaglio di riferimento attorno alla
-        // mascotte si vede un disco pallido — ma quello è l'alone che
-        // [OtterZenMark] si disegna da sé, non un cerchio dello stagno.
-        val whiteRadius = 83.dp.toPx()
-        val paleRadius = 115.dp.toPx()
-        val veilRadius = 153.dp.toPx()
+        // Sono **quattro** dischi e il bianco è il secondo: pallido attorno
+        // alla mascotte, poi bianco, poi pallido, poi velo. Le due letture
+        // precedenti sbagliavano proprio qui, una invertendo l'ordine e
+        // l'altra scambiando il disco pallido interno per l'alone che
+        // [OtterZenMark] si disegna da sé.
+        val innerPaleRadius = 54.dp.toPx()
+        val whiteRadius = 91.dp.toPx()
+        val paleRadius = 121.dp.toPx()
+        val veilRadius = 151.dp.toPx()
         drawCircle(color = ringColor, radius = veilRadius, center = center, alpha = 0.28f)
         drawCircle(color = ringColor, radius = paleRadius, center = center, alpha = 0.75f)
         drawCircle(color = brightColor, radius = whiteRadius, center = center)
+        drawCircle(color = ringColor, radius = innerPaleRadius, center = center, alpha = 0.75f)
 
         // L'onda parte dal bordo esterno dello stagno fermo e se ne va verso
         // i bordi della pagina, invece di attraversare l'otter.

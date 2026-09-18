@@ -214,8 +214,8 @@ class AppBlockerAccessibilityService : AccessibilityService() {
                             OtterAnchoredScreen(
                                 horizontalPadding = 40.dp,
                                 otter = {
-                                    ProgressRing(fraction = fraction, modifier = Modifier.size(166.dp))
-                                    OtterZenMark(markSize = 72.dp)
+                                    ProgressRing(fraction = fraction, modifier = Modifier.size(182.dp))
+                                    OtterZenMark(markSize = 88.dp)
                                 },
                                 below = {},
                             )
