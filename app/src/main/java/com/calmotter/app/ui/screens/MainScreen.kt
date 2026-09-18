@@ -78,6 +78,7 @@ import com.calmotter.app.ui.mascot.OtterZenMark
 import com.calmotter.app.ui.mascot.OtterSatelliteMark
 import com.calmotter.app.ui.mascot.SprigMark
 import com.calmotter.app.ui.mascot.TogetherMark
+import kotlinx.coroutines.delay
 import java.util.Calendar
 import kotlin.math.PI
 import kotlin.math.sin
@@ -227,7 +228,11 @@ fun MainScreen(
             // [AmbientRipples].
             if (!sessionActive) {
                 PondStill(centerY = otterCenterY, modifier = Modifier.fillMaxSize())
-                AmbientRipples(centerY = otterCenterY, modifier = Modifier.fillMaxSize())
+                AmbientRipples(
+                    centerY = otterCenterY,
+                    restartKey = resumeSignal,
+                    modifier = Modifier.fillMaxSize(),
+                )
             }
         },
         header = {
@@ -262,6 +267,7 @@ fun MainScreen(
         },
         otter = {
             PondOtter(
+                restartKey = resumeSignal,
                 sessionActive = sessionActive,
                 remainingMillis = remainingMillis,
                 totalMillis = totalMillis,
@@ -573,6 +579,9 @@ private fun PondOtter(
     onStart: () -> Unit,
     otterModifier: Modifier = Modifier,
     otterFloatOffset: Float? = null,
+    // Cambia a ogni onResume: fa ripartire l'oscillazione quando si torna
+    // sulla schermata, vedi [rememberOtterFloatOffset].
+    restartKey: Int = 0,
 ) {
     var isStarting by remember { mutableStateOf(false) }
     val otterScale by animateFloatAsState(
@@ -623,7 +632,10 @@ private fun PondOtter(
         }
 
         val floatOffset = otterFloatOffset
-            ?: rememberOtterFloatOffset(periodMillis = if (sessionActive) 5200 else 3200)
+            ?: rememberOtterFloatOffset(
+                periodMillis = if (sessionActive) 5200 else 3200,
+                restartKey = restartKey,
+            )
 
         Box(
             modifier = Modifier
@@ -772,19 +784,45 @@ private fun PondStill(centerY: Dp, modifier: Modifier = Modifier) {
 }
 
 @Composable
-private fun AmbientRipples(centerY: Dp, modifier: Modifier = Modifier) {
+private fun AmbientRipples(centerY: Dp, restartKey: Int, modifier: Modifier = Modifier) {
+    // **Lo stagno si acquieta.** Dopo [RIPPLE_QUIET_AFTER_MILLIS] le onde
+    // svaniscono e l'animazione si ferma del tutto: a schermata ferma il
+    // consumo va a zero invece di restare lì a ridipingere per sempre.
+    //
+    // Non è solo una misura di risparmio, è ciò che fa l'acqua: un sasso
+    // produce onde che *finiscono*. Quelle infinite erano l'artificio.
+    //
+    // Riparte quando si rientra nella schermata ([restartKey] è il
+    // `resumeSignal` della Home, cambia a ogni onResume) — cioè quando
+    // qualcuno torna a guardare lo stagno.
+    var active by remember(restartKey) { mutableStateOf(true) }
+    LaunchedEffect(restartKey) {
+        active = true
+        delay(SCENE_QUIET_AFTER_MILLIS)
+        active = false
+    }
+    // Le onde in corso non si congelano a mezz'aria: sfumano in due secondi
+    // e mezzo, poi l'orologio si spegne.
+    val fade by animateFloatAsState(
+        targetValue = if (active) 1f else 0f,
+        animationSpec = tween(2500, easing = LinearEasing),
+        label = "rippleFade",
+    )
+    val running = active || fade > 0.01f
     // 9 secondi per giro, non 3,6: è un sasso caduto nell'acqua, non una
-    // scansione radar. L'avanzamento è a scatti di 1/20 di secondo, vedi
-    // [steppedFraction].
-    val t = steppedFraction(RIPPLE_PERIOD_MILLIS, stepsPerSecond = 15)
+    // scansione radar. L'avanzamento è a scatti, vedi [steppedFraction].
+    val t = steppedFraction(RIPPLE_PERIOD_MILLIS, stepsPerSecond = 15, running = running)
+    if (!running) return
     // Le onde usano `tertiary` (#d5e0d5 nelle palette verdi), che nel design
     // system è esattamente il colore dei "ripple borders" — non `primary` a
     // bassa opacità, che dava un grigio.
     val ringColor = MaterialTheme.colorScheme.tertiary
 
-    // `graphicsLayer()` mette le onde in un livello grafico proprio: quando
-    // cambiano, il sistema ridipinge quel livello e ricompone, invece di
-    // ridisegnare anche tutto ciò che sta sopra e sotto nello stesso strato.
+    // `graphicsLayer()` mette le onde in un livello grafico proprio, così il
+    // sistema ridipinge quel livello invece dell'intera schermata sotto.
+    // Misurarne il guadagno su questo emulatore non è riuscito — la CPU del
+    // processo oscillava fra il 17% e il 77% fra campioni identici — ma è
+    // comunque la forma giusta per un livello che si anima da solo.
     Canvas(modifier = modifier.graphicsLayer()) {
         val center = Offset(size.width / 2f, centerY.toPx())
         val veilRadius = 151.dp.toPx()
@@ -821,7 +859,7 @@ private fun AmbientRipples(centerY: Dp, modifier: Modifier = Modifier) {
                 // Dissolvenza quasi lineare: con (1-t)^1.3 il terzo anello
                 // era gia' a un quinto di opacita' su un colore che di suo ha
                 // poco contrasto, cioe' invisibile.
-                alpha = (1f - localT) * 0.95f,
+                alpha = (1f - localT) * 0.95f * fade,
                 style = Stroke(width = (3.5f - 2.3f * eased).dp.toPx()),
             )
         }
@@ -845,9 +883,10 @@ private fun AmbientRipples(centerY: Dp, modifier: Modifier = Modifier) {
  * "rimuovi animazioni".
  */
 @Composable
-private fun steppedFraction(periodMillis: Int, stepsPerSecond: Int = 20): Float {
+private fun steppedFraction(periodMillis: Int, stepsPerSecond: Int = 20, running: Boolean = true): Float {
     var fraction by remember { mutableFloatStateOf(0f) }
-    LaunchedEffect(periodMillis, stepsPerSecond) {
+    LaunchedEffect(periodMillis, stepsPerSecond, running) {
+        if (!running) return@LaunchedEffect
         val steps = (periodMillis / 1000f * stepsPerSecond).toInt().coerceAtLeast(1)
         while (true) {
             withInfiniteAnimationFrameMillis { now ->
@@ -859,6 +898,12 @@ private fun steppedFraction(periodMillis: Int, stepsPerSecond: Int = 20): Float 
     }
     return fraction
 }
+
+/**
+ * Dopo quanto la scena si ferma — onde e oscillazione — se nessuno torna a
+ * guardarla. Riparte al rientro nella schermata.
+ */
+internal const val SCENE_QUIET_AFTER_MILLIS = 30_000L
 
 /** Durata di un giro completo di un'increspatura, vedi [AmbientRipples]. */
 private const val RIPPLE_PERIOD_MILLIS = 9000
@@ -900,12 +945,32 @@ private fun TapConfirmBurst(progress: Float, modifier: Modifier = Modifier) {
  * altrove è che [PondOtter] è stata la prima a usarla.
  */
 @Composable
-fun rememberOtterFloatOffset(periodMillis: Int): Float {
-    // Una sinusoide sulla stessa sorgente a scatti delle increspature: il
-    // periodo completo è andata+ritorno, quindi il doppio di quello che
-    // chiedeva `RepeatMode.Reverse`. Cinque dp di escursione, come prima.
-    val t = steppedFraction(periodMillis * 2, stepsPerSecond = 10)
-    return sin(t * 2f * PI.toFloat()) * 5f
+fun rememberOtterFloatOffset(periodMillis: Int, restartKey: Int = 0): Float {
+    // Anche l'otter si acquieta, come lo stagno (vedi [AmbientRipples]): non
+    // è un dettaglio di risparmio ma la voce grossa. Misurato sul Mac che
+    // ospita l'emulatore: a schermata ferma, con le sole onde spente, il
+    // processo emulatore stava ancora al ~300% di CPU contro il ~9% ad app
+    // chiusa — cioè quasi tutto quel consumo era questa oscillazione di 10dp.
+    //
+    // L'ampiezza scende a zero in due secondi e mezzo invece di fermarsi di
+    // scatto, così l'otter si posa invece di inchiodarsi a mezz'aria.
+    var active by remember(restartKey) { mutableStateOf(true) }
+    LaunchedEffect(restartKey) {
+        active = true
+        delay(SCENE_QUIET_AFTER_MILLIS)
+        active = false
+    }
+    val amplitude by animateFloatAsState(
+        targetValue = if (active) 5f else 0f,
+        animationSpec = tween(2500, easing = LinearEasing),
+        label = "otterBobAmplitude",
+    )
+    val running = active || amplitude > 0.05f
+    // Una sinusoide sulla sorgente a scatti delle increspature: il periodo
+    // completo è andata+ritorno, quindi il doppio di quello che chiedeva
+    // `RepeatMode.Reverse`.
+    val t = steppedFraction(periodMillis * 2, stepsPerSecond = 10, running = running)
+    return sin(t * 2f * PI.toFloat()) * amplitude
 }
 
 /**

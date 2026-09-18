@@ -593,6 +593,34 @@ from `/proc`.
 Rates: ripples step 15 times a second, the otter's bob 10 — it travels 10dp
 in 3.2s, so it has nothing to gain from more.
 
+### The scene settles, and that is what actually quieted the fan
+
+After `SCENE_QUIET_AFTER_MILLIS` (30s) the ripples fade out over 2.5s and the
+otter's bob eases its amplitude to zero; both clocks then stop. Everything
+restarts on the next `onResume` (`restartKey` is Home's `resumeSignal`), so
+coming back to the screen brings the pond back to life.
+
+It is not only a saving. A stone thrown in water makes ripples that *end* —
+the endless ones were the artifice.
+
+**Measured host-side**, which is the metric that matches the complaint ("the
+Mac's fan is spinning"), because in-guest numbers proved useless: `/proc` and
+`top` inside the emulator swung between 17% and 77% across identical samples,
+and one of those readings was taken while the emulator's screen had gone to
+sleep, which is how an earlier claim of "27% → 5.3%" ended up in a commit
+message. Sampling the emulator process on the host with `ps` is stable:
+
+| state | emulator process on the Mac |
+|---|---|
+| app closed or backgrounded | ~9% |
+| app open, scene animating | ~520–680% |
+| app open, scene settled | ~11–38% |
+
+The surprise: with the ripples already stopped but the otter still bobbing,
+the emulator sat at ~300%. A 10dp bob of a small mascot was costing three
+host cores, because any continuous animation keeps the whole emulated display
+pipeline running. That is why the bob settles too, and not only the pond.
+
 ### The pond, measured rather than guessed
 
 `AmbientRipples` draws **four concentric filled discs** — pale around the
