@@ -4,6 +4,7 @@
     <string name="settings_permissions_label">Permissions</string>
     <string name="settings_home_label">Home</string>
     <string name="settings_theme_label">Theme</string>
+    <string name="settings_pause_experience_label">Pause experience</string>
     <string name="settings_theme_selected">Selected</string>
     <string name="settings_password_label">Password</string>
     <string name="settings_password_set_by">Set by %1$s</string>
@@ -22,6 +23,7 @@
     <string name="settings_info_github">Source code on GitHub</string>
     <string name="settings_info_license">License — MIT</string>
     <string name="settings_info_developer">Developer — @calca</string>
+    <string name="settings_version">Calm Otter %1$s (build %2$d)</string>
 
     <string name="setup_password_info">Set a password that ONLY your trusted person will know: it will be used to end pause sessions.</string>
     <string name="hint_partner_name">Your name (optional)</string>

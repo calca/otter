@@ -17,6 +17,19 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.Notifications
+import androidx.compose.material.icons.filled.Lock
+import androidx.compose.material.icons.filled.List
+import androidx.compose.ui.unit.em
+import com.calmotter.app.ui.mascot.SprigMark
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.width
+import androidx.compose.material.icons.Icons
+import androidx.compose.material3.Icon
+import androidx.compose.foundation.BorderStroke
+import com.calmotter.app.BuildConfig
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
@@ -127,7 +140,7 @@ fun SettingsScreen(
             onManageApps = { showManageAppsDialog = true },
         )
 
-        SectionLabel(stringResource(R.string.phrases_toggle_label))
+        SectionLabel(stringResource(R.string.settings_pause_experience_label))
         PhrasesCard(checked = phrasesEnabled, onCheckedChange = { checked ->
             phrasesEnabled = checked
             phraseManager.setEnabled(checked)
@@ -138,6 +151,26 @@ fun SettingsScreen(
             onOpenGitHub = onOpenGitHub,
             onOpenLicense = onOpenLicense,
             onOpenDeveloper = onOpenDeveloper,
+        )
+
+        // Versione in chiusura di pagina (redesign). Non è decorazione: da
+        // quando la CI timbra versionCode e patch col numero di run (vedi
+        // app/build.gradle.kts), questa riga è l'unico modo, telefono alla
+        // mano, di sapere quale build si sta usando — durante il debug di un
+        // bug su S22 si è persa mezz'ora proprio perché due APK diverse si
+        // dichiaravano identiche.
+        Text(
+            text = stringResource(
+                R.string.settings_version,
+                BuildConfig.VERSION_NAME,
+                BuildConfig.VERSION_CODE,
+            ),
+            style = MaterialTheme.typography.labelSmall,
+            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.45f),
+            textAlign = TextAlign.Center,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(top = 28.dp)
         )
     }
 
@@ -156,14 +189,36 @@ fun SettingsScreen(
 /** Etichetta di sezione uniforme — stesso stile per tutte le card sotto. */
 @Composable
 private fun SectionLabel(text: String, topPadding: Dp = 32.dp) {
+    // Maiuscolo spaziato e tenue (redesign): con sei sezioni l'occhio deve
+    // poterle saltare, e un'etichetta della stessa forza del contenuto
+    // costringe a leggerle tutte per capire dove si è.
     Text(
-        text = text,
-        fontSize = 13.sp,
-        color = MaterialTheme.colorScheme.onSurface,
+        text = text.uppercase(),
+        style = MaterialTheme.typography.labelSmall,
+        letterSpacing = 0.12.em,
+        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.55f),
         modifier = Modifier
             .fillMaxWidth()
             .padding(top = topPadding, bottom = 8.dp)
     )
+}
+
+/**
+ * Icona di riga, dentro la sua pastiglia tonda tinta: lo stesso contenitore
+ * delle pastiglie di azione della pausa, così l'app ha una sola forma per
+ * "cosa si tocca".
+ */
+@Composable
+private fun SettingsRowIcon(content: @Composable () -> Unit) {
+    Box(
+        modifier = Modifier
+            .size(34.dp)
+            .clip(CircleShape)
+            .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.10f)),
+        contentAlignment = Alignment.Center,
+        content = { content() },
+    )
+    Spacer(modifier = Modifier.width(12.dp))
 }
 
 /**
@@ -213,6 +268,13 @@ private fun PermissionStatusCard(
                 done = accessibilityOk,
                 actionLabel = stringResource(R.string.permission_action_grant),
                 onAction = onGrantAccessibility,
+                icon = {
+                    EyeGlyph(
+                        visible = true,
+                        tint = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.size(18.dp),
+                    )
+                },
             )
             HorizontalDivider(color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.08f))
             PermissionStatusRow(
@@ -220,6 +282,14 @@ private fun PermissionStatusCard(
                 done = dndOk,
                 actionLabel = stringResource(R.string.permission_action_grant),
                 onAction = onGrantDnd,
+                icon = {
+                    Icon(
+                        imageVector = Icons.Default.Notifications,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.size(18.dp),
+                    )
+                },
             )
         }
     }
@@ -231,6 +301,7 @@ private fun PermissionStatusRow(
     done: Boolean,
     actionLabel: String,
     onAction: () -> Unit,
+    icon: @Composable () -> Unit,
 ) {
     Row(
         modifier = Modifier
@@ -238,31 +309,12 @@ private fun PermissionStatusRow(
             .padding(vertical = 12.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Box(
-            modifier = Modifier
-                .size(22.dp)
-                .clip(CircleShape)
-                .background(if (done) MaterialTheme.colorScheme.primary else Color.Transparent)
-                .border(
-                    width = 1.4.dp,
-                    color = if (done) {
-                        MaterialTheme.colorScheme.primary
-                    } else {
-                        MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f)
-                    },
-                    shape = CircleShape,
-                ),
-            contentAlignment = Alignment.Center,
-        ) {
-            if (done) {
-                Text(
-                    text = "✓",
-                    color = MaterialTheme.colorScheme.onPrimary,
-                    fontSize = 12.sp,
-                    fontWeight = FontWeight.Bold,
-                )
-            }
-        }
+        // Nessun cerchio di stato accanto all'icona: due pastiglie tonde
+        // sulla stessa riga si guardavano a vicenda senza che la prima
+        // aggiungesse nulla — lo stato è già scritto a destra ("Concedi"
+        // contro "Fatto"), a parole invece che per forma.
+        Spacer(modifier = Modifier.width(12.dp))
+        SettingsRowIcon { icon() }
         Text(
             text = label,
             color = if (done) MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f) else MaterialTheme.colorScheme.onSurface,
@@ -327,6 +379,14 @@ private fun HomeCard(homeOk: Boolean, onSetHome: () -> Unit) {
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically,
             ) {
+                SettingsRowIcon {
+                    Icon(
+                        imageVector = Icons.Default.Home,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.size(18.dp),
+                    )
+                }
                 Text(
                     text = stringResource(R.string.permission_row_home),
                     color = MaterialTheme.colorScheme.onSurface,
@@ -365,93 +425,84 @@ private fun HomeCard(homeOk: Boolean, onSetHome: () -> Unit) {
  */
 @Composable
 private fun ThemeListCard(currentTheme: AppTheme, onPickTheme: (AppTheme) -> Unit) {
-    Surface(
-        shape = RoundedCornerShape(20.dp),
-        color = MaterialTheme.colorScheme.primary.copy(alpha = 0.06f),
+    // Griglia 2x2 invece dell'elenco verticale (redesign): con quattro
+    // palette i colori si confrontano guardandoli insieme, non scorrendo
+    // quattro righe. Due Row invece di LazyVerticalGrid: quattro celle fisse
+    // dentro una pagina già scrollabile, e una griglia pigra annidata in uno
+    // scroll verticale è la traduzione sbagliata dello stesso layout (stesso
+    // motivo per cui l'elenco sessioni in Cronologia non è una LazyColumn).
+    val entries = listOf(
+        Triple(AppTheme.SAGE, R.string.theme_sage, R.color.sage_primary),
+        Triple(AppTheme.DEEP_FOREST, R.string.theme_deep_forest, R.color.deep_forest_primary),
+        Triple(AppTheme.DUSK_SAND, R.string.theme_dusk_sand, R.color.dusk_sand_primary),
+        Triple(AppTheme.DAWN_CLAY, R.string.theme_dawn_clay, R.color.dawn_clay_primary),
+    )
+    Column(
         modifier = Modifier.fillMaxWidth(),
+        verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
-        Column(modifier = Modifier.padding(horizontal = 16.dp)) {
-            ThemeListRow(
-                label = stringResource(R.string.theme_sage),
-                swatchColor = colorResource(R.color.sage_primary),
-                selected = currentTheme == AppTheme.SAGE,
-                onClick = { onPickTheme(AppTheme.SAGE) },
-            )
-            HorizontalDivider(color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.08f))
-            ThemeListRow(
-                label = stringResource(R.string.theme_dusk_sand),
-                swatchColor = colorResource(R.color.dusk_sand_primary),
-                selected = currentTheme == AppTheme.DUSK_SAND,
-                onClick = { onPickTheme(AppTheme.DUSK_SAND) },
-            )
-            HorizontalDivider(color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.08f))
-            ThemeListRow(
-                label = stringResource(R.string.theme_dawn_clay),
-                swatchColor = colorResource(R.color.dawn_clay_primary),
-                selected = currentTheme == AppTheme.DAWN_CLAY,
-                onClick = { onPickTheme(AppTheme.DAWN_CLAY) },
-            )
-            HorizontalDivider(color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.08f))
-            ThemeListRow(
-                label = stringResource(R.string.theme_deep_forest),
-                swatchColor = colorResource(R.color.deep_forest_primary),
-                selected = currentTheme == AppTheme.DEEP_FOREST,
-                onClick = { onPickTheme(AppTheme.DEEP_FOREST) },
-            )
-        }
-    }
-}
-
-@Composable
-private fun ThemeListRow(
-    label: String,
-    swatchColor: Color,
-    selected: Boolean,
-    onClick: () -> Unit,
-) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable(onClick = onClick)
-            .padding(vertical = 12.dp),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        Box(
-            modifier = Modifier
-                .size(22.dp)
-                .clip(CircleShape)
-                .background(swatchColor)
-                .border(
-                    width = if (selected) 2.dp else 0.dp,
-                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
-                    shape = CircleShape,
-                )
-        )
-        Text(
-            text = label,
-            color = MaterialTheme.colorScheme.onSurface,
-            modifier = Modifier
-                .weight(1f)
-                .padding(start = 12.dp)
-        )
-        if (selected) {
-            Text(
-                text = stringResource(R.string.settings_theme_selected),
-                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
-            )
+        entries.chunked(2).forEach { row ->
+            Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                row.forEach { (theme, labelRes, colorRes) ->
+                    ThemeGridCell(
+                        label = stringResource(labelRes),
+                        swatchColor = colorResource(colorRes),
+                        selected = currentTheme == theme,
+                        onClick = { onPickTheme(theme) },
+                        modifier = Modifier.weight(1f),
+                    )
+                }
+            }
         }
     }
 }
 
 /**
- * Stato password: chi l'ha impostata (se fornito durante l'onboarding, vedi
- * PasswordManager.getPartnerName()/OnboardingScreen.kt — facoltativo, quindi
- * la riga non appare affatto se non c'è un nome salvato) più le due azioni
- * protette da password che vivevano prima come pulsanti pieni separati
- * ("Cambia password", "Gestisci app consentite") — raggruppate qui perché
- * concettualmente sono la stessa cosa: azioni sulla sicurezza della sessione,
- * non preferenze.
+ * Una cella della griglia dei temi: pastiglia di colore, nome, e un bordo
+ * pieno quando è quella attiva. Il contorno, non un segno di spunta: qui la
+ * cosa da confrontare è il colore, e una casella evidenziata lo dice senza
+ * aggiungere un glifo sopra la tinta.
  */
+@Composable
+private fun ThemeGridCell(
+    label: String,
+    swatchColor: Color,
+    selected: Boolean,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Surface(
+        onClick = onClick,
+        shape = RoundedCornerShape(18.dp),
+        color = MaterialTheme.colorScheme.primary.copy(alpha = if (selected) 0.12f else 0.06f),
+        border = if (selected) {
+            BorderStroke(1.5.dp, MaterialTheme.colorScheme.primary)
+        } else {
+            null
+        },
+        modifier = modifier,
+    ) {
+        Row(
+            modifier = Modifier.padding(horizontal = 14.dp, vertical = 16.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Box(
+                modifier = Modifier
+                    .size(20.dp)
+                    .clip(CircleShape)
+                    .background(swatchColor)
+            )
+            Spacer(modifier = Modifier.width(10.dp))
+            Text(
+                text = label,
+                style = MaterialTheme.typography.labelLarge,
+                color = MaterialTheme.colorScheme.onSurface,
+                maxLines = 2,
+            )
+        }
+    }
+}
+
 @Composable
 private fun PasswordCard(
     partnerName: String?,
@@ -477,16 +528,38 @@ private fun PasswordCard(
                 }
                 HorizontalDivider(color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.08f))
             }
-            SettingsActionRow(label = stringResource(R.string.change_password), onClick = onChangePassword)
+            SettingsActionRow(
+                label = stringResource(R.string.change_password),
+                onClick = onChangePassword,
+                icon = {
+                    Icon(
+                        imageVector = Icons.Default.Lock,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.size(18.dp),
+                    )
+                },
+            )
             HorizontalDivider(color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.08f))
-            SettingsActionRow(label = stringResource(R.string.manage_allowed_apps), onClick = onManageApps)
+            SettingsActionRow(
+                label = stringResource(R.string.manage_allowed_apps),
+                onClick = onManageApps,
+                icon = {
+                    Icon(
+                        imageVector = Icons.Default.List,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.size(18.dp),
+                    )
+                },
+            )
         }
     }
 }
 
 /** Riga d'azione interna all'app (non un link esterno, vedi [InfoLinkRow]): stesso layout, freccia semplice invece della freccia diagonale. */
 @Composable
-private fun SettingsActionRow(label: String, onClick: () -> Unit) {
+private fun SettingsActionRow(label: String, onClick: () -> Unit, icon: @Composable () -> Unit) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -495,6 +568,7 @@ private fun SettingsActionRow(label: String, onClick: () -> Unit) {
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically,
     ) {
+        SettingsRowIcon { icon() }
         Text(
             text = label,
             color = MaterialTheme.colorScheme.onSurface,
@@ -523,6 +597,7 @@ private fun PhrasesCard(checked: Boolean, onCheckedChange: (Boolean) -> Unit) {
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically,
         ) {
+            SettingsRowIcon { SprigMark(markSize = 16.dp) }
             Text(
                 text = stringResource(R.string.phrases_toggle_label),
                 color = MaterialTheme.colorScheme.onSurface,

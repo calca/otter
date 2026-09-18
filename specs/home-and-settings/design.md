@@ -517,3 +517,40 @@ seconds-level countdown, and the "Breathe gently with otter" pill, which
 promises a breathing exercise the app does not have. The full-page ambient
 ripples also stay as they are, wider than the mockup's contained rings: that
 was a deliberate earlier request.
+
+
+## Redesign pass: Settings
+
+**Section headers became signposts.** Uppercase, letter-spaced, at 55%
+opacity. With six sections, the eye has to be able to skip them; a heading as
+strong as its content forces you to read all of it to find where you are.
+
+**The four palettes are a 2×2 grid** (`ThemeGridCell`), not a list. Colours
+are compared by seeing them together, not by scrolling four rows. Two `Row`s
+rather than `LazyVerticalGrid`: four fixed cells inside an already scrolling
+page, and a lazy grid nested in a vertical scroll is the wrong translation of
+this layout — the same reason the session list in History is not a
+`LazyColumn`. Selection is a border around the cell, not a tick: what is
+being compared here is the colour, and a highlighted box says it without
+putting a glyph on top of the tint.
+
+**Every row carries an icon** in a round tinted pastille, the same container
+as the pause screen's action badges, so the app has one shape for "something
+you touch". The accessibility row reuses `EyeGlyph` — promoted out of
+`PasswordOutlinedTextField`, where it was private — because that service is
+precisely the thing that watches which app is in front; the others are
+Material core icons (bell, house, padlock, list) plus `SprigMark` for the
+phrases toggle.
+
+Two things the first pass got wrong and the emulator showed: the permission
+rows ended up with *two* round shapes side by side, the old status circle and
+the new icon, with the first adding nothing — the state is already written to
+the right ("Grant" against "Done"), in words rather than in shape. And the
+phrases section header repeated its own row verbatim, so it became "Pause
+experience" (`settings_pause_experience_label`).
+
+**The version closes the page.** Not decoration: since CI stamps versionCode
+and the patch with the run number (see app/build.gradle.kts), this line is
+the only way, phone in hand, to know which build you are running — half an
+hour went into exactly that confusion while debugging on an S22. A local
+build reads "0.1.1 (build 1)", which is the honest answer for one.

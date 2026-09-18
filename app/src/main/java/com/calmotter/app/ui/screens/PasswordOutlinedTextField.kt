@@ -40,7 +40,7 @@ import com.calmotter.app.R
  * solo in `material-icons-extended` (un artefatto molto più pesante —
  * migliaia di icone — di `material-icons-core`, l'unico incluso in
  * `app/build.gradle.kts`), aggiungerlo per due soli glifi non ne varrebbe
- * il costo. Invece [EyeIcon] disegna gli stessi identici path vettoriali
+ * il costo. Invece [EyeGlyph] disegna gli stessi identici path vettoriali
  * ufficiali Material (licenza Apache-2.0, gli stessi dati usati da
  * `Icons.Filled.Visibility`/`VisibilityOff`), parsati con
  * `PathParser`/`toPath()` invece di riprodurli a occhio — un primo
@@ -101,7 +101,7 @@ fun PasswordOutlinedTextField(
                 onClick = { passwordVisible = !passwordVisible },
                 modifier = Modifier.semantics { contentDescription = description },
             ) {
-                EyeIcon(
+                EyeGlyph(
                     visible = passwordVisible,
                     tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
                 )
@@ -139,7 +139,7 @@ private const val VISIBILITY_OFF_PATH =
  * [PasswordOutlinedTextField]).
  */
 @Composable
-private fun EyeIcon(visible: Boolean, tint: Color, modifier: Modifier = Modifier) {
+fun EyeGlyph(visible: Boolean, tint: Color, modifier: Modifier = Modifier) {
     val path = remember(visible) {
         PathParser().parsePathString(if (visible) VISIBILITY_PATH else VISIBILITY_OFF_PATH).toPath()
     }
