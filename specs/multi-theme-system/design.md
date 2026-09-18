@@ -294,3 +294,27 @@ defaults — the screens set their own `fontSize` almost everywhere, so
 rescaling here would only have moved library components out of step with
 them; what changes is the typeface, the heavier headline weights and their
 tighter tracking.
+
+
+## `secondary` and `tertiary` are real roles now
+
+Reported while reviewing the Home: "those aren't Stitch's colours". They were
+not — everything tinted was `primary` faded with alpha, which on a green
+palette gives grey-greens, not the greens of the design.
+
+In the design system those two are not variations of `primary`, they have
+jobs: **`secondary`** (`#8fa693` in the green palettes) is the mascot and the
+secondary controls, **`tertiary`** (`#d5e0d5`) is the pond rings, the ripple
+borders and the quiet fills. Both are now set explicitly in all eight colour
+schemes, and mirrored in `values/colors.xml` as `*_accent` / `*_veil` for the
+places that read resources rather than the Compose theme.
+
+So: the otter's fur is `secondary` with a gradient toward `primary`, its halo
+is `secondary` at 22%, the pond rings and ripples are `tertiary` at nearly
+full strength (they are already a pale colour — fading them with alpha was
+what greyed them out), and unselected duration pills are `tertiary` at 55%.
+
+This is the same trap CLAUDE.md documents for `surfaceVariant` and
+`primaryContainer`, seen from the other side: those roles fall back to
+Material's stock purple when unset, while these two were being *avoided*
+altogether and replaced with translucent `primary`.

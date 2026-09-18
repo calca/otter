@@ -355,13 +355,18 @@ private val ZenBlush = Color(0xFFD7A99C)
 @Composable
 fun OtterZenMark(modifier: Modifier = Modifier, markSize: Dp = 96.dp) {
     val primary = MaterialTheme.colorScheme.primary
+    // Il pelo è `secondary` del design system (#8fa693 nelle palette verdi),
+    // non `primary` sbiadita con l'alpha: quella dava un grigio-verde, questo
+    // è il verde che il logo ha davvero.
+    val accent = MaterialTheme.colorScheme.secondary
+    val veil = MaterialTheme.colorScheme.tertiary
     val surface = MaterialTheme.colorScheme.surface
     // Chiari *tinti*, non la superficie pura: nel mockup muso e padiglioni
     // sono #EEF3ED e #D3DDD4, cioè bianchi virati di verde. Con `surface`
     // nuda le orecchie diventavano due ciambelle bianche staccate dalla
     // testa e il muso un ovale candido — visto su emulatore.
-    val muzzle = primary.copy(alpha = 0.06f).compositeOver(surface)
-    val innerEar = primary.copy(alpha = 0.20f).compositeOver(surface)
+    val muzzle = veil.copy(alpha = 0.35f).compositeOver(surface)
+    val innerEar = veil.compositeOver(surface)
     val ink = lerp(primary, Color.Black, 0.45f)
 
     val head = remember { PathParser().parsePathString(ZEN_HEAD_PATH).toPath() }
@@ -374,7 +379,7 @@ fun OtterZenMark(modifier: Modifier = Modifier, markSize: Dp = 96.dp) {
         fun v(value: Float) = value * s
 
         val fur = Brush.linearGradient(
-            colors = listOf(primary.copy(alpha = 0.52f), primary.copy(alpha = 0.72f)),
+            colors = listOf(accent, lerp(accent, primary, 0.35f)),
             start = Offset.Zero,
             end = Offset(size.width, size.height),
         )
@@ -382,7 +387,7 @@ fun OtterZenMark(modifier: Modifier = Modifier, markSize: Dp = 96.dp) {
         // Alone: lo stesso "respiro" dello stagno della Home, qui fermo.
         drawCircle(
             brush = Brush.radialGradient(
-                colors = listOf(primary.copy(alpha = 0.12f), Color.Transparent),
+                colors = listOf(accent.copy(alpha = 0.22f), Color.Transparent),
                 center = Offset(v(60f), v(60f)),
                 radius = v(54f),
             ),

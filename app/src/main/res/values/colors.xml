@@ -38,6 +38,10 @@
     <color name="deep_forest_background">#f8f9f5</color>
     <color name="deep_forest_surface">#f8f9f5</color>
     <color name="deep_forest_on_surface">#1a1c1a</color>
+    <!-- accent = "secondary" del design system (mascotte, controlli),
+         veil = "tertiary" (anelli dello stagno, riempimenti tenui) -->
+    <color name="deep_forest_accent">#8fa693</color>
+    <color name="deep_forest_veil">#d5e0d5</color>
     <color name="deep_forest_surface_variant">#e2e3df</color>
 
     <color name="sage_primary">#0f5238</color>
@@ -51,6 +55,10 @@
     <color name="sage_background">#f9faf6</color>
     <color name="sage_surface">#f9faf6</color>
     <color name="sage_on_surface">#191c1a</color>
+    <!-- accent = "secondary" del design system (mascotte, controlli),
+         veil = "tertiary" (anelli dello stagno, riempimenti tenui) -->
+    <color name="sage_accent">#8fa693</color>
+    <color name="sage_veil">#d5e0d5</color>
     <color name="sage_surface_variant">#e2e3df</color>
 
     <!-- DUSK SAND THEME -->
@@ -65,6 +73,10 @@
     <color name="dusk_sand_background">#fcf9f4</color>
     <color name="dusk_sand_surface">#fcf9f4</color>
     <color name="dusk_sand_on_surface">#1c1c19</color>
+    <!-- accent = "secondary" del design system (mascotte, controlli),
+         veil = "tertiary" (anelli dello stagno, riempimenti tenui) -->
+    <color name="dusk_sand_accent">#8f7256</color>
+    <color name="dusk_sand_veil">#e6d2b8</color>
     <color name="dusk_sand_surface_variant">#e5e2dd</color>
 
     <!-- DAWN CLAY THEME -->
@@ -79,6 +91,10 @@
     <color name="dawn_clay_background">#fdf8f6</color>
     <color name="dawn_clay_surface">#fdf8f6</color>
     <color name="dawn_clay_on_surface">#1c1b1a</color>
+    <!-- accent = "secondary" del design system (mascotte, controlli),
+         veil = "tertiary" (anelli dello stagno, riempimenti tenui) -->
+    <color name="dawn_clay_accent">#965a4f</color>
+    <color name="dawn_clay_veil">#e9c3b8</color>
     <color name="dawn_clay_surface_variant">#e6e1e0</color>
 
     <!-- Default (mai risolto in pratica) per i 4 nomi *_dark_surface definiti

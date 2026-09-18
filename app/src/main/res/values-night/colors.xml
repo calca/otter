@@ -24,6 +24,14 @@
          ("expected reference but got raw string"), serve passare da un
          @color/ nominato (vedi ThemeOverlay.CalmOtter.*.PopupMenu nello
          stesso file). -->
+    <color name="sage_accent">#9ed3a8</color>
+    <color name="sage_veil">#2b3a30</color>
+    <color name="deep_forest_accent">#abcfb8</color>
+    <color name="deep_forest_veil">#26332b</color>
+    <color name="dusk_sand_accent">#c9a880</color>
+    <color name="dusk_sand_veil">#33291d</color>
+    <color name="dawn_clay_accent">#d79c8c</color>
+    <color name="dawn_clay_veil">#36241f</color>
     <color name="deep_forest_dark_surface">#101711</color>
     <color name="sage_dark_surface">#151d17</color>
     <color name="dusk_sand_dark_surface">#1c1711</color>

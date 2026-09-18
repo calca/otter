@@ -11,7 +11,17 @@ import androidx.compose.ui.graphics.compositeOver
 import com.calmotter.app.AppTheme
 
 /**
- * Schemi colore Material3 per le 3 palette dell'app (Sage/DuskSand/DawnClay),
+ * `secondary` e `tertiary` **sono impostati**, a differenza degli altri ruoli
+ * lasciati ai default: nel design system del redesign non sono variazioni di
+ * `primary` ma due colori con un compito preciso — `secondary` (#8fa693 nelle
+ * palette verdi) è la mascotte e i controlli, `tertiary` (#d5e0d5) sono gli
+ * anelli dello stagno e i riempimenti tenui. Derivarli da `primary` con
+ * l'opacità, come faceva questo file prima, dava grigi-verdi al posto dei
+ * verdi del design (segnalato guardando la Home: "non sono i colori di
+ * Stitch"). Vivono anche in values/colors.xml come `*_accent` / `*_veil`,
+ * per i punti che leggono le risorse invece del tema Compose.
+ *
+ * Schemi colore Material3 per le 4 palette dell'app (Sage/DuskSand/DawnClay),
  * chiaro e scuro. Le due modalità NON condividono la stessa fonte XML, quindi
  * NON aspettarti che i valori chiaro/scuro siano una semplice variazione di
  * tonalità l'uno dell'altro:
@@ -80,6 +90,8 @@ private val SageLight = run {
         error = Color(0xFFBA1A1A),        // @color/m3_error
         onError = OnError,
         surfaceContainerHigh = dialogContainerFor(primary, surface),
+        secondary = Color(0xFF8FA693),   // @color/*_accent
+        tertiary = Color(0xFFD5E0D5),     // @color/*_veil
     )
 }
 
@@ -96,6 +108,8 @@ private val SageDark = run {
         error = Color(0xFFE07A78),
         onError = OnError,
         surfaceContainerHigh = dialogContainerFor(primary, surface),
+        secondary = Color(0xFF9ED3A8),   // @color/*_accent
+        tertiary = Color(0xFF2B3A30),     // @color/*_veil
     )
 }
 
@@ -112,6 +126,8 @@ private val DuskSandLight = run {
         error = Color(0xFFBA1A1A),        // @color/m3_error
         onError = OnError,
         surfaceContainerHigh = dialogContainerFor(primary, surface),
+        secondary = Color(0xFF8F7256),   // @color/*_accent
+        tertiary = Color(0xFFE6D2B8),     // @color/*_veil
     )
 }
 
@@ -128,6 +144,8 @@ private val DuskSandDark = run {
         error = Color(0xFFE07A78),
         onError = OnError,
         surfaceContainerHigh = dialogContainerFor(primary, surface),
+        secondary = Color(0xFFC9A880),   // @color/*_accent
+        tertiary = Color(0xFF33291D),     // @color/*_veil
     )
 }
 
@@ -144,6 +162,8 @@ private val DawnClayLight = run {
         error = Color(0xFFBA1A1A),        // @color/m3_error
         onError = OnError,
         surfaceContainerHigh = dialogContainerFor(primary, surface),
+        secondary = Color(0xFF965A4F),   // @color/*_accent
+        tertiary = Color(0xFFE9C3B8),     // @color/*_veil
     )
 }
 
@@ -160,6 +180,8 @@ private val DawnClayDark = run {
         error = Color(0xFFE07A78),
         onError = OnError,
         surfaceContainerHigh = dialogContainerFor(primary, surface),
+        secondary = Color(0xFFD79C8C),   // @color/*_accent
+        tertiary = Color(0xFF36241F),     // @color/*_veil
     )
 }
 
@@ -176,6 +198,8 @@ private val DeepForestLight = run {
         error = Color(0xFFBA1A1A),        // @color/m3_error
         onError = OnError,
         surfaceContainerHigh = dialogContainerFor(primary, surface),
+        secondary = Color(0xFF8FA693),   // @color/*_accent
+        tertiary = Color(0xFFD5E0D5),     // @color/*_veil
     )
 }
 
@@ -192,6 +216,8 @@ private val DeepForestDark = run {
         error = Color(0xFFE07A78),
         onError = OnError,
         surfaceContainerHigh = dialogContainerFor(primary, surface),
+        secondary = Color(0xFFABCFB8),   // @color/*_accent
+        tertiary = Color(0xFF26332B),     // @color/*_veil
     )
 }
 

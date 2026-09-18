@@ -720,7 +720,10 @@ private fun AmbientRipples(centerY: Dp, modifier: Modifier = Modifier) {
         ),
         label = "rippleT",
     )
-    val ringColor = MaterialTheme.colorScheme.primary
+    // Anelli e onde usano `tertiary` (#d5e0d5 nelle palette verdi), che nel
+    // design system è esattamente il colore dei "ripple borders" — non
+    // `primary` a bassa opacità, che dava un grigio.
+    val ringColor = MaterialTheme.colorScheme.tertiary
 
     Canvas(modifier = modifier) {
         val center = Offset(size.width / 2f, centerY.toPx())
@@ -734,19 +737,19 @@ private fun AmbientRipples(centerY: Dp, modifier: Modifier = Modifier) {
         // l'avanzamento quando la pausa parte).
         val innerRadius = 88.dp.toPx()
         val outerRadius = 124.dp.toPx()
-        drawCircle(color = ringColor, radius = outerRadius, center = center, alpha = 0.04f)
+        drawCircle(color = ringColor, radius = outerRadius, center = center, alpha = 0.30f)
         drawCircle(
             color = ringColor,
             radius = innerRadius,
             center = center,
-            alpha = 0.16f,
+            alpha = 0.95f,
             style = Stroke(width = strokeWidth),
         )
         drawCircle(
             color = ringColor,
             radius = outerRadius,
             center = center,
-            alpha = 0.12f,
+            alpha = 0.75f,
             style = Stroke(width = strokeWidth),
         )
 
@@ -760,7 +763,7 @@ private fun AmbientRipples(centerY: Dp, modifier: Modifier = Modifier) {
                 color = ringColor,
                 radius = outerRadius + localT * maxExtra,
                 center = center,
-                alpha = (1f - localT) * 0.18f,
+                alpha = (1f - localT) * 0.85f,
                 style = Stroke(width = strokeWidth),
             )
         }
@@ -923,7 +926,7 @@ private fun DurationChipRow(selectedIndex: Int, onSelect: (Int) -> Unit) {
                 color = if (selected) {
                     MaterialTheme.colorScheme.primary
                 } else {
-                    MaterialTheme.colorScheme.primary.copy(alpha = 0.08f)
+                    MaterialTheme.colorScheme.tertiary.copy(alpha = 0.55f)
                 },
             ) {
                 Text(
