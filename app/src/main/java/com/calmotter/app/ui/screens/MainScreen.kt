@@ -622,7 +622,7 @@ private fun PondOtter(
                 .clickable(enabled = !sessionActive && !isStarting, onClick = { isStarting = true }),
             contentAlignment = Alignment.Center,
         ) {
-            OtterZenMark(modifier = otterModifier, markSize = 88.dp)
+            OtterZenMark(modifier = otterModifier, markSize = 104.dp)
         }
     }
 }
