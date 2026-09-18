@@ -60,7 +60,6 @@ import com.calmotter.app.CalmCountdown
 import com.calmotter.app.PasswordManager
 import com.calmotter.app.R
 import com.calmotter.app.SessionManager
-import com.calmotter.app.ui.mascot.OtterFloatMark
 import com.calmotter.app.ui.mascot.OtterZenMark
 import kotlinx.coroutines.delay
 
@@ -427,7 +426,7 @@ private fun ReleaseOthersStep(groupTag: Int, onDone: () -> Unit) {
     }
 
     CalmScreenColumn(contentPadding = PaddingValues(40.dp)) {
-        OtterFloatMark(markSize = 96.dp)
+        OtterZenMark(markSize = 96.dp)
         Text(
             text = stringResource(R.string.release_others_title),
             fontSize = 19.sp,

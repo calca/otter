@@ -47,7 +47,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.calmotter.app.PasswordManager
 import com.calmotter.app.R
-import com.calmotter.app.ui.mascot.OtterFloatMark
 import com.calmotter.app.ui.mascot.OtterZenMark
 import com.calmotter.app.ui.mascot.PactPawsMark
 import com.calmotter.app.ui.mascot.SprigMark

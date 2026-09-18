@@ -52,7 +52,7 @@ import com.calmotter.app.encode
 import com.calmotter.app.groupPauseBluetoothRuntimePermissions
 import com.calmotter.app.hasGroupPauseBluetoothPermissions
 import com.calmotter.app.nfc.GroupPauseHceService
-import com.calmotter.app.ui.mascot.OtterFloatMark
+import com.calmotter.app.ui.mascot.OtterZenMark
 import com.calmotter.app.ui.mascot.OtterSatelliteMark
 import kotlin.math.cos
 import kotlin.math.sin
@@ -294,7 +294,7 @@ private fun ParticipantRing(participantNames: List<String>, ready: Boolean) {
             }
         }
 
-        OtterFloatMark(markSize = 110.dp)
+        OtterZenMark(markSize = 110.dp)
 
         val shown = participantNames.take(6)
         val radius = 84.dp

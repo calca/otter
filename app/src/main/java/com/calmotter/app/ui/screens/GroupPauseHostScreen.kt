@@ -29,6 +29,7 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.em
 import androidx.compose.ui.unit.sp
 import com.calmotter.app.GroupPauseRecipe
 import com.calmotter.app.R
@@ -173,10 +174,13 @@ private fun GroupPauseQrShareScreen(
 
 @Composable
 internal fun SetupLabel(text: String, topPadding: androidx.compose.ui.unit.Dp = 0.dp) {
+    // Stesso maiuscoletto spaziato delle sezioni di Impostazioni (redesign):
+    // qui come là è un'etichetta che nomina il gruppo sotto, non contenuto.
     Text(
-        text = text,
-        style = MaterialTheme.typography.labelMedium,
-        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
+        text = text.uppercase(),
+        style = MaterialTheme.typography.labelSmall,
+        letterSpacing = 0.12.em,
+        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.55f),
         modifier = Modifier
             .fillMaxWidth()
             .padding(top = topPadding, bottom = 8.dp),
@@ -220,16 +224,26 @@ internal fun MinutePillRow(
     ) {
         options.forEach { value ->
             val isSelected = value == selected
+            // Scelta piena e non solo più tinta, come le pillole di durata
+            // della Home: stesso gesto, stessa forma, in tutte e due.
             Surface(
                 onClick = { onSelect(value) },
                 shape = RoundedCornerShape(50),
-                color = MaterialTheme.colorScheme.primary.copy(alpha = if (isSelected) 0.22f else 0.08f),
+                color = if (isSelected) {
+                    MaterialTheme.colorScheme.primary
+                } else {
+                    MaterialTheme.colorScheme.primary.copy(alpha = 0.08f)
+                },
             ) {
                 Text(
                     text = labelFor(value),
                     maxLines = 1,
                     modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
-                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = if (isSelected) 1f else 0.65f),
+                    color = if (isSelected) {
+                        MaterialTheme.colorScheme.onPrimary
+                    } else {
+                        MaterialTheme.colorScheme.onSurface.copy(alpha = 0.65f)
+                    },
                     fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Normal,
                 )
             }

@@ -72,6 +72,7 @@ import com.calmotter.app.SessionRecord
 import com.calmotter.app.SessionStreak
 import com.calmotter.app.ui.mascot.OtterFloatMark
 import com.calmotter.app.ui.mascot.OtterZenMark
+import com.calmotter.app.ui.mascot.OtterSatelliteMark
 import com.calmotter.app.ui.mascot.SprigMark
 import com.calmotter.app.ui.mascot.TogetherMark
 import java.util.Calendar
@@ -386,6 +387,7 @@ fun MainScreen(
                     GroupPauseChoiceRow(
                         title = stringResource(R.string.group_pause_chooser_create),
                         description = stringResource(R.string.group_pause_chooser_create_desc),
+                        icon = { TogetherMark(markSize = 20.dp) },
                         onClick = {
                             showGroupPauseChooser = false
                             onGroupPauseHost(selectedDurationIndex * 30)
@@ -395,6 +397,7 @@ fun MainScreen(
                     GroupPauseChoiceRow(
                         title = stringResource(R.string.group_pause_chooser_join),
                         description = stringResource(R.string.group_pause_chooser_join_desc),
+                        icon = { OtterSatelliteMark(markSize = 20.dp) },
                         onClick = {
                             showGroupPauseChooser = false
                             onGroupPauseJoin()
@@ -423,24 +426,47 @@ private fun GroupPauseChoiceRow(
     description: String,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
+    icon: @Composable () -> Unit,
 ) {
+    // Icona a sinistra e freccia a destra (redesign): le due scelte hanno
+    // testi lunghi simili e si distinguevano solo leggendoli. Il "›" dice
+    // che da qui si prosegue — nessuna delle due conclude qualcosa.
     Surface(
         onClick = onClick,
-        shape = RoundedCornerShape(12.dp),
+        shape = RoundedCornerShape(16.dp),
         color = MaterialTheme.colorScheme.primary.copy(alpha = 0.08f),
         modifier = modifier.fillMaxWidth(),
     ) {
-        Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp)) {
-            Text(
-                text = title,
-                fontWeight = FontWeight.SemiBold,
-                color = MaterialTheme.colorScheme.primary,
+        Row(
+            modifier = Modifier.padding(horizontal = 16.dp, vertical = 14.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Box(
+                modifier = Modifier
+                    .size(38.dp)
+                    .clip(CircleShape)
+                    .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.12f)),
+                contentAlignment = Alignment.Center,
+                content = { icon() },
             )
+            Column(modifier = Modifier.weight(1f).padding(start = 12.dp)) {
+                Text(
+                    text = title,
+                    fontWeight = FontWeight.SemiBold,
+                    color = MaterialTheme.colorScheme.primary,
+                )
+                Text(
+                    text = description,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
+                    modifier = Modifier.padding(top = 2.dp),
+                )
+            }
             Text(
-                text = description,
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
-                modifier = Modifier.padding(top = 2.dp),
+                text = "\u203a",
+                color = MaterialTheme.colorScheme.primary,
+                fontWeight = FontWeight.SemiBold,
+                modifier = Modifier.padding(start = 8.dp),
             )
         }
     }

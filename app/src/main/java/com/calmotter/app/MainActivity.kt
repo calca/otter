@@ -144,7 +144,7 @@ class MainActivity : BaseActivity() {
         setContent {
             CalmOtterTheme(appTheme = currentTheme) {
                 // Home e schermata di pausa disegnano lo stesso otter
-                // (OtterFloatMark a 124.dp in entrambe): invece di sostituire
+                // (OtterZenMark a 124.dp in entrambe): invece di sostituire
                 // un albero con l'altro in un frame solo — che faceva
                 // "teletrasportare" l'otter da centrato verticalmente a in
                 // cima alla colonna — l'otter è dichiarato elemento condiviso

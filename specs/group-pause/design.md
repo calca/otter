@@ -890,3 +890,32 @@ there).
   devices — same limitation as the initial Phase 2 pass, unchanged by
   this refinement (it touched navigation, copy, and static illustrations,
   not the transport code).
+
+
+## Redesign pass: the shared dress, not the flow
+
+The Time Together screens keep the flow settled earlier (straight into the
+lobby, delay picker on the QR page, full-screen scanner); what changed is the
+dress, and all of it is shared with the rest of the app rather than invented
+here:
+
+- `SetupLabel` is now the same spaced small-caps used for the section
+  headings in Settings — in both places it names the group below it, it is
+  not content.
+- `MinutePillRow`'s selected pill is filled with `primary`, exactly like the
+  duration pills on Home. Same gesture, same shape, in both.
+- The Create/Join rows in the chooser gained an icon pastille and a "›". The
+  two options have similarly long descriptions and were told apart only by
+  reading them; the chevron says that neither one concludes anything.
+- The Zen otter replaces `OtterFloatMark` on every hero here (both lobbies,
+  the release step) and in History's empty state, so one face runs through
+  the whole app.
+
+The chooser stays a **dialog**, where the mockup makes it a full page: it is
+a fork in a flow, not a place — and the flow was the part explicitly meant to
+stay as it is.
+
+Not taken: the mockup's "Both otters drift together — timer pauses
+simultaneously if either screen…" note, which describes a live sync this
+feature deliberately does not have (see "handshake then autonomy" above). A
+note that says the opposite of what the code does is worse than no note.

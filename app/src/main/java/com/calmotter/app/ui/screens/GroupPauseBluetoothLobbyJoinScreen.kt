@@ -58,7 +58,7 @@ import com.calmotter.app.decodeGroupPauseRecipe
 import com.calmotter.app.groupPauseBluetoothRuntimePermissions
 import com.calmotter.app.hasGroupPauseBluetoothPermissions
 import com.calmotter.app.nfc.GroupPauseNfcReader
-import com.calmotter.app.ui.mascot.OtterFloatMark
+import com.calmotter.app.ui.mascot.OtterZenMark
 import com.calmotter.app.ui.mascot.OtterTapMark
 
 private sealed class JoinLobbyState {
@@ -271,7 +271,7 @@ fun GroupPauseBluetoothLobbyJoinScreen(
                     )
                 }
                 JoinLobbyState.Connecting -> {
-                    OtterFloatMark(markSize = 88.dp)
+                    OtterZenMark(markSize = 88.dp)
                     Text(
                         text = stringResource(R.string.group_pause_join_connecting),
                         color = MaterialTheme.colorScheme.onSurface,
@@ -280,7 +280,7 @@ fun GroupPauseBluetoothLobbyJoinScreen(
                     )
                 }
                 JoinLobbyState.WaitingForHost -> {
-                    OtterFloatMark(markSize = 88.dp)
+                    OtterZenMark(markSize = 88.dp)
                     // Chi ospita e per quanto, appena l'host lo comunica: è ciò a
                     // cui si sta dicendo di sì, e va detto prima che la pausa
                     // cominci, non quando è già cominciata.
@@ -401,7 +401,7 @@ private fun SearchingIllustration(hasResults: Boolean, searching: Boolean) {
                 }
             }
         }
-        OtterFloatMark(markSize = 76.dp)
+        OtterZenMark(markSize = 76.dp)
     }
 }
 

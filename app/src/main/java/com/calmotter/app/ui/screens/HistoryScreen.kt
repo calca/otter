@@ -47,7 +47,7 @@ import com.calmotter.app.R
 import com.calmotter.app.SessionRecord
 import com.calmotter.app.SessionStreak
 import com.calmotter.app.WeeklyGoal
-import com.calmotter.app.ui.mascot.OtterFloatMark
+import com.calmotter.app.ui.mascot.OtterZenMark
 import com.calmotter.app.ui.mascot.OtterHistoryIcon
 import java.text.SimpleDateFormat
 import java.util.Calendar
@@ -507,7 +507,7 @@ private fun EmptyHistory() {
                         shape = CircleShape,
                     )
             )
-            OtterFloatMark(markSize = 132.dp)
+            OtterZenMark(markSize = 132.dp)
         }
         Text(
             text = stringResource(R.string.history_empty),
