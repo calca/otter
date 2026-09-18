@@ -7,13 +7,16 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
+import android.view.View
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.scale
@@ -54,6 +57,33 @@ fun PasswordOutlinedTextField(
     enabled: Boolean = true,
 ) {
     var passwordVisible by remember { mutableStateOf(false) }
+
+    // **Niente compilazione automatica su queste password.**
+    //
+    // Due motivi, e il secondo conta più del primo.
+    //
+    // 1. Bug reale su Galaxy S22 (One UI): toccando il campo password
+    //    durante una pausa, il servizio di compilazione automatica apre una
+    //    propria finestra sopra al dialog. Quella finestra genera un
+    //    TYPE_WINDOW_STATE_CHANGED con il *suo* package
+    //    (`com.google.android.ext.services` nel caso osservato), che
+    //    [AppBlockerAccessibilityService] leggeva come "app non consentita"
+    //    e copriva col blocco proprio mentre si digitava.
+    //
+    // 2. Soprattutto: una password salvata nel gestore del telefono
+    //    contraddice il senso della password stessa. La conosce la persona
+    //    di fiducia, non chi è in pausa — se il telefono la ricompila da
+    //    solo, chi si è messo in pausa se la sblocca da sé e il patto non
+    //    vale più nulla. Questo vale anche dove il bug non si presenta.
+    //
+    // `IMPORTANT_FOR_AUTOFILL_NO_EXCLUDE_DESCENDANTS` sulla View che ospita
+    // questa composizione vale per l'intera finestra: per un dialog è la sua
+    // finestra, per una schermata quella dell'Activity — in entrambi i casi
+    // esattamente ciò che contiene i campi di questa app.
+    val hostView = LocalView.current
+    LaunchedEffect(hostView) {
+        hostView.importantForAutofill = View.IMPORTANT_FOR_AUTOFILL_NO_EXCLUDE_DESCENDANTS
+    }
 
     OutlinedTextField(
         value = value,

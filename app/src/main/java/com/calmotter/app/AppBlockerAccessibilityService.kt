@@ -98,6 +98,32 @@ class AppBlockerAccessibilityService : AccessibilityService() {
         val packageName = event.packageName?.toString() ?: return
         val sessionManager = SessionManager.getInstance(applicationContext)
         if (!sessionManager.isSessionActive()) return
+
+        // **Solo finestre a schermo intero.** Una finestra che si apre
+        // *sopra* la schermata corrente non significa che l'utente sia
+        // passato a un'altra app: la schermata sotto è già stata giudicata.
+        // Senza questo filtro bastava toccare il campo password durante una
+        // pausa perché il servizio di suggerimenti del sistema
+        // (`com.google.android.ext.services`, misurato su Galaxy S22 / One
+        // UI) aprisse il suo popup e facesse comparire il blocco sopra al
+        // dialog di sblocco — il bug segnalato due volte. Lo stesso vale per
+        // i popup che compaiono dentro un'app *consentita* durante la pausa,
+        // che venivano bloccati a torto.
+        //
+        // Misurato su S22 e su emulatore API 37: un'app aperta davvero
+        // (launcher, Impostazioni, Orologio) arriva sempre con
+        // `isFullScreen = true`, mentre popup, barre di sistema e le finestre
+        // di questa stessa app arrivano con `false`. Il prezzo, coerente col
+        // blocco dichiaratamente "morbido" (README, "Known Limits"):
+        // un'Activity a tema dialog non verrebbe bloccata. In cambio sparisce
+        // una classe intera di blocchi a sproposito, che è il modo peggiore
+        // in cui questa funzione possa sbagliare: coprire lo schermo mentre
+        // stai usando qualcosa che ti è permesso.
+        if (!event.isFullScreen) return
+
+        // La tastiera resta necessaria a parte: la sua finestra si dichiara
+        // `isFullScreen = true` (verificato su S22), quindi il filtro qui
+        // sopra da solo non la coprirebbe.
         if (packageName in allowedPackages()) return
 
         // Copre subito lo schermo dell'app non consentita, PRIMA di provare ad

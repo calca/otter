@@ -70,6 +70,25 @@ vedere la password").
   during lockout) — `PasswordOutlinedTextField` accepts both as parameters,
   same shape as a plain `OutlinedTextField` would.
 
+### No autofill on these fields
+
+The host view of whatever window contains a `PasswordOutlinedTextField` is
+marked `IMPORTANT_FOR_AUTOFILL_NO_EXCLUDE_DESCENDANTS`, which switches
+autofill off for that whole window — the dialog's window for a dialog, the
+activity's for a screen.
+
+The reason that matters most is not technical: a pause password stored in
+the phone's own password manager contradicts what the password is for. The
+trusted person knows it, the person pausing does not; if the phone refills it
+on their behalf, they can end their own pause and the pact is worth nothing.
+
+It was found while chasing the block-screen flash (see
+specs/app-blocking-and-home-lock/design.md), on the theory that the autofill
+popup was the trigger. Measured on a Galaxy S22: it is not — the
+`com.google.android.ext.services` window still appears with autofill off, and
+what fixes the flash is the full-screen filter in the accessibility service.
+The change stays on its own merit.
+
 ## Password hashing
 
 `PasswordManager.hash()`: `PBEKeySpec(password, salt, 120_000, 256)` via

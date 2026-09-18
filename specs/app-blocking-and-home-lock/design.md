@@ -23,6 +23,29 @@ Calm Otter's own package, every **enabled keyboard**
 is false, the service returns immediately without even computing the exempt
 set (cheap common case).
 
+**Only full-screen windows count.** Before any of the package checks, the
+service drops events whose `isFullScreen` is false. A window opening *over*
+the current screen is not the user switching app — the screen underneath has
+already been judged. This is what finally killed a bug reported twice: with
+the keyboard allowlist in place, tapping the password field on a Galaxy S22
+*still* flashed the block screen, because the trigger was not the keyboard at
+all but `com.google.android.ext.services`, the system suggestion service,
+opening its own window over the unlock dialog. Measured over wireless ADB on
+the device itself: a real app switch (launcher, Settings, Clock) always
+arrives with `isFullScreen = true`, while popups, system bars and this app's
+own windows arrive with `false`; the same holds on an API 37 emulator.
+
+That also fixes a case the reports had not reached yet: the same popups
+appearing inside an **allowed** app during a pause were being blocked too —
+the worst way this feature can fail, covering the screen while you use
+something you are permitted to use.
+
+The price, consistent with a lock that is openly soft (README, "Known
+Limits"): an activity with a dialog theme would not be blocked. Note the
+order matters — the keyboard allowlist still does real work after this
+filter, because an IME window reports `isFullScreen = true` (verified on the
+S22), so the filter alone would not cover it.
+
 **Why keyboards are in there.** Opening the keyboard fires a
 `TYPE_WINDOW_STATE_CHANGED` carrying the IME's package, which without this
 fell straight into the "not an allowed app" branch. Reported symptom: during
