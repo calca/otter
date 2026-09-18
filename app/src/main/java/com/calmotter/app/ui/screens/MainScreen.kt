@@ -44,6 +44,8 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.animation.core.withInfiniteAnimationFrameMillis
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -77,6 +79,8 @@ import com.calmotter.app.ui.mascot.OtterSatelliteMark
 import com.calmotter.app.ui.mascot.SprigMark
 import com.calmotter.app.ui.mascot.TogetherMark
 import java.util.Calendar
+import kotlin.math.PI
+import kotlin.math.sin
 import kotlin.math.pow
 
 // Indice 1 = 30 min, indice 2 = 60 min, ... fino a 4 ore, a passi di 30 minuti
@@ -769,17 +773,10 @@ private fun PondStill(centerY: Dp, modifier: Modifier = Modifier) {
 
 @Composable
 private fun AmbientRipples(centerY: Dp, modifier: Modifier = Modifier) {
-    val transition = rememberInfiniteTransition(label = "ripples")
-    val t by transition.animateFloat(
-        initialValue = 0f,
-        targetValue = 1f,
-        animationSpec = infiniteRepeatable(
-            // 9 secondi per giro, non 3,6: è un sasso caduto nell'acqua, non
-            // una scansione radar. E l'avanzamento non è lineare — vedi sotto.
-            animation = tween(RIPPLE_PERIOD_MILLIS, easing = LinearEasing),
-        ),
-        label = "rippleT",
-    )
+    // 9 secondi per giro, non 3,6: è un sasso caduto nell'acqua, non una
+    // scansione radar. L'avanzamento è a scatti di 1/20 di secondo, vedi
+    // [steppedFraction].
+    val t = steppedFraction(RIPPLE_PERIOD_MILLIS)
     // Le onde usano `tertiary` (#d5e0d5 nelle palette verdi), che nel design
     // system è esattamente il colore dei "ripple borders" — non `primary` a
     // bassa opacità, che dava un grigio.
@@ -828,6 +825,38 @@ private fun AmbientRipples(centerY: Dp, modifier: Modifier = Modifier) {
     }
 }
 
+
+/**
+ * Frazione 0f→1f che avanza a **20 scatti al secondo** invece che a ogni
+ * fotogramma.
+ *
+ * Le due animazioni della Home — increspature e oscillazione dell'otter —
+ * durano 9 e 3,2 secondi: a 60fps ridisegnavano 60 volte al secondo per
+ * spostare le cose di frazioni di pixel. Qui lo stato cambia solo 20 volte
+ * al secondo, quindi Compose ridisegna 20 volte: invisibile a questa
+ * lentezza, un terzo del lavoro.
+ *
+ * `withInfiniteAnimationFrameMillis` e non un timer proprio: segue
+ * l'orologio delle animazioni di Compose, quindi si ferma da sé quando la
+ * composizione esce di scena e rispetta l'impostazione di sistema
+ * "rimuovi animazioni".
+ */
+@Composable
+private fun steppedFraction(periodMillis: Int, stepsPerSecond: Int = 20): Float {
+    var fraction by remember { mutableFloatStateOf(0f) }
+    LaunchedEffect(periodMillis, stepsPerSecond) {
+        val steps = (periodMillis / 1000f * stepsPerSecond).toInt().coerceAtLeast(1)
+        while (true) {
+            withInfiniteAnimationFrameMillis { now ->
+                val step = ((now % periodMillis) / periodMillis.toFloat() * steps).toInt()
+                val next = step / steps.toFloat()
+                if (next != fraction) fraction = next
+            }
+        }
+    }
+    return fraction
+}
+
 /** Durata di un giro completo di un'increspatura, vedi [AmbientRipples]. */
 private const val RIPPLE_PERIOD_MILLIS = 9000
 
@@ -869,17 +898,11 @@ private fun TapConfirmBurst(progress: Float, modifier: Modifier = Modifier) {
  */
 @Composable
 fun rememberOtterFloatOffset(periodMillis: Int): Float {
-    val floatTransition = rememberInfiniteTransition(label = "otterFloat")
-    val floatOffset by floatTransition.animateFloat(
-        initialValue = -5f,
-        targetValue = 5f,
-        animationSpec = infiniteRepeatable(
-            animation = tween(periodMillis, easing = FastOutSlowInEasing),
-            repeatMode = RepeatMode.Reverse,
-        ),
-        label = "otterFloatY",
-    )
-    return floatOffset
+    // Una sinusoide sulla stessa sorgente a scatti delle increspature: il
+    // periodo completo è andata+ritorno, quindi il doppio di quello che
+    // chiedeva `RepeatMode.Reverse`. Cinque dp di escursione, come prima.
+    val t = steppedFraction(periodMillis * 2)
+    return sin(t * 2f * PI.toFloat()) * 5f
 }
 
 /**

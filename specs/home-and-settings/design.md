@@ -561,16 +561,25 @@ renders through GPU emulation (`ro.hardware.egl=emulation`), where every
 frame costs far more than on a phone — a 10px bob of a small mascot has no
 business costing 50% of a core.
 
-What was fixed for real: the four still discs used to live inside the
-animated `Canvas`, so four large filled circles were repainted across the
-whole page every frame. They are their own `PondStill` composable now, which
-reads no animated state and is therefore drawn once. The otter's bob moved
-from `Modifier.offset` (which relayouts and repaints it) to a
-`graphicsLayer` translation (which only moves the layer).
+Three things were fixed, in order of how much they mattered:
 
-Neither of those moved the emulator's numbers much, which is itself the
-finding: the cost is the frame, not what is in it. Before trading away the
-pond or the bob, the thing to do is measure on real hardware.
+1. **The animations step 20 times a second, not 60** (`steppedFraction`).
+   They last 9 and 3.2 seconds, so at 60fps they were repainting the screen
+   sixty times a second to move things by fractions of a pixel. State now
+   changes 20 times a second and Compose repaints 20 times. **64–88% → 8–12%.**
+   It uses `withInfiniteAnimationFrameMillis` rather than a timer of its own,
+   so it follows Compose's animation clock: it stops when the composition
+   leaves and honours the system's "remove animations" setting.
+2. The four still discs used to live inside the animated `Canvas`, so four
+   large filled circles were repainted across the whole page every frame.
+   They are their own `PondStill` now, which reads no animated state.
+3. The otter's bob moved from `Modifier.offset`, which relayouts and repaints
+   it, to a `graphicsLayer` translation, which only moves the layer.
+
+Only the first one moved the numbers. Points 2 and 3 are still right, but
+the lesson is that on this emulator the cost was the *frame*, not what was
+being drawn in it — and the fix was therefore to ask for fewer frames rather
+than to draw less.
 
 ### The pond, measured rather than guessed
 
