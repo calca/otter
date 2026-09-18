@@ -788,7 +788,14 @@ private fun AmbientRipples(centerY: Dp, modifier: Modifier = Modifier) {
     Canvas(modifier = modifier) {
         val center = Offset(size.width / 2f, centerY.toPx())
         val veilRadius = 151.dp.toPx()
-        val maxExtra = size.height / 1.1f
+        // Quanto cresce un anello prima di spegnersi. **Non** piu'
+        // `size.height / 1.1` (circa 865dp): a quella velocita' l'onda usciva
+        // dallo schermo dopo un quinto della sua vita e le altre due
+        // continuavano fuori campo — se ne vedeva una sola, mentre di anelli
+        // ce ne sono sempre tre. Con 300dp l'ultimo arco e' ancora dentro i
+        // bordi quando svanisce, quindi se ne vedono due o tre insieme, che e'
+        // cio' che fa uno stagno.
+        val maxExtra = 300.dp.toPx()
 
         // Tre anelli sfasati, ciascuno con la sua vita indipendente. Ogni
         // anello imita ciò che fa un'increspatura vera:
@@ -811,8 +818,11 @@ private fun AmbientRipples(centerY: Dp, modifier: Modifier = Modifier) {
                 color = ringColor,
                 radius = veilRadius + eased * maxExtra,
                 center = center,
-                alpha = (1f - localT).pow(1.3f) * 0.9f,
-                style = Stroke(width = (3.5f - 2.6f * eased).dp.toPx()),
+                // Dissolvenza quasi lineare: con (1-t)^1.3 il terzo anello
+                // era gia' a un quinto di opacita' su un colore che di suo ha
+                // poco contrasto, cioe' invisibile.
+                alpha = (1f - localT) * 0.95f,
+                style = Stroke(width = (3.5f - 2.3f * eased).dp.toPx()),
             )
         }
     }

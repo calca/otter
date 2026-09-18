@@ -534,8 +534,15 @@ closer to a radar sweep than to water. Each ring now:
   faint, which is to say invisible;
 - **thins from 3.5dp to 0.9dp**, because the same energy is spread over an
   ever longer circumference;
-- **fades on `(1-t)^1.3`**, so it is gone before it would reach the edges of
-  the page rather than being cut off there.
+- **fades almost linearly**, so it is gone before it would reach the edges
+  of the page rather than being cut off there. `(1-t)^1.3` was tried and
+  left the third ring at a fifth of its opacity, on a colour that has
+  little contrast to begin with — invisible;
+- **grows by 300dp and no more.** It used to grow by `size.height / 1.1`
+  (~865dp), which meant a ring left the screen after a fifth of its life
+  and the other two travelled on out of frame: three rings existed, one
+  was visible. Reported as "shouldn't there be two or three of them?" —
+  there should, and now there are.
 
 ### What the pond costs, measured
 
