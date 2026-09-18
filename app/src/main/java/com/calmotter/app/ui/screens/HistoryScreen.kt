@@ -142,6 +142,8 @@ fun HistoryScreen(
                 SessionRow(session)
             }
 
+            ClosingPhraseCard(modifier = Modifier.padding(horizontal = 16.dp, vertical = 20.dp))
+
             Spacer(modifier = Modifier.height(16.dp))
         }
     }
@@ -444,10 +446,13 @@ private fun SessionRow(session: SessionRecord) {
 @Composable
 private fun SessionOutcomeIcon(isGroupSession: Boolean, completedNaturally: Boolean) {
     val tint = if (completedNaturally) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.error
+    // Tonda, non quadrata arrotondata (redesign): la riga della sessione è
+    // l'unico punto della pagina con una forma piena piccola, e il cerchio la
+    // lega alle pastiglie di azione della pausa invece che alle card.
     Surface(
-        shape = RoundedCornerShape(10.dp),
+        shape = CircleShape,
         color = tint.copy(alpha = 0.14f),
-        modifier = Modifier.size(34.dp),
+        modifier = Modifier.size(38.dp),
     ) {
         Box(contentAlignment = Alignment.Center) {
             OtterHistoryIcon(markSize = 20.dp, showSignal = isGroupSession, tint = tint)
@@ -725,4 +730,38 @@ fun ClearHistoryConfirmDialog(onDismiss: () -> Unit, onConfirm: () -> Unit) {
             }
         },
     )
+}
+
+
+/**
+ * Chiusura della lista: una frase riflessiva, pescata a caso a ogni apertura
+ * (redesign). Stessa idea dello stato vuoto, all'altro capo della pagina.
+ *
+ * Legge `pause_phrases` **direttamente dalle risorse**, non tramite
+ * [com.calmotter.app.PhraseManager]. Quel gestore risponde alla preferenza
+ * "mostra frasi durante la pausa", che è scritta così perché riguarda
+ * esattamente quello: cosa compare mentre sei bloccato e la frase te la
+ * trovi davanti. Qui è l'ultima riga di una pagina che hai scelto di aprire
+ * e da cui esci quando vuoi — contesto diverso, preferenza diversa.
+ */
+@Composable
+private fun ClosingPhraseCard(modifier: Modifier = Modifier) {
+    val phrases = stringArrayResource(R.array.pause_phrases)
+    val phrase = remember(phrases) { phrases.random() }
+
+    Surface(
+        shape = RoundedCornerShape(20.dp),
+        color = MaterialTheme.colorScheme.primary.copy(alpha = 0.06f),
+        modifier = modifier.fillMaxWidth(),
+    ) {
+        Text(
+            text = phrase,
+            fontSize = 15.sp,
+            lineHeight = 23.sp,
+            fontStyle = FontStyle.Italic,
+            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.75f),
+            textAlign = TextAlign.Center,
+            modifier = Modifier.padding(20.dp),
+        )
+    }
 }

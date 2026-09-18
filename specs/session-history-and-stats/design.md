@@ -249,3 +249,27 @@ per questa settimana"), shown in place of the progress bar when
 one centred button and no indication of what the card was for. It is
 phrased as the missing datum, not as a second invitation: the button
 underneath is already the call to action.
+
+
+## Redesign pass: the session list
+
+Two changes from the Stitch redesign.
+
+**The outcome badge is round.** It used to be a rounded square; the session
+row is the only place on the page with a small filled shape, and a circle
+ties it to the pause screen's action badges rather than to the cards around
+it. Colours are unchanged — `primary` tint for a session that ran its course,
+`error` tint for one ended early — and so is the group arc on the otter mark.
+
+**A reflective line closes the list.** The mockup ends the page with a quote
+card; it is picked at random from `pause_phrases` on every opening, the same
+pool the pause itself draws from, so the register matches. It is read
+straight from resources rather than through `PhraseManager`: that manager
+answers the "show phrases during the pause" preference, which is worded that
+way because it means exactly that — what you are shown while you are stuck
+with it. This is the last line of a page you chose to open and leave when you
+like.
+
+The mockup also marked night-time sessions with a moon glyph. Dropped on
+request: the data exists (start time), but it is one more signal to learn on
+a row that already carries date, outcome, companions and duration.
