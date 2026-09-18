@@ -183,19 +183,33 @@ fun MainScreen(
     onGrantDnd: () -> Unit,
     onHistory: () -> Unit,
     onSettings: () -> Unit,
-    onSessionStarted: () -> Unit = {},
     // Riceve la durata scelta qui in Home (vedi selectedDurationIndex sotto),
     // in minuti: il flow di creazione la usa come valore iniziale del proprio
     // selettore, invece di ripartire sempre da un default indipendente — vedi
     // GroupPauseBluetoothLobbyHostScreen.
     onGroupPause: (durationMinutes: Int) -> Unit = {},
-    // Vedi il parametro omonimo di [BlockScreen]: è lo stesso otter, ed è
-    // [MainActivity] a legarli come elemento condiviso.
-    otterModifier: Modifier = Modifier,
+    // **false quando l'otter lo disegna il chiamante**, sopra la dissolvenza
+    // fra questa schermata e quella di blocco (vedi [PersistentOtter]): qui
+    // lo slot resta riservato ma vuoto, così il contenuto attorno si dispone
+    // come sempre. true solo per usi isolati di questa schermata.
+    drawOtter: Boolean = true,
     // Vedi [rememberOtterFloatOffset]: passato dall'esterno quando la stessa
     // oscillazione deve proseguire anche in [BlockScreen], null quando questa
     // schermata è sola e può gestirsela da sé.
     otterFloatOffset: State<Float>? = null,
+    // Issati in [MainActivity][com.calmotter.app.MainActivity] perché servono
+    // anche all'otter persistente, che vive fuori di qui: la durata scelta è
+    // ciò che il tocco avvia, il dialogo dei permessi è ciò che il tocco
+    // mostra quando non può avviare nulla.
+    selectedDurationIndex: Int,
+    onSelectDuration: (Int) -> Unit,
+    // Cosa fa il tocco sull'otter. Sta qui come parametro e non come corpo
+    // perché l'otter ora vive fuori da questa schermata: quando è usata da
+    // sola (`drawOtter = true`) il marchio dentro lo slot chiama comunque
+    // questo.
+    onOtterTap: () -> Unit = {},
+    showPermissionDialog: Boolean,
+    onDismissPermissionDialog: () -> Unit,
 ) {
     val context = LocalContext.current
 
@@ -206,8 +220,6 @@ fun MainScreen(
     var totalMillis by remember { mutableStateOf(0L) }
     var streakDays by remember { mutableIntStateOf(0) }
     var weekSummary by remember { mutableStateOf(WeekSummary(0, 0)) }
-    var selectedDurationIndex by remember { mutableIntStateOf(1) }
-    var showPermissionDialog by remember { mutableStateOf(false) }
 
     fun refreshDerivedState() {
         accessibilityOk = isAccessibilityServiceEnabled()
@@ -277,52 +289,18 @@ fun MainScreen(
             }
         },
         otter = {
+            // Quando l'otter lo disegna il chiamante sopra la dissolvenza
+            // (vedi [PersistentOtter]), qui resta soltanto l'anello di
+            // avanzamento: fa parte di *questa* schermata, compare con lei e
+            // sfuma con lei. Il marchio no — quello è uno solo e non si
+            // scambia.
             PondOtter(
                 restartKey = resumeSignal,
                 sessionActive = sessionActive,
                 remainingMillis = remainingMillis,
                 totalMillis = totalMillis,
-                onStart = {
-                    // In debug (incluso quello prodotto in CI) i permessi
-                    // Accessibilità/DND non bloccano l'avvio di una sessione,
-                    // per poter testare il resto del flusso (Settings,
-                    // History, schermata di blocco...) senza doverli
-                    // concedere davvero a ogni installazione pulita — vedi
-                    // SessionManager.setPauseDnd(), che già ignora
-                    // silenziosamente il DND se non concesso, quindi questo
-                    // bypass non nasconde un crash, solo il blocco vero e
-                    // proprio non scatta. In release il controllo resta
-                    // invariato.
-                    if (BuildConfig.DEBUG || (accessibilityOk && dndOk)) {
-                        val durationMinutes = selectedDurationIndex * 30
-                        sessionManager.startSession(durationMinutes)
-                        Toast.makeText(context, sessionStartedText, Toast.LENGTH_SHORT).show()
-                        // Niente refreshDerivedState() qui: questa istanza di
-                        // MainScreen sta per essere sostituita da BlockScreen
-                        // (vedi subito sotto) e resta comunque composta
-                        // durante la sua dissolvenza in uscita (AnimatedContent
-                        // tiene vivo l'uscente per tutta la durata del fade).
-                        // Aggiornare sessionActive qui la farebbe ricomporre
-                        // con il proprio ramo "sessionActive" — un "Paused"
-                        // spoglio (solo testo, niente frase/avatar/lucchetto)
-                        // che lampeggia per la durata della dissolvenza prima
-                        // che compaia BlockScreen: due transizioni percepite
-                        // invece di una, segnalato come "comportamento
-                        // pesante" nel passaggio Home -> sessione. Lasciando
-                        // sessionActive=false, l'istanza uscente continua a
-                        // mostrare esattamente ciò che si vedeva un istante
-                        // prima del tap (increspature e chip) mentre sfuma.
-                        //
-                        // Passa subito a BlockScreen invece di restare su
-                        // MainScreen mostrando il progress ring: le due
-                        // schermate ora sono unificate, vedi
-                        // MainActivity.enterBlockScreen().
-                        onSessionStarted()
-                    } else {
-                        showPermissionDialog = true
-                    }
-                },
-                otterModifier = otterModifier,
+                drawMark = drawOtter,
+                onStart = onOtterTap,
                 otterFloatOffset = otterFloatOffset,
             )
         },
@@ -357,7 +335,7 @@ fun MainScreen(
             Spacer(modifier = Modifier.height(10.dp))
             DurationChipRow(
                 selectedIndex = selectedDurationIndex,
-                onSelect = { selectedDurationIndex = it },
+                onSelect = onSelectDuration,
             )
 
             SessionsSummaryLink(
@@ -401,7 +379,7 @@ fun MainScreen(
                     if (BuildConfig.DEBUG || (accessibilityOk && dndOk)) {
                         onGroupPause(selectedDurationIndex * 30)
                     } else {
-                        showPermissionDialog = true
+                        onOtterTap()
                     }
                 },
                 // 22dp e non 18: le due impronte hanno otto polpastrelli fra
@@ -417,14 +395,14 @@ fun MainScreen(
             accessibilityOk = accessibilityOk,
             dndOk = dndOk,
             onGrantAccessibility = {
-                showPermissionDialog = false
+                onDismissPermissionDialog()
                 onGrantAccessibility()
             },
             onGrantDnd = {
-                showPermissionDialog = false
+                onDismissPermissionDialog()
                 onGrantDnd()
             },
-            onDismiss = { showPermissionDialog = false },
+            onDismiss = onDismissPermissionDialog,
         )
     }
 }
@@ -512,8 +490,11 @@ private fun PondOtter(
     remainingMillis: Long,
     totalMillis: Long,
     onStart: () -> Unit,
-    otterModifier: Modifier = Modifier,
     otterFloatOffset: State<Float>? = null,
+    // false quando il marchio lo disegna [PersistentOtter] sopra la
+    // dissolvenza: qui resta solo l'anello, che appartiene a questa
+    // schermata e deve sfumare con lei.
+    drawMark: Boolean = true,
     // Cambia a ogni onResume: fa ripartire l'oscillazione quando si torna
     // sulla schermata, vedi [rememberOtterFloatOffset].
     restartKey: Int = 0,
@@ -566,21 +547,23 @@ private fun PondOtter(
             ProgressRing(fraction = fraction, modifier = Modifier.size(182.dp))
         }
 
-        val floatOffset = otterFloatOffset
-            ?: rememberOtterFloatOffset(
-                periodMillis = if (sessionActive) 5200 else 3200,
-                restartKey = restartKey,
-            )
+        if (drawMark) {
+            val floatOffset = otterFloatOffset
+                ?: rememberOtterFloatOffset(
+                    periodMillis = if (sessionActive) 5200 else 3200,
+                    restartKey = restartKey,
+                )
 
-        Box(
-            modifier = Modifier
-                .graphicsLayer { translationY = floatOffset.value * density }
-                .scale(otterScale)
-                .clip(CircleShape)
-                .clickable(enabled = !sessionActive && !isStarting, onClick = { isStarting = true }),
-            contentAlignment = Alignment.Center,
-        ) {
-            OtterZenMark(modifier = otterModifier, markSize = 118.dp)
+            Box(
+                modifier = Modifier
+                    .graphicsLayer { translationY = floatOffset.value * density }
+                    .scale(otterScale)
+                    .clip(CircleShape)
+                    .clickable(enabled = !sessionActive && !isStarting, onClick = { isStarting = true }),
+                contentAlignment = Alignment.Center,
+            ) {
+                OtterZenMark(markSize = OtterMarkSize)
+            }
         }
     }
 }
@@ -901,7 +884,7 @@ private const val RIPPLE_PERIOD_MILLIS = 9000
  * c'era prima verso BlockScreen.
  */
 @Composable
-private fun TapConfirmBurst(progress: Float, modifier: Modifier = Modifier) {
+internal fun TapConfirmBurst(progress: Float, modifier: Modifier = Modifier) {
     val ringColor = MaterialTheme.colorScheme.primary
 
     Canvas(modifier = modifier) {

@@ -711,7 +711,72 @@ text repeated every time it appears:
   which used to explicitly call out the block screen as one of the
   screens deliberately excluded, is updated accordingly.
 
-## Home → BlockScreen: the otter as a shared element
+## Home → BlockScreen: one otter, above the crossfade
+
+**Current design.** `MainActivity` puts a single `PersistentOtter` *above*
+a `Crossfade` that swaps everything else. The otter is one node: it is not
+inside either screen, so it is never recomposed out, never handed over, and
+cannot move, scale or lose a transform at the swap. The two screens keep
+reserving an equally-tall but **empty** otter slot (`drawOtter = false`), so
+the content around it lays out exactly as before.
+
+Position comes from `otterCenterY(viewportHeight)` in
+`OtterAnchoredScreen.kt` — **one formula with two callers**, the container
+that aligns the empty slot and `MainActivity` that places the real otter.
+Two formulas that have to agree is precisely what made the otter slide
+before (twice, see below).
+
+Declared consequence: this design **forbids** Home and the block screen from
+putting the otter in different places. That is today's invariant — if it
+ever has to change, this gets redesigned, not worked around with a second
+otter.
+
+`PersistentOtter` owns the bob, the tap zoom, the confirm burst and the tap
+target. The progress ring stays inside the screens: it belongs to the block
+state, appears with it and fades with it.
+
+Two callers still draw their own otter, and keep the `drawOtter = true`
+default: `BlockOverlayActivity` and the accessibility-service overlay in
+`AppBlockerAccessibilityService`. Neither arrives from a transition. The
+service builds its own `OtterAnchoredScreen`; it now takes the mark's size
+from the shared `OtterMarkSize` rather than repeating `118.dp`, since its own
+comment promises the otter will not move by a pixel when the real screen
+takes over.
+
+### Why the shared element was removed
+
+What follows describes the previous design, kept because its failure is the
+reason for the current one.
+
+Three mechanisms had to agree about where the otter was and how big:
+
+1. `OtterAnchoredScreen`, which exists to put it in the **same place** in
+   both screens;
+2. the shared element, which exists to **animate its movement** between
+   them;
+3. `graphicsLayer` transforms — bob, tap zoom — which layout does **not**
+   see.
+
+The first two worked against each other: the second animated a movement the
+first existed to prevent. The third is the one that lost. `Modifier.scale`
+put the tap's 1.18× zoom on a *parent* `Box` while `sharedElement` sat on the
+mark inside it; shared-element bounds come from layout, which ignores
+`graphicsLayer`, so at the handover the 1.18× vanished in a single frame.
+
+Measured on the emulator, screenshots at 10× animator duration scale: otter
+ink 119px wide in one shot, 101px in the next, and 101 × 1.18 = 119.2. A
+sideways excursion of 32px (≈11dp) from centre showed up in the same frames
+and disappeared with the redesign, so it was part of the same handover.
+
+The measurement is worth recording too, because getting it wrong was easy:
+pixel-scanning a 720p `screenrecord` mistook the paw mark and the block
+screen's own text for the otter more than once. What worked was
+`animator_duration_scale 10` plus full-resolution `screencap`, isolating the
+otter's eye band, and comparing against the pond disc in the same frame.
+
+The old design, for the record:
+
+
 
 The redesign above left the two screens drawing the *same* otter
 (`OtterFloatMark` at 124.dp in both), but `MainActivity` still swapped
@@ -747,6 +812,42 @@ a shared element across the two.
 - **`@OptIn(ExperimentalSharedTransitionApi::class)` sits on
   `MainActivity.onCreate`**, the single place in the app that uses the
   API, rather than being opted into project-wide.
+
+None of the above is in the code any more: `SharedTransitionLayout`,
+`sharedElement`, `boundsTransform`, the `otterModifier` parameters and the
+experimental opt-in all went with it, and so did the single hoisted
+`rememberOtterFloatOffset` instance that existed only to keep two bobbing
+oscillators in phase — with one otter there is one oscillator by
+construction.
+
+### A test now guards the invariant
+
+`app/src/test/java/com/calmotter/app/OtterAnchoredScreenTest.kt` — the first
+composition test in this project, which is why `build.gradle.kts` gained
+`androidx.compose.ui:ui-test-junit4` on the JVM test configuration (the
+Compose BOM has to be repeated there: above it is applied to
+`implementation` and `androidTestImplementation` only).
+
+It does not compose the real `MainScreen`/`BlockScreen` — those drag in Room,
+the Keystore and system permissions, and a test that fails for those reasons
+stops being read. It tests `OtterAnchoredScreen`'s contract, which is where
+the invariant actually lives and what both screens inherit it from, against
+the two differences that could move the otter: Home has a header and the
+block screen does not, and the content below the otter differs a lot in
+height.
+
+Two things learned writing it, both now encoded:
+
+- `createComposeRule` allows **one** `setContent` per test, so the two
+  configurations come from flipping a `mutableStateOf` — which is closer to
+  what really happens anyway, the screen changing under an otter that is not
+  recreated.
+- Robolectric's default screen is short enough to hit the degenerate case
+  `OtterAnchoredScreen` documents: the gap above the otter clamps to zero and
+  the header pushes it down again, by exactly `HomeHeaderHeight`. The first
+  run failed on this (expected 96.0, was 0.0). The tests therefore declare
+  `@Config(qualifiers = "w411dp-h891dp")`, and a third test pins the
+  short-screen behaviour itself rather than leaving it as a surprise.
 
 ### The otter has to be in the *same place*, or it slides
 

@@ -17,6 +17,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 
@@ -94,6 +95,9 @@ import androidx.compose.ui.unit.dp
  *   [OtterBelowReserveHeight], l'intestazione ne occupa 96 — ma è bene
  *   sapere da dove arriverebbe, se dovesse ricapitare.
  */
+/** Identifica lo slot dell'otter nei test di composizione. */
+const val OtterSlotTestTag = "otterSlot"
+
 @Composable
 fun OtterAnchoredScreen(
     modifier: Modifier = Modifier,
@@ -120,10 +124,9 @@ fun OtterAnchoredScreen(
         // calcolato qui sotto sia heightIn(min) risulterebbero sbagliati
         // esattamente di quegli inset — vedi [CalmScreenColumn].
         BoxWithConstraints(modifier = Modifier.fillMaxSize().safeDrawingPadding()) {
-            val gapAboveOtter = (
-                (maxHeight - OtterSlotHeight - OtterBelowReserveHeight) / 2 - headerHeight
-                ).coerceAtLeast(0.dp)
-            val otterCenterY = headerHeight + gapAboveOtter + OtterSlotHeight / 2
+            val otterCenterY = otterCenterY(maxHeight)
+            val gapAboveOtter = (otterCenterY - OtterSlotHeight / 2 - headerHeight)
+                .coerceAtLeast(0.dp)
 
             Box(modifier = Modifier.fillMaxSize()) { background(otterCenterY) }
 
@@ -144,7 +147,16 @@ fun OtterAnchoredScreen(
                 )
                 Spacer(modifier = Modifier.height(gapAboveOtter))
                 Box(
-                    modifier = Modifier.fillMaxWidth().height(OtterSlotHeight),
+                    // Il tag esiste per il test che sorveglia l'invariante di
+                    // questo file — vedi OtterAnchoredScreenTest. Ha una
+                    // storia: la posizione dell'otter è già divergita fra le
+                    // due schermate due volte, sempre per una modifica fatta
+                    // altrove e in buona fede, e finora se ne accorgeva solo
+                    // qualcuno guardando lo schermo.
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(OtterSlotHeight)
+                        .testTag(OtterSlotTestTag),
                     contentAlignment = Alignment.Center,
                     content = otter,
                 )
@@ -153,6 +165,26 @@ fun OtterAnchoredScreen(
         }
     }
 }
+
+/**
+ * Dove cade il centro dell'otter, dato un viewport alto [viewportHeight].
+ *
+ * **Esiste come funzione, e non come due righe dentro
+ * [OtterAnchoredScreen], perché ha due chiamanti**: questo contenitore, che
+ * ci allinea lo slot dentro la colonna, e [MainActivity][com.calmotter.app.MainActivity],
+ * che ci disegna l'otter persistente sopra la dissolvenza fra Home e
+ * blocco. Due formule che devono dare lo stesso numero sono esattamente
+ * ciò che ha fatto scivolare l'otter in passato (vedi il commento di
+ * [OtterAnchoredScreen]); questa è una formula sola, con due chiamanti.
+ *
+ * Non dipende dall'intestazione: nel calcolo [headerHeight] si somma e si
+ * sottrae, quindi il centro è funzione della sola altezza dello schermo —
+ * che è ciò che rende identica la posizione in una schermata che
+ * l'intestazione ce l'ha (Home) e in una che non ce l'ha (blocco).
+ */
+internal fun otterCenterY(viewportHeight: Dp): Dp =
+    ((viewportHeight - OtterSlotHeight - OtterBelowReserveHeight) / 2).coerceAtLeast(0.dp) +
+        OtterSlotHeight / 2
 
 /**
  * Stima fissa e condivisa di quanto pesa, visivamente, il contenuto sotto

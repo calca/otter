@@ -10,13 +10,9 @@ import android.widget.Toast
 import androidx.activity.OnBackPressedCallback
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.animation.AnimatedContent
-import androidx.compose.animation.ExperimentalSharedTransitionApi
-import androidx.compose.animation.SharedTransitionLayout
+import androidx.compose.animation.Crossfade
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.tween
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
 import androidx.compose.animation.togetherWith
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -29,6 +25,17 @@ import com.calmotter.app.ui.screens.MainScreen
 import com.calmotter.app.ui.screens.rememberOtterFloatOffset
 import com.calmotter.app.ui.theme.CalmOtterTheme
 import com.google.android.material.color.MaterialColors
+import com.calmotter.app.ui.screens.otterCenterY
+import com.calmotter.app.ui.screens.OtterHaloSize
+import com.calmotter.app.ui.screens.PersistentOtter
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.Alignment
+import androidx.compose.runtime.remember
+import androidx.compose.foundation.layout.safeDrawingPadding
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.foundation.layout.Box
 
 /**
  * Un'unica Activity per due ruoli: icona del launcher (CATEGORY_LAUNCHER) e
@@ -113,11 +120,6 @@ class MainActivity : BaseActivity() {
         ActivityResultContracts.RequestPermission()
     ) { /* refreshUi non serve: il permesso non cambia il layout */ }
 
-    // SharedTransitionLayout/sharedElement sono ancora dietro opt-in
-    // (@ExperimentalSharedTransitionApi) in questa versione di Compose:
-    // l'annotazione sta qui e non più in alto perché è l'unico punto dell'app
-    // che li usa.
-    @OptIn(ExperimentalSharedTransitionApi::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -172,37 +174,27 @@ class MainActivity : BaseActivity() {
                 // l'animazione, reintroducendo il salto che qui si toglie.
                 val otterFloatOffset = rememberOtterFloatOffset(periodMillis = 3200)
 
-                SharedTransitionLayout {
-                    AnimatedContent(
+                // **La dissolvenza riguarda tutto tranne l'otter.** Le due
+                // schermate si scambiano sotto; l'otter sta sopra, ed è un
+                // nodo solo che non esce mai di scena — vedi
+                // [PersistentOtter] per perché non è più un elemento
+                // condiviso.
+                var selectedDurationIndex by remember { mutableIntStateOf(1) }
+                var showPermissionDialog by remember { mutableStateOf(false) }
+                val sessionStartedText = stringResource(R.string.session_started)
+
+                Box(modifier = Modifier.fillMaxSize()) {
+                    Crossfade(
                         targetState = showBlockScreen,
-                        transitionSpec = {
-                            // Uscita più corta dell'entrata, così i due
-                            // contenuti non restano sovrapposti a mezza
-                            // opacità per mezzo secondo: la Home sfuma via
-                            // mentre la pausa è ancora quasi trasparente, e
-                            // l'otter condiviso resta l'unica cosa nitida
-                            // durante lo scambio — è lui a portare l'occhio.
-                            fadeIn(tween(340, delayMillis = 120, easing = FastOutSlowInEasing)) togetherWith
-                                fadeOut(tween(220, easing = FastOutSlowInEasing))
-                        },
+                        // Come prima l'uscita era più corta dell'entrata, per
+                        // non lasciare i due contenuti sovrapposti a mezza
+                        // opacità. Una `Crossfade` ha una durata sola, quindi
+                        // il compromesso è breve: l'otter resta comunque
+                        // l'unica cosa nitida durante lo scambio, ed è lui a
+                        // portare l'occhio.
+                        animationSpec = tween(320, easing = FastOutSlowInEasing),
                         label = "homeToBlock",
                     ) { blocking ->
-                        // Il boundsTransform vive qui (non nei due Composable)
-                        // perché sharedElement va costruito dentro entrambi
-                        // gli scope: SharedTransitionLayout per lo stato
-                        // condiviso, AnimatedContent per sapere quale dei due
-                        // lati sta entrando. Le schermate ricevono solo un
-                        // Modifier già pronto, e restano usabili senza (vedi
-                        // BlockOverlayActivity, che non ha alcuna transizione
-                        // da cui arrivare).
-                        val otterModifier = Modifier.sharedElement(
-                            rememberSharedContentState(key = "otter"),
-                            animatedVisibilityScope = this@AnimatedContent,
-                            boundsTransform = { _, _ ->
-                                tween(460, easing = FastOutSlowInEasing)
-                            },
-                        )
-
                         if (blocking) {
                             BlockScreen(
                                 sessionManager = sessionManager,
@@ -216,7 +208,7 @@ class MainActivity : BaseActivity() {
                                 onUnlocked = { onBlockScreenExit() },
                                 allowedApps = loadAllowedAppLaunchItems(applicationContext),
                                 onLaunchApp = { pkg -> launchAllowedApp(applicationContext, pkg) },
-                                otterModifier = otterModifier,
+                                drawOtter = false,
                                 otterFloatOffset = otterFloatOffset,
                             )
                         } else {
@@ -230,17 +222,58 @@ class MainActivity : BaseActivity() {
                                 onGrantDnd = { startActivity(Intent(Settings.ACTION_NOTIFICATION_POLICY_ACCESS_SETTINGS)) },
                                 onHistory = { startActivity(Intent(this@MainActivity, HistoryActivity::class.java)) },
                                 onSettings = { startActivity(Intent(this@MainActivity, SettingsActivity::class.java)) },
-                                onSessionStarted = { enterBlockScreen() },
                                 onGroupPause = { durationMinutes ->
                                     startActivity(
                                         Intent(this@MainActivity, GroupPauseChooserActivity::class.java)
                                             .putExtra(GroupPauseChooserActivity.EXTRA_DURATION_MINUTES, durationMinutes)
                                     )
                                 },
-                                otterModifier = otterModifier,
+                                drawOtter = false,
                                 otterFloatOffset = otterFloatOffset,
+                                selectedDurationIndex = selectedDurationIndex,
+                                onSelectDuration = { selectedDurationIndex = it },
+                                showPermissionDialog = showPermissionDialog,
+                                onDismissPermissionDialog = { showPermissionDialog = false },
                             )
                         }
+                    }
+
+                    // L'otter, sopra la dissolvenza. Posizionato con la
+                    // stessa [otterCenterY] con cui [OtterAnchoredScreen]
+                    // allinea lo slot vuoto che le due schermate gli
+                    // riservano: una formula sola, due chiamanti, nessun
+                    // numero da tenere allineato a mano.
+                    BoxWithConstraints(
+                        modifier = Modifier.fillMaxSize().safeDrawingPadding(),
+                        contentAlignment = Alignment.TopCenter,
+                    ) {
+                        val centerY = otterCenterY(maxHeight)
+                        PersistentOtter(
+                            floatOffset = otterFloatOffset,
+                            enabled = !showBlockScreen,
+                            onStart = {
+                                // In debug (incluso quello prodotto in CI) i
+                                // permessi Accessibilità/DND non bloccano
+                                // l'avvio, per poter provare il resto del
+                                // flusso senza concederli davvero a ogni
+                                // installazione pulita — vedi
+                                // SessionManager.setPauseDnd(), che già
+                                // ignora il DND se non concesso. In release
+                                // il controllo resta invariato.
+                                val ok = BuildConfig.DEBUG || (
+                                    isAccessibilityServiceEnabled(this@MainActivity) &&
+                                        isDndAccessGranted(this@MainActivity)
+                                    )
+                                if (ok) {
+                                    sessionManager.startSession(selectedDurationIndex * 30)
+                                    Toast.makeText(this@MainActivity, sessionStartedText, Toast.LENGTH_SHORT).show()
+                                    enterBlockScreen()
+                                } else {
+                                    showPermissionDialog = true
+                                }
+                            },
+                            modifier = Modifier.padding(top = centerY - OtterHaloSize / 2),
+                        )
                     }
                 }
             }

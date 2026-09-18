@@ -168,4 +168,14 @@ dependencies {
     testImplementation("junit:junit:4.13.2")
     testImplementation("org.robolectric:robolectric:4.17")
     testImplementation("androidx.test:core:1.6.1")
+
+    // Test di composizione su JVM (Robolectric, nessun dispositivo): servono
+    // per l'unica invariante grafica di questa app che si è rotta più volte
+    // da sola — l'otter deve stare **nello stesso punto** in Home e in
+    // pausa, vedi OtterAnchoredScreen.kt e ui/screens/PersistentOtter.kt.
+    // Il BOM va ripetuto qui: sopra è applicato a `implementation` e
+    // `androidTestImplementation`, non alla configurazione dei test JVM.
+    testImplementation(composeBom)
+    testImplementation("androidx.compose.ui:ui-test-junit4")
+    debugImplementation("androidx.compose.ui:ui-test-manifest")
 }

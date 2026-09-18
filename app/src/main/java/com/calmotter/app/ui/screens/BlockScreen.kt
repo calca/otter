@@ -96,13 +96,15 @@ fun BlockScreen(
     onUnlocked: () -> Unit,
     allowedApps: List<AllowedAppLaunchItem> = emptyList(),
     onLaunchApp: (String) -> Unit = {},
-    // Applicato all'otter perché [MainActivity] possa dichiararlo elemento
-    // condiviso con quello della Home e farlo scivolare da lì invece di
-    // sostituirlo di colpo. Default vuoto: gli altri due chiamanti
-    // (BlockOverlayActivity via AccessibilityService, e MainActivity quando
-    // apre già bloccata senza passare dalla Home) non hanno una schermata di
-    // partenza da cui animare, e mostrano questa così com'è.
-    otterModifier: Modifier = Modifier,
+    // **false quando l'otter lo disegna il chiamante**, sopra la dissolvenza
+    // fra Home e questa schermata (vedi [PersistentOtter]): qui lo slot
+    // resta riservato ma senza il marchio, e l'anello di avanzamento —
+    // che appartiene a questa schermata — continua a starci dentro.
+    // true per gli altri due chiamanti (BlockOverlayActivity via
+    // AccessibilityService, e MainActivity quando apre già bloccata senza
+    // passare dalla Home): non hanno nessuna transizione da cui arrivare e
+    // mostrano questa schermata così com'è, otter compreso.
+    drawOtter: Boolean = true,
     // Vedi [rememberOtterFloatOffset]: quando si arriva qui dalla Home,
     // l'oscillazione dev'essere la *stessa* istanza, non una nuova con la
     // propria fase — vedi il commento al punto d'uso.
@@ -232,8 +234,10 @@ fun BlockScreen(
             // Lettura in fase di disegno (vedi steppedFraction in
             // MainScreen.kt): con `Modifier.offset(y = valore.dp)` il valore
             // si legge in composizione e ogni scatto ricompone la schermata.
-            Box(modifier = Modifier.graphicsLayer { translationY = floatOffset.value * density }) {
-                OtterZenMark(modifier = otterModifier, markSize = 118.dp)
+            if (drawOtter) {
+                Box(modifier = Modifier.graphicsLayer { translationY = floatOffset.value * density }) {
+                    OtterZenMark(markSize = OtterMarkSize)
+                }
             }
         },
     ) {
