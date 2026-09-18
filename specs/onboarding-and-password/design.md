@@ -191,3 +191,27 @@ pattern (see CLAUDE.md). Tests must call
 `PasswordManager.resetInstanceForTests()` (actually there isn't one exposed
 today — verify before relying on it in new tests; `SessionManager` and other
 managers do expose it).
+
+
+## Redesign pass: the three steps
+
+Each step now ends with a tinted note card (`OnboardingNoteCard`) carrying an
+icon: the paws for the pact, a padlock for the password, the sprig for the
+closing line.
+
+**The card holds no new copy.** It is the last sentence of that step's own
+body, moved out of the paragraph — and those sentences were already the ones
+in bold: the pact, the act of trust, take care of yourself. They say *why*
+the app works this way; buried at the end of a paragraph they read as a
+sign-off, standing alone they read as the premise they are. The strings were
+split accordingly (`onb1_note`, `onb4_note`, `onb5_note`).
+
+The otter now illustrates all three steps instead of one each of otter, paws
+and sprig: those two marks moved into the cards, and the mascot gives the
+three steps one face — which is also what the mockup does.
+
+Not taken from the mockup: the "DIGITAL SANCTUARY" chip and the "Zero
+intrusions"/"Caring guardian" badges (labels with nothing behind them — the
+claims are true, but an onboarding screen is not where the app should
+advertise itself), and the "Learn how Calm Otter works" footer link, which
+has nowhere to lead.

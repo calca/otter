@@ -16,6 +16,13 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Lock
+import androidx.compose.material3.Icon
+import androidx.compose.material3.Surface
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
@@ -44,6 +51,7 @@ import com.calmotter.app.ui.mascot.OtterFloatMark
 import com.calmotter.app.ui.mascot.OtterZenMark
 import com.calmotter.app.ui.mascot.PactPawsMark
 import com.calmotter.app.ui.mascot.SprigMark
+import com.calmotter.app.ui.mascot.TogetherMark
 
 private const val STEP_COUNT = 3
 private const val STEP_PASSWORD = 1
@@ -94,21 +102,44 @@ fun OnboardingScreen(
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             when (currentStep) {
-                0 -> StepBody(
-                    // Stessa mascotte della Home ("Living Pond", vedi
-                    // MainScreen.kt) invece di un'illustrazione dedicata:
-                    // la prima cosa che l'utente vede in assoluto è così
-                    // già l'otter che ritroverà a ogni apertura dell'app.
-                    illustration = { OtterZenMark(markSize = 120.dp) },
-                    titleRes = R.string.onb1_title,
-                    bodyRes = R.string.onb1_body
-                )
+                0 -> {
+                    StepBody(
+                        // Stessa mascotte della Home ("Living Pond", vedi
+                        // MainScreen.kt) invece di un'illustrazione dedicata:
+                        // la prima cosa che l'utente vede in assoluto è così
+                        // già l'otter che ritroverà a ogni apertura dell'app.
+                        illustration = { OtterZenMark(markSize = 120.dp) },
+                        titleRes = R.string.onb1_title,
+                        bodyRes = R.string.onb1_body,
+                        bodyBottomPadding = 16.dp
+                    )
+                    OnboardingNoteCard(
+                        noteRes = R.string.onb1_note,
+                        icon = { TogetherMark(markSize = 20.dp) },
+                    )
+                }
                 STEP_PASSWORD -> {
                     StepBody(
-                        illustration = { PactPawsMark(markSize = 72.dp) },
+                        // L'otter anche qui, non più le zampe del patto:
+                        // quelle sono scese nella nota sotto, e la mascotte
+                        // dà ai tre passi la stessa faccia invece di tre
+                        // illustrazioni diverse.
+                        illustration = { OtterZenMark(markSize = 120.dp) },
                         titleRes = R.string.onb4_title,
                         bodyRes = R.string.onb4_body,
                         bodyBottomPadding = 16.dp
+                    )
+                    OnboardingNoteCard(
+                        noteRes = R.string.onb4_note,
+                        icon = {
+                            Icon(
+                                imageVector = Icons.Default.Lock,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.primary,
+                                modifier = Modifier.size(18.dp),
+                            )
+                        },
+                        modifier = Modifier.padding(bottom = 16.dp),
                     )
 
                     OutlinedTextField(
@@ -148,11 +179,18 @@ fun OnboardingScreen(
                         )
                     }
                 }
-                else -> StepBody(
-                    illustration = { SprigMark(markSize = 96.dp) },
-                    titleRes = R.string.onb5_title,
-                    bodyRes = R.string.onb5_body
-                )
+                else -> {
+                    StepBody(
+                        illustration = { OtterZenMark(markSize = 120.dp) },
+                        titleRes = R.string.onb5_title,
+                        bodyRes = R.string.onb5_body,
+                        bodyBottomPadding = 16.dp
+                    )
+                    OnboardingNoteCard(
+                        noteRes = R.string.onb5_note,
+                        icon = { SprigMark(markSize = 20.dp) },
+                    )
+                }
             }
         }
 
@@ -312,6 +350,49 @@ private fun boldAnnotatedString(text: String): AnnotatedString {
             append(text.substring(openIndex + openTag.length, closeIndex))
             pop()
             index = closeIndex + closeTag.length
+        }
+    }
+}
+
+
+/**
+ * La riga che conta di ciascun passo, dentro una card tinta (redesign).
+ *
+ * Non è testo nuovo: è l'ultima frase del corpo di quel passo, spostata qui.
+ * Erano già le frasi in grassetto — il patto, il gesto di fiducia, il
+ * prenditi cura di te — cioè quelle che dicono *perché* l'app funziona così;
+ * annegate in fondo a un paragrafo si leggevano come una chiusa, staccate si
+ * leggono come la premessa che sono.
+ */
+@Composable
+private fun OnboardingNoteCard(
+    noteRes: Int,
+    icon: @Composable () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Surface(
+        shape = RoundedCornerShape(20.dp),
+        color = MaterialTheme.colorScheme.primary.copy(alpha = 0.06f),
+        modifier = modifier.fillMaxWidth(),
+    ) {
+        Row(
+            modifier = Modifier.padding(16.dp),
+            verticalAlignment = Alignment.Top,
+        ) {
+            Box(
+                modifier = Modifier
+                    .size(34.dp)
+                    .clip(CircleShape)
+                    .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.10f)),
+                contentAlignment = Alignment.Center,
+                content = { icon() },
+            )
+            Spacer(modifier = Modifier.width(12.dp))
+            Text(
+                text = boldAnnotatedString(stringResource(noteRes)),
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.85f),
+            )
         }
     }
 }

@@ -171,11 +171,16 @@
 
     <!-- Onboarding -->
     <string name="onb1_title">Welcome to Calm Otter</string>
-    <string name="onb1_body">Calm Otter helps you take real breaks from your phone: choose how long, and for that time everything pauses with you — only &lt;b&gt;the phone and a few apps you choose&lt;/b&gt; stay reachable.\n\nThe pause ends on its own when time\'s up, or earlier if a trusted person enters the password: &lt;b&gt;a pact between you and someone who cares about you&lt;/b&gt;.</string>
+    <string name="onb1_body">Calm Otter helps you take real breaks from your phone: choose how long, and for that time everything pauses with you — only &lt;b&gt;the phone and a few apps you choose&lt;/b&gt; stay reachable.</string>
+    <string name="onb1_note">The pause ends on its own when time\'s up, or earlier if a trusted person enters the password: &lt;b&gt;a pact between you and someone who cares about you&lt;/b&gt;.</string>
     <string name="onb4_title">Choose the password together</string>
-    <string name="onb4_body">Hand the phone to your trusted person: they\'ll choose the password and keep it to themselves — the only one able to end a pause early. You don\'t need to know it: that\'s exactly what makes the pact &lt;b&gt;an act of trust&lt;/b&gt;.</string>
+    <string name="onb4_body">Hand the phone to your trusted person: they\'ll choose the password and keep it to themselves — the only one able to end a pause early.</string>
+    <string name="onb4_note">You don\'t need to know it: that\'s exactly what makes the pact &lt;b&gt;an act of trust&lt;/b&gt;.</string>
     <string name="onb5_title">All set</string>
-    <string name="onb5_body">Calm Otter is ready.\n\nWhenever you feel the need for a break, just open the app, choose how long — &lt;b&gt;the rest can wait&lt;/b&gt;.\n\nTake care of yourself.</string>
+    <string name="onb5_body">Calm Otter is ready.
+
+Whenever you feel the need for a break, just open the app, choose how long — &lt;b&gt;the rest can wait&lt;/b&gt;.</string>
+    <string name="onb5_note">Take care of yourself.</string>
     <string name="onb_next">Next</string>
     <string name="onb_back">Back</string>
     <string name="onb_finish">Let\'s go</string>
