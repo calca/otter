@@ -696,18 +696,34 @@ Two departures from the mockup:
   Consequence worth stating: the mockup's lower half was that bar, so with
   it gone the content would sit high with half a screen of nothing below.
 
-  Centring the whole block in what remained was the first answer and was
-  not good enough: the content bunched at mid-height with an empty band
-  above it and another below. The body is now **four blocks distributed
-  over the height** (`Arrangement.SpaceBetween`) — medallion, heading,
-  the two cards, closing line — which puts the title at 49% of the page,
-  measured. Grouping matters: title+subtitle are one child and the two
-  cards are another, so the distribution never pushes apart things that
-  belong together. This also matches the mockup, whose `main` uses
-  `justify-between` to push its closing line to the bottom.
+  This took two passes to get right. Centring the whole block in what
+  remained bunched everything at mid-height with an empty band above and
+  another below. Distributing all four blocks over the height fixed the
+  bands but pushed apart things that belong together — the heading ended up
+  far from the two paths it introduces, the closing line far from
+  everything.
+
+  What ships distributes **three** blocks, the first of them zero-height:
+
+  ```
+  Column(verticalArrangement = SpaceBetween) {
+      Spacer(height = 0.dp)   // ← this is what centres the medallion
+      TandemPawsMedallion()
+      Column { heading; subtitle; the two cards; closing line }
+  }
+  ```
+
+  `SpaceBetween` puts an equal gap between consecutive children, so with a
+  zero-height first child the space above the medallion equals the space
+  below it: the medallion is centred between the top bar and the heading
+  **by construction**, not by a number that has to be kept in sync with the
+  bar's height. Everything else is one packed child resting at the bottom,
+  with its own small rhythm inside (cards 20dp under the subtitle they
+  belong to, closing line 20dp under the cards — near, but detached enough
+  not to read as a third option).
 
   The distributed space only exists while the content fits; when it stops
-  fitting (enlarged system font) the four blocks pack together and
+  fitting (enlarged system font) the blocks pack together and
   `verticalScroll` scrolls them rather than clipping.
 - **No title in the top bar.** The mockup prints "Time Together" both there
   and under the medallion — the same words a finger's width apart. Same

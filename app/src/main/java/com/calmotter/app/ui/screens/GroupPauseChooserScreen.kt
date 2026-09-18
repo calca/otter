@@ -69,30 +69,36 @@ fun GroupPauseChooserScreen(
         Column(modifier = Modifier.fillMaxSize().safeDrawingPadding()) {
             GroupPauseChooserTopBar(onBack = onBack)
 
-            // **Quattro blocchi distribuiti sull'altezza**, non una pila
-            // centrata. Centrato, il contenuto si stringeva a metà pagina
-            // lasciando due fasce vuote, sopra e sotto: l'emblema ora sta in
-            // alto, la testata cade più o meno a metà, le due strade
-            // occupano la parte bassa e la riga di chiusura chiude la
-            // pagina. È anche la distribuzione del mockup, che con
-            // `justify-between` spinge la sua riga di chiusura in fondo.
+            // **Le impronte fluttuano, il resto sta insieme.** Distribuire
+            // tutti e quattro i blocchi sull'altezza li allontanava anche
+            // dove non serviva: la testata finiva lontana dalle due strade
+            // che introduce, e la riga di chiusura lontana da tutto.
+            //
+            // Ora i blocchi distribuiti sono tre e il primo è alto zero:
+            // `SpaceBetween` mette quindi lo stesso spazio sopra e sotto il
+            // medaglione, cioè lo centra fra la barra e il titolo, e appoggia
+            // in fondo il resto — testata, scelta e chiusura, tenuti stretti
+            // fra loro.
             //
             // Lo spazio distribuito esiste solo finché il contenuto ci sta:
             // quando non ci sta più (carattere di sistema ingrandito) i
-            // quattro blocchi si compattano e `verticalScroll` li fa
-            // scorrere, invece di tagliarli.
+            // blocchi si compattano e `verticalScroll` li fa scorrere,
+            // invece di tagliarli.
             Column(
                 modifier = Modifier
                     .weight(1f)
                     .verticalScroll(rememberScrollState())
-                    .padding(horizontal = 24.dp, vertical = 12.dp),
+                    .padding(horizontal = 24.dp)
+                    .padding(bottom = 24.dp),
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.SpaceBetween,
             ) {
+                // Alto zero, e serve: è il terzo blocco che fa sì che lo
+                // spazio sopra il medaglione sia uguale a quello sotto.
+                Spacer(modifier = Modifier.height(0.dp))
+
                 TandemPawsMedallion()
 
-                // Titolo e sottotitolo restano un blocco solo: sono una
-                // frase in due righe, non due elementi da allontanare.
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     Text(
                         text = stringResource(R.string.group_pause_entry_button),
@@ -107,17 +113,17 @@ fun GroupPauseChooserScreen(
                         textAlign = TextAlign.Center,
                         modifier = Modifier.padding(top = 8.dp),
                     )
-                }
 
-                // Le due card sono un blocco anche loro: sono la scelta, e
-                // separarle le farebbe leggere come due cose diverse.
-                Column {
+                    // Subito sotto il sottotitolo: è la frase che le
+                    // introduce, e allontanarle da lei le lasciava senza
+                    // premessa.
                     GroupPauseChoiceCard(
                         title = stringResource(R.string.group_pause_chooser_create),
                         role = stringResource(R.string.group_pause_chooser_create_role),
                         description = stringResource(R.string.group_pause_chooser_create_desc),
                         icon = { TogetherMark(markSize = 22.dp) },
                         onClick = onCreate,
+                        modifier = Modifier.padding(top = 20.dp),
                     )
                     GroupPauseChoiceCard(
                         title = stringResource(R.string.group_pause_chooser_join),
@@ -127,9 +133,11 @@ fun GroupPauseChooserScreen(
                         onClick = onJoin,
                         modifier = Modifier.padding(top = 12.dp),
                     )
-                }
 
-                GroupPauseChooserFooter()
+                    // Poco sotto, ma staccata: non è una terza scelta, e
+                    // attaccata alle card lo sarebbe sembrata.
+                    GroupPauseChooserFooter(modifier = Modifier.padding(top = 20.dp))
+                }
             }
         }
     }
@@ -334,8 +342,9 @@ private fun RoleBadge(role: String) {
  * dice "Tocca Otter per iniziare".
  */
 @Composable
-private fun GroupPauseChooserFooter() {
+private fun GroupPauseChooserFooter(modifier: Modifier = Modifier) {
     Row(
+        modifier = modifier,
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.Center,
     ) {
