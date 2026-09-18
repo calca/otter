@@ -9,7 +9,7 @@
 | `res/drawable/ic_launcher_monochrome.xml` | Themed/Material You icon (Android 13+): head+ears silhouette with eyes/nose knocked out as transparent holes. Simplified further than the color foreground, but not to a bare silhouette — see "two real bugs, in sequence" below, including why this path must stay `nonzero` with reversed holes and must **not** use `evenOdd` |
 | `res/drawable/ic_otter_widget.xml` | Same silhouette as the foreground, tones inverted (dark head, light details) for the widget's light background — see below |
 | `res/mipmap-anydpi-v26/ic_launcher.xml` + `ic_launcher_round.xml` | `<adaptive-icon>` wiring background+foreground+monochrome. minSdk is 26 (the API level adaptive icons shipped in), so there's no legacy PNG fallback to maintain |
-| `ui/mascot/OtterMarks.kt` | `OtterFloatMark()`, `PactPawsMark()`, `SprigMark()` — drawn live via Compose `Canvas`, since none of them ever appear outside a Compose screen. `OtterFloatMark` is used in `MainScreen.kt` (Home, "Living Pond"), `OnboardingScreen.kt` (step 1), and now `BlockScreen.kt` too — the same composable, not separate copies. A fourth mark, `PausePawsMark()`, used to live here (see "Replacing PausePawsMark" below) — removed once nothing referenced it any more |
+| `ui/mascot/OtterMarks.kt` | `OtterFloatMark()`, `PactPawsMark()`, `SprigMark()`, `TogetherMark()` — drawn live via Compose `Canvas`, since none of them ever appear outside a Compose screen. `OtterFloatMark` is used in `MainScreen.kt` (Home, "Living Pond"), `OnboardingScreen.kt` (step 1), and now `BlockScreen.kt` too — the same composable, not separate copies. A fourth mark, `PausePawsMark()`, used to live here (see "Replacing PausePawsMark" below) — removed once nothing referenced it any more |
 
 ## Why one mark is a vector drawable and the rest are Compose `Canvas`
 
@@ -155,6 +155,38 @@ its torso) are unaffected by this — only same-color overlaps need
 merging. If you add a mark with more than one shape in the same fill
 color, check for overlaps and merge them into one `Path` up front rather
 than discovering the seam on-device.
+
+## `TogetherMark`: two prints, not two paws
+
+`TogetherMark` is the inline icon of "Tempo insieme" — Home's button, Home's
+chooser and onboarding's step. It started as `PactPawsMark`'s two paws with
+the badge removed: two tilted rounded rects, which said "paws" but not "in
+pairs".
+
+It is now the redesign's **Minimal Tandem Paws** icon (Stitch project
+`3158702940609906617`, 24×24 SVG): two prints, one following the other. Same
+method as `OtterZenMark` — the two pad outlines are the mockup's own
+`pathData` handed to `PathParser` rather than redrawn by eye, and the eight
+toes stay circles, which is what they are in the source.
+
+`PactPawsMark` was left alone. There the paws sit inside a badge and act as
+a seal on a pact, not as a track.
+
+Two deliberate departures from the mockup:
+
+- **Its two hex colours are dropped**, like every other mark here: `#1B3B2B`
+  and `#8FA693` would stay sage green across all eight palette/theme
+  combinations. The front print takes `tint` (`primary`), the back one the
+  same tint lightened toward `surface`. *Lightened, not made translucent* —
+  the prints overlap, and alpha would turn the shared area into a third,
+  darker colour, a smudge exactly where the two tracks cross.
+- **Lightened by 30%, not the mockup's 45%.** There the sage print sits on
+  white; here it sits on a container that is already `primary` at 14%, and
+  at 45% the trailing print vanished into the button.
+
+The Home button asks for **22dp**, not the 18dp the old mark used: eight
+toes between the two prints mush into a single blob below about 20dp.
+Verified at real size on the device, not in a preview.
 
 ## Replacing onboarding's emoji icons: `PactPawsMark` and `SprigMark`
 

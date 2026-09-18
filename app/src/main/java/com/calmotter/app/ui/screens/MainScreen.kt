@@ -385,7 +385,9 @@ fun MainScreen(
             CalmSecondaryButton(
                 text = stringResource(R.string.group_pause_entry_button),
                 onClick = { showGroupPauseChooser = true },
-                leadingIcon = { TogetherMark(markSize = 18.dp) },
+                // 22dp e non 18: le due impronte hanno otto polpastrelli fra
+                // loro, e sotto i 20dp si impastavano in una macchia sola.
+                leadingIcon = { TogetherMark(markSize = 22.dp) },
                 modifier = Modifier.padding(top = 20.dp).fillMaxWidth(HOME_PILL_WIDTH_FRACTION),
             )
         }

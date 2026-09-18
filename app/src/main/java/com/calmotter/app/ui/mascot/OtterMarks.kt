@@ -287,33 +287,72 @@ fun OtterHistoryIcon(
     }
 }
 
+// Geometria dell'icona "Time Together — Minimal Tandem Paws" del redesign
+// (SVG con viewBox 24×24, progetto Stitch 3158702940609906617). Come per la
+// lontra Zen, i path curvi sono i dati originali passati a PathParser invece
+// di essere ridisegnati a occhio; i polpastrelli restano cerchi, che è
+// esattamente quello che sono nel sorgente.
+private const val TANDEM_PAW_FRONT_PATH =
+    "M6 14.5 C4.5 12 6.5 9 9.5 9 C12.5 9 14.5 12 13 14.5 C11.8 16.5 7.2 16.5 6 14.5 Z"
+private const val TANDEM_PAW_BACK_PATH =
+    "M18 16 C19.2 13.8 17.5 11 14.8 11 C12.2 11 10.5 13.8 11.8 16 C12.8 17.8 17 17.8 18 16 Z"
+
+// Polpastrelli: centro x, centro y, raggio — nel sistema del viewBox 24.
+private val TANDEM_TOES_FRONT = listOf(
+    Triple(6.5f, 7.2f, 1.3f),
+    Triple(9.2f, 5.8f, 1.4f),
+    Triple(12f, 6.2f, 1.4f),
+    Triple(14.2f, 8f, 1.2f),
+)
+private val TANDEM_TOES_BACK = listOf(
+    Triple(17.8f, 9.5f, 1.2f),
+    Triple(15.5f, 8.2f, 1.3f),
+    Triple(13f, 8.4f, 1.3f),
+    Triple(10.8f, 10f, 1.1f),
+)
+
 /**
- * Le due zampe di [PactPawsMark] senza il badge circolare di sfondo — per
- * usi inline accanto a testo (es. il bottone "Tempo insieme" in Home) dove
- * un badge pieno risulterebbe troppo pesante. Stessa costruzione, stessa
- * inclinazione, solo senza il cerchio "primary" dietro.
+ * Due impronte affiancate, una che segue l'altra: il marchio di "Tempo
+ * insieme". Sostituisce le due zampette stilizzate prese da [PactPawsMark],
+ * che dicevano "zampe" ma non "in due" — qui sono due tracce distinte, una
+ * davanti e una dietro, che è poi il senso di una pausa condivisa.
+ *
+ * [PactPawsMark] resta com'era: lì le due zampe stanno dentro un badge e
+ * fanno da sigillo al patto, non da traccia.
+ *
+ * I due toni del mockup (#1B3B2B e #8FA693) **non** sono ripresi alla
+ * lettera, come per tutti gli altri marchi: sarebbero verde salvia in tutte
+ * e otto le combinazioni di palette e tema. L'impronta davanti prende
+ * [tint], quella dietro la stessa tinta schiarita verso la superficie.
+ *
+ * Schiarita, non resa trasparente: le due impronte si sovrappongono, e con
+ * l'alpha la parte comune diventerebbe una terza tinta più scura, cioè una
+ * macchia proprio dove le due tracce si incrociano.
+ *
+ * Schiarita del 30% e non del 45% come diceva il mockup: là la zampa salvia
+ * sta su bianco, qui su un contenitore che è già `primary` al 14%, e a 45%
+ * la traccia dietro spariva dentro il bottone.
  */
 @Composable
 fun TogetherMark(modifier: Modifier = Modifier, markSize: Dp = 20.dp, tint: Color = MaterialTheme.colorScheme.primary) {
+    val backTint = lerp(tint, MaterialTheme.colorScheme.surface, 0.3f)
+    val front = remember { PathParser().parsePathString(TANDEM_PAW_FRONT_PATH).toPath() }
+    val back = remember { PathParser().parsePathString(TANDEM_PAW_BACK_PATH).toPath() }
     Canvas(modifier = modifier.size(markSize)) {
-        val s = size.width / 32f
+        val s = size.width / 24f
         fun v(value: Float) = value * s
 
-        rotate(degrees = -20f, pivot = Offset(v(9f), v(15f))) {
-            drawRoundRect(
-                color = tint,
-                topLeft = Offset(v(4f), v(3f)),
-                size = Size(v(9f), v(22f)),
-                cornerRadius = CornerRadius(v(4.5f), v(4.5f)),
-            )
+        scale(scale = s, pivot = Offset.Zero) {
+            drawPath(path = front, color = tint)
         }
-        rotate(degrees = 20f, pivot = Offset(v(23f), v(15f))) {
-            drawRoundRect(
-                color = tint,
-                topLeft = Offset(v(19f), v(3f)),
-                size = Size(v(9f), v(22f)),
-                cornerRadius = CornerRadius(v(4.5f), v(4.5f)),
-            )
+        TANDEM_TOES_FRONT.forEach { (cx, cy, r) ->
+            drawCircle(color = tint, radius = v(r), center = Offset(v(cx), v(cy)))
+        }
+        scale(scale = s, pivot = Offset.Zero) {
+            drawPath(path = back, color = backTint)
+        }
+        TANDEM_TOES_BACK.forEach { (cx, cy, r) ->
+            drawCircle(color = backTint, radius = v(r), center = Offset(v(cx), v(cy)))
         }
     }
 }
