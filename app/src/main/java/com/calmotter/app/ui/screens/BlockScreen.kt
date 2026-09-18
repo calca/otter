@@ -24,8 +24,12 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Surface
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material3.Icon
@@ -45,7 +49,11 @@ import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.em
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.calmotter.app.CalmCountdown
@@ -225,11 +233,22 @@ fun BlockScreen(
             }
         },
     ) {
-        Text(
-            text = stringResource(R.string.home_active_label),
-            style = MaterialTheme.typography.labelMedium,
-            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
-        )
+        // Lo stato come chip, non come riga di testo (redesign). Il mockup
+        // ne aveva due, un chip "session in progress" *e* l'etichetta
+        // "PAUSED" sotto: dicono la stessa cosa due volte, quindi qui è
+        // rimasta solo l'etichetta che c'era già, messa dentro il chip.
+        Surface(
+            shape = RoundedCornerShape(50),
+            color = MaterialTheme.colorScheme.primary.copy(alpha = 0.10f),
+        ) {
+            Text(
+                text = stringResource(R.string.home_active_label).uppercase(),
+                style = MaterialTheme.typography.labelSmall,
+                letterSpacing = 0.12.em,
+                color = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.padding(horizontal = 14.dp, vertical = 6.dp),
+            )
+        }
 
         // Etichetta generica, non "con altre N persone": senza una lobby
         // live (vedi specs/group-pause/design.md, sezione "Deferred") questo
@@ -315,13 +334,9 @@ fun BlockScreen(
             verticalAlignment = Alignment.CenterVertically,
         ) {
             allowedApps.forEach { app ->
-                Box(
-                    modifier = Modifier
-                        .size(48.dp)
-                        .clip(CircleShape)
-                        .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.18f))
-                        .clickable { onLaunchApp(app.packageName) },
-                    contentAlignment = Alignment.Center,
+                BlockActionBadge(
+                    label = app.label,
+                    onClick = { onLaunchApp(app.packageName) },
                 ) {
                     Text(
                         text = app.label.trim().take(2).uppercase(),
@@ -332,17 +347,13 @@ fun BlockScreen(
                 }
             }
 
-            Box(
-                modifier = Modifier
-                    .size(48.dp)
-                    .clip(CircleShape)
-                    .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.18f))
-                    .clickable { showUnlockDialog = true },
-                contentAlignment = Alignment.Center,
+            BlockActionBadge(
+                label = stringResource(R.string.unlock),
+                onClick = { showUnlockDialog = true },
             ) {
                 Icon(
                     imageVector = Icons.Default.Lock,
-                    contentDescription = stringResource(R.string.unlock),
+                    contentDescription = null,
                     tint = MaterialTheme.colorScheme.primary,
                     modifier = Modifier.size(22.dp)
                 )
@@ -433,5 +444,55 @@ private fun ReleaseOthersStep(groupTag: Int, onDone: () -> Unit) {
         TextButton(onClick = onDone, modifier = Modifier.padding(top = 24.dp)) {
             Text(stringResource(R.string.release_others_done))
         }
+    }
+}
+
+
+/**
+ * Una pastiglia della riga di azioni della pausa, con la propria didascalia
+ * sotto (redesign).
+ *
+ * Le due lettere di un'app — "PH" per Telefono — non dicono niente finché
+ * non le si è già capite una volta, e l'icona del lucchetto da sola non
+ * distingue "sblocca la pausa" da "blocca qualcosa". Il nome sotto costa una
+ * riga di testo piccolo e toglie l'indovinello.
+ *
+ * Non contraddice la didascalia *sopra* la riga, rimossa tempo fa: quella
+ * era un titolo per il gruppo ("Puoi ancora usare…"), questa nomina il
+ * singolo elemento.
+ *
+ * `contentDescription` sta sul contenitore, non sull'icona: per TalkBack la
+ * pastiglia è un elemento solo, e ripetere l'etichetta due volte la farebbe
+ * annunciare due volte.
+ */
+@Composable
+private fun BlockActionBadge(
+    label: String,
+    onClick: () -> Unit,
+    content: @Composable () -> Unit,
+) {
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        modifier = Modifier.width(64.dp),
+    ) {
+        Box(
+            modifier = Modifier
+                .size(48.dp)
+                .clip(CircleShape)
+                .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.18f))
+                .clickable(onClickLabel = label, onClick = onClick)
+                .semantics { contentDescription = label },
+            contentAlignment = Alignment.Center,
+            content = { content() },
+        )
+        Text(
+            text = label,
+            style = MaterialTheme.typography.labelSmall,
+            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+            textAlign = TextAlign.Center,
+            modifier = Modifier.padding(top = 6.dp),
+        )
     }
 }

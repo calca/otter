@@ -880,3 +880,28 @@ frame by frame under `animator_duration_scale 10`, with the burst also
 frozen, the centre moved from y=736 to y=740 across the whole swap - the
 residue of the bob, with no discontinuity. Both temporary freezes were
 reverted before committing.
+
+
+## Redesign pass: the pause screen
+
+Applied from the Stitch redesign, minus two things it asked for.
+
+**No top bar and no back arrow.** The mockup gives the active-session screen
+a title bar with a back arrow and an avatar. That screen exists precisely
+because there is no way out; an exit affordance that does nothing is worse
+than none, and the avatar promises navigation that does not exist during a
+pause.
+
+**No seconds-level countdown.** The mockup shows "24:15 remaining" ticking
+down. Watching a timer is what the app is trying to interrupt — the vague
+phrasing stays ("you still have about 25 minutes", from
+`calm_countdown_template_phrases`).
+
+What was taken: the status chip, which absorbs the old "In pausa" text row
+rather than adding to it — the mockup had both a chip *and* a "PAUSED"
+label, saying the same thing twice — and a caption under each action badge
+(`BlockActionBadge`). Two letters for an app ("PH" for Phone) mean nothing
+until you have worked them out once, and the padlock alone does not separate
+"unlock the pause" from "lock something". This does not contradict the row
+caption removed earlier: that one was a heading for the whole group, these
+name the single items.
