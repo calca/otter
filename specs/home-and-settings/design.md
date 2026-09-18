@@ -537,10 +537,13 @@ wrong ponds, and the measurement corrected two distinct mistakes:
   disc of the pond, and without it the mascot floats in the middle of the
   white with nothing holding it.
 
-The otter is 104dp and the progress ring 182dp, running along the white
-disc's edge, which is where the mockup puts the progress dot. The mockup's
-own ratio would put the mascot at 88dp; it was asked to be a little larger,
-which it can be without crowding the inner disc.
+The otter is 118dp and the progress ring 182dp, running along the white
+disc's edge, which is where the mockup puts the progress dot. The mockup's own ratio
+would put the mascot at 88dp; it was raised twice on review, and 118dp is
+where it stops — its 59dp half-width against the inner pale disc's 54dp
+radius means the ears now just cross that disc's edge, which reads as the
+otter sitting *in* the pond rather than floating over it. Past ~130dp it
+would start touching the white band instead.
 
 Two constants moved as a consequence, and both stay fixed and shared —
 they are heights *reserved*, not measurements of content, which is the whole

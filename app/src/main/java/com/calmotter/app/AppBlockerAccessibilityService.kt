@@ -215,7 +215,7 @@ class AppBlockerAccessibilityService : AccessibilityService() {
                                 horizontalPadding = 40.dp,
                                 otter = {
                                     ProgressRing(fraction = fraction, modifier = Modifier.size(182.dp))
-                                    OtterZenMark(markSize = 104.dp)
+                                    OtterZenMark(markSize = 118.dp)
                                 },
                                 below = {},
                             )

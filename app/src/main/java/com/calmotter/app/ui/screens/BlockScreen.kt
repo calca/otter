@@ -228,7 +228,7 @@ fun BlockScreen(
             // arriva da nessuna transizione.
             val floatOffset = otterFloatOffset ?: rememberOtterFloatOffset(periodMillis = 5200)
             Box(modifier = Modifier.offset(y = floatOffset.dp)) {
-                OtterZenMark(modifier = otterModifier, markSize = 104.dp)
+                OtterZenMark(modifier = otterModifier, markSize = 118.dp)
             }
         },
     ) {
