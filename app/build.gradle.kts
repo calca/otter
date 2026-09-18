@@ -13,6 +13,34 @@ kotlin {
     }
 }
 
+/**
+ * Numero di build, da cui derivano `versionCode` e la patch di `versionName`
+ * ("0.1.<numero>"). Lo passa `.github/workflows/android.yml` come
+ * `OTTER_BUILD_NUMBER`, valorizzato con `github.run_number`; in locale non
+ * c'è e vale 1, cioè esattamente i valori fissi di prima (`versionCode = 1`,
+ * `versionName = "0.1.0"` diventa "0.1.1" — l'unica differenza visibile).
+ *
+ * Nasce da un problema concreto: due APK firmate uscite da due run diversi
+ * si dichiaravano entrambe `0.1.0 (1)`, quindi dal telefono non c'era modo
+ * di sapere quale delle due fosse installata — durante il debug di un bug
+ * su S22 si è persa mezz'ora proprio su questo. Con `versionCode` crescente
+ * un aggiornamento si installa anche sopra la build precedente senza
+ * disinstallare, e la Play Store lo pretende comunque per ogni caricamento.
+ *
+ * Conseguenza da tenere a mente: una build locale vale sempre 1, quindi non
+ * si installa *sopra* una build di CI (Android rifiuta il downgrade di
+ * `versionCode`). Per sostituirla basta passare un numero più alto a mano:
+ * `OTTER_BUILD_NUMBER=999 ./gradlew assembleBetaDebug`.
+ *
+ * **Variabile dedicata, non `GITHUB_RUN_NUMBER` diretta.** Quest'ultima
+ * esiste in *qualunque* workflow: `ci.yml` (che compila solo debug) ha una
+ * numerazione sua, più avanti di questa, e le sue build si sarebbero
+ * dichiarate più recenti di quelle firmate. A timbrare la versione è solo il
+ * workflow che produce artefatti installabili.
+ */
+val otterBuildNumber: Int =
+    System.getenv("OTTER_BUILD_NUMBER")?.toIntOrNull()?.takeIf { it > 0 } ?: 1
+
 android {
     namespace = "com.calmotter.app"
     compileSdk = 37
@@ -22,8 +50,8 @@ android {
         applicationId = "com.calmotter.app"
         minSdk = 26
         targetSdk = 37
-        versionCode = 1
-        versionName = "0.1.0"
+        versionCode = otterBuildNumber
+        versionName = "0.1.$otterBuildNumber"
     }
 
     signingConfigs {

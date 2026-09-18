@@ -64,9 +64,14 @@ jobs:
     # stable -> signed .aab for the Play Store; beta -> signed .apk as a
     # pre-release build (installable side by side with stable, see
     # CLAUDE.md's "Product flavors" section for why).
+    # OTTER_BUILD_NUMBER timbra versionCode e la patch di versionName
+    # (vedi app/build.gradle.kts): ogni run produce artefatti riconoscibili
+    # e installabili sopra i precedenti senza disinstallare. Solo questo
+    # workflow lo imposta, perché è l'unico che produce build firmate.
     - name: Build stable AAB and beta pre-release APK
       if: steps.signing.outputs.available == 'true'
       env:
+        OTTER_BUILD_NUMBER: ${{ github.run_number }}
         KEYSTORE_PATH: ../release.jks
         KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
         KEY_ALIAS: ${{ secrets.KEY_ALIAS }}

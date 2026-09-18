@@ -62,6 +62,13 @@ build-breaking. `.github/workflows/android.yml` produces, from a
 secrets-backed keystore on push to main/master: a signed `stable` `.aab`
 for the Play Store, and a signed `beta` `.apk` as a pre-release build.
 
+Those signed artifacts are **version-stamped per run**: `android.yml` passes
+`OTTER_BUILD_NUMBER=${{ github.run_number }}`, and `app/build.gradle.kts`
+derives `versionCode` and the patch of `versionName` ("0.1.<n>") from it.
+Local builds have no such variable and always come out as `0.1.1 (1)`, so a
+local APK will not install over a CI one — pass the variable by hand
+(`OTTER_BUILD_NUMBER=999 ./gradlew assembleBetaDebug`) when you need it to.
+
 Toolchain: Kotlin 2.4.20, AGP 9.4.0, Gradle 9.7.0, compileSdk/targetSdk 37
 (`compileSdkMinor = 1`, i.e. platform 37.1), KSP 2.3.12 (its versioning is
 decoupled from Kotlin's as of the 2.3.x line — no exact-match requirement
