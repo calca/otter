@@ -521,6 +521,34 @@ header (asked for explicitly — neither has anything to lead to), the
 seconds-level countdown, and the "Breathe gently with otter" pill, which
 promises a breathing exercise the app does not have.
 
+### What the pond costs, measured
+
+Reported while reviewing: the emulator's CPU spins with the Home open. It
+does. Measured with `top` on the emulator, on the app process:
+
+| what is running | CPU |
+|---|---|
+| Settings (nothing animates) | 0% |
+| Home, no ripples, no otter bob | 18–35% |
+| Home, otter bob only | 50–95% |
+| Home, both | 65–100% |
+
+So it is the two infinite animations, and it is *per frame*: this emulator
+renders through GPU emulation (`ro.hardware.egl=emulation`), where every
+frame costs far more than on a phone — a 10px bob of a small mascot has no
+business costing 50% of a core.
+
+What was fixed for real: the four still discs used to live inside the
+animated `Canvas`, so four large filled circles were repainted across the
+whole page every frame. They are their own `PondStill` composable now, which
+reads no animated state and is therefore drawn once. The otter's bob moved
+from `Modifier.offset` (which relayouts and repaints it) to a
+`graphicsLayer` translation (which only moves the layer).
+
+Neither of those moved the emulator's numbers much, which is itself the
+finding: the cost is the frame, not what is in it. Before trading away the
+pond or the bob, the thing to do is measure on real hardware.
+
 ### The pond, measured rather than guessed
 
 `AmbientRipples` draws **four concentric filled discs** — pale around the

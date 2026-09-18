@@ -55,6 +55,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.platform.LocalContext
@@ -220,6 +221,7 @@ fun MainScreen(
             // qualcosa da mostrare mentre è in corso — vedi anche
             // [AmbientRipples].
             if (!sessionActive) {
+                PondStill(centerY = otterCenterY, modifier = Modifier.fillMaxSize())
                 AmbientRipples(centerY = otterCenterY, modifier = Modifier.fillMaxSize())
             }
         },
@@ -620,7 +622,7 @@ private fun PondOtter(
 
         Box(
             modifier = Modifier
-                .offset(y = floatOffset.dp)
+                .graphicsLayer { translationY = floatOffset * density }
                 .scale(otterScale)
                 .clip(CircleShape)
                 .clickable(enabled = !sessionActive && !isStarting, onClick = { isStarting = true }),
@@ -718,26 +720,23 @@ private fun SessionsSummaryLink(
  * vicina a zero, quindi "uscire dai bordi" si vede come una dissolvenza sul
  * limite dello schermo, non come un cerchio che si taglia di netto.
  */
+/**
+ * I quattro dischi fermi dello stagno, in una `Canvas` **separata da quella
+ * animata**.
+ *
+ * Non è una divisione estetica ma di costo: stando dentro [AmbientRipples]
+ * venivano riempiti da capo a ogni fotogramma su tutta la pagina, e su
+ * emulatore la sola Home teneva la CPU al 70-85% (misurato con `top`:
+ * Impostazioni, che non anima nulla, stava a 0%). Qui dentro non si legge
+ * alcuno stato animato, quindi Compose la disegna una volta e la riusa.
+ */
 @Composable
-private fun AmbientRipples(centerY: Dp, modifier: Modifier = Modifier) {
-    val transition = rememberInfiniteTransition(label = "ripples")
-    val t by transition.animateFloat(
-        initialValue = 0f,
-        targetValue = 1f,
-        animationSpec = infiniteRepeatable(
-            animation = tween(3600, easing = LinearEasing),
-        ),
-        label = "rippleT",
-    )
-    // Anelli e onde usano `tertiary` (#d5e0d5 nelle palette verdi), che nel
-    // design system è esattamente il colore dei "ripple borders" — non
-    // `primary` a bassa opacità, che dava un grigio.
+private fun PondStill(centerY: Dp, modifier: Modifier = Modifier) {
     val ringColor = MaterialTheme.colorScheme.tertiary
     val brightColor = MaterialTheme.colorScheme.surfaceBright
 
     Canvas(modifier = modifier) {
         val center = Offset(size.width / 2f, centerY.toPx())
-        val strokeWidth = 2.dp.toPx()
 
         // Lo stagno fermo: **tre dischi pieni** concentrici, di tonalità
         // alternate — pallido, chiaro, pallido — come nel design (prima erano
@@ -763,6 +762,31 @@ private fun AmbientRipples(centerY: Dp, modifier: Modifier = Modifier) {
         drawCircle(color = ringColor, radius = paleRadius, center = center, alpha = 0.75f)
         drawCircle(color = brightColor, radius = whiteRadius, center = center)
         drawCircle(color = ringColor, radius = innerPaleRadius, center = center, alpha = 0.75f)
+
+    }
+}
+
+@Composable
+private fun AmbientRipples(centerY: Dp, modifier: Modifier = Modifier) {
+    val transition = rememberInfiniteTransition(label = "ripples")
+    val t by transition.animateFloat(
+        initialValue = 0f,
+        targetValue = 1f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(3600, easing = LinearEasing),
+        ),
+        label = "rippleT",
+    )
+    // Anelli e onde usano `tertiary` (#d5e0d5 nelle palette verdi), che nel
+    // design system è esattamente il colore dei "ripple borders" — non
+    // `primary` a bassa opacità, che dava un grigio.
+    val ringColor = MaterialTheme.colorScheme.tertiary
+    val brightColor = MaterialTheme.colorScheme.surfaceBright
+
+    Canvas(modifier = modifier) {
+        val center = Offset(size.width / 2f, centerY.toPx())
+        val strokeWidth = 2.dp.toPx()
+        val veilRadius = 151.dp.toPx()
 
         // L'onda parte dal bordo esterno dello stagno fermo e se ne va verso
         // i bordi della pagina, invece di attraversare l'otter.
