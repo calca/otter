@@ -86,10 +86,13 @@ every subpath in the path, not just the one being added.
 ## Adaptive icon safe zone
 
 All foreground content sits inside the center ~66dp safe circle of the
-108×108dp canvas (head circle `r=25` centered near `(54,58)`), so it
-survives every OEM mask shape (circle, squircle, rounded square) without
-clipping — verified against all three during design review, not just
-assumed.
+108×108dp canvas, so it survives every OEM mask shape (circle, squircle,
+rounded square) without clipping. For the original "Still Otter" pair that
+came out of the geometry directly (head circle `r=25` centered near
+`(54,58)`); the Zen face that replaced it needs an explicit scale group to
+get there — see "The launcher icon follows" below. Either way the check is
+the same: render the drawable with the mask and the safe circle over it,
+don't assume.
 
 ## The `surfaceVariant` trap (read before adding a fourth mark)
 
@@ -313,9 +316,23 @@ Forest pine (`#1B3B2B`) and the fur to `#8FA693`, the design system's "Muted
 Mountain Sage" — the in-app mascot takes its colours from the palette, but
 the launcher has no way to know which palette was chosen.
 
-The viewport is 120 (the SVG's) while width/height stay 108dp: the content
-spans 66 units of 120, comfortably inside the adaptive icon's safe circle
-(66 of 108, i.e. 73 of 120), so it survives any mask.
+The viewport is 120 (the SVG's) while width/height stay 108dp. The path
+data as exported spans x 27..89, y 32..89 — the ear circles reach ~39 units
+from the centre, past the adaptive icon's safe radius (66 of 108, i.e. 36.5
+of 120), so on a real launcher the ears sat flush against the mask edge.
+Both drawables therefore wrap their paths in
+
+    <group android:scaleX="0.72" android:scaleY="0.72"
+           android:pivotX="60" android:pivotY="60">
+
+which pulls the furthest point in to ~28 units and leaves visible breathing
+room inside any mask shape. Scaling the group rather than re-exporting the
+path data keeps the two files byte-comparable with their `*_still_otter.xml`
+predecessors and with `OtterZenMark`'s Compose path constants.
+
+Verified by rendering both drawables outside Android with the launcher's
+circular mask and the safe circle drawn on top, then on the emulator's app
+drawer (both flavors, whose icons are identical).
 
 The monochrome version keeps the winding trick documented above — eyes and
 nose cut out by drawing them with the opposite sweep flag under the nonzero

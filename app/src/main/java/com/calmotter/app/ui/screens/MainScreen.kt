@@ -90,6 +90,13 @@ import kotlin.math.pow
 // (stessa tabella usata da MainActivity prima della migrazione a Compose;
 // ora mostrata come riga di chip invece che come NumberPicker a rotellina,
 // vedi DurationChipRow).
+/**
+ * Larghezza condivisa dalle due pastiglie sotto le durate (riepilogo
+ * sessioni e "Tempo insieme"), come frazione della pagina: incolonnate, se
+ * ognuna si adattasse al proprio testo sembrerebbero disallineate.
+ */
+private const val HOME_PILL_WIDTH_FRACTION = 0.72f
+
 private val DURATION_LABELS = arrayOf(
     "30 min", "1 h", "1 h 30", "2 h", "2 h 30", "3 h", "3 h 30", "4 h"
 )
@@ -339,7 +346,9 @@ fun MainScreen(
             // servizio. Resta comunque più tenue del resto — non compete con
             // l'otter, la indica.
             Text(
-                text = stringResource(R.string.home_start_hint),
+                // Il nome della mascotte in grassetto: è un nome proprio, non
+                // "l'otter" generico — stesso parser <b> dell'onboarding.
+                text = boldAnnotatedString(stringResource(R.string.home_start_hint)),
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.55f),
             )
@@ -372,7 +381,7 @@ fun MainScreen(
                 text = stringResource(R.string.group_pause_entry_button),
                 onClick = { showGroupPauseChooser = true },
                 leadingIcon = { TogetherMark(markSize = 18.dp) },
-                modifier = Modifier.padding(top = 20.dp).fillMaxWidth(0.72f),
+                modifier = Modifier.padding(top = 20.dp).fillMaxWidth(HOME_PILL_WIDTH_FRACTION),
             )
         }
     }
@@ -679,6 +688,10 @@ private fun SessionsSummaryLink(
     Row(
         modifier = Modifier
             .padding(top = 24.dp)
+            // Stessa larghezza del bottone "Tempo insieme" qui sotto: due
+            // pastiglie incolonnate di larghezza diversa si leggono come un
+            // disallineamento, non come una gerarchia.
+            .fillMaxWidth(HOME_PILL_WIDTH_FRACTION)
             .clip(RoundedCornerShape(50))
             // onClickLabel invece di una stringa in più: TalkBack annuncia
             // "apri Cronologia" come azione della riga, senza che il "›"
@@ -697,6 +710,7 @@ private fun SessionsSummaryLink(
             .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.08f))
             .padding(horizontal = 12.dp, vertical = 6.dp),
         verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.Center,
     ) {
         // La fogliolina del mockup: dà alla pillola un'identità propria
         // accanto a quella di "Tempo insieme", che ha già le sue zampe.

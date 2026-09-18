@@ -328,7 +328,7 @@ private fun StepBody(
  * minimale — non serve un parser HTML completo — per evidenziare una singola
  * frase chiave per step di onboarding.
  */
-private fun boldAnnotatedString(text: String): AnnotatedString {
+internal fun boldAnnotatedString(text: String): AnnotatedString {
     val openTag = "<b>"
     val closeTag = "</b>"
     return buildAnnotatedString {

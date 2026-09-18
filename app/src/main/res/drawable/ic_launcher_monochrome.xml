@@ -29,14 +29,21 @@
     android:height="108dp"
     android:viewportWidth="120"
     android:viewportHeight="120">
-    <path
-        android:fillColor="#FFFFFF"
-        android:pathData="M34,56 C34,40 45,32 60,32 C75,32 86,40 86,56
-                           C89,64 88,74 82,81 C75,88 68,89 60,89
-                           C52,89 45,88 38,81 C32,74 31,64 34,56 Z
-                           M27,38 a9,9 0 1,1 18,0 a9,9 0 1,1 -18,0
-                           M75,38 a9,9 0 1,1 18,0 a9,9 0 1,1 -18,0
-                           M43,54 a6,2.2 0 1,0 12,0 a6,2.2 0 1,0 -12,0
-                           M65,54 a6,2.2 0 1,0 12,0 a6,2.2 0 1,0 -12,0
-                           M56.5,64 a3.5,2.6 0 1,0 7,0 a3.5,2.6 0 1,0 -7,0" />
+    <!-- Il contenuto scende al 72% attorno al centro: a piena
+         dimensione le orecchie arrivavano al bordo della zona di
+         sicurezza e la maschera del launcher le tagliava, facendo
+         sembrare la mascotte schiacciata contro i lati. -->
+    <group android:scaleX="0.72" android:scaleY="0.72"
+        android:pivotX="60" android:pivotY="60">
+        <path
+            android:fillColor="#FFFFFF"
+            android:pathData="M34,56 C34,40 45,32 60,32 C75,32 86,40 86,56
+                               C89,64 88,74 82,81 C75,88 68,89 60,89
+                               C52,89 45,88 38,81 C32,74 31,64 34,56 Z
+                               M27,38 a9,9 0 1,1 18,0 a9,9 0 1,1 -18,0
+                               M75,38 a9,9 0 1,1 18,0 a9,9 0 1,1 -18,0
+                               M43,54 a6,2.2 0 1,0 12,0 a6,2.2 0 1,0 -12,0
+                               M65,54 a6,2.2 0 1,0 12,0 a6,2.2 0 1,0 -12,0
+                               M56.5,64 a3.5,2.6 0 1,0 7,0 a3.5,2.6 0 1,0 -7,0" />
+    </group>
 </vector>
