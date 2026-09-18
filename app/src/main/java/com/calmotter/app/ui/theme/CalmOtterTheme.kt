@@ -15,7 +15,10 @@ import com.calmotter.app.AppTheme
  * lasciati ai default: nel design system del redesign non sono variazioni di
  * `primary` ma due colori con un compito preciso — `secondary` (#8fa693 nelle
  * palette verdi) è la mascotte e i controlli, `tertiary` (#d5e0d5) sono gli
- * anelli dello stagno e i riempimenti tenui. Derivarli da `primary` con
+ * anelli dello stagno e i riempimenti tenui. Impostato anche `surfaceBright`,
+ * il disco centrale dello stagno: in chiaro è bianco pieno (nel mockup è più
+ * chiaro dello sfondo, non uguale), in scuro è la superficie schiarita —
+ * cioè esattamente ciò che quel ruolo M3 significa in entrambi i temi. Derivarli da `primary` con
  * l'opacità, come faceva questo file prima, dava grigi-verdi al posto dei
  * verdi del design (segnalato guardando la Home: "non sono i colori di
  * Stitch"). Vivono anche in values/colors.xml come `*_accent` / `*_veil`,
@@ -92,6 +95,7 @@ private val SageLight = run {
         surfaceContainerHigh = dialogContainerFor(primary, surface),
         secondary = Color(0xFF8FA693),   // @color/*_accent
         tertiary = Color(0xFFD5E0D5),     // @color/*_veil
+        surfaceBright = Color(0xFFFFFFFF),
     )
 }
 
@@ -110,6 +114,7 @@ private val SageDark = run {
         surfaceContainerHigh = dialogContainerFor(primary, surface),
         secondary = Color(0xFF9ED3A8),   // @color/*_accent
         tertiary = Color(0xFF2B3A30),     // @color/*_veil
+        surfaceBright = Color(0xFF1B2620),
     )
 }
 
@@ -128,6 +133,7 @@ private val DuskSandLight = run {
         surfaceContainerHigh = dialogContainerFor(primary, surface),
         secondary = Color(0xFF8F7256),   // @color/*_accent
         tertiary = Color(0xFFE6D2B8),     // @color/*_veil
+        surfaceBright = Color(0xFFFFFFFF),
     )
 }
 
@@ -146,6 +152,7 @@ private val DuskSandDark = run {
         surfaceContainerHigh = dialogContainerFor(primary, surface),
         secondary = Color(0xFFC9A880),   // @color/*_accent
         tertiary = Color(0xFF33291D),     // @color/*_veil
+        surfaceBright = Color(0xFF241D15),
     )
 }
 
@@ -164,6 +171,7 @@ private val DawnClayLight = run {
         surfaceContainerHigh = dialogContainerFor(primary, surface),
         secondary = Color(0xFF965A4F),   // @color/*_accent
         tertiary = Color(0xFFE9C3B8),     // @color/*_veil
+        surfaceBright = Color(0xFFFFFFFF),
     )
 }
 
@@ -182,6 +190,7 @@ private val DawnClayDark = run {
         surfaceContainerHigh = dialogContainerFor(primary, surface),
         secondary = Color(0xFFD79C8C),   // @color/*_accent
         tertiary = Color(0xFF36241F),     // @color/*_veil
+        surfaceBright = Color(0xFF271B17),
     )
 }
 
@@ -200,6 +209,7 @@ private val DeepForestLight = run {
         surfaceContainerHigh = dialogContainerFor(primary, surface),
         secondary = Color(0xFF8FA693),   // @color/*_accent
         tertiary = Color(0xFFD5E0D5),     // @color/*_veil
+        surfaceBright = Color(0xFFFFFFFF),
     )
 }
 
@@ -218,6 +228,7 @@ private val DeepForestDark = run {
         surfaceContainerHigh = dialogContainerFor(primary, surface),
         secondary = Color(0xFFABCFB8),   // @color/*_accent
         tertiary = Color(0xFF26332B),     // @color/*_veil
+        surfaceBright = Color(0xFF17211A),
     )
 }
 

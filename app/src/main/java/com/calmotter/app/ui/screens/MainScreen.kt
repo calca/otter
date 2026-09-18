@@ -123,8 +123,13 @@ internal val HomeHeaderHeight = 96.dp
  * condiviso, non c'è più nulla da interpolare. Effetto collaterale voluto:
  * anche la Home da sola smette di riassestarsi quando registri la prima
  * sessione.
+ *
+ * Da 272dp a 380dp con l'arrivo dello stagno a tre dischi: il disco esterno
+ * ha un raggio di 186dp, quindi in 272dp non ci stava e finiva sotto il testo
+ * "Tocca l'otter per iniziare" e sulle pillole. Resta comunque un valore
+ * fisso e condiviso: è l'altezza *riservata*, non una misura del contenuto.
  */
-internal val OtterSlotHeight = 272.dp
+internal val OtterSlotHeight = 380.dp
 
 /**
  * Schermata home ("Living Pond" — vedi specs/home-and-settings): lo stagno
@@ -724,38 +729,30 @@ private fun AmbientRipples(centerY: Dp, modifier: Modifier = Modifier) {
     // design system è esattamente il colore dei "ripple borders" — non
     // `primary` a bassa opacità, che dava un grigio.
     val ringColor = MaterialTheme.colorScheme.tertiary
+    val brightColor = MaterialTheme.colorScheme.surfaceBright
 
     Canvas(modifier = modifier) {
         val center = Offset(size.width / 2f, centerY.toPx())
         val strokeWidth = 2.dp.toPx()
 
-        // Lo stagno fermo: due anelli concentrici attorno all'otter, più un
-        // velo appena percepibile dentro il secondo. Raggi in dp e non
-        // proporzionali allo schermo, perché sono in rapporto con l'otter e
-        // con l'anello di avanzamento (176dp di diametro, cioè 88 di raggio:
-        // il primo anello ci cade sopra, così da fermo si vede dove passerà
-        // l'avanzamento quando la pausa parte).
-        val innerRadius = 88.dp.toPx()
-        val outerRadius = 124.dp.toPx()
-        drawCircle(color = ringColor, radius = outerRadius, center = center, alpha = 0.30f)
-        drawCircle(
-            color = ringColor,
-            radius = innerRadius,
-            center = center,
-            alpha = 0.95f,
-            style = Stroke(width = strokeWidth),
-        )
-        drawCircle(
-            color = ringColor,
-            radius = outerRadius,
-            center = center,
-            alpha = 0.75f,
-            style = Stroke(width = strokeWidth),
-        )
+        // Lo stagno fermo: **tre dischi pieni** concentrici, di tonalità
+        // alternate — pallido, chiaro, pallido — come nel design (prima erano
+        // due anelli di contorno: segnalato con l'immagine alla mano, "sono
+        // 3 cerchi concentrici"). Il disco di mezzo usa `surfaceBright`
+        // perché nel mockup è più chiaro dello sfondo, non uguale.
+        // Raggi presi dai rapporti dell'immagine di riferimento, non a
+        // occhio: la fascia chiara è larga quanto il disco interno, quella
+        // pallida esterna circa i tre quarti. Il disco esterno arriva così
+        // quasi ai bordi di un telefono da 390dp, come nel mockup.
+        val innerRadius = 68.dp.toPx()
+        val midRadius = 138.dp.toPx()
+        val outerRadius = 186.dp.toPx()
+        drawCircle(color = ringColor, radius = outerRadius, center = center, alpha = 0.5f)
+        drawCircle(color = brightColor, radius = midRadius, center = center)
+        drawCircle(color = ringColor, radius = innerRadius, center = center, alpha = 0.55f)
 
-        // L'onda parte dal secondo anello, non dal centro: nasce dal bordo
-        // dello stagno fermo e se ne va verso i bordi della pagina, invece di
-        // attraversare l'otter.
+        // L'onda parte dal bordo esterno dello stagno fermo e se ne va verso
+        // i bordi della pagina, invece di attraversare l'otter.
         val maxExtra = size.height / 1.1f
         listOf(0f, 0.33f, 0.66f).forEach { phase ->
             val localT = (t + phase) % 1f
