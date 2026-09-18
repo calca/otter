@@ -507,6 +507,11 @@ to differ from the others by a darker tint only, which reads weakly on a
 small screen; it is now `primary` with `onPrimary` text. It does not compete
 with the otter: the otter is the action, this is a choice already made.
 
+**The hint under the pond is `bodyMedium`, not `labelSmall`.** It is the only
+instruction on the screen, and at 11sp on 45% opacity it read as a service
+caption. It stays quieter than everything else — it points at the otter, it
+does not compete with it.
+
 Two smaller borrowings from the mockup: `SprigMark` in the streak pill, which
 gives it an identity of its own next to "Tempo insieme" and its paws, and a
 wider "Tempo insieme" pill (72% of the width).

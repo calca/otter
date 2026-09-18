@@ -319,10 +319,14 @@ fun MainScreen(
                 modifier = Modifier.padding(top = 2.dp),
             )
         } else {
+            // `bodyMedium` invece di `labelSmall`: è l'unica istruzione della
+            // schermata, e a 11sp al 45% si leggeva come una didascalia di
+            // servizio. Resta comunque più tenue del resto — non compete con
+            // l'otter, la indica.
             Text(
                 text = stringResource(R.string.home_start_hint),
-                style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.45f),
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.55f),
             )
             Spacer(modifier = Modifier.height(10.dp))
             DurationChipRow(
