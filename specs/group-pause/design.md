@@ -658,11 +658,35 @@ What the page adds over the dialog body:
   "Crea" and "Unisciti" say what the tap does; the badge says what you
   *are* afterwards, which is the thing two people deciding between
   themselves actually need.
-- A `TandemPawsMedallion` hero, the pond treatment of Home reduced to
-  140dp with `TogetherMark` inside. It does not reuse `PondStill`: that one
-  is full-page and anchored to a centre shared with `BlockScreen`, an
-  invariant with its own file (`OtterAnchoredScreen.kt`) that has no reason
-  to be dragged in here.
+- A `TandemPawsMedallion` hero: Home's still pond, 224dp, with
+  `TogetherMark` inside. Five layers taken from the mockup one by one
+  (container 224, `inset-0/3/7/11`, then the 96dp centre disc) rather than
+  approximated — an outline ring, a **dashed** ring just inside it, a
+  veiled disc, a pale disc, and the bright centre the prints sit on.
+
+  It does not reuse `PondStill`: that one is full-page and anchored to a
+  centre shared with `BlockScreen`, an invariant with its own file
+  (`OtterAnchoredScreen.kt`) that has no reason to be dragged in here. It
+  does reuse its *colours* — `tertiary` for the discs, `surfaceBright` for
+  the bright one — so that it reads as the same pond despite being drawn in
+  a different file. The two outline rings are the exception: they take
+  `primary` at low alpha, because the mockup's are a mid-tone while our
+  `tertiary` is already pale (#d5e0d5 in the green palettes) and a hairline
+  in it would simply not be visible on this background.
+
+  `TogetherMark` is given **96dp, the disc's own diameter**. The mark
+  carries internal margin — its drawing fills 57% of its box — so at 96 the
+  ink covers about half the disc, which is the mockup's proportion. At 44
+  and then 56 it covered a third and floated in the middle of the white.
+  Measured off the screenshot rather than judged by eye: ink 143px on a
+  286px disc, centred to within a pixel horizontally.
+
+  **Still, not breathing.** The mockup pulses the outer ring on a 4s loop.
+  Moving water is Home's, where it means "the pond is waiting, tap the
+  otter"; this is a screen where you choose between two things, and a
+  perpetual animation beside two options pulls the eye off them. The cost
+  argument from `specs/home-and-settings/design.md` applies too, with the
+  aggravation that here there would be no moment at which to stop it.
 - The closing line, which says why the screen exists rather than asking for
   anything.
 
