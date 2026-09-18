@@ -484,3 +484,36 @@ the lower half of Home: duration chips → summary chip (`padding(top =
 24.dp)`) → "Tempo insieme" (`padding(top = 20.dp)`, the 4dp difference
 absorbed by the button's own minimum height). Before that, the two tinted
 pills nearly touched and read as one block instead of two destinations.
+
+
+## Redesign pass: the Home
+
+From the Stitch redesign, applied with three decisions taken against the
+mockup rather than from it.
+
+**The two status chips are gone before they arrived.** The mockup tops the
+screen with "Riverbank Quietude" and "Water Flow" — evocative names with no
+data behind them. Two decorative labels that never change, on the most-opened
+screen, are noise; they were dropped rather than invented into something.
+
+**The brand mark, not a section name.** The header keeps "Calm Otter" and
+gains `OtterZenMark` beside it, at 34dp and deliberately not tappable: it is
+a sign, not a button, and the only thing to touch here stays the big otter.
+The mockup's "Home" title was dropped — it would name where you are in an app
+that has one screen.
+
+**The selected duration is the only filled element on the screen.** It used
+to differ from the others by a darker tint only, which reads weakly on a
+small screen; it is now `primary` with `onPrimary` text. It does not compete
+with the otter: the otter is the action, this is a choice already made.
+
+Two smaller borrowings from the mockup: `SprigMark` in the streak pill, which
+gives it an identity of its own next to "Tempo insieme" and its paws, and a
+wider "Tempo insieme" pill (72% of the width).
+
+What was **not** taken: the bottom navigation bar and the user avatar in the
+header (asked for explicitly — neither has anything to lead to), the
+seconds-level countdown, and the "Breathe gently with otter" pill, which
+promises a breathing exercise the app does not have. The full-page ambient
+ripples also stay as they are, wider than the mockup's contained rings: that
+was a deliberate earlier request.

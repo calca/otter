@@ -13,6 +13,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.runtime.remember
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.drawscope.scale
+import androidx.compose.ui.graphics.compositeOver
 import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.graphics.vector.PathParser
 import androidx.compose.ui.graphics.Path
@@ -354,7 +355,13 @@ private val ZenBlush = Color(0xFFD7A99C)
 @Composable
 fun OtterZenMark(modifier: Modifier = Modifier, markSize: Dp = 96.dp) {
     val primary = MaterialTheme.colorScheme.primary
-    val muzzle = MaterialTheme.colorScheme.surface
+    val surface = MaterialTheme.colorScheme.surface
+    // Chiari *tinti*, non la superficie pura: nel mockup muso e padiglioni
+    // sono #EEF3ED e #D3DDD4, cioè bianchi virati di verde. Con `surface`
+    // nuda le orecchie diventavano due ciambelle bianche staccate dalla
+    // testa e il muso un ovale candido — visto su emulatore.
+    val muzzle = primary.copy(alpha = 0.06f).compositeOver(surface)
+    val innerEar = primary.copy(alpha = 0.20f).compositeOver(surface)
     val ink = lerp(primary, Color.Black, 0.45f)
 
     val head = remember { PathParser().parsePathString(ZEN_HEAD_PATH).toPath() }
@@ -386,7 +393,7 @@ fun OtterZenMark(modifier: Modifier = Modifier, markSize: Dp = 96.dp) {
         // Orecchie, con il padiglione più chiaro.
         listOf(36f, 84f).forEach { cx ->
             drawCircle(brush = fur, radius = v(9f), center = Offset(v(cx), v(38f)))
-            drawCircle(color = muzzle, radius = v(5f), center = Offset(v(cx), v(38f)))
+            drawCircle(color = innerEar, radius = v(4.5f), center = Offset(v(cx), v(38f)))
         }
 
         scale(s, s, pivot = Offset.Zero) {

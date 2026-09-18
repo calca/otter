@@ -25,6 +25,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -71,6 +72,7 @@ import com.calmotter.app.SessionRecord
 import com.calmotter.app.SessionStreak
 import com.calmotter.app.ui.mascot.OtterFloatMark
 import com.calmotter.app.ui.mascot.OtterZenMark
+import com.calmotter.app.ui.mascot.SprigMark
 import com.calmotter.app.ui.mascot.TogetherMark
 import java.util.Calendar
 
@@ -224,6 +226,11 @@ fun MainScreen(
                 modifier = Modifier.fillMaxWidth().align(Alignment.Center),
                 verticalAlignment = Alignment.CenterVertically
             ) {
+                // Il marchio del redesign accanto al nome: piccolo e non
+                // toccabile, è un'insegna, non un bottone — l'unica cosa da
+                // toccare qui resta l'otter grande al centro.
+                OtterZenMark(markSize = 34.dp)
+                Spacer(modifier = Modifier.width(10.dp))
                 Text(
                     text = stringResource(R.string.app_name),
                     fontSize = 24.sp,
@@ -340,7 +347,7 @@ fun MainScreen(
                 text = stringResource(R.string.group_pause_entry_button),
                 onClick = { showGroupPauseChooser = true },
                 leadingIcon = { TogetherMark(markSize = 18.dp) },
-                modifier = Modifier.padding(top = 20.dp),
+                modifier = Modifier.padding(top = 20.dp).fillMaxWidth(0.72f),
             )
         }
     }
@@ -635,6 +642,10 @@ private fun SessionsSummaryLink(
             .padding(horizontal = 12.dp, vertical = 6.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
+        // La fogliolina del mockup: dà alla pillola un'identità propria
+        // accanto a quella di "Tempo insieme", che ha già le sue zampe.
+        SprigMark(markSize = 14.dp)
+        Spacer(modifier = Modifier.width(6.dp))
         Text(
             text = if (streakDays >= 1) {
                 stringResource(R.string.streak_days, streakDays)
@@ -849,15 +860,27 @@ private fun DurationChipRow(selectedIndex: Int, onSelect: (Int) -> Unit) {
     ) {
         DURATION_LABELS.forEachIndexed { index, label ->
             val selected = (index + 1) == selectedIndex
+            // La durata scelta è l'unico elemento pieno della schermata
+            // (redesign): prima si distingueva solo per una tinta più
+            // scura, differenza debole su schermo piccolo. Non compete con
+            // l'otter, che è l'azione: questa è una scelta già fatta.
             Surface(
                 onClick = { onSelect(index + 1) },
                 shape = RoundedCornerShape(50),
-                color = MaterialTheme.colorScheme.primary.copy(alpha = if (selected) 0.22f else 0.08f),
+                color = if (selected) {
+                    MaterialTheme.colorScheme.primary
+                } else {
+                    MaterialTheme.colorScheme.primary.copy(alpha = 0.08f)
+                },
             ) {
                 Text(
                     text = label,
                     modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
-                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = if (selected) 1f else 0.65f),
+                    color = if (selected) {
+                        MaterialTheme.colorScheme.onPrimary
+                    } else {
+                        MaterialTheme.colorScheme.onSurface.copy(alpha = 0.65f)
+                    },
                     fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Normal,
                 )
             }
