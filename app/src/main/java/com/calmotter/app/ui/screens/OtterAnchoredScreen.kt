@@ -172,4 +172,4 @@ fun OtterAnchoredScreen(
  * introdurre un nuovo "troppo in alto" proprio dove l'errore originale era
  * stato notato.
  */
-private val OtterBelowReserveHeight = 100.dp
+private val OtterBelowReserveHeight = 295.dp

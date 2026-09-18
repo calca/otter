@@ -220,7 +220,7 @@ fun BlockScreen(
                 // due cerchi concentrici invece di uno che si allenta.
                 RingReleaseBurst(progress = ringRelease.value, modifier = Modifier.size(176.dp))
             } else {
-                ProgressRing(fraction = fraction, modifier = Modifier.size(176.dp))
+                ProgressRing(fraction = fraction, modifier = Modifier.size(166.dp))
             }
 
             // Se il chiamante non ne fornisce una, questa schermata avvia la
@@ -228,7 +228,7 @@ fun BlockScreen(
             // arriva da nessuna transizione.
             val floatOffset = otterFloatOffset ?: rememberOtterFloatOffset(periodMillis = 5200)
             Box(modifier = Modifier.offset(y = floatOffset.dp)) {
-                OtterZenMark(modifier = otterModifier, markSize = 124.dp)
+                OtterZenMark(modifier = otterModifier, markSize = 72.dp)
             }
         },
     ) {

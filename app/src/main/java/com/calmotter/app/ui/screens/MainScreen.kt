@@ -124,12 +124,12 @@ internal val HomeHeaderHeight = 96.dp
  * anche la Home da sola smette di riassestarsi quando registri la prima
  * sessione.
  *
- * Da 272dp a 380dp con l'arrivo dello stagno a tre dischi: il disco esterno
- * ha un raggio di 186dp, quindi in 272dp non ci stava e finiva sotto il testo
+ * Da 272dp a 330dp con l'arrivo dello stagno a tre dischi: il disco esterno
+ * ha un raggio di 153dp e senza margine toccherebbe il testo sotto, quindi in 272dp non ci stava e finiva sotto il testo
  * "Tocca l'otter per iniziare" e sulle pillole. Resta comunque un valore
  * fisso e condiviso: è l'altezza *riservata*, non una misura del contenuto.
  */
-internal val OtterSlotHeight = 380.dp
+internal val OtterSlotHeight = 400.dp
 
 /**
  * Schermata home ("Living Pond" — vedi specs/home-and-settings): lo stagno
@@ -608,7 +608,7 @@ private fun PondOtter(
             } else {
                 0f
             }
-            ProgressRing(fraction = fraction, modifier = Modifier.size(176.dp))
+            ProgressRing(fraction = fraction, modifier = Modifier.size(166.dp))
         }
 
         val floatOffset = otterFloatOffset
@@ -622,7 +622,7 @@ private fun PondOtter(
                 .clickable(enabled = !sessionActive && !isStarting, onClick = { isStarting = true }),
             contentAlignment = Alignment.Center,
         ) {
-            OtterZenMark(modifier = otterModifier, markSize = 124.dp)
+            OtterZenMark(modifier = otterModifier, markSize = 72.dp)
         }
     }
 }
@@ -740,16 +740,22 @@ private fun AmbientRipples(centerY: Dp, modifier: Modifier = Modifier) {
         // due anelli di contorno: segnalato con l'immagine alla mano, "sono
         // 3 cerchi concentrici"). Il disco di mezzo usa `surfaceBright`
         // perché nel mockup è più chiaro dello sfondo, non uguale.
-        // Raggi presi dai rapporti dell'immagine di riferimento, non a
-        // occhio: la fascia chiara è larga quanto il disco interno, quella
-        // pallida esterna circa i tre quarti. Il disco esterno arriva così
-        // quasi ai bordi di un telefono da 390dp, come nel mockup.
-        val innerRadius = 68.dp.toPx()
-        val midRadius = 138.dp.toPx()
-        val outerRadius = 186.dp.toPx()
-        drawCircle(color = ringColor, radius = outerRadius, center = center, alpha = 0.5f)
-        drawCircle(color = brightColor, radius = midRadius, center = center)
-        drawCircle(color = ringColor, radius = innerRadius, center = center, alpha = 0.55f)
+        // Misurati sul mockup pixel per pixel (226px = 390dp), non a occhio:
+        // lungo la riga che passa per l'otter i confini cadono a 44, 61 e 81
+        // px dal centro, cioè 76, 105 e 140dp — qui riscalati sulla larghezza
+        // di questo schermo.
+        //
+        // E l'ordine è questo: il **bianco sta dentro**, poi il pallido, poi
+        // il velo. Un primo tentativo li aveva invertiti (pallido dentro,
+        // bianco in mezzo) perché nel ritaglio di riferimento attorno alla
+        // mascotte si vede un disco pallido — ma quello è l'alone che
+        // [OtterZenMark] si disegna da sé, non un cerchio dello stagno.
+        val whiteRadius = 83.dp.toPx()
+        val paleRadius = 115.dp.toPx()
+        val veilRadius = 153.dp.toPx()
+        drawCircle(color = ringColor, radius = veilRadius, center = center, alpha = 0.28f)
+        drawCircle(color = ringColor, radius = paleRadius, center = center, alpha = 0.75f)
+        drawCircle(color = brightColor, radius = whiteRadius, center = center)
 
         // L'onda parte dal bordo esterno dello stagno fermo e se ne va verso
         // i bordi della pagina, invece di attraversare l'otter.
@@ -758,7 +764,7 @@ private fun AmbientRipples(centerY: Dp, modifier: Modifier = Modifier) {
             val localT = (t + phase) % 1f
             drawCircle(
                 color = ringColor,
-                radius = outerRadius + localT * maxExtra,
+                radius = veilRadius + localT * maxExtra,
                 center = center,
                 alpha = (1f - localT) * 0.85f,
                 style = Stroke(width = strokeWidth),
