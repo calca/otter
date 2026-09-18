@@ -4,6 +4,9 @@ import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.asPaddingValues
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -11,6 +14,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -65,78 +69,94 @@ fun GroupPauseChooserScreen(
     onJoin: () -> Unit,
     onBack: () -> Unit,
 ) {
-    Box(modifier = Modifier.fillMaxSize().calmBackground()) {
+    // La misura si prende **qui**, sulla pagina intera, prima che
+    // `safeDrawingPadding` tolga le barre di sistema: "metà pagina" è metà
+    // dello schermo, non metà di ciò che resta sotto la barra in alto.
+    // Misurata dopo, la metà cadeva quattro punti più in basso (54% invece
+    // di 50%, letto dalla gerarchia di accessibilità) — di preciso l'altezza
+    // di barra di stato più barra, che qui viene infatti sottratta.
+    BoxWithConstraints(modifier = Modifier.fillMaxSize().calmBackground()) {
+        val halfPage = maxHeight / 2
+        val topInset = WindowInsets.safeDrawing.asPaddingValues().calculateTopPadding()
         Column(modifier = Modifier.fillMaxSize().safeDrawingPadding()) {
             GroupPauseChooserTopBar(onBack = onBack)
 
-            // **Le impronte fluttuano, il resto sta insieme.** Distribuire
-            // tutti e quattro i blocchi sull'altezza li allontanava anche
-            // dove non serviva: la testata finiva lontana dalle due strade
-            // che introduce, e la riga di chiusura lontana da tutto.
+            // **Il titolo sta a metà pagina, le impronte a metà di quello
+            // che c'è sopra.**
             //
-            // Ora i blocchi distribuiti sono tre e il primo è alto zero:
-            // `SpaceBetween` mette quindi lo stesso spazio sopra e sotto il
-            // medaglione, cioè lo centra fra la barra e il titolo, e appoggia
-            // in fondo il resto — testata, scelta e chiusura, tenuti stretti
-            // fra loro.
+            // Le due cose vanno decise insieme, ed è la ragione per cui qui
+            // si misura la pagina invece di lasciare che il contenuto cada
+            // dove capita: la metà alta è un riquadro suo, e il medaglione
+            // ci sta dentro centrato. Ne viene che il titolo comincia esatto
+            // a metà e che le impronte cadono a metà fra la barra e il
+            // titolo — due richieste, una sola misura, nessuna delle due che
+            // scivola quando cambia l'altra.
             //
-            // Lo spazio distribuito esiste solo finché il contenuto ci sta:
-            // quando non ci sta più (carattere di sistema ingrandito) i
-            // blocchi si compattano e `verticalScroll` li fa scorrere,
-            // invece di tagliarli.
-            Column(
-                modifier = Modifier
-                    .weight(1f)
-                    .verticalScroll(rememberScrollState())
-                    .padding(horizontal = 24.dp)
-                    .padding(bottom = 24.dp),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.SpaceBetween,
-            ) {
-                // Alto zero, e serve: è il terzo blocco che fa sì che lo
-                // spazio sopra il medaglione sia uguale a quello sotto.
-                Spacer(modifier = Modifier.height(0.dp))
-
-                TandemPawsMedallion()
-
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Text(
-                        text = stringResource(R.string.group_pause_entry_button),
-                        style = MaterialTheme.typography.headlineSmall,
-                        fontWeight = FontWeight.SemiBold,
-                        color = MaterialTheme.colorScheme.primary,
-                    )
-                    Text(
-                        text = stringResource(R.string.group_pause_chooser_subtitle),
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
-                        textAlign = TextAlign.Center,
-                        modifier = Modifier.padding(top = 8.dp),
+            // Le due passate precedenti provavano a ottenerlo dalla sola
+            // distribuzione dello spazio: centrare tutto stringeva il
+            // contenuto a metà lasciando due fasce vuote; distribuire i
+            // quattro blocchi allontanava la testata dalle strade che
+            // introduce; distribuirne tre con il primo alto zero centrava sì
+            // le impronte, ma lasciava scendere il titolo dove capitava.
+            Box(modifier = Modifier.weight(1f)) {
+                // Il `coerceAtLeast`: su uno schermo molto corto la metà
+                // può cadere più in alto del medaglione stesso. Lì il titolo
+                // scende sotto la metà — preferibile a delle impronte
+                // tagliate — e il resto scorre.
+                val topHalf = (halfPage - topInset - TopBarHeight)
+                    .coerceAtLeast(MedallionSize)
+                Column(
+                    modifier = Modifier
+                        .verticalScroll(rememberScrollState())
+                        .padding(horizontal = 24.dp)
+                        .padding(bottom = 24.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                ) {
+                    Box(
+                        modifier = Modifier.height(topHalf),
+                        contentAlignment = Alignment.Center,
+                        content = { TandemPawsMedallion() },
                     )
 
-                    // Subito sotto il sottotitolo: è la frase che le
-                    // introduce, e allontanarle da lei le lasciava senza
-                    // premessa.
-                    GroupPauseChoiceCard(
-                        title = stringResource(R.string.group_pause_chooser_create),
-                        role = stringResource(R.string.group_pause_chooser_create_role),
-                        description = stringResource(R.string.group_pause_chooser_create_desc),
-                        icon = { TogetherMark(markSize = 22.dp) },
-                        onClick = onCreate,
-                        modifier = Modifier.padding(top = 20.dp),
-                    )
-                    GroupPauseChoiceCard(
-                        title = stringResource(R.string.group_pause_chooser_join),
-                        role = stringResource(R.string.group_pause_chooser_join_role),
-                        description = stringResource(R.string.group_pause_chooser_join_desc),
-                        icon = { OtterSatelliteMark(markSize = 22.dp) },
-                        onClick = onJoin,
-                        modifier = Modifier.padding(top = 12.dp),
-                    )
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Text(
+                            text = stringResource(R.string.group_pause_entry_button),
+                            style = MaterialTheme.typography.headlineSmall,
+                            fontWeight = FontWeight.SemiBold,
+                            color = MaterialTheme.colorScheme.primary,
+                        )
+                        Text(
+                            text = stringResource(R.string.group_pause_chooser_subtitle),
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
+                            textAlign = TextAlign.Center,
+                            modifier = Modifier.padding(top = 8.dp),
+                        )
 
-                    // Poco sotto, ma staccata: non è una terza scelta, e
-                    // attaccata alle card lo sarebbe sembrata.
-                    GroupPauseChooserFooter(modifier = Modifier.padding(top = 20.dp))
+                        // Subito sotto il sottotitolo: è la frase che le
+                        // introduce, e allontanarle da lei le lasciava senza
+                        // premessa.
+                        GroupPauseChoiceCard(
+                            title = stringResource(R.string.group_pause_chooser_create),
+                            role = stringResource(R.string.group_pause_chooser_create_role),
+                            description = stringResource(R.string.group_pause_chooser_create_desc),
+                            icon = { TogetherMark(markSize = 22.dp) },
+                            onClick = onCreate,
+                            modifier = Modifier.padding(top = 20.dp),
+                        )
+                        GroupPauseChoiceCard(
+                            title = stringResource(R.string.group_pause_chooser_join),
+                            role = stringResource(R.string.group_pause_chooser_join_role),
+                            description = stringResource(R.string.group_pause_chooser_join_desc),
+                            icon = { OtterSatelliteMark(markSize = 22.dp) },
+                            onClick = onJoin,
+                            modifier = Modifier.padding(top = 12.dp),
+                        )
+
+                        // Poco sotto, ma staccata: non è una terza scelta, e
+                        // attaccata alle card lo sarebbe sembrata.
+                        GroupPauseChooserFooter(modifier = Modifier.padding(top = 20.dp))
+                    }
                 }
             }
         }
@@ -155,7 +175,7 @@ fun GroupPauseChooserScreen(
 @Composable
 private fun GroupPauseChooserTopBar(onBack: () -> Unit) {
     Row(
-        modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp).height(56.dp),
+        modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp).height(TopBarHeight),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         IconButton(onClick = onBack) {
@@ -171,6 +191,9 @@ private fun GroupPauseChooserTopBar(onBack: () -> Unit) {
         }
     }
 }
+
+/** Altezza della barra in cima. Serve anche a chi calcola dove cade metà pagina. */
+private val TopBarHeight = 56.dp
 
 /**
  * Le impronte dentro lo stagno fermo, come in Home la lontra.

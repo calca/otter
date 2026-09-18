@@ -696,31 +696,43 @@ Two departures from the mockup:
   Consequence worth stating: the mockup's lower half was that bar, so with
   it gone the content would sit high with half a screen of nothing below.
 
-  This took two passes to get right. Centring the whole block in what
-  remained bunched everything at mid-height with an empty band above and
-  another below. Distributing all four blocks over the height fixed the
-  bands but pushed apart things that belong together — the heading ended up
-  far from the two paths it introduces, the closing line far from
-  everything.
+  This took four passes. Centring the whole block in what remained bunched
+  everything at mid-height with an empty band above and another below.
+  Distributing all four blocks over the height fixed the bands but pushed
+  apart things that belong together — the heading ended up far from the two
+  paths it introduces. Distributing three, the first zero-height, centred
+  the medallion but let the heading fall wherever it landed.
 
-  What ships distributes **three** blocks, the first of them zero-height:
+  What ships stops distributing space and **measures the page** instead,
+  because the two requests are one measurement:
 
   ```
-  Column(verticalArrangement = SpaceBetween) {
-      Spacer(height = 0.dp)   // ← this is what centres the medallion
-      TandemPawsMedallion()
+  BoxWithConstraints(Modifier.fillMaxSize())   // ← before safeDrawingPadding
+      val halfPage = maxHeight / 2
+      …
+      Box(height = halfPage - topInset - TopBarHeight) { TandemPawsMedallion() }
       Column { heading; subtitle; the two cards; closing line }
-  }
   ```
 
-  `SpaceBetween` puts an equal gap between consecutive children, so with a
-  zero-height first child the space above the medallion equals the space
-  below it: the medallion is centred between the top bar and the heading
-  **by construction**, not by a number that has to be kept in sync with the
-  bar's height. Everything else is one packed child resting at the bottom,
-  with its own small rhythm inside (cards 20dp under the subtitle they
-  belong to, closing line 20dp under the cards — near, but detached enough
-  not to read as a third option).
+  The box ends at the page's midline, so the heading starts exactly there;
+  the medallion is centred inside that box, so it lands halfway between the
+  top bar and the heading. Neither can drift when the other changes.
+
+  **The measurement is taken outside `safeDrawingPadding`, deliberately.**
+  Half the page is half the *screen*, not half of what is left under the
+  bar: measured inside, the heading came out at 54% rather than 50% — read
+  off the accessibility hierarchy (`uiautomator dump`, which gives exact
+  bounds, after pixel-scanning screenshots had twice mistaken the paw mark
+  for the title). Those four points are exactly the status inset plus
+  `TopBarHeight`, which is why both are subtracted.
+
+  The rest is one packed child with its own small rhythm: cards 20dp under
+  the subtitle they belong to, closing line 20dp under the cards — near,
+  but detached enough not to read as a third option.
+
+  `coerceAtLeast(MedallionSize)` guards the short-screen case: where the
+  midline would fall above the medallion's own height, the heading drops
+  below the middle rather than the paws being clipped.
 
   The distributed space only exists while the content fits; when it stops
   fitting (enlarged system font) the blocks pack together and
