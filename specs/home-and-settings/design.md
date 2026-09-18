@@ -473,17 +473,42 @@ not the NFC↔search switch, which stays a text link because it only changes
 how the same screen searches. Anything that would make every link on a
 screen look equally important is back where this started.
 
-`SessionsSummaryLink` gets the weaker half of the treatment: the same
-pill shape with `primary` at **8%** — the token the unselected duration
-chips already use — plus its text raised from 55% to 70% opacity. It is
-the less important of Home's two shortcuts and shouldn't weigh the same as
-"Tempo insieme"; 8% vs 14% is what says so.
+`SessionsSummaryLink` first got the weaker half of the same treatment: the
+same pill shape with `primary` at **8%** — the token the unselected duration
+chips already use — plus its text raised from 55% to 70% opacity. It is the
+less important of Home's two shortcuts and shouldn't weigh the same as
+"Tempo insieme"; 8% vs 14% was what said so.
 
 Spacing was then reported as off, and fixed to an even 24dp rhythm down
 the lower half of Home: duration chips → summary chip (`padding(top =
 24.dp)`) → "Tempo insieme" (`padding(top = 20.dp)`, the 4dp difference
 absorbed by the button's own minimum height). Before that, the two tinted
 pills nearly touched and read as one block instead of two destinations.
+
+### …and then back to a text link
+
+Two tinted containers stacked under the pond still made Home look like it
+had three offers on it. `SessionsSummaryLink` is now a plain text link:
+no background, no fixed width.
+
+What made this work where the *original* bare text failed is the colour, not
+the shape. The first version was `onSurface` at 70% — grey text, which is
+why nobody read it as tappable and why the pill was added. It is now
+`primary` at full opacity, `labelMedium`/`Medium`, with the `›` alongside:
+Home's only coloured piece of text, which is a stronger signal of "this
+leads somewhere" than a tint at 8% ever was.
+
+The container was also carrying the touch target. Without it the row is
+about 20dp tall, so `heightIn(min = 48.dp)` is applied **after**
+`clickable`, keeping the area that responds and the area that ripples the
+same one.
+
+This leaves "Tempo insieme" as the single tinted CTA on Home, which is what
+the "one secondary CTA per screen" rule above asked for in the first place.
+`HOME_PILL_WIDTH_FRACTION` (72%) survives with one caller and a different
+reason: not alignment with a second pill any more, but keeping the button's
+width independent of its translated label, so the column under the pond
+doesn't shift by locale.
 
 
 ## Redesign pass: the Home
@@ -512,9 +537,9 @@ instruction on the screen, and at 11sp on 45% opacity it read as a service
 caption. It stays quieter than everything else — it points at the otter, it
 does not compete with it.
 
-Two smaller borrowings from the mockup: `SprigMark` in the streak pill, which
-gives it an identity of its own next to "Tempo insieme" and its paws, and a
-wider "Tempo insieme" pill (72% of the width).
+Two smaller borrowings from the mockup: `SprigMark` on the streak link, which
+ties it to the pond above it, and a wider "Tempo insieme" pill (72% of the
+width).
 
 What was **not** taken: the bottom navigation bar and the user avatar in the
 header (asked for explicitly — neither has anything to lead to), the

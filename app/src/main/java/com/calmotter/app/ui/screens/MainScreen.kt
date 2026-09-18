@@ -25,6 +25,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
@@ -91,9 +92,13 @@ import kotlin.math.pow
 // ora mostrata come riga di chip invece che come NumberPicker a rotellina,
 // vedi DurationChipRow).
 /**
- * Larghezza condivisa dalle due pastiglie sotto le durate (riepilogo
- * sessioni e "Tempo insieme"), come frazione della pagina: incolonnate, se
- * ognuna si adattasse al proprio testo sembrerebbero disallineate.
+ * Larghezza del bottone "Tempo insieme", come frazione della pagina.
+ *
+ * Nasce per tenerlo allineato al riepilogo sessioni, che era una pastiglia
+ * come lui. Ora quello è un link di testo e la pastiglia è rimasta una
+ * sola, ma la misura resta fissa e non legata al testo: "Tempo insieme" si
+ * traduce, e un bottone che cambia larghezza con la lingua sposterebbe il
+ * baricentro della colonna sotto lo stagno.
  */
 private const val HOME_PILL_WIDTH_FRACTION = 0.72f
 
@@ -685,13 +690,14 @@ private fun SessionsSummaryLink(
     weekSummary: WeekSummary,
     onHistory: () -> Unit,
 ) {
+    // Il colore del link fa il lavoro che faceva il contenitore. Una riga
+    // grigia al 70% non si capiva che fosse toccabile — era la ragione della
+    // pastiglia — ma in `primary`, con il chevron accanto, si legge come un
+    // link e basta: nessuno sfondo da giustificare.
+    val linkColor = MaterialTheme.colorScheme.primary
     Row(
         modifier = Modifier
-            .padding(top = 24.dp)
-            // Stessa larghezza del bottone "Tempo insieme" qui sotto: due
-            // pastiglie incolonnate di larghezza diversa si leggono come un
-            // disallineamento, non come una gerarchia.
-            .fillMaxWidth(HOME_PILL_WIDTH_FRACTION)
+            .padding(top = 20.dp)
             .clip(RoundedCornerShape(50))
             // onClickLabel invece di una stringa in più: TalkBack annuncia
             // "apri Cronologia" come azione della riga, senza che il "›"
@@ -700,20 +706,17 @@ private fun SessionsSummaryLink(
                 onClickLabel = stringResource(R.string.history_title),
                 onClick = onHistory,
             )
-            // Contenitore appena accennato (`primary` all'8%, la stessa
-            // tinta delle pillole di durata non selezionate qui sopra):
-            // come sola riga di testo non si capiva che si potesse
-            // toccare. Volutamente più debole del 14% di
-            // [CalmSecondaryButton] sotto — questa è la scorciatoia meno
-            // importante delle due, e le due CTA secondarie della Home
-            // non devono pesare uguale.
-            .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.08f))
-            .padding(horizontal = 12.dp, vertical = 6.dp),
+            // Senza sfondo il bersaglio non si vede più, quindi va imposto:
+            // il testo è alto una ventina di dp, sotto i 48 che servono a un
+            // dito. Il padding sta dopo `clickable` apposta, così l'area
+            // toccata e quella che si illumina sono la stessa.
+            .heightIn(min = 48.dp)
+            .padding(horizontal = 16.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.Center,
     ) {
-        // La fogliolina del mockup: dà alla pillola un'identità propria
-        // accanto a quella di "Tempo insieme", che ha già le sue zampe.
+        // La fogliolina resta: è l'unico segno che lega questa riga allo
+        // stagno qui sopra, e senza pastiglia non compete più con nulla.
         SprigMark(markSize = 14.dp)
         Spacer(modifier = Modifier.width(6.dp))
         Text(
@@ -722,14 +725,16 @@ private fun SessionsSummaryLink(
             } else {
                 weeklySummaryText(weekSummary)
             },
-            style = MaterialTheme.typography.labelSmall,
+            style = MaterialTheme.typography.labelMedium,
             fontFamily = FontFamily.Monospace,
-            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
+            fontWeight = FontWeight.Medium,
+            color = linkColor,
         )
         Text(
             text = "›",
-            style = MaterialTheme.typography.labelSmall,
-            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
+            style = MaterialTheme.typography.labelMedium,
+            fontWeight = FontWeight.Medium,
+            color = linkColor,
             modifier = Modifier.padding(start = 6.dp),
         )
     }
