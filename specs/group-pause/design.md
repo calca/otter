@@ -576,12 +576,22 @@ that was:
   the exact friction a copy button removes, and it's the one piece of
   this page that was a genuine, unambiguous gap rather than a stylistic
   difference. `GroupPauseShareHeader` gained a `TextButton("Copy")` next
-  to the code — text rather than a drawn icon (this codebase already pays
-  for procedural or `PathParser`-based icons like `EyeGlyph` when a glyph
-  earns its keep as a permanent, always-visible control; a rarely-used
-  action next to a label that already says what it does isn't that case)
-  — using `LocalClipboardManager` + a confirming `Toast`, the same
-  feedback pattern `session_started` already uses elsewhere in this app.
+  to the code, using `LocalClipboardManager` + a confirming `Toast` — the
+  same feedback pattern `session_started` already uses elsewhere in this
+  app.
+
+  First shipped as text only, on the reasoning that a rarely-used action
+  next to a label that already says what it does doesn't earn the weight
+  of a drawn icon. Asked directly afterwards ("copia ha un'icona?"), and
+  the honest answer was no — reasoning aside, the mockup's button *has*
+  one and this one didn't. `Icons.Filled.ContentCopy` doesn't exist in
+  `material-icons-core` (confirmed by trying it: the build fails,
+  `Unresolved reference`), only in `material-icons-extended`, which this
+  app deliberately doesn't depend on. So `CopyGlyph`: two overlapping
+  rounded rectangles drawn with `drawRoundRect`, the same "draw it
+  yourself rather than pull in the extended artifact" call already made
+  for `EyeGlyph` — except simpler, since two rectangles don't need
+  `PathParser`'s official path data the way an eye did.
 
 Not taken, each for a specific reason rather than an oversight:
 

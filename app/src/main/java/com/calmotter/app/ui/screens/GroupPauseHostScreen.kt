@@ -44,6 +44,13 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.material3.TextButton
 import android.widget.Toast
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.CornerRadius
+import androidx.compose.foundation.Canvas
 
 /**
  * Opzioni di durata offerte sia dal selettore della lobby dal vivo
@@ -312,6 +319,41 @@ internal fun ScrollableMinutePillRow(
     }
 }
 
+/**
+ * Icona "copia": due rettangoli arrotondati sovrapposti, disegnati a mano
+ * con `drawRoundRect` invece che presi da Material — segnalato che al
+ * bottone "Copia" ne mancava una, ma `Icons.Filled.ContentCopy` esiste solo
+ * in `material-icons-extended` (verificato: non compila contro
+ * `material-icons-core`, l'unico incluso in `app/build.gradle.kts`), e per
+ * un glifo così semplice non vale il peso di quell'artefatto — stessa
+ * ragione già scritta per [EyeGlyph], due rettangoli non hanno bisogno di
+ * `PathParser` più di quanto ne avesse bisogno un occhio.
+ */
+@Composable
+private fun CopyGlyph(modifier: Modifier = Modifier, tint: Color = MaterialTheme.colorScheme.primary) {
+    Canvas(modifier = modifier) {
+        val strokeWidth = size.width * 0.09f
+        val corner = CornerRadius(size.width * 0.14f)
+        // Il rettangolo posteriore, spostato in basso a sinistra: quanto
+        // basta perché si veda il "foglio sotto" senza confondersi con
+        // quello davanti.
+        drawRoundRect(
+            color = tint,
+            topLeft = Offset(0f, size.height * 0.22f),
+            size = Size(size.width * 0.72f, size.height * 0.72f),
+            cornerRadius = corner,
+            style = Stroke(width = strokeWidth),
+        )
+        drawRoundRect(
+            color = tint,
+            topLeft = Offset(size.width * 0.28f, 0f),
+            size = Size(size.width * 0.72f, size.height * 0.72f),
+            cornerRadius = corner,
+            style = Stroke(width = strokeWidth),
+        )
+    }
+}
+
 /** QR + codice manuale da condividere — mostrato sopra al conto alla rovescia condiviso. */
 @Composable
 private fun GroupPauseShareHeader(code: String) {
@@ -389,6 +431,8 @@ private fun GroupPauseShareHeader(code: String) {
                 Toast.makeText(context, copiedText, Toast.LENGTH_SHORT).show()
             },
         ) {
+            CopyGlyph(modifier = Modifier.size(16.dp), tint = MaterialTheme.colorScheme.primary)
+            Spacer(modifier = Modifier.width(6.dp))
             Text(
                 text = stringResource(R.string.group_pause_code_copy),
                 fontWeight = FontWeight.SemiBold,
