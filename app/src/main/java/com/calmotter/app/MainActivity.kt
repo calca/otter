@@ -26,6 +26,7 @@ import com.calmotter.app.ui.screens.rememberOtterFloatOffset
 import com.calmotter.app.ui.theme.CalmOtterTheme
 import com.google.android.material.color.MaterialColors
 import com.calmotter.app.ui.screens.otterCenterY
+import com.calmotter.app.ui.screens.DEFAULT_SESSION_DURATION_MINUTES
 import com.calmotter.app.ui.screens.OtterHaloSize
 import com.calmotter.app.ui.screens.PersistentOtter
 import androidx.compose.ui.res.stringResource
@@ -179,7 +180,12 @@ class MainActivity : BaseActivity() {
                 // nodo solo che non esce mai di scena — vedi
                 // [PersistentOtter] per perché non è più un elemento
                 // condiviso.
-                var selectedDurationIndex by remember { mutableIntStateOf(1) }
+                // /30: l'indice del selettore, non i minuti — vedi
+                // DEFAULT_SESSION_DURATION_MINUTES per il perché è 1h e non
+                // la prima opzione.
+                var selectedDurationIndex by remember {
+                    mutableIntStateOf(DEFAULT_SESSION_DURATION_MINUTES / 30)
+                }
                 var showPermissionDialog by remember { mutableStateOf(false) }
                 val sessionStartedText = stringResource(R.string.session_started)
 

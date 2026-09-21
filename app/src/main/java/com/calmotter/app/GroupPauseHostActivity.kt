@@ -2,6 +2,7 @@ package com.calmotter.app
 
 import android.os.Bundle
 import androidx.activity.compose.setContent
+import com.calmotter.app.ui.screens.DEFAULT_SESSION_DURATION_MINUTES
 import com.calmotter.app.ui.screens.GroupPauseHostScreen
 import com.calmotter.app.ui.theme.CalmOtterTheme
 
@@ -26,9 +27,10 @@ class GroupPauseHostActivity : BaseActivity() {
          * Durata (minuti) scelta in Home, passata da [MainActivity] così
          * che il flow di creazione (ora un'unica schermata, la lobby — vedi
          * GroupPauseBluetoothLobbyHostScreen) riparta da lì invece che da un
-         * default indipendente. 30 di fallback se l'extra manca (chiamanti
-         * futuri che non lo passano) — lo stesso default che Home stessa usa
-         * per `selectedDurationIndex`.
+         * default indipendente. [DEFAULT_SESSION_DURATION_MINUTES] di
+         * ripiego se l'extra manca (chiamanti futuri che non lo passano) —
+         * lo stesso default che Home stessa usa per `selectedDurationIndex`,
+         * non un numero indipendente da tenere allineato a mano.
          */
         const val EXTRA_DURATION_MINUTES = "duration_minutes"
     }
@@ -38,7 +40,7 @@ class GroupPauseHostActivity : BaseActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         sessionManager = SessionManager.getInstance(applicationContext)
-        val initialDurationMinutes = intent.getIntExtra(EXTRA_DURATION_MINUTES, 30)
+        val initialDurationMinutes = intent.getIntExtra(EXTRA_DURATION_MINUTES, DEFAULT_SESSION_DURATION_MINUTES)
 
         setContent {
             CalmOtterTheme(appTheme = ThemeManager.getTheme(this)) {

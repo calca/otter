@@ -3,6 +3,7 @@ package com.calmotter.app
 import android.content.Intent
 import android.os.Bundle
 import androidx.activity.compose.setContent
+import com.calmotter.app.ui.screens.DEFAULT_SESSION_DURATION_MINUTES
 import com.calmotter.app.ui.screens.GroupPauseChooserScreen
 import com.calmotter.app.ui.theme.CalmOtterTheme
 
@@ -30,7 +31,9 @@ class GroupPauseChooserActivity : BaseActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        val durationMinutes = intent.getIntExtra(EXTRA_DURATION_MINUTES, 30)
+        // Ripiego se l'extra manca del tutto: lo stesso default di Home,
+        // vedi DEFAULT_SESSION_DURATION_MINUTES.
+        val durationMinutes = intent.getIntExtra(EXTRA_DURATION_MINUTES, DEFAULT_SESSION_DURATION_MINUTES)
 
         setContent {
             CalmOtterTheme(appTheme = ThemeManager.getTheme(this)) {

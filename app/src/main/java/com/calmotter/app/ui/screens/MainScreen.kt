@@ -106,6 +106,18 @@ private val DURATION_LABELS = arrayOf(
 )
 
 /**
+ * Durata proposta di default, in minuti — 1h e non la più breve (30 min):
+ * segnalato esplicitamente. Unica fonte di verità: [MainActivity] la usa
+ * per l'indice iniziale di [DURATION_LABELS] (`/ 30`, ricadendo sempre su
+ * un'opzione esistente), e [GroupPauseHostActivity]/[GroupPauseChooserActivity]
+ * la usano come ripiego se l'extra della durata manca del tutto — un caso
+ * che non dovrebbe mai capitare (la passano sempre), ma se capitasse deve
+ * ricadere sullo stesso default che vede chi apre l'app, non su un numero
+ * indipendente da tenere allineato a mano.
+ */
+internal const val DEFAULT_SESSION_DURATION_MINUTES = 60
+
+/**
  * Altezza della striscia che contiene l'intestazione della Home: padding
  * superiore (24dp) + intestazione (48dp, che è l'altezza dell'IconButton
  * delle impostazioni, non quella del testo) + padding sotto (24dp).
