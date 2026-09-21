@@ -703,6 +703,36 @@ directly rather than guessed at: more spacing, not a divider or a card.
 e.g. the lobby host's duration picker) to 40.dp, only in
 `GroupPauseHostScreen`'s QR-share `header` block.
 
+**Third follow-up, same report, this time reversing the earlier "one pill
+below the picker" decision:** "non si può unire la frase 'have this' e
+begins/duration sopra il qrcode? così semplifichiamo?" — merge the static
+invite text and the live countdown into one sentence, above the QR instead
+of the countdown living in a separate line below the delay picker.
+Implemented rather than just discussed, since the reasoning was sound and
+concrete: `group_pause_share_hint` ("Have this QR scanned, or share the
+code below") and `group_pause_countdown_with_duration` ("Begins in
+X:XX · Duration: Y min") became one string,
+`group_pause_share_hint_with_countdown` ("...share the code below — begins
+in %1$d:%2$02d, duration %3$d min"), rendered by `GroupPauseShareHeader`
+above the QR card. `group_pause_share_hint` is gone (no other caller left
+after this).
+
+This needed `GroupPauseCountdownScreen`'s `header` slot to actually receive
+the ticking `minutes`/`seconds` (it only took `durationMinutes` as a
+sibling parameter before, not into the slot itself) — `header` is now
+`@Composable (minutes: Int, seconds: Int) -> Unit`, and a new
+`showCountdownLine: Boolean = true` parameter lets a caller whose `header`
+already shows the merged text suppress the separate countdown line, so it
+isn't shown twice. The QR-share caller sets `showCountdownLine = false`;
+the other two callers (`GroupPauseHostScreen`'s post-live-lobby countdown
+and `GroupPauseJoinScreen`'s, both with an empty `header`) don't pass
+either parameter, so they keep the original separate pulsing-dot line
+unchanged, by default rather than by any code of theirs having to know
+about the split. The merged text has no pulsing dot of its own — one
+reads fine inline in a short status line, awkward inline in a full
+sentence — the ticking numbers already say "this is live" on their own
+there.
+
 **Second follow-up, same report, "per alleggerire":** the countdown pill
 itself lost its `Surface` — asked directly ("forse togliereste il
 box/pillow da Begins...?") rather than inferred. With the QR's white card,

@@ -107,7 +107,13 @@ fun GroupPauseCountdownScreen(
     startAtEpochMillis: Long,
     onReady: () -> Unit,
     onCancel: () -> Unit,
-    header: @Composable () -> Unit = {},
+    // `false` quando [header] mostra già "fra quanto/per quanto" fusi nella
+    // sua stessa frase (il percorso QR, su richiesta — vedi
+    // specs/group-pause/design.md) e la riga separata sotto sarebbe una
+    // ripetizione. Il countdown "puro" post-lobby dal vivo (header vuoto)
+    // non ha altro posto dove mostrarlo, quindi resta `true` di default.
+    showCountdownLine: Boolean = true,
+    header: @Composable (minutes: Int, seconds: Int) -> Unit = { _, _ -> },
 ) {
     var remainingMillis by remember {
         mutableLongStateOf((startAtEpochMillis - System.currentTimeMillis()).coerceAtLeast(0L))
@@ -148,7 +154,7 @@ fun GroupPauseCountdownScreen(
             verticalArrangement = Arrangement.Center,
         ) {
             OtterZenMark(markSize = 88.dp, modifier = Modifier.padding(bottom = 14.dp))
-            header()
+            header(minutes, seconds)
 
             // **Un'unica riga invece di due**, "fra quanto" e "per quanto" nello
             // stesso respiro — chiesto direttamente sul design di Stitch ("come
@@ -189,29 +195,39 @@ fun GroupPauseCountdownScreen(
             // elemento "boxed" di fila. Il puntino pulsante resta: da solo
             // segnala già "questo è live" senza bisogno di uno sfondo tinto
             // a fargli da cornice.
-            val pulse by rememberPulseAlpha()
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.padding(top = 16.dp),
-            ) {
-                Box(
-                    modifier = Modifier
-                        .size(8.dp)
-                        .graphicsLayer { alpha = pulse }
-                        .background(MaterialTheme.colorScheme.secondary, CircleShape)
-                )
-                Spacer(modifier = Modifier.width(8.dp))
-                Text(
-                    text = stringResource(
-                        R.string.group_pause_countdown_with_duration,
-                        minutes,
-                        seconds,
-                        durationMinutes,
-                    ),
-                    fontWeight = FontWeight.SemiBold,
-                    color = MaterialTheme.colorScheme.primary,
-                    textAlign = TextAlign.Center,
-                )
+            //
+            // `showCountdownLine == false` per il percorso QR: lì "fra
+            // quanto"/"per quanto" sono già fusi dentro la frase di
+            // [header], sopra al QR (vedi GroupPauseShareHeader) — questa
+            // riga separata sarebbe la stessa informazione due volte. Niente
+            // puntino pulsante nella versione fusa: dentro una frase intesa
+            // funziona peggio che su una riga di stato a sé, e il numero che
+            // scende già basta a dire "questo è live".
+            if (showCountdownLine) {
+                val pulse by rememberPulseAlpha()
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.padding(top = 16.dp),
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .size(8.dp)
+                            .graphicsLayer { alpha = pulse }
+                            .background(MaterialTheme.colorScheme.secondary, CircleShape)
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(
+                        text = stringResource(
+                            R.string.group_pause_countdown_with_duration,
+                            minutes,
+                            seconds,
+                            durationMinutes,
+                        ),
+                        fontWeight = FontWeight.SemiBold,
+                        color = MaterialTheme.colorScheme.primary,
+                        textAlign = TextAlign.Center,
+                    )
+                }
             }
         }
 

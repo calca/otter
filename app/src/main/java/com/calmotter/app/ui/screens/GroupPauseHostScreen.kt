@@ -173,8 +173,17 @@ private fun GroupPauseQrShareScreen(
         startAtEpochMillis = recipe.startAtEpochMillis,
         onReady = { onReady(recipe) },
         onCancel = onCancel,
-        header = {
-            GroupPauseShareHeader(code = recipe.encode())
+        // La riga separata "Begins in X:XX · Duration: Y min" è già fusa
+        // dentro alla frase di [GroupPauseShareHeader] qui sotto — mostrarla
+        // di nuovo sarebbe la stessa informazione due volte.
+        showCountdownLine = false,
+        header = { minutes, seconds ->
+            GroupPauseShareHeader(
+                code = recipe.encode(),
+                minutes = minutes,
+                seconds = seconds,
+                durationMinutes = recipe.durationMinutes,
+            )
             // 40.dp e non i soliti 20.dp di SetupLabel: più respiro fra "come
             // unirsi" (QR + codice, sopra) e "quando parte" (sotto) — su
             // richiesta, dopo che la pagina è stata segnalata "un po'
@@ -358,9 +367,20 @@ private fun CopyGlyph(modifier: Modifier = Modifier, tint: Color = MaterialTheme
     }
 }
 
-/** QR + codice manuale da condividere — mostrato sopra al conto alla rovescia condiviso. */
+/**
+ * QR + codice manuale da condividere — mostrato sopra al conto alla rovescia
+ * condiviso. La frase in cima fonde l'invito ("fai scansionare...") con lo
+ * stato live ("fra quanto/per quanto") in un solo testo, su richiesta
+ * esplicita ("non si può unire la frase 'have this' e begins/duration sopra
+ * il qrcode? così semplifichiamo?") — prima erano due elementi separati, il
+ * secondo (la pillola/riga "Begins in...") sotto al selettore del ritardo,
+ * lontano dal QR a cui si riferisce. [minutes]/[seconds]/[durationMinutes]
+ * arrivano da [GroupPauseCountdownScreen] tramite lo slot `header`, che li
+ * ricalcola ogni 200ms — questo testo quindi continua a ticchettare come
+ * prima faceva la riga separata, solo dentro alla stessa frase.
+ */
 @Composable
-private fun GroupPauseShareHeader(code: String) {
+private fun GroupPauseShareHeader(code: String, minutes: Int, seconds: Int, durationMinutes: Int) {
     val clipboard = LocalClipboardManager.current
     val context = LocalContext.current
     val copiedText = stringResource(R.string.group_pause_code_copied)
@@ -394,7 +414,12 @@ private fun GroupPauseShareHeader(code: String) {
     }
 
     Text(
-        text = stringResource(R.string.group_pause_share_hint),
+        text = stringResource(
+            R.string.group_pause_share_hint_with_countdown,
+            minutes,
+            seconds,
+            durationMinutes,
+        ),
         color = MaterialTheme.colorScheme.onSurface,
         textAlign = TextAlign.Center,
         modifier = Modifier.padding(bottom = 16.dp)

@@ -200,7 +200,7 @@ Whenever you feel the need for a break, just open the app, choose how long — &
 
     <string name="group_pause_prefer_code_link">Prefer a code or a QR?</string>
     <string name="group_pause_start_in_label">Starts in</string>
-    <string name="group_pause_share_hint">Have this QR scanned, or share the code below</string>
+    <string name="group_pause_share_hint_with_countdown">Have this QR scanned, or share the code below — begins in %1$d:%2$02d, duration %3$d min</string>
     <string name="group_pause_code_copy">Copy</string>
     <string name="group_pause_code_copied">Code copied</string>
     <string name="group_pause_countdown_with_duration">Begins in %1$d:%2$02d · Duration: %3$d min</string>
