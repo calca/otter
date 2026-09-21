@@ -26,6 +26,22 @@ import androidx.compose.ui.unit.sp
 import com.calmotter.app.R
 import com.calmotter.app.ui.mascot.OtterZenMark
 import kotlinx.coroutines.delay
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.material3.Surface
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.background
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.FastOutSlowInEasing
 
 /**
  * Ultimo passo comune a chi crea e chi si unisce a una pausa di gruppo
@@ -92,22 +108,60 @@ fun GroupPauseCountdownScreen(
         OtterZenMark(markSize = 88.dp, modifier = Modifier.padding(bottom = 14.dp))
         header()
 
-        Text(
-            text = stringResource(R.string.group_pause_countdown_label, minutes, seconds),
-            fontSize = 22.sp,
-            fontWeight = FontWeight.SemiBold,
-            color = MaterialTheme.colorScheme.primary,
-            textAlign = TextAlign.Center,
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(top = 8.dp, bottom = 8.dp)
+        // **Un'unica riga invece di due**, "fra quanto" e "per quanto" nello
+        // stesso respiro — chiesto direttamente sul design di Stitch ("come
+        // da design, che dici?"). Prima erano impilate: il conto alla
+        // rovescia grande e in risalto, la durata sotto come didascalia.
+        // Buona gerarchia, ma la richiesta è esplicita e la pillola del
+        // mockup regge bene entrambi i fatti insieme, quindi qui si va con
+        // quella — un contenitore riconoscibile come "stato", non due frasi
+        // separate.
+        //
+        // Il puntino pulsante: l'unica animazione perpetua di questo file,
+        // e la ragione per cui è ammessa dove altrove in questa app non lo
+        // è (vedi Home/PondStill, la lobby, il bivio, tutti fermi apposta):
+        // questa schermata **non può restare aperta a tempo indeterminato**
+        // — il conto alla rovescia la chiude da sé in pochi minuti al più —
+        // quindi non c'è il problema di un'animazione senza fine, e non c'è
+        // una scelta da distrarre: qui non si decide nulla, si aspetta.
+        val pulse by rememberInfiniteTransition(label = "countdownPulse").animateFloat(
+            initialValue = 1f,
+            targetValue = 0.35f,
+            animationSpec = infiniteRepeatable(
+                animation = tween(900, easing = FastOutSlowInEasing),
+                repeatMode = RepeatMode.Reverse,
+            ),
+            label = "countdownPulseAlpha",
         )
-        Text(
-            text = stringResource(R.string.group_pause_duration_reminder, durationMinutes),
-            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
-            textAlign = TextAlign.Center,
-            modifier = Modifier.fillMaxWidth()
-        )
+        Surface(
+            shape = RoundedCornerShape(16.dp),
+            color = MaterialTheme.colorScheme.primary.copy(alpha = 0.08f),
+            modifier = Modifier.padding(top = 8.dp),
+        ) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.padding(horizontal = 16.dp, vertical = 10.dp),
+            ) {
+                Box(
+                    modifier = Modifier
+                        .size(8.dp)
+                        .graphicsLayer { alpha = pulse }
+                        .background(MaterialTheme.colorScheme.secondary, CircleShape)
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Text(
+                    text = stringResource(
+                        R.string.group_pause_countdown_with_duration,
+                        minutes,
+                        seconds,
+                        durationMinutes,
+                    ),
+                    fontWeight = FontWeight.SemiBold,
+                    color = MaterialTheme.colorScheme.primary,
+                    textAlign = TextAlign.Center,
+                )
+            }
+        }
 
         OutlinedButton(onClick = onCancel, modifier = Modifier.padding(top = 24.dp)) {
             Text(stringResource(android.R.string.cancel))

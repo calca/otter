@@ -1,12 +1,12 @@
 package com.calmotter.app.ui.screens
 
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -23,7 +23,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.toArgb
@@ -395,48 +394,69 @@ private fun GroupPauseShareHeader(code: String) {
         textAlign = TextAlign.Center,
         modifier = Modifier.padding(bottom = 16.dp)
     )
-    Image(
-        bitmap = qrBitmap.asImageBitmap(),
-        contentDescription = null,
-        modifier = Modifier
-            .then(
-                // La lastra esiste solo dove serve davvero: in tema chiaro
-                // aggiungerla riporterebbe esattamente il rettangolo che
-                // questo cambiamento toglie.
-                if (darkTheme) {
-                    Modifier
-                        .clip(RoundedCornerShape(20.dp))
-                        .background(fieldColor)
-                        .padding(12.dp)
-                } else {
-                    Modifier
-                }
-            )
-            .size(220.dp)
-    )
-    // Il codice va anche copiato, non solo letto: dettarlo a voce o
-    // ricopiarlo a mano è l'alternativa quando non si può scansionare, e
-    // ricopiarlo a mano è proprio il fastidio che questo bottone toglie —
-    // segnalato contro il mockup, che ha la sua icona "copia" accanto.
-    Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(top = 16.dp)) {
-        Text(
-            text = code,
-            fontFamily = FontFamily.Monospace,
-            fontSize = 16.sp,
-            color = MaterialTheme.colorScheme.primary,
+    // **Il QR torna dentro un riquadro.** Era stato tolto apposta (vedi
+    // "QR colours" nella spec, sezione ancora vera per come i *moduli* del
+    // bitmap restano scuro-su-chiaro): in tema chiaro il campo trasparente
+    // lasciava passare il gradiente di `calmBackground`, e un quadrato
+    // bianco sopra quel gradiente stonava. Richiesto ora esplicitamente,
+    // con un secondo argomento che allora non c'era — un riquadro coerente
+    // col resto del linguaggio visivo del redesign (le altre "card" di
+    // questa app, il mockup stesso), non solo funzionale come contorno di
+    // rispetto per la fotocamera.
+    //
+    // Non cambia però *cosa arriva* a `generateQrCodeBitmap`: moduleColor e
+    // fieldColor restano esattamente gli stessi di prima, verificati da
+    // QrCodeGeneratorTest.kt. Cambia solo cosa sta *dietro* al bitmap — da
+    // "il gradiente della pagina" a "surfaceBright", che è più chiaro (la
+    // lastra `background(fieldColor)` di tema scuro un tempo compensava
+    // proprio l'assenza di questo sfondo) e quindi il contrasto misurato lì
+    // resta un limite inferiore valido, mai peggiorato.
+    Surface(
+        shape = RoundedCornerShape(20.dp),
+        color = MaterialTheme.colorScheme.surfaceBright,
+        shadowElevation = 2.dp,
+    ) {
+        Image(
+            bitmap = qrBitmap.asImageBitmap(),
+            contentDescription = null,
+            modifier = Modifier
+                .padding(16.dp)
+                .size(220.dp)
         )
-        TextButton(
-            onClick = {
-                clipboard.setText(AnnotatedString(code))
-                Toast.makeText(context, copiedText, Toast.LENGTH_SHORT).show()
-            },
+    }
+    // Il codice e il bottone "Copia" in un'unica pillola — segnalato contro
+    // il mockup, che li tiene insieme in un solo contenitore invece di un
+    // testo nudo con un'azione appesa accanto.
+    Surface(
+        shape = RoundedCornerShape(50),
+        color = MaterialTheme.colorScheme.primary.copy(alpha = 0.08f),
+        modifier = Modifier.padding(top = 16.dp),
+    ) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier.padding(start = 20.dp, end = 8.dp, top = 6.dp, bottom = 6.dp),
         ) {
-            CopyGlyph(modifier = Modifier.size(16.dp), tint = MaterialTheme.colorScheme.primary)
-            Spacer(modifier = Modifier.width(6.dp))
             Text(
-                text = stringResource(R.string.group_pause_code_copy),
-                fontWeight = FontWeight.SemiBold,
+                text = code,
+                fontFamily = FontFamily.Monospace,
+                fontSize = 16.sp,
+                color = MaterialTheme.colorScheme.primary,
             )
+            TextButton(
+                onClick = {
+                    clipboard.setText(AnnotatedString(code))
+                    Toast.makeText(context, copiedText, Toast.LENGTH_SHORT).show()
+                },
+                contentPadding = PaddingValues(horizontal = 10.dp, vertical = 6.dp),
+                modifier = Modifier.padding(start = 4.dp),
+            ) {
+                CopyGlyph(modifier = Modifier.size(16.dp), tint = MaterialTheme.colorScheme.primary)
+                Spacer(modifier = Modifier.width(6.dp))
+                Text(
+                    text = stringResource(R.string.group_pause_code_copy),
+                    fontWeight = FontWeight.SemiBold,
+                )
+            }
         }
     }
 }

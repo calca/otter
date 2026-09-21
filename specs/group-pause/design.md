@@ -625,6 +625,59 @@ Verified on-device: the otter appears above the QR share header, "Copy"
 places the code on the clipboard (confirmed via the system's clipboard
 preview chip) and a toast confirms it.
 
+### The card came back, on request — and the two-line countdown was reversed too
+
+A follow-up pass, all four points reported directly against the same
+mockup after living with the first pass above for a day:
+
+- **The QR is back inside a card.** Removing the white square in light
+  theme (see "QR colours" above) was the point of an earlier change, and
+  that reasoning — a pasted-on rectangle clashed with the app's soft
+  palettes — still describes what was wrong with a *plain, undecorated*
+  square. A card with rounded corners, sitting flush with the rest of
+  this redesign's visual language, is a different thing, and was asked
+  for on those terms rather than "put the rectangle back." `Surface(shape
+  = RoundedCornerShape(20.dp), color = surfaceBright, shadowElevation =
+  2.dp)` now wraps the `Image`. Nothing about `generateQrCodeBitmap`'s
+  call — `moduleColor`, `fieldColor`, the light/dark branching that feeds
+  it — changed; only what sits *behind* the bitmap did, from
+  `calmBackground`'s gradient to `surfaceBright`, which is lighter in
+  both themes than the gradient's darkest point that
+  `QrCodeGeneratorTest.kt` already measures as its worst case. So the
+  existing contrast numbers in that section remain a valid floor, and the
+  test needed no changes — confirmed by running it, not assumed. Checked
+  by hand in both themes on-device: the dark-theme QR still carries its
+  own light backing (`fieldColor` inside the bitmap call, unchanged) which
+  now sits *inside* the new outer card instead of being the only light
+  surface around the code; the two don't visibly seam.
+- **Code and "Copy" now share one pill**, `Surface(shape =
+  RoundedCornerShape(50), color = primary @ 8%)`, instead of a bare `Row`
+  with a button hanging off the end of some plain text. Same 8% used for
+  unselected duration chips elsewhere in this exact screen — a container
+  tint, not a choice being offered.
+- **The countdown and duration are one line again**, reversed from the
+  two-line layout `specs/group-pause/design.md`'s own "Home ran out of
+  vertical room" precedent had favoured — asked directly this time
+  ("come da design di Stitch, che dici?"), rather than inferred from the
+  mockup the way the first QR-page pass tried and back out of. The two
+  facts ("fra quanto" and "per quanto") now sit in one
+  `group_pause_countdown_with_duration` pill (`RoundedCornerShape(16.dp)`,
+  `primary` @ 8%) with a small dot in front.
+- **The dot pulses** — the one perpetual animation in this file, and
+  deliberately so where every other screen in this app has gone the
+  opposite way (Home's `PondStill`, the chooser's `TandemPawsMedallion`,
+  the lobby's `ParticipantRing`, all static on purpose, all documented
+  with the same "no unbounded animation next to an unmade decision"
+  reasoning). It's allowed here because neither half of that reasoning
+  applies: this screen cannot stay open indefinitely — the countdown it's
+  attached to closes it within minutes by construction — and nothing on
+  it is a choice to be pulled away from; it's a passive wait, and the
+  pulse says "this is live" about exactly that.
+
+Two old strings, `group_pause_countdown_label` and
+`group_pause_duration_reminder`, are gone rather than left beside the new
+combined one — same reasoning as the `notready_*` strings above.
+
 ## Honest lobby state: the screen stops claiming to wait
 
 Both lobby screens chose their hero title and subtitle purely from how
