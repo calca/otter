@@ -1411,3 +1411,19 @@ fallback as before; the always-visible Cancel in the scan screen's top
 bar returns to "Look for whoever's waiting for you", not Home; and the
 searching animation's CPU cost confirmed both ways, broken and fixed, on
 the same build.
+
+
+## The host lobby's Cancel/"Iniziamo" is a `Column` now, not a `Row`
+
+On request ("tutti i bottoni, posso essere a tutta larghezza ed uno sotto
+l'altro?"): full-width `Iniziamo`/"Let's go" on top, full-width `Cancel`
+below it, instead of side by side. Primary action first, secondary below —
+same order as the equivalent change to onboarding's Back/Next
+(`specs/onboarding-and-password/design.md`), applied together on the same
+request. Neither the enable condition (`participantNames.isNotEmpty()`)
+nor the click handlers changed, only the layout axis. The three
+Material3-dialog Cancel/Confirm pairs elsewhere in the app (password
+unlock, weekly goal, clear-history confirm) were explicitly left as-is —
+not part of this request, and stacking them needs a different approach
+(both buttons inside the `confirmButton` slot, `dismissButton` left empty)
+since `AlertDialog` lays its own action slots out horizontally.

@@ -207,13 +207,11 @@ fun GroupPauseBluetoothLobbyHostScreen(
             modifier = Modifier.padding(top = 20.dp),
         )
 
-        Row(modifier = Modifier.fillMaxWidth().padding(top = 20.dp)) {
-            OutlinedButton(
-                onClick = onCancel,
-                modifier = Modifier.weight(1f).padding(end = 8.dp)
-            ) {
-                Text(stringResource(android.R.string.cancel))
-            }
+        // A tutta larghezza, uno sotto l'altro invece che affiancati — su
+        // richiesta esplicita, applicata qui e all'onboarding (vedi
+        // OnboardingScreen.kt). Azione primaria (Iniziamo) sopra, Cancel
+        // sotto, stesso ordine "positiva prima, negativa dopo".
+        Column(modifier = Modifier.fillMaxWidth().padding(top = 20.dp)) {
             Button(
                 onClick = {
                     val recipe = GroupPauseRecipe(
@@ -230,9 +228,15 @@ fun GroupPauseBluetoothLobbyHostScreen(
                     onRecipeReady(recipe, companions)
                 },
                 enabled = participantNames.isNotEmpty(),
-                modifier = Modifier.weight(1f)
+                modifier = Modifier.fillMaxWidth()
             ) {
                 Text(stringResource(R.string.group_pause_start_button))
+            }
+            OutlinedButton(
+                onClick = onCancel,
+                modifier = Modifier.fillMaxWidth().padding(top = 8.dp)
+            ) {
+                Text(stringResource(android.R.string.cancel))
             }
         }
 

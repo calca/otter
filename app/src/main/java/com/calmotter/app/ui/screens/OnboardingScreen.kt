@@ -192,25 +192,17 @@ fun OnboardingScreen(
             }
         }
 
-        Row(
+        // A tutta larghezza, una sotto l'altra invece che affiancate — su
+        // richiesta esplicita, applicata qui e alla lobby Bluetooth host
+        // (vedi GroupPauseBluetoothLobbyHostScreen.kt), non ai dialoghi
+        // Material3 con confirmButton/dismissButton, lasciati affiancati.
+        // L'azione primaria (Next/Finish) sta sopra, Back sotto — stesso
+        // ordine "positiva prima, negativa dopo" di un bottom sheet.
+        Column(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(24.dp),
-            verticalAlignment = Alignment.CenterVertically
         ) {
-            if (currentStep > 0) {
-                OutlinedButton(
-                    onClick = { currentStep -= 1 },
-                    modifier = Modifier
-                        .weight(1f)
-                        .padding(end = 8.dp)
-                ) {
-                    Text(stringResource(R.string.onb_back))
-                }
-            } else {
-                Column(modifier = Modifier.weight(1f).padding(end = 8.dp)) {}
-            }
-
             val passwordTooShortText = stringResource(R.string.password_too_short)
             val passwordsDontMatchText = stringResource(R.string.passwords_dont_match)
 
@@ -238,13 +230,24 @@ fun OnboardingScreen(
                         onFinished()
                     }
                 },
-                modifier = Modifier.weight(1f)
+                modifier = Modifier.fillMaxWidth()
             ) {
                 Text(
                     stringResource(
                         if (currentStep == STEP_COUNT - 1) R.string.onb_finish else R.string.onb_next
                     )
                 )
+            }
+
+            if (currentStep > 0) {
+                OutlinedButton(
+                    onClick = { currentStep -= 1 },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 8.dp)
+                ) {
+                    Text(stringResource(R.string.onb_back))
+                }
             }
         }
     }

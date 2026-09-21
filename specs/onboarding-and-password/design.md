@@ -185,6 +185,17 @@ problem and still fit comfortably without scrolling), so `StepBody`'s
 shared 24dp illustration-to-title spacer was left alone; only this step's
 own values were tightened.
 
+### Back/Next is a `Column` now, not a `Row`
+
+On request ("tutti i bottoni, posso essere a tutta larghezza ed uno sotto
+l'altro?"): the bottom navigation is full-width `Next`/`Finish` on top,
+full-width `Back` below it (only rendered from step 2 on, same as before —
+step 1 just shows `Next` alone, no empty spacer needed now that there's no
+sibling to balance a `Row` against). Primary action first, secondary
+below, same "positive above negative" order used for the equivalent change
+in the Bluetooth lobby host screen (`specs/group-pause/design.md`). Text
+and behavior are unchanged, only the layout axis.
+
 ## Bold emphasis in step bodies: `boldAnnotatedString`
 
 Each step body highlights exactly one key phrase in bold (e.g. "the rest
