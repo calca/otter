@@ -678,6 +678,20 @@ Two old strings, `group_pause_countdown_label` and
 `group_pause_duration_reminder`, are gone rather than left beside the new
 combined one — same reasoning as the `notready_*` strings above.
 
+### "Starts in" and "Starting in" echoed each other
+
+Reported as "un po' confusionaria": `group_pause_start_in_label` ("Starts
+in", the label above the 1m/2m/5m delay picker) sat one line above
+`group_pause_countdown_with_duration` ("Starting in 1:59 · Duration…", the
+live pill), same words twice in a row — a static setting label and a
+ticking readout that happened to open with the same phrase, read as one
+duplicated countdown rather than "pick a delay" + "here's how much of it
+is left". `group_pause_start_in_label` stays as-is (on its own, above a
+1m/2m/5m picker, "Starts in" reads fine); only the live pill's wording
+changed, English "Starting in" → "Begins in", Italian "Si inizia tra" →
+"Parte tra" — the label keeps naming the setting, the pill stops
+paraphrasing it.
+
 ### The pulse was implemented wrong the first time, and it was not free
 
 Reported directly the next day: "sulla schermata di qrcode e quella di
