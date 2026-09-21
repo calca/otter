@@ -52,9 +52,21 @@ fun WeeklyChart(data: IntArray, modifier: Modifier = Modifier) {
     // I colori del tema si leggono solo in scope @Composable, non dentro la
     // lambda di disegno di Canvas (DrawScope) — vanno quindi catturati qui,
     // prima di entrare in Canvas { ... }.
+    //
+    // **Le barre con dati usano `secondary`, non `primary` a bassa
+    // opacità.** Segnalato ("il colore dell'istogramma è uguale [al
+    // mockup]?") — non lo era: ogni barra, oggi compreso, era una
+    // variazione di opacità di `primary`, mentre il mockup tinge le barre
+    // dei giorni passati di `secondary` (`#b5ccb8` nelle palette verdi, il
+    // colore che CalmOtterTheme.kt riserva a "la mascotte e i controlli",
+    // non a onSurface come faceva la vecchia variabile di questo nome) e
+    // riserva `primary` a un solo segno: "oggi". `primary` resta quindi
+    // solo sulla barra e l'etichetta di oggi — l'unica cosa che questa
+    // riga deve far risaltare — mentre valori e barre degli altri giorni
+    // prendono `secondary`, piena e non sbiadita, come nel mockup.
     val primaryColor = MaterialTheme.colorScheme.primary
-    val secondaryColor = MaterialTheme.colorScheme.onSurface
-    val tintColor = primaryColor.copy(alpha = 0.33f) // barre non-oggi: ~33% opacità
+    val secondaryColor = MaterialTheme.colorScheme.secondary
+    val mutedColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
 
     // Risolte qui (scope @Composable) e non dentro Canvas{}, stesso motivo dei
     // colori sopra — vale anche per stringResource()/stringArrayResource().
@@ -82,10 +94,21 @@ fun WeeklyChart(data: IntArray, modifier: Modifier = Modifier) {
 
         val labelPaint = android.graphics.Paint(android.graphics.Paint.ANTI_ALIAS_FLAG).apply {
             textAlign = android.graphics.Paint.Align.CENTER
-            color = secondaryColor.toArgb()
+            color = mutedColor.toArgb()
             textSize = 11 * dp
         }
+        // Valore sopra una barra con dati: `secondary`, come la barra
+        // stessa. Separato da [todayPaint] apposta — prima erano lo stesso
+        // Paint, quindi anche il valore di un giorno passato ("1m") finiva
+        // tinto di `primary` come "oggi", che è l'unica cosa a cui
+        // `primary` dovrebbe richiamare l'occhio su questa riga.
         val valuePaint = android.graphics.Paint(android.graphics.Paint.ANTI_ALIAS_FLAG).apply {
+            textAlign = android.graphics.Paint.Align.CENTER
+            isFakeBoldText = true
+            color = secondaryColor.toArgb()
+            textSize = 10 * dp
+        }
+        val todayPaint = android.graphics.Paint(android.graphics.Paint.ANTI_ALIAS_FLAG).apply {
             textAlign = android.graphics.Paint.Align.CENTER
             isFakeBoldText = true
             color = primaryColor.toArgb()
@@ -109,7 +132,7 @@ fun WeeklyChart(data: IntArray, modifier: Modifier = Modifier) {
         // metà della sua stessa altezza la rende una pillola indipendente
         // da [cornerRadius], che invece è tarato sulle barre alte.
         val emptyBarH = 3 * dp
-        val emptyBarColor = secondaryColor.copy(alpha = 0.14f)
+        val emptyBarColor = mutedColor.copy(alpha = 0.14f)
 
         val maxVal = data.max().coerceAtLeast(1)
 
@@ -125,7 +148,7 @@ fun WeeklyChart(data: IntArray, modifier: Modifier = Modifier) {
         for (i in 0 until barCount) {
             val cx = totalPadding / 2 + barWidth * i + barWidth / 2
             val isToday = i == barCount - 1
-            val barColor = if (isToday) primaryColor else tintColor
+            val barColor = if (isToday) primaryColor else secondaryColor
 
             if (data[i] > 0) {
                 // Barra vera: altezza proporzionale al valore, con
@@ -139,7 +162,7 @@ fun WeeklyChart(data: IntArray, modifier: Modifier = Modifier) {
                 )
                 val valueText = formatMinutesShort(data[i])
                 drawContext.canvas.nativeCanvas.drawText(
-                    valueText, cx, barAreaBot - barH - 2 * dp, valuePaint
+                    valueText, cx, barAreaBot - barH - 2 * dp, if (isToday) todayPaint else valuePaint
                 )
             } else {
                 // Giorno senza sessioni: non più il vuoto assoluto di prima
@@ -154,10 +177,11 @@ fun WeeklyChart(data: IntArray, modifier: Modifier = Modifier) {
                 )
             }
 
-            // Etichetta giorno sotto: [todayLabel] (stile valore, accento) per
-            // l'ultima barra, sigla del giorno (stile muted) per le altre.
+            // Etichetta giorno sotto: [todayLabel] (`primary`, l'unico segno
+            // di questa riga) per l'ultima barra, sigla del giorno (muted)
+            // per le altre.
             val labelY = barAreaBot + labelHeight * 0.7f
-            val lPaint = if (isToday) valuePaint else labelPaint
+            val lPaint = if (isToday) todayPaint else labelPaint
             drawContext.canvas.nativeCanvas.drawText(
                 if (isToday) todayLabel else dayLabels[i], cx, labelY, lPaint
             )

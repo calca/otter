@@ -290,7 +290,14 @@ private fun WeekOverviewCard(
                 textAlign = TextAlign.Center,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 4.dp)
+                    // 4dp sopra e sotto bastavano quando c'era un divisore
+                    // fra questa riga e l'obiettivo: tolto (vedi sotto), è
+                    // rimasto solo questo respiro, e il sommario finiva
+                    // appiccicato alla barra di avanzamento — segnalato.
+                    // 16dp sotto, niente in più sopra: qui il sommario deve
+                    // restare vicino al grafico che descrive, e staccarsi
+                    // solo dall'obiettivo che viene dopo.
+                    .padding(start = 16.dp, top = 4.dp, end = 16.dp, bottom = 16.dp)
             )
 
             // Nessun divisore qui, segnalato: sommario e obiettivo sono la

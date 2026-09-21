@@ -353,3 +353,37 @@ rather than judged from a shrunk full-page capture — a first crop landed
 on the wrong part of the screen entirely (the top bar instead of the
 chart) before bounds read off the accessibility tree pinned down the
 right coordinates.
+
+### …and then the bar colour turned out not to be
+
+Asked directly the next day: "il colore degli istogramma è uguale [al
+mockup]?" It wasn't. `WeeklyChart` tinted every bar — today's and every
+other day's — as a variation of `primary`: today at full strength, the
+rest at 33% alpha. The mockup tints days-with-data bars `secondary`
+(`#b5ccb8` in the green palettes, `bg-secondary-fixed-dim` in its own
+markup) and reserves `primary` for a single thing: today. A local
+variable named `secondaryColor` made this easy to miss reading the code —
+it held `onSurface`, not the theme's `secondary` role, left over from
+before `CalmOtterTheme.kt` customised `secondary` for exactly this kind
+of use ("la mascotte e i controlli").
+
+Fixed by reading the real role and splitting what had been one shared
+`Paint` into two: `valuePaint` (`secondary`, bold) for the number above
+any data-bearing bar that isn't today, `todayPaint` (`primary`, bold) for
+today's bar, its value, and its "today" label — the one thing on this row
+`primary` should draw the eye to. The renamed `mutedColor` (`onSurface` @
+60%) takes over what that misnamed variable had actually been used for:
+the muted day-of-week letters and the empty-day pill's tint. Verified by
+cropping a full-resolution screenshot to just the chart (a first crop
+landed on the top bar instead — coordinates read off the accessibility
+tree, not guessed, the second time) and comparing the two greens directly
+rather than trusting the diff to be obvious in a shrunk screenshot.
+
+**Also reported the same day: the chart and the goal read as stuck
+together.** Removing the divider between them (see above) took its
+padding with it — 4dp above the summary line, an 8dp-padded divider, 4dp
+below it, collapsed to just the summary's own 4dp once the divider was
+gone. The summary keeps 4dp above (it stays close to the chart it
+describes) and gains 16dp below, so the separation from the goal is
+whitespace on purpose now rather than a line that happened to also carry
+spacing.
