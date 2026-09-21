@@ -339,6 +339,30 @@ Two colour decisions worth keeping:
   as skin, not as brand accent: tinted green or terracotta it stops reading
   as a cheek at all. It stays `#D7A99C` at 45%.
 
+### The muzzle went dark in dark mode
+
+The muzzle and inner-ear tints were originally `veil` (the `tertiary` role)
+composited over `surface`: in light mode `surface` is near-white in every
+palette, so this happened to read as a pale patch, and the "why" comment
+even called it out as the deliberate replacement for plain white. Nobody
+had checked dark mode, where `surface` is dark by definition and `tertiary`
+is *also* dark there (it is the pond-ring colour, meant to sit quietly on a
+dark background, not to lighten one) — compositing dark over dark gave a
+near-black muzzle, reported as "otter non è bello in dark mode" and
+confirmed on the emulator: what should read as a soft face patch instead
+looked like a hole punched in the fur.
+
+Fixed by compositing against a **fixed** light base (`MuzzleBase`,
+`#F4F3EC`) instead of the theme's `surface`, so the patch stays pale
+regardless of theme mode — the same reasoning already used for the blush
+above, just not yet applied here. Caught in the same pass: `innerEar` used
+`compositeOver` with a fully-opaque `veil`, which returns `veil` unchanged
+regardless of the base colour underneath it — so the inner-ear tint was
+never actually affected by `surface` (or now `MuzzleBase`) at all, light
+mode included; it only looked right there by coincidence, because `veil`
+itself happens to be pale in light mode. Both are now built with `lerp`
+against `MuzzleBase` instead, which blends rather than overwrites.
+
 ### The launcher icon follows
 
 `ic_launcher_foreground.xml` and `ic_launcher_monochrome.xml` are now the Zen

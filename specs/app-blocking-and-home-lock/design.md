@@ -690,9 +690,15 @@ text repeated every time it appears:
   allowed-apps row) are all gone** — removed as repeated, non-essential
   text now that the ring/otter/lock-icon visual language, the countdown
   phrase, and the optional reflective quote already carry the meaning.
-  `home_active_label` ("Paused"/"In pausa") is reused in its place, the
+  `home_active_label` ("On Pause"/"In pausa") is reused in its place, the
   same string `PondOtter` shows for the same state, rather than adding a
-  `BlockScreen`-specific one.
+  `BlockScreen`-specific one. The English value was originally "Paused",
+  changed to "On Pause" on request: the feature itself is called "a pause",
+  so a status chip reading "PAUSED" right above the lock screen for that
+  same pause session read as if the pause had itself been paused/interrupted
+  — a self-referential ambiguity the Italian "In pausa" doesn't have (it
+  reads as an ongoing state, not a verb applied to a noun of the same name),
+  so only `values-en/strings.xml` changed.
 - **The reflective phrase and the `CalmCountdown`-generated countdown
   phrase are both kept** — neither is "repeated boilerplate text": the
   countdown phrase is the one piece of actually-changing information on

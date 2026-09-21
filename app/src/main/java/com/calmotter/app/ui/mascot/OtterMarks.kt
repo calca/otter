@@ -375,6 +375,19 @@ private const val ZEN_SMILE_PATH = "M56 68.5 Q60 71 64 68.5"
 // smetterebbe di leggersi come tale. Resta comunque al 45% di opacità.
 private val ZenBlush = Color(0xFFD7A99C)
 
+// Base fissa (non un ruolo di tema) su cui compositare muso e padiglioni:
+// in chiaro coincide di fatto con `surface` (quasi bianca in tutte le
+// palette), motivo per cui il bug qui sotto è passato inosservato finché
+// nessuno ha controllato in tema scuro. `surface` in scuro è invece scura
+// per definizione (Color(0xFF15...)-ish), quindi compositare `veil` sopra
+// di essa — anziché sopra qualcosa di chiaro — dava un muso quasi nero,
+// visto su emulatore in dark mode: non più "una macchia chiara sul pelo"
+// ma un buco scuro in faccia. Fissa e chiara in entrambi i temi, così muso
+// e padiglioni restano la macchia pallida che devono essere a prescindere
+// dal tema chiaro/scuro — stessa logica di [ZenBlush] sopra, non un ruolo
+// di palette.
+private val MuzzleBase = Color(0xFFF4F3EC)
+
 /**
  * La lontra del redesign: muso di fronte, occhi chiusi in due archi sereni,
  * guance rosate, alone tenue attorno. Sostituisce [OtterFloatMark] dentro
@@ -399,13 +412,14 @@ fun OtterZenMark(modifier: Modifier = Modifier, markSize: Dp = 96.dp) {
     // è il verde che il logo ha davvero.
     val accent = MaterialTheme.colorScheme.secondary
     val veil = MaterialTheme.colorScheme.tertiary
-    val surface = MaterialTheme.colorScheme.surface
-    // Chiari *tinti*, non la superficie pura: nel mockup muso e padiglioni
-    // sono #EEF3ED e #D3DDD4, cioè bianchi virati di verde. Con `surface`
-    // nuda le orecchie diventavano due ciambelle bianche staccate dalla
-    // testa e il muso un ovale candido — visto su emulatore.
-    val muzzle = veil.copy(alpha = 0.35f).compositeOver(surface)
-    val innerEar = veil.compositeOver(surface)
+    // Chiari *tinti*, non bianco puro: nel mockup muso e padiglioni sono
+    // #EEF3ED e #D3DDD4, cioè bianchi virati di verde. `lerp` verso
+    // [MuzzleBase] (fissa, non `surface` — vedi lì il perché), non
+    // `compositeOver`: `veil` è opaco, quindi compositarlo sopra qualunque
+    // base lo avrebbe restituito identico e ignorato la base — lo stesso
+    // bug del muso, passato inosservato sul padiglione perché più piccolo.
+    val muzzle = lerp(MuzzleBase, veil, 0.35f)
+    val innerEar = lerp(MuzzleBase, veil, 0.55f)
     val ink = lerp(primary, Color.Black, 0.45f)
 
     val head = remember { PathParser().parsePathString(ZEN_HEAD_PATH).toPath() }
