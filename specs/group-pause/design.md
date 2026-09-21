@@ -703,6 +703,17 @@ directly rather than guessed at: more spacing, not a divider or a card.
 e.g. the lobby host's duration picker) to 40.dp, only in
 `GroupPauseHostScreen`'s QR-share `header` block.
 
+**Second follow-up, same report, "per alleggerire":** the countdown pill
+itself lost its `Surface` — asked directly ("forse togliereste il
+box/pillow da Begins...?") rather than inferred. With the QR's white card,
+the code+copy pill, and the 1m/2m/5m picker's own pills, the countdown
+line was a fourth boxed element in a row; now it's a plain `Row` (pulsing
+dot + text, no `RoundedCornerShape`/tinted `Surface` background) sitting
+directly on the page background, same as the hint text above it. The dot
+still does the "this is live" signalling on its own — nothing else in
+this file used `Surface`/`RoundedCornerShape` after this, so both imports
+came out too.
+
 ### The pulse was implemented wrong the first time, and it was not free
 
 Reported directly the next day: "sulla schermata di qrcode e quella di

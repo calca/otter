@@ -28,8 +28,6 @@ import com.calmotter.app.R
 import com.calmotter.app.ui.mascot.OtterZenMark
 import kotlinx.coroutines.delay
 import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.material3.Surface
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.size
@@ -185,35 +183,35 @@ fun GroupPauseCountdownScreen(
             // al secondo per leggersi come "vivo"; [rememberPulseAlpha] più sotto
             // ne fa 10, con lo stesso idioma (`withInfiniteAnimationFrameMillis`
             // + `delay`) già usato altrove.
+            // Niente più il contenitore Surface/pillola intorno a questa
+            // riga — su richiesta, "per alleggerire": con la card bianca del
+            // QR, la pillola codice+copy e le pillole 1m/2m/5m, era il quarto
+            // elemento "boxed" di fila. Il puntino pulsante resta: da solo
+            // segnala già "questo è live" senza bisogno di uno sfondo tinto
+            // a fargli da cornice.
             val pulse by rememberPulseAlpha()
-            Surface(
-                shape = RoundedCornerShape(16.dp),
-                color = MaterialTheme.colorScheme.primary.copy(alpha = 0.08f),
-                modifier = Modifier.padding(top = 8.dp),
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.padding(top = 16.dp),
             ) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 10.dp),
-            ) {
-                    Box(
-                        modifier = Modifier
-                            .size(8.dp)
-                            .graphicsLayer { alpha = pulse }
-                            .background(MaterialTheme.colorScheme.secondary, CircleShape)
-                    )
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text(
-                        text = stringResource(
-                            R.string.group_pause_countdown_with_duration,
-                            minutes,
-                            seconds,
-                            durationMinutes,
-                        ),
-                        fontWeight = FontWeight.SemiBold,
-                        color = MaterialTheme.colorScheme.primary,
-                        textAlign = TextAlign.Center,
-                    )
-                }
+                Box(
+                    modifier = Modifier
+                        .size(8.dp)
+                        .graphicsLayer { alpha = pulse }
+                        .background(MaterialTheme.colorScheme.secondary, CircleShape)
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Text(
+                    text = stringResource(
+                        R.string.group_pause_countdown_with_duration,
+                        minutes,
+                        seconds,
+                        durationMinutes,
+                    ),
+                    fontWeight = FontWeight.SemiBold,
+                    color = MaterialTheme.colorScheme.primary,
+                    textAlign = TextAlign.Center,
+                )
             }
         }
 
