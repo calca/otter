@@ -19,6 +19,7 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.layout.size
@@ -138,25 +139,42 @@ private fun GroupPauseCodeEntryScreen(onRecipeReady: (GroupPauseRecipe) -> Unit,
             onCancel = onCancel,
         )
         // Niente più CalmCard: sfondo piatto come il resto del flusso.
-        JoinMode.MANUAL -> CalmScreenColumn(contentPadding = PaddingValues(32.dp)) {
-            Text(
-                text = stringResource(R.string.group_pause_join_title),
-                fontSize = 22.sp,
-                fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.primary,
-                textAlign = TextAlign.Center,
-                modifier = Modifier.padding(bottom = 20.dp)
-            )
-            ManualCodeTab(onRecipeReady)
+        //
+        // Bottoni ancorati al fondo pagina, su richiesta esplicita — stesso
+        // schema del resto del flusso "Tempo insieme" (vedi
+        // GroupPauseBluetoothLobbyHostScreen.kt): titolo+campo vivono in una
+        // Column interna con weight(1f) e la stessa `Arrangement.Center` che
+        // CalmScreenColumn usava di default per tutto, "Scansiona invece" e
+        // Cancel restano gli ultimi fratelli non pesati, a tutta larghezza e
+        // 48.dp di altezza come le altre CTA di questa serie di modifiche.
+        JoinMode.MANUAL -> CalmScreenColumn(contentPadding = PaddingValues(32.dp), verticalArrangement = Arrangement.Top) {
+            Column(
+                modifier = Modifier.weight(1f).fillMaxWidth(),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center,
+            ) {
+                Text(
+                    text = stringResource(R.string.group_pause_join_title),
+                    fontSize = 22.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.primary,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.padding(bottom = 20.dp)
+                )
+                ManualCodeTab(onRecipeReady)
+            }
             // Scansionare è la strada più rapida delle due: chi arriva
             // qui e vede il campo di testo deve accorgersi che può
             // ancora inquadrare il QR invece di ricopiare un codice.
             CalmSecondaryButton(
                 text = stringResource(R.string.group_pause_join_scan_tab),
                 onClick = { mode = JoinMode.SCAN },
-                modifier = Modifier.padding(top = 8.dp),
+                modifier = Modifier.fillMaxWidth().padding(top = 8.dp).height(48.dp),
             )
-            OutlinedButton(onClick = onCancel, modifier = Modifier.fillMaxWidth().padding(top = 20.dp)) {
+            OutlinedButton(
+                onClick = onCancel,
+                modifier = Modifier.fillMaxWidth().padding(top = 20.dp).height(48.dp),
+            ) {
                 Text(stringResource(android.R.string.cancel))
             }
         }
@@ -261,22 +279,35 @@ private fun ScanFullScreen(
                 }
             }
         } else {
+            // "Concedi" ancorato al fondo pagina, a tutta larghezza, 48.dp —
+            // stesso standard del resto dell'app in questa serie di
+            // modifiche: il testo di motivazione vive in una Column interna
+            // con weight(1f) e la stessa Arrangement.Center di prima, il
+            // bottone (e il link "inserisci codice" sotto di lui) restano
+            // gli ultimi fratelli non pesati.
             Column(
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Center,
                 modifier = Modifier
                     .fillMaxSize()
                     .calmBackground()
                     .safeDrawingPadding()
                     .padding(32.dp)
             ) {
-                Text(
-                    text = stringResource(R.string.group_pause_camera_permission_rationale),
-                    color = MaterialTheme.colorScheme.onSurface,
-                    textAlign = TextAlign.Center,
-                    modifier = Modifier.padding(bottom = 12.dp)
-                )
-                Button(onClick = { permissionLauncher.launch(Manifest.permission.CAMERA) }) {
+                Column(
+                    modifier = Modifier.weight(1f).fillMaxWidth(),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center,
+                ) {
+                    Text(
+                        text = stringResource(R.string.group_pause_camera_permission_rationale),
+                        color = MaterialTheme.colorScheme.onSurface,
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier.padding(bottom = 12.dp)
+                    )
+                }
+                Button(
+                    onClick = { permissionLauncher.launch(Manifest.permission.CAMERA) },
+                    modifier = Modifier.fillMaxWidth().height(48.dp),
+                ) {
                     Text(stringResource(R.string.permission_action_grant))
                 }
                 // Senza questo, negare la fotocamera era un vicolo cieco:
@@ -286,7 +317,7 @@ private fun ScanFullScreen(
                 // ("Concedi") è già un Button pieno.
                 TextButton(
                     onClick = onSwitchToManual,
-                    modifier = Modifier.padding(top = 8.dp),
+                    modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
                 ) {
                     Text(stringResource(R.string.group_pause_manual_entry_link))
                 }

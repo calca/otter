@@ -4,6 +4,7 @@ import android.widget.Toast
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.rememberScrollState
@@ -66,53 +67,65 @@ fun ChangePasswordScreen(
         stringResource(R.string.password_locked_out, it)
     } ?: errorMessage
 
+    // Bottone ancorato al fondo pagina, a tutta larghezza, 48.dp — stesso
+    // standard applicato al resto dell'app in questa serie di modifiche
+    // (vedi OnboardingScreen.kt, la cui Column del passo password usa
+    // esattamente questa stessa struttura): i campi vivono in una Column
+    // scrollabile con weight(1f), "Cambia password" resta l'ultimo fratello
+    // non pesato.
     Column(
         modifier = Modifier
             .fillMaxSize()
             .safeDrawingPadding()
-            .verticalScroll(rememberScrollState())
             .padding(24.dp)
     ) {
-        Text(
-            text = stringResource(R.string.change_password_info),
-            color = MaterialTheme.colorScheme.onSurface,
-            modifier = Modifier.padding(bottom = 24.dp)
-        )
-
-        PasswordOutlinedTextField(
-            value = current,
-            onValueChange = { current = it },
-            label = stringResource(R.string.hint_current_password),
-            enabled = !isLockedOut,
+        Column(
             modifier = Modifier
+                .weight(1f)
                 .fillMaxWidth()
-                .padding(bottom = 16.dp)
-        )
-
-        PasswordOutlinedTextField(
-            value = new1,
-            onValueChange = { new1 = it },
-            label = stringResource(R.string.hint_new_password),
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(bottom = 16.dp)
-        )
-
-        PasswordOutlinedTextField(
-            value = new2,
-            onValueChange = { new2 = it },
-            label = stringResource(R.string.hint_confirm_password),
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(bottom = 24.dp)
-        )
-
-        if (displayErrorMessage.isNotBlank()) {
+                .verticalScroll(rememberScrollState())
+        ) {
             Text(
-                text = displayErrorMessage,
-                color = MaterialTheme.colorScheme.error,
-                modifier = Modifier.padding(bottom = 16.dp)
+                text = stringResource(R.string.change_password_info),
+                color = MaterialTheme.colorScheme.onSurface,
+                modifier = Modifier.padding(bottom = 24.dp)
             )
+
+            PasswordOutlinedTextField(
+                value = current,
+                onValueChange = { current = it },
+                label = stringResource(R.string.hint_current_password),
+                enabled = !isLockedOut,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 16.dp)
+            )
+
+            PasswordOutlinedTextField(
+                value = new1,
+                onValueChange = { new1 = it },
+                label = stringResource(R.string.hint_new_password),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 16.dp)
+            )
+
+            PasswordOutlinedTextField(
+                value = new2,
+                onValueChange = { new2 = it },
+                label = stringResource(R.string.hint_confirm_password),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 24.dp)
+            )
+
+            if (displayErrorMessage.isNotBlank()) {
+                Text(
+                    text = displayErrorMessage,
+                    color = MaterialTheme.colorScheme.error,
+                    modifier = Modifier.padding(bottom = 16.dp)
+                )
+            }
         }
 
         val wrongCurrentPasswordText = stringResource(R.string.wrong_current_password)
@@ -158,7 +171,7 @@ fun ChangePasswordScreen(
                 }
             },
             enabled = !isLockedOut,
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier.fillMaxWidth().height(48.dp)
         ) {
             Text(stringResource(R.string.change_password_confirm))
         }

@@ -1531,3 +1531,48 @@ countdown) without touching either caller — verified on the emulator via
 the QR-share path, the one with the most content above the button and
 therefore the one most likely to have exposed a regression if the
 weighted-Column restructuring had been wrong.
+
+
+## The whole join flow, audited: three more screens with the same bug
+
+Requested: "in join il bottone deve essere in fono pagina. controlla
+tutte le CTA button, grazie" — an audit, not a single fix. The three
+already-fixed screens (host lobby, countdown/QR) shared one root cause;
+the audit confirmed the join side of the same flow had it too, in three
+places, plus one unrelated screen elsewhere in the app.
+
+- **`GroupPauseBluetoothLobbyJoinScreen`** — the join lobby's own `Cancel`,
+  same exact shape as the host lobby's before its fix: `CalmScreenColumn`'s
+  default `Arrangement.Center` centred the whole `when(state) { ... }`
+  block plus `Cancel` as one group, not anchored to the bottom on short
+  states (e.g. `NfcHero` with nothing but the mascot and a title). Fixed
+  identically: the per-state content moved into an inner `Column` with
+  `weight(1f)` + `Arrangement.Center`, `Cancel` is the last non-weighted
+  sibling, `.fillMaxWidth().height(48.dp)`.
+- **`GroupPauseJoinScreen`'s `GroupPauseCodeEntryScreen`, `JoinMode.MANUAL`
+  branch** — three buttons (the code field's own "Continua", "Scansiona
+  invece", `Cancel`), same problem. Title + the manual-code field/error
+  moved into the same weighted+centred inner `Column`; "Scansiona invece"
+  (`CalmSecondaryButton`) and `Cancel` are the trailing anchored pair, both
+  `.fillMaxWidth().height(48.dp)` now — "Scansiona invece" was wrap-content
+  before, inconsistent with `Cancel` sitting right below it.
+- **`GroupPauseJoinScreen`'s `ScanFullScreen`, no-camera-permission
+  branch** — lower priority in the audit (a short, static rationale
+  screen, not part of the "join" complaint specifically) but fixed anyway
+  since the ask was "check all CTA buttons": the rationale text moved into
+  a weighted+centred inner `Column`, "Concedi" (`Button`) and the "inserisci
+  codice manualmente" `TextButton` below it are the trailing pair, both
+  `.fillMaxWidth()`, the `Button` also `.height(48.dp)`.
+
+The live-camera `ScanFullScreen` branch (permission already granted) was
+left untouched — its `Cancel`/manual-entry controls are overlay `TextButton`s
+positioned with `Modifier.align(Alignment.BottomCenter)`/`TopCenter` inside
+a `Box`, already anchored by a different (and here, more appropriate)
+mechanism than the weighted-Column technique used everywhere else in this
+pass; there was nothing to fix.
+
+Verified on the emulator: the join lobby's short `NfcHero` state now shows
+`Cancel` pinned to the bottom instead of centred mid-screen with the
+mascot; the manual-code screen shows "Scan"/`Cancel` both full-width at
+the bottom; the camera-rationale screen shows "Grant"/"enter a code
+manually" the same way.

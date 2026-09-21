@@ -320,3 +320,23 @@ intrusions"/"Caring guardian" badges (labels with nothing behind them — the
 claims are true, but an onboarding screen is not where the app should
 advertise itself), and the "Learn how Calm Otter works" footer link, which
 has nowhere to lead.
+
+
+## `ChangePasswordScreen`'s "Save new password" is bottom-anchored now
+
+Caught in the same audit as the group-pause join flow ("controlla tutte
+le CTA button" — see `specs/group-pause/design.md` for the others). This
+screen was never `CalmScreenColumn` (a plain scrollable `Column`,
+`Arrangement.Top` by default, so it never centred like the others did) —
+but the "Cambia password" `Button` still just sat directly after the last
+field with no `weight(1f)` pushing it down, so on short error-free content
+it landed right below the fields near the top of the screen rather than
+pinned to the bottom.
+
+Same fix as everywhere else in this pass: the info text, the three
+`PasswordOutlinedTextField`s, and the error message now live in an inner
+scrollable `Column` with `weight(1f)` (scroll moved from the outer Column
+to this one — same visible behavior, just now bounded above the button
+instead of taking the whole screen); the button is the last, non-weighted
+sibling, `.fillMaxWidth().height(48.dp)` — the same 48dp standard as every
+other CTA fixed in this session ("CTA height made explicit", above).
