@@ -692,6 +692,17 @@ changed, English "Starting in" → "Begins in", Italian "Si inizia tra" →
 "Parte tra" — the label keeps naming the setting, the pill stops
 paraphrasing it.
 
+**Follow-up, same "confusionaria" report, after Cancel was already fixed
+to be the page's bottom CTA (see below):** the wording clash above wasn't
+the whole story — the QR page still read as one flat list of four
+same-weight blocks (mascot+hint, QR+code, delay picker, countdown pill),
+with nothing separating "how to join" from "when it starts". Asked
+directly rather than guessed at: more spacing, not a divider or a card.
+`SetupLabel`'s `topPadding` above `group_pause_start_in_label` went from
+20.dp (its usual value, still 20.dp everywhere else `SetupLabel` is used,
+e.g. the lobby host's duration picker) to 40.dp, only in
+`GroupPauseHostScreen`'s QR-share `header` block.
+
 ### The pulse was implemented wrong the first time, and it was not free
 
 Reported directly the next day: "sulla schermata di qrcode e quella di

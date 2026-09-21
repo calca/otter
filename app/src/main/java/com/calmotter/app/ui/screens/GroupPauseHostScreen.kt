@@ -175,7 +175,12 @@ private fun GroupPauseQrShareScreen(
         onCancel = onCancel,
         header = {
             GroupPauseShareHeader(code = recipe.encode())
-            SetupLabel(stringResource(R.string.group_pause_start_in_label), topPadding = 20.dp)
+            // 40.dp e non i soliti 20.dp di SetupLabel: più respiro fra "come
+            // unirsi" (QR + codice, sopra) e "quando parte" (sotto) — su
+            // richiesta, dopo che la pagina è stata segnalata "un po'
+            // confusionaria". Solo qui: SetupLabel resta a 20.dp ovunque
+            // altro la usi (es. il selettore di durata della lobby host).
+            SetupLabel(stringResource(R.string.group_pause_start_in_label), topPadding = 40.dp)
             MinutePillRow(
                 options = DELAY_OPTIONS,
                 selected = delayMinutes,
