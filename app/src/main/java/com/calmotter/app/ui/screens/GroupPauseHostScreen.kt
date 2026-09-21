@@ -2,12 +2,15 @@ package com.calmotter.app.ui.screens
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -233,6 +236,59 @@ internal fun MinutePillRow(
                     MaterialTheme.colorScheme.primary
                 } else {
                     MaterialTheme.colorScheme.primary.copy(alpha = 0.08f)
+                },
+            ) {
+                Text(
+                    text = labelFor(value),
+                    maxLines = 1,
+                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+                    color = if (isSelected) {
+                        MaterialTheme.colorScheme.onPrimary
+                    } else {
+                        MaterialTheme.colorScheme.onSurface.copy(alpha = 0.65f)
+                    },
+                    fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Normal,
+                )
+            }
+        }
+    }
+}
+
+/**
+ * Come [MinutePillRow], ma **scorrevole invece che a capo** — stesso stile
+ * pieno delle pillole di durata della Home (`DurationChipRow` in
+ * MainScreen.kt: selezionata `primary`/`onPrimary`, le altre `tertiary` al
+ * 55% con testo `onSurface` al 65%), duplicato qui per lo stesso motivo già
+ * documentato sopra per [MinutePillRow].
+ *
+ * Nasce per [GroupPauseBluetoothLobbyHostScreen]: segnalato che le pillole
+ * di durata lì non dovessero somigliare a quelle di [MinutePillRow] (a capo,
+ * tinta debole) ma a quelle della Home — otto opzioni ("30m"→"4h") ci stanno
+ * scomode su due righe fisse, mentre scorrere una riga sola è il gesto che
+ * l'utente già conosce da lì. [MinutePillRow] resta invariata per chi la usa
+ * già (il ritardo di avvio nella pagina QR, tre sole opzioni: andare a capo
+ * non è mai stato un problema lì).
+ */
+@Composable
+internal fun ScrollableMinutePillRow(
+    options: List<Int>,
+    selected: Int,
+    onSelect: (Int) -> Unit,
+    labelFor: (Int) -> String,
+) {
+    Row(
+        modifier = Modifier.horizontalScroll(rememberScrollState()),
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        options.forEach { value ->
+            val isSelected = value == selected
+            Surface(
+                onClick = { onSelect(value) },
+                shape = RoundedCornerShape(50),
+                color = if (isSelected) {
+                    MaterialTheme.colorScheme.primary
+                } else {
+                    MaterialTheme.colorScheme.tertiary.copy(alpha = 0.55f)
                 },
             ) {
                 Text(

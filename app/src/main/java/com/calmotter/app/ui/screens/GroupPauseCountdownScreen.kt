@@ -74,30 +74,31 @@ fun GroupPauseCountdownScreen(
     val minutes = totalSeconds / 60
     val seconds = totalSeconds % 60
 
+    // Niente più CalmCard: sfondo piatto come il resto del flusso di Tempo
+    // Insieme (vedi il commento di classe di
+    // GroupPauseBluetoothLobbyHostScreen per il perché).
     CalmScreenColumn(contentPadding = PaddingValues(32.dp)) {
-        CalmCard {
-            header()
+        header()
 
-            Text(
-                text = stringResource(R.string.group_pause_countdown_label, minutes, seconds),
-                fontSize = 22.sp,
-                fontWeight = FontWeight.SemiBold,
-                color = MaterialTheme.colorScheme.primary,
-                textAlign = TextAlign.Center,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = 8.dp, bottom = 8.dp)
-            )
-            Text(
-                text = stringResource(R.string.group_pause_duration_reminder, durationMinutes),
-                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
-                textAlign = TextAlign.Center,
-                modifier = Modifier.fillMaxWidth()
-            )
+        Text(
+            text = stringResource(R.string.group_pause_countdown_label, minutes, seconds),
+            fontSize = 22.sp,
+            fontWeight = FontWeight.SemiBold,
+            color = MaterialTheme.colorScheme.primary,
+            textAlign = TextAlign.Center,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(top = 8.dp, bottom = 8.dp)
+        )
+        Text(
+            text = stringResource(R.string.group_pause_duration_reminder, durationMinutes),
+            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
+            textAlign = TextAlign.Center,
+            modifier = Modifier.fillMaxWidth()
+        )
 
-            OutlinedButton(onClick = onCancel, modifier = Modifier.padding(top = 24.dp)) {
-                Text(stringResource(android.R.string.cancel))
-            }
+        OutlinedButton(onClick = onCancel, modifier = Modifier.padding(top = 24.dp)) {
+            Text(stringResource(android.R.string.cancel))
         }
     }
 }

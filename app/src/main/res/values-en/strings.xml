@@ -234,9 +234,6 @@ Whenever you feel the need for a break, just open the app, choose how long — &
     <string name="group_pause_bt_permission_notice">Bluetooth permissions are needed to invite each other.</string>
     <string name="group_pause_bt_permission_action">Grant them</string>
 
-    <string name="group_pause_notready_title">Almost ready</string>
-    <string name="group_pause_notready_subtitle">One more step before you can invite anyone</string>
-    <string name="group_pause_notready_subtitle_join">One more step before you can join</string>
     <string name="group_pause_lobby_waiting_title">Waiting for someone…</string>
     <string name="group_pause_lobby_waiting_subtitle">Tap phones together or share via Bluetooth</string>
     <string name="group_pause_lobby_with_one">%1$s is with you</string>

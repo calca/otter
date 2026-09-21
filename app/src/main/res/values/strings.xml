@@ -244,9 +244,6 @@ Quando sentirai il bisogno di una pausa, basterà aprire l\'app, scegliere quant
     <string name="group_pause_bt_permission_notice">Per invitarvi servono i permessi Bluetooth.</string>
     <string name="group_pause_bt_permission_action">Concedili</string>
 
-    <string name="group_pause_notready_title">Quasi pronti</string>
-    <string name="group_pause_notready_subtitle">Ancora un passaggio prima di potervi invitare</string>
-    <string name="group_pause_notready_subtitle_join">Ancora un passaggio prima di poterti unire</string>
     <string name="group_pause_lobby_waiting_title">In attesa di qualcuno…</string>
     <string name="group_pause_lobby_waiting_subtitle">Avvicinate i telefoni o condividete il Bluetooth</string>
     <string name="group_pause_lobby_with_one">%1$s è con te</string>

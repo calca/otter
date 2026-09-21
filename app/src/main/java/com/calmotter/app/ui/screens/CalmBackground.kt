@@ -123,12 +123,15 @@ fun CalmScreenColumn(
 /**
  * Card tinta arrotondata per raggruppare il contenuto di una schermata —
  * stesso linguaggio visivo di `WeekOverviewCard` in HistoryScreen.kt
- * (`Surface` con `RoundedCornerShape(20.dp)` e `primary` al 6% di opacità),
- * qui reso condiviso perché richiesto per le schermate di Tempo Insieme
- * (lobby host/join, pagina QR, conto alla rovescia) — non un'ennesima
- * duplicazione privata per file come altrove in questo codebase, dato che
- * qui l'obiettivo esplicito è la coerenza visiva fra più schermate, non uno
- * stile solo simile.
+ * (`Surface` con `RoundedCornerShape(20.dp)` e `primary` al 6% di opacità).
+ *
+ * Nata condivisa per le schermate di Tempo Insieme (lobby host/join,
+ * pagina QR, conto alla rovescia): quelle l'hanno persa in una passata
+ * successiva — sfondo piatto come il resto del flusso, segnalato — ma
+ * resta l'unica chiamante rimasta, la frase di chiusura della cronologia
+ * vuota (`HistoryScreen.kt`), dove il riquadro tinto continua a separare
+ * la frase citata dal resto della pagina. Non orfana quindi, solo con un
+ * chiamante solo invece di cinque.
  */
 @Composable
 fun CalmCard(modifier: Modifier = Modifier, content: @Composable ColumnScope.() -> Unit) {

@@ -124,28 +124,27 @@ private fun GroupPauseCodeEntryScreen(onRecipeReady: (GroupPauseRecipe) -> Unit,
             onSwitchToManual = { mode = JoinMode.MANUAL },
             onCancel = onCancel,
         )
+        // Niente più CalmCard: sfondo piatto come il resto del flusso.
         JoinMode.MANUAL -> CalmScreenColumn(contentPadding = PaddingValues(32.dp)) {
-            CalmCard {
-                Text(
-                    text = stringResource(R.string.group_pause_join_title),
-                    fontSize = 22.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.primary,
-                    textAlign = TextAlign.Center,
-                    modifier = Modifier.padding(bottom = 20.dp)
-                )
-                ManualCodeTab(onRecipeReady)
-                // Scansionare è la strada più rapida delle due: chi arriva
-                // qui e vede il campo di testo deve accorgersi che può
-                // ancora inquadrare il QR invece di ricopiare un codice.
-                CalmSecondaryButton(
-                    text = stringResource(R.string.group_pause_join_scan_tab),
-                    onClick = { mode = JoinMode.SCAN },
-                    modifier = Modifier.padding(top = 8.dp),
-                )
-                OutlinedButton(onClick = onCancel, modifier = Modifier.fillMaxWidth().padding(top = 20.dp)) {
-                    Text(stringResource(android.R.string.cancel))
-                }
+            Text(
+                text = stringResource(R.string.group_pause_join_title),
+                fontSize = 22.sp,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.primary,
+                textAlign = TextAlign.Center,
+                modifier = Modifier.padding(bottom = 20.dp)
+            )
+            ManualCodeTab(onRecipeReady)
+            // Scansionare è la strada più rapida delle due: chi arriva
+            // qui e vede il campo di testo deve accorgersi che può
+            // ancora inquadrare il QR invece di ricopiare un codice.
+            CalmSecondaryButton(
+                text = stringResource(R.string.group_pause_join_scan_tab),
+                onClick = { mode = JoinMode.SCAN },
+                modifier = Modifier.padding(top = 8.dp),
+            )
+            OutlinedButton(onClick = onCancel, modifier = Modifier.fillMaxWidth().padding(top = 20.dp)) {
+                Text(stringResource(android.R.string.cancel))
             }
         }
     }

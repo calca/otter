@@ -61,12 +61,21 @@ import kotlin.random.Random
 /**
  * Lobby dal vivo lato host (Fase 2, vedi specs/group-pause/design.md):
  * un'unica schermata dall'inizio alla fine, niente pagine intermedie per
- * permessi/Bluetooth spento — un avviso gentile in cima (tocca per
- * concedere/attivare) e il bottone "Iniziamo" semplicemente disabilitato
- * finché non c'è almeno un partecipante. L'NFC (se il dispositivo lo
- * supporta) si attiva da solo entrando qui, nessun interruttore da
- * accendere a parte. Chi preferisce QR/codice può tornare a
+ * permessi/Bluetooth spento — un avviso gentile **in fondo, sotto ai
+ * bottoni** (tocca per concedere/attivare) e il bottone "Iniziamo"
+ * semplicemente disabilitato finché non c'è almeno un partecipante. L'NFC
+ * (se il dispositivo lo supporta) si attiva da solo entrando qui, nessun
+ * interruttore da accendere a parte. Chi preferisce QR/codice può tornare a
  * [GroupPauseQrDelayScreen] tramite [onWantCodeInstead].
+ *
+ * Redesign sul mockup "Time Together - Host Lobby" (progetto Stitch
+ * 3158702940609906617): via la card tinta di fondo (la schermata sta ora
+ * sullo sfondo velato piatto, come [GroupPauseChooserScreen] e la Home —
+ * niente più contorno rettangolare a delimitare "qui c'è la lobby"), il
+ * selettore di durata scorre come le pillole della Home invece di andare a
+ * capo (vedi [ScrollableMinutePillRow] in GroupPauseHostScreen.kt), e
+ * l'otter siede dentro lo stesso stagno a dischi concentrici del resto
+ * dell'app (vedi [ParticipantRing]).
  *
  * Include anche il selettore di durata (prima un passo separato,
  * [GroupPauseHostScreen] ora entra qui direttamente) — [initialDurationMinutes]
@@ -143,109 +152,113 @@ fun GroupPauseBluetoothLobbyHostScreen(
     val participantNames = host.participantNames
 
     CalmScreenColumn(contentPadding = PaddingValues(32.dp)) {
-        CalmCard {
-            ParticipantRing(participantNames = participantNames, ready = allReady)
+        ParticipantRing(participantNames = participantNames, ready = allReady)
 
-            // Titolo e sottotitolo raccontano lo stato *vero*. Prima dipendevano
-            // solo dal numero di partecipanti: a permessi mancanti o Bluetooth
-            // spento la schermata annunciava comunque "In attesa di qualcuno…"
-            // e "Avvicinate i telefoni", cioè un'attesa che non era in corso e
-            // un'istruzione che non si poteva eseguire. Il banner qui sotto dice
-            // già *quale* cosa manca e come rimediare, quindi qui basta essere
-            // onesti sul fatto che manchi qualcosa, senza ripeterlo.
-            Text(
-                text = if (allReady) lobbyTitleFor(participantNames)
-                else stringResource(R.string.group_pause_notready_title),
-                fontSize = 18.sp,
-                fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.primary,
-                textAlign = TextAlign.Center,
-            )
-            Text(
+        // **Titolo e sottotitolo non raccontano più lo stato dei permessi.**
+        // Prima swappavano su "Quasi pronti" / "Ancora un passaggio..." a
+        // permessi mancanti — testo scritto per quando questi due passi
+        // erano ancora una schermata a sé (vedi "No more dedicated
+        // permission screens" in specs/group-pause/design.md). Da quando
+        // sono diventati un avviso inline, quello swap ripeteva la stessa
+        // notizia due volte: il titolo diceva "manca qualcosa" e il banner,
+        // subito sotto ai bottoni ora, diceva *cosa* e *come* rimediare.
+        // Il titolo resta quindi sempre quello vero — chi c'è, o chi si
+        // aspetta — esattamente come nel mockup, che non ha uno stato
+        // "permessi mancanti" testuale a parte.
+        Text(
+            text = lobbyTitleFor(participantNames),
+            fontSize = 18.sp,
+            fontWeight = FontWeight.Bold,
+            color = MaterialTheme.colorScheme.primary,
+            textAlign = TextAlign.Center,
+        )
+        Text(
+            text = stringResource(
+                if (participantNames.isEmpty()) R.string.group_pause_lobby_waiting_subtitle
+                else R.string.group_pause_lobby_ready_subtitle
+            ),
+            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.75f),
+            textAlign = TextAlign.Center,
+            modifier = Modifier.padding(top = 6.dp)
+        )
+
+        // Il selettore di durata prima viveva su un passo separato prima
+        // della lobby (GroupPauseSetupScreen, rimosso): incorporarlo qui
+        // toglie uno schermo intero dal percorso di creazione, e non c'è
+        // motivo per bloccarlo mentre si aspetta — l'host non comunica
+        // nulla a nessuno finché non tocca "Iniziamo" (vedi il commento di
+        // classe di questo file). Scorre invece di andare a capo — vedi
+        // [ScrollableMinutePillRow] in GroupPauseHostScreen.kt.
+        SetupLabel(stringResource(R.string.group_pause_duration_label), topPadding = 20.dp)
+        ScrollableMinutePillRow(
+            options = DURATION_OPTIONS,
+            selected = durationMinutes,
+            onSelect = { durationMinutes = it },
+            labelFor = { minutesLabel(it) },
+        )
+
+        // L'unica via d'uscita dalla lobby se l'altro telefono non si
+        // fa trovare via Bluetooth, quindi l'unica CTA secondaria di
+        // questa schermata a meritare il contenitore tinto (vedi
+        // [CalmSecondaryButton]): da link nudo si perdeva fra i testi.
+        CalmSecondaryButton(
+            text = stringResource(R.string.group_pause_prefer_code_link),
+            onClick = { onWantCodeInstead(durationMinutes) },
+            modifier = Modifier.padding(top = 20.dp),
+        )
+
+        Row(modifier = Modifier.fillMaxWidth().padding(top = 20.dp)) {
+            OutlinedButton(
+                onClick = onCancel,
+                modifier = Modifier.weight(1f).padding(end = 8.dp)
+            ) {
+                Text(stringResource(android.R.string.cancel))
+            }
+            Button(
+                onClick = {
+                    val recipe = GroupPauseRecipe(
+                        durationMinutes = durationMinutes,
+                        startAtEpochMillis = System.currentTimeMillis() + 5_000L,
+                        groupTag = groupTag,
+                    )
+                    // Copiati prima di broadcastRecipeAndClose(), che chiude
+                    // le connessioni: participantNames è la lista viva della
+                    // lobby, e dopo la chiusura non è più ciò che si vuole
+                    // registrare.
+                    val companions = participantNames.toList()
+                    host.broadcastRecipeAndClose(recipe.encode())
+                    onRecipeReady(recipe, companions)
+                },
+                enabled = participantNames.isNotEmpty(),
+                modifier = Modifier.weight(1f)
+            ) {
+                Text(stringResource(R.string.group_pause_start_button))
+            }
+        }
+
+        // **Sotto ai bottoni, non sopra.** Prima stava fra il selettore di
+        // durata e "Preferisci un codice o un QR?", in mezzo al percorso che
+        // chiunque segue per creare la pausa — segnalato: si mischiava al
+        // "flow classico". Qui è chiaramente un avviso a parte, non un passo
+        // del percorso: chi ha già tutto pronto non lo vede nemmeno.
+        if (!allReady) {
+            GentleBanner(
                 text = stringResource(
-                    when {
-                        !allReady -> R.string.group_pause_notready_subtitle
-                        participantNames.isEmpty() -> R.string.group_pause_lobby_waiting_subtitle
-                        else -> R.string.group_pause_lobby_ready_subtitle
-                    }
+                    if (!hasPermissions) R.string.group_pause_bt_permission_notice
+                    else R.string.group_pause_bt_gentle_notice
                 ),
-                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.75f),
-                textAlign = TextAlign.Center,
-                modifier = Modifier.padding(top = 6.dp)
+                actionLabel = stringResource(
+                    if (!hasPermissions) R.string.group_pause_bt_permission_action
+                    else R.string.group_pause_bt_gentle_action
+                ),
+                onAction = {
+                    if (!hasPermissions) {
+                        permissionLauncher.launch(groupPauseBluetoothRuntimePermissions())
+                    } else {
+                        enableBtLauncher.launch(Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE))
+                    }
+                },
             )
-
-            // Il selettore di durata prima viveva su un passo separato prima
-            // della lobby (GroupPauseSetupScreen, rimosso): incorporarlo qui
-            // toglie uno schermo intero dal percorso di creazione, e non c'è
-            // motivo per bloccarlo mentre si aspetta — l'host non comunica
-            // nulla a nessuno finché non tocca "Iniziamo" (vedi il commento di
-            // classe di questo file).
-            SetupLabel(stringResource(R.string.group_pause_duration_label), topPadding = 20.dp)
-            MinutePillRow(
-                options = DURATION_OPTIONS,
-                selected = durationMinutes,
-                onSelect = { durationMinutes = it },
-                labelFor = { minutesLabel(it) },
-            )
-
-            if (!allReady) {
-                GentleBanner(
-                    text = stringResource(
-                        if (!hasPermissions) R.string.group_pause_bt_permission_notice
-                        else R.string.group_pause_bt_gentle_notice
-                    ),
-                    actionLabel = stringResource(
-                        if (!hasPermissions) R.string.group_pause_bt_permission_action
-                        else R.string.group_pause_bt_gentle_action
-                    ),
-                    onAction = {
-                        if (!hasPermissions) {
-                            permissionLauncher.launch(groupPauseBluetoothRuntimePermissions())
-                        } else {
-                            enableBtLauncher.launch(Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE))
-                        }
-                    },
-                )
-            }
-
-            // L'unica via d'uscita dalla lobby se l'altro telefono non si
-            // fa trovare via Bluetooth, quindi l'unica CTA secondaria di
-            // questa schermata a meritare il contenitore tinto (vedi
-            // [CalmSecondaryButton]): da link nudo si perdeva fra i testi.
-            CalmSecondaryButton(
-                text = stringResource(R.string.group_pause_prefer_code_link),
-                onClick = { onWantCodeInstead(durationMinutes) },
-                modifier = Modifier.padding(top = 12.dp),
-            )
-
-            Row(modifier = Modifier.fillMaxWidth().padding(top = 20.dp)) {
-                OutlinedButton(
-                    onClick = onCancel,
-                    modifier = Modifier.weight(1f).padding(end = 8.dp)
-                ) {
-                    Text(stringResource(android.R.string.cancel))
-                }
-                Button(
-                    onClick = {
-                        val recipe = GroupPauseRecipe(
-                            durationMinutes = durationMinutes,
-                            startAtEpochMillis = System.currentTimeMillis() + 5_000L,
-                            groupTag = groupTag,
-                        )
-                        // Copiati prima di broadcastRecipeAndClose(), che chiude
-                        // le connessioni: participantNames è la lista viva della
-                        // lobby, e dopo la chiusura non è più ciò che si vuole
-                        // registrare.
-                        val companions = participantNames.toList()
-                        host.broadcastRecipeAndClose(recipe.encode())
-                        onRecipeReady(recipe, companions)
-                    },
-                    enabled = participantNames.isNotEmpty(),
-                    modifier = Modifier.weight(1f)
-                ) {
-                    Text(stringResource(R.string.group_pause_start_button))
-                }
-            }
         }
     }
 }
@@ -259,21 +272,55 @@ private fun lobbyTitleFor(participantNames: List<String>): String = when (partic
 }
 
 /**
- * L'otter centrale che aspetta, con un anello attorno (tratteggiato mentre
- * non c'è nessuno, pieno e con un impulso "segnale" appena si aggiunge il
- * primo partecipante) e un otter satellite per ciascun partecipante
- * collegato, agganciato sull'anello — vedi specs/group-pause/design.md.
- * Fino a 6 satelliti mostrati esplicitamente: oltre, il conteggio resta
- * comunque leggibile dal testo sopra ([lobbyTitleFor]).
+ * L'otter centrale che aspetta, dentro lo stesso stagno a dischi concentrici
+ * del resto dell'app — non era così: fino a ieri c'era un solo anello
+ * sottile, e segnalato che l'otter non risultava "circondato dai cerchi"
+ * come nel mockup ("Time Together - Host Lobby", progetto Stitch
+ * 3158702940609906617, che stratifica un anello di contorno, uno tratteggiato
+ * rotante, un alone sfocato e un disco chiaro attorno alla mascotte).
+ *
+ * Qui la rotazione e il "ping" del mockup non ci sono: **niente animazione
+ * perpetua**, la stessa scelta già presa per [TandemPawsMedallion] in
+ * GroupPauseChooserScreen.kt e per lo stagno fermo della Home
+ * (`PondStill`/`AmbientRipples` in MainScreen.kt) — un'animazione senza fine
+ * accanto a un bottone "Iniziamo" tirerebbe l'occhio via da quello, e qui non
+ * ci sarebbe nemmeno un momento in cui fermarla, dato che questa schermata
+ * può restare aperta indefinitamente in attesa di qualcuno. I dischi restano
+ * quindi fermi; sono i colori dello stagno della Home — `tertiary` per i
+ * dischi, `surfaceBright` per quello chiaro — non `ringColor` (`primary`),
+ * che resta riservato all'anello esterno perché continui a dire lo stato.
+ *
+ * **L'anello esterno mantiene la sua logica invariata**: tratteggiato
+ * mentre non c'è nessuno, pieno e più marcato appena si aggiunge il primo
+ * partecipante, appena accennato finché manca un permesso o il Bluetooth.
+ * Quella è l'unica cosa che questo disegno deve ancora dire — il resto
+ * (permessi, Bluetooth) lo dice ormai il banner sotto ai bottoni, non più il
+ * titolo sopra (vedi il commento di classe di questo file).
+ *
+ * Un otter satellite per ciascun partecipante collegato, agganciato appena
+ * dentro l'anello esterno. Fino a 6 satelliti mostrati esplicitamente: oltre,
+ * il conteggio resta comunque leggibile dal testo sopra ([lobbyTitleFor]).
  */
 @Composable
 private fun ParticipantRing(participantNames: List<String>, ready: Boolean) {
     val ringColor = MaterialTheme.colorScheme.primary
+    val pondColor = MaterialTheme.colorScheme.tertiary
+    val pondBright = MaterialTheme.colorScheme.surfaceBright
     val hasParticipants = participantNames.isNotEmpty()
 
     Box(modifier = Modifier.size(200.dp), contentAlignment = Alignment.Center) {
         Canvas(modifier = Modifier.size(180.dp)) {
             val strokeWidth = 2.dp.toPx()
+
+            // Lo stagno, fermo, disegnato per primo così l'anello esterno
+            // (sotto) resti il bordo nitido sopra di esso. Raggi scelti
+            // perché il disco chiaro combaci con l'OtterZenMark di 110dp
+            // qui sotto — stessa proporzione con cui [TandemPawsMedallion]
+            // fa combaciare il proprio disco chiaro con TogetherMark.
+            drawCircle(color = pondColor, radius = 82.dp.toPx(), alpha = 0.14f)
+            drawCircle(color = pondColor, radius = 68.dp.toPx(), alpha = 0.26f)
+            drawCircle(color = pondBright, radius = 55.dp.toPx())
+
             when {
                 // Il tratteggio dice "sto aspettando qualcuno": va mostrato
                 // solo quando la lobby sta davvero ascoltando. Finché manca un

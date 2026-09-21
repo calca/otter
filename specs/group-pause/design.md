@@ -593,6 +593,35 @@ branch was then checked by temporarily forcing `allReady = true`,
 confirming the dashed ring and "Waiting for someone…" come back and the
 banner disappears, and reverting that immediately afterwards.
 
+### …and then the title/subtitle swap was reversed
+
+Reported directly against the redesigned host lobby ("le label non sono
+corrette, il flow è cambiato"): once the gentle banner became the
+permanent, always-available way to say *what's* missing and *how* to fix
+it (this same section, above), the hero text swapping to "Quasi pronti" /
+"Ancora un passaggio…" started saying the same thing a second time, in a
+vaguer way, right above the banner that already said it precisely. That
+duplication is exactly the pattern this app avoids everywhere else (the
+Home CTA rewrite, the history empty state, the chooser page) — it had
+just been reintroduced here in the act of fixing a different, real
+problem (the illustrations "miming activity" that wasn't happening).
+
+The fix this time: **the hero text stops depending on readiness at all.**
+Title and subtitle always show the real waiting/participant state
+(`lobbyTitleFor`, `group_pause_lobby_waiting_subtitle`/`_ready_subtitle`),
+exactly as the Stitch mockup has them — its "Waiting for someone…" has no
+missing-permissions variant, because the mockup doesn't model that state
+in copy at all, only in whatever inline affordance a real app would add
+(here, the banner). `group_pause_notready_title`,
+`group_pause_notready_subtitle` and `group_pause_notready_subtitle_join`
+are deleted rather than left orphaned, same convention as elsewhere in
+this codebase.
+
+What stays from the section above, unreversed: the illustrations still
+only animate/mime activity that is really happening (`ParticipantRing`'s
+dashed ring, `SearchingIllustration`'s radar) — that part of "honest lobby
+state" was never about the text and holds regardless.
+
 ## Duration chips: FlowRow, not a flat Row
 
 `MinutePillRow` laid its options out in a plain `Row`. With the five
@@ -611,6 +640,22 @@ choosing *between* these values, so all of them should stay visible at
 once — scrolling would hide some behind an edge. It also survives longer
 labels in other locales, which is the real reason not to just shrink the
 padding until it happens to fit on this one device.
+
+**This reasoning held while `MinutePillRow` only ever saw short lists**
+(the host lobby's original fixed `[15, 30, 60, 90, 120]`, later the QR
+share screen's 3-value delay picker). It stopped holding for the host
+lobby once its own duration list was widened to Home's full 8 values
+(`30..240` step 30, see "handshake-then-autonomy" above) — at that length
+it wraps to two rows regardless, so "all values visible at once" was no
+longer actually true, and the row now looked and behaved differently from
+the *identical* list on Home one screen away. Reported directly ("la
+duration, preferi pillole come quelle della home, scorrevoli"): the host
+lobby's picker now uses `ScrollableMinutePillRow` (`GroupPauseHostScreen.kt`),
+copying Home's own `DurationChipRow` treatment — a horizontally scrolling
+`Row`, selected pill filled `primary`, others `tertiary` at 55%. `MinutePillRow`
+itself is untouched and keeps wrapping for its one remaining caller, the
+QR share screen's 3-option delay picker, where the original reasoning
+still applies unmodified.
 
 ## The Create/Join chooser: two peers, not confirm/dismiss
 
@@ -1042,3 +1087,73 @@ Not taken: the mockup's "Both otters drift together — timer pauses
 simultaneously if either screen…" note, which describes a live sync this
 feature deliberately does not have (see "handshake then autonomy" above). A
 note that says the opposite of what the code does is worse than no note.
+
+## The card comes off, the otter gets its pond
+
+A further pass, reported against the host lobby directly (mockup: "Time
+Together - Host Lobby", Stitch project `3158702940609906617`):
+
+**`CalmCard` is gone from every Tempo Insieme screen** — both lobbies,
+the countdown, and the QR/manual-code join screen. It was a tinted
+`Surface(shape = RoundedCornerShape(20.dp), color = primary @ 6%)`
+wrapping each screen's content, extracted specifically for this flow (see
+its own doc comment in `CalmBackground.kt`) when the flow's screens still
+needed a visual boundary of their own. By the time this pass landed, the
+rest of the app — Home, the chooser page that starts this same flow — had
+already settled on a flat background with no card, and the lobby's own
+card now read as the odd one out one screen into the same journey rather
+than as a deliberate boundary. `CalmScreenColumn` (the safe-area +
+scroll + centring container) stays under every one of these screens
+unchanged; only the tinted `Surface` and its extra 20dp of inner padding
+are gone, so content now sits at `CalmScreenColumn`'s own 32dp margin
+instead of 52dp.
+
+`CalmCard` itself is **not** removed: `HistoryScreen.kt`'s empty state
+still wraps its closing quoted phrase in one, and that use was never part
+of this report or this flow. Caught by the compiler, not by reading first
+— an initial pass deleted the composable on the assumption that Tempo
+Insieme was its only caller, which a `grep` earlier in the same session
+had actually already shown to be false (`HistoryScreen.kt:520` was right
+there in the list); trust the build over a remembered grep. `CalmCard`'s
+own doc comment now says explicitly that it has one caller left instead
+of five, so the next person deciding whether it's safe to fold away
+doesn't have to re-derive this.
+
+**`ParticipantRing` gets a pond.** Reported plainly: the otter didn't
+read as "circondato dai cerchi" the way the mockup's hero does — the
+mockup layers an outline ring, a dashed rotating orbit, a blurred glow and
+a bright core disc around its otter; this screen had exactly one thin
+ring. The fix draws the same three filled discs `PondStill` (Home) and
+`TandemPawsMedallion` (the chooser page) already draw — veiled, pale,
+bright — in the same two colours, `tertiary` for the tinted discs and
+`surfaceBright` for the bright one, so the otter reads as sitting in the
+same pond in all three places despite being drawn by three different
+composables. Radii are picked so the bright disc's diameter matches
+`OtterZenMark`'s own 110dp, the same fit `TandemPawsMedallion` uses for
+its own mark.
+
+What the mockup's version does that this one deliberately doesn't:
+animate. Its outer ring pulses (`animate-ping`) and its dashed ring spins
+(`animate-spin`, 60s). Both `PondStill` and `TandemPawsMedallion` already
+made the opposite call and documented why — a perpetual animation next to
+something the person is about to decide on pulls the eye off the decision,
+and Home's own ripple work
+(`specs/home-and-settings/design.md`, "How fast the scene steps") measured
+what animating an otter's surroundings actually costs. This screen can sit
+open indefinitely waiting for someone to appear, which is the clearest
+case yet for "no perpetual animation": there would be no `SCENE_QUIET_AFTER_MILLIS`
+moment at which to ever stop it. The discs are therefore static; the
+ring's own dashed/solid/faint states (which already existed, and already
+carry the "is anyone listening" signal without motion) are untouched.
+
+Verified on-device, host side: card gone (flat background, same as the
+chooser page one screen back), the three ring/disc layers visible behind
+the otter in both the ready and not-ready states, duration scrolling
+through all eight values, and the permission banner sitting below
+Cancel/"Let's go" rather than between the duration picker and the "prefer
+a code" link. The join lobby got the same card removal and the same
+title/subtitle fix (see above) for consistency, since it shares the exact
+code pattern; its own hero illustrations (`OtterTapMark`,
+`SearchingIllustration`) are a different visual language from
+`ParticipantRing` and were not restyled — the report was specifically
+about the host lobby's ring.

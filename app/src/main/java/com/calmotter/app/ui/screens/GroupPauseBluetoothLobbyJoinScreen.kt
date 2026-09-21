@@ -76,6 +76,13 @@ private sealed class JoinLobbyState {
  * non tre opzioni alla pari come nella prima versione. Stesso avviso
  * gentile permessi/Bluetooth di [GroupPauseBluetoothLobbyHostScreen], nessuna
  * schermata dedicata per quei due passi.
+ *
+ * Stessi due ritocchi fatti lì, per la stessa ragione — vedi il commento di
+ * classe di [GroupPauseBluetoothLobbyHostScreen]: via la card tinta di
+ * fondo (sfondo piatto come il resto del flusso), e titolo/sottotitolo che
+ * non swappano più su un testo "permessi mancanti" — quello lo dice ormai
+ * solo [GentleReadinessBanner], e dirlo due volte era il residuo di quando
+ * questi due passi erano ancora una schermata a sé.
  */
 @Composable
 fun GroupPauseBluetoothLobbyJoinScreen(
@@ -163,170 +170,150 @@ fun GroupPauseBluetoothLobbyJoinScreen(
     }
 
     CalmScreenColumn(contentPadding = PaddingValues(32.dp)) {
-        CalmCard {
-            when (val current = state) {
-                JoinLobbyState.NfcHero -> {
-                    OtterTapMark(markSize = 88.dp)
-                    // Come sul lato host: finché manca un permesso o il
-                    // Bluetooth, "Avvicinati a chi ti aspetta" è un'istruzione
-                    // che non si può eseguire — il lettore NFC non è nemmeno
-                    // partito (vedi il DisposableEffect su allReady più sopra).
+        when (val current = state) {
+            JoinLobbyState.NfcHero -> {
+                OtterTapMark(markSize = 88.dp)
+                // Il testo non racconta più lo stato dei permessi (vedi il
+                // commento di classe): resta sempre "Avvicinati a chi ti
+                // aspetta", vero o no che il lettore NFC sia già partito
+                // — [GentleReadinessBanner] qui sotto dice cosa manca.
+                Text(
+                    text = stringResource(R.string.group_pause_join_nfc_title),
+                    fontSize = 19.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.primary,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.padding(top = 14.dp)
+                )
+                Text(
+                    text = stringResource(R.string.group_pause_join_nfc_subtitle),
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.75f),
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.padding(top = 6.dp)
+                )
+                if (!allReady) {
+                    GentleReadinessBanner(hasPermissions, onReadinessAction)
+                }
+                // Lo switch NFC↔ricerca resta un link di testo: cambia
+                // solo il modo di cercare, e restando in questa lobby.
+                // Il codice/QR invece è l'uscita di sicurezza quando il
+                // Bluetooth non basta — una sola CTA secondaria per
+                // schermata prende il contenitore tinto, altrimenti si
+                // torna al punto di partenza, con tutto uguale.
+                TextButton(onClick = { state = JoinLobbyState.SearchHero }, modifier = Modifier.padding(top = 20.dp)) {
+                    Text(stringResource(R.string.group_pause_join_search_link))
+                }
+                CalmSecondaryButton(
+                    text = stringResource(R.string.group_pause_join_code_link),
+                    onClick = onWantCodeInstead,
+                )
+            }
+            JoinLobbyState.SearchHero -> {
+                SearchingIllustration(hasResults = join.discovered.isNotEmpty(), searching = allReady)
+                Text(
+                    text = stringResource(R.string.group_pause_join_search_hero_title),
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.primary,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.padding(top = 14.dp)
+                )
+                if (join.discovered.isEmpty()) {
                     Text(
-                        text = stringResource(
-                            if (allReady) R.string.group_pause_join_nfc_title
-                            else R.string.group_pause_notready_title
-                        ),
+                        text = stringResource(R.string.group_pause_join_searching),
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.75f),
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier.padding(top = 6.dp)
+                    )
+                } else {
+                    Column(modifier = Modifier.fillMaxWidth().padding(top = 8.dp)) {
+                        join.discovered.forEach { found ->
+                            Surface(
+                                onClick = { connect(found.device) },
+                                shape = RoundedCornerShape(12.dp),
+                                color = MaterialTheme.colorScheme.primary.copy(alpha = 0.08f),
+                                modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp),
+                            ) {
+                                Text(
+                                    text = found.name,
+                                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
+                                    color = MaterialTheme.colorScheme.onSurface,
+                                )
+                            }
+                        }
+                    }
+                }
+                if (!allReady) {
+                    GentleReadinessBanner(hasPermissions, onReadinessAction)
+                }
+                if (nfcAvailable) {
+                    TextButton(onClick = { state = JoinLobbyState.NfcHero }, modifier = Modifier.padding(top = 16.dp)) {
+                        Text(stringResource(R.string.group_pause_join_nfc_title))
+                    }
+                }
+                // Stessa CTA dello stato NfcHero qui sopra, stesso
+                // trattamento: è la stessa schermata in due stati, non due.
+                CalmSecondaryButton(
+                    text = stringResource(R.string.group_pause_join_code_link),
+                    onClick = onWantCodeInstead,
+                )
+            }
+            JoinLobbyState.Connecting -> {
+                OtterZenMark(markSize = 88.dp)
+                Text(
+                    text = stringResource(R.string.group_pause_join_connecting),
+                    color = MaterialTheme.colorScheme.onSurface,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.padding(top = 14.dp)
+                )
+            }
+            JoinLobbyState.WaitingForHost -> {
+                OtterZenMark(markSize = 88.dp)
+                // Chi ospita e per quanto, appena l'host lo comunica: è ciò a
+                // cui si sta dicendo di sì, e va detto prima che la pausa
+                // cominci, non quando è già cominciata.
+                val name = hostName
+                val minutes = hostDurationMinutes
+                if (name != null) {
+                    Text(
+                        text = name,
                         fontSize = 19.sp,
                         fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.primary,
                         textAlign = TextAlign.Center,
                         modifier = Modifier.padding(top = 14.dp)
                     )
-                    Text(
-                        text = stringResource(
-                            if (allReady) R.string.group_pause_join_nfc_subtitle
-                            else R.string.group_pause_notready_subtitle_join
-                        ),
-                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.75f),
-                        textAlign = TextAlign.Center,
-                        modifier = Modifier.padding(top = 6.dp)
-                    )
-                    if (!allReady) {
-                        GentleReadinessBanner(hasPermissions, onReadinessAction)
-                    }
-                    // Lo switch NFC↔ricerca resta un link di testo: cambia
-                    // solo il modo di cercare, e restando in questa lobby.
-                    // Il codice/QR invece è l'uscita di sicurezza quando il
-                    // Bluetooth non basta — una sola CTA secondaria per
-                    // schermata prende il contenitore tinto, altrimenti si
-                    // torna al punto di partenza, con tutto uguale.
-                    TextButton(onClick = { state = JoinLobbyState.SearchHero }, modifier = Modifier.padding(top = 20.dp)) {
-                        Text(stringResource(R.string.group_pause_join_search_link))
-                    }
-                    CalmSecondaryButton(
-                        text = stringResource(R.string.group_pause_join_code_link),
-                        onClick = onWantCodeInstead,
-                    )
                 }
-                JoinLobbyState.SearchHero -> {
-                    SearchingIllustration(hasResults = join.discovered.isNotEmpty(), searching = allReady)
+                if (minutes != null) {
                     Text(
-                        text = stringResource(
-                            if (allReady) R.string.group_pause_join_search_hero_title
-                            else R.string.group_pause_notready_title
-                        ),
-                        fontSize = 18.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.primary,
-                        textAlign = TextAlign.Center,
-                        modifier = Modifier.padding(top = 14.dp)
-                    )
-                    if (!allReady) {
-                        // "Sto cercando…" sarebbe falso: la discovery parte solo
-                        // quando allReady diventa vero.
-                        Text(
-                            text = stringResource(R.string.group_pause_notready_subtitle_join),
-                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.75f),
-                            textAlign = TextAlign.Center,
-                            modifier = Modifier.padding(top = 6.dp)
-                        )
-                    } else if (join.discovered.isEmpty()) {
-                        Text(
-                            text = stringResource(R.string.group_pause_join_searching),
-                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.75f),
-                            textAlign = TextAlign.Center,
-                            modifier = Modifier.padding(top = 6.dp)
-                        )
-                    } else {
-                        Column(modifier = Modifier.fillMaxWidth().padding(top = 8.dp)) {
-                            join.discovered.forEach { found ->
-                                Surface(
-                                    onClick = { connect(found.device) },
-                                    shape = RoundedCornerShape(12.dp),
-                                    color = MaterialTheme.colorScheme.primary.copy(alpha = 0.08f),
-                                    modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp),
-                                ) {
-                                    Text(
-                                        text = found.name,
-                                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
-                                        color = MaterialTheme.colorScheme.onSurface,
-                                    )
-                                }
-                            }
-                        }
-                    }
-                    if (!allReady) {
-                        GentleReadinessBanner(hasPermissions, onReadinessAction)
-                    }
-                    if (nfcAvailable) {
-                        TextButton(onClick = { state = JoinLobbyState.NfcHero }, modifier = Modifier.padding(top = 16.dp)) {
-                            Text(stringResource(R.string.group_pause_join_nfc_title))
-                        }
-                    }
-                    // Stessa CTA dello stato NfcHero qui sopra, stesso
-                    // trattamento: è la stessa schermata in due stati, non due.
-                    CalmSecondaryButton(
-                        text = stringResource(R.string.group_pause_join_code_link),
-                        onClick = onWantCodeInstead,
-                    )
-                }
-                JoinLobbyState.Connecting -> {
-                    OtterZenMark(markSize = 88.dp)
-                    Text(
-                        text = stringResource(R.string.group_pause_join_connecting),
+                        text = stringResource(R.string.group_pause_join_lobby_duration, minutesLabel(minutes)),
                         color = MaterialTheme.colorScheme.onSurface,
                         textAlign = TextAlign.Center,
-                        modifier = Modifier.padding(top = 14.dp)
+                        modifier = Modifier.padding(top = 4.dp)
                     )
                 }
-                JoinLobbyState.WaitingForHost -> {
-                    OtterZenMark(markSize = 88.dp)
-                    // Chi ospita e per quanto, appena l'host lo comunica: è ciò a
-                    // cui si sta dicendo di sì, e va detto prima che la pausa
-                    // cominci, non quando è già cominciata.
-                    val name = hostName
-                    val minutes = hostDurationMinutes
-                    if (name != null) {
-                        Text(
-                            text = name,
-                            fontSize = 19.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = MaterialTheme.colorScheme.primary,
-                            textAlign = TextAlign.Center,
-                            modifier = Modifier.padding(top = 14.dp)
-                        )
-                    }
-                    if (minutes != null) {
-                        Text(
-                            text = stringResource(R.string.group_pause_join_lobby_duration, minutesLabel(minutes)),
-                            color = MaterialTheme.colorScheme.onSurface,
-                            textAlign = TextAlign.Center,
-                            modifier = Modifier.padding(top = 4.dp)
-                        )
-                    }
-                    Text(
-                        text = stringResource(R.string.group_pause_join_waiting_host),
-                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
-                        textAlign = TextAlign.Center,
-                        modifier = Modifier.padding(top = if (name != null || minutes != null) 12.dp else 14.dp)
-                    )
-                }
-                is JoinLobbyState.Error -> {
-                    Text(
-                        text = current.message,
-                        color = MaterialTheme.colorScheme.error,
-                        textAlign = TextAlign.Center,
-                        modifier = Modifier.padding(bottom = 16.dp),
-                    )
-                    Button(onClick = { state = if (nfcAvailable) JoinLobbyState.NfcHero else JoinLobbyState.SearchHero }) {
-                        Text(stringResource(R.string.group_pause_join_retry_button))
-                    }
+                Text(
+                    text = stringResource(R.string.group_pause_join_waiting_host),
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.padding(top = if (name != null || minutes != null) 12.dp else 14.dp)
+                )
+            }
+            is JoinLobbyState.Error -> {
+                Text(
+                    text = current.message,
+                    color = MaterialTheme.colorScheme.error,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.padding(bottom = 16.dp),
+                )
+                Button(onClick = { state = if (nfcAvailable) JoinLobbyState.NfcHero else JoinLobbyState.SearchHero }) {
+                    Text(stringResource(R.string.group_pause_join_retry_button))
                 }
             }
+        }
 
-            OutlinedButton(onClick = onCancel, modifier = Modifier.fillMaxWidth().padding(top = 20.dp)) {
-                Text(stringResource(android.R.string.cancel))
-            }
+        OutlinedButton(onClick = onCancel, modifier = Modifier.fillMaxWidth().padding(top = 20.dp)) {
+            Text(stringResource(android.R.string.cancel))
         }
     }
 }
