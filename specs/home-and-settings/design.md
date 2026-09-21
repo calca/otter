@@ -819,3 +819,58 @@ and the patch with the run number (see app/build.gradle.kts), this line is
 the only way, phone in hand, to know which build you are running — half an
 hour went into exactly that confusion while debugging on an S22. A local
 build reads "0.1.1 (build 1)", which is the honest answer for one.
+
+### Second pass: section order, a leftover Spacer, and a grid that only broke in Italian
+
+Three things reported together, all on Settings, none of them touching a
+value or a permission — just the page's own layout.
+
+**Section order.** Was Permissions, Home, Theme, Password, Pause
+experience, Info; is now Theme, Password, Home, Pause experience,
+Permissions, Info. Theme and Password lead because they are the two
+things someone comes to this screen to *change*; Permissions moved down
+because it is a status to check, not a choice to make, and nothing about
+it being system-level earns it the top of the page — if something here
+is actually blocking, the otter tap already says so (see
+`PermissionExplainerDialog` in `MainScreen.kt`).
+
+**The icon misalignment was the leftover status circle, not a new bug.**
+"Two things the first pass got wrong" above records that the old status
+circle next to each permission's icon was removed as redundant. What that
+paragraph does not say — because it wasn't true yet — is that removing
+the *circle* left its `Spacer(width = 12.dp)` behind, still there, still
+pushing `PermissionStatusRow`'s icon and label 12dp further right than
+every other row on the page. Nobody had a reason to notice a single
+row's icon sitting slightly off from its neighbours until the *rows*
+were compared directly, which is what happened here: reported as "le
+icone non sono ben allineate", confirmed by reading off each row's label
+bounds from the accessibility tree rather than eyeballing screenshots —
+`Accessibilità`/`Non disturbare` started at x=330, every other row's
+label (`App Home`, `Cambia password`, `Mostra frasi…`) at x=258. Fixed by
+deleting the stray `Spacer`, not by adding one everywhere else to match
+it.
+
+**The theme grid only looked broken in Italian because only Italian's
+labels are long enough to wrap.** `ThemeGridCell` sized itself off its
+own content, so two cells sharing a `Row` had independent heights
+whenever their labels wrapped differently. "Sage"/"Deep Forest" and
+"Salvia"/"Foresta profonda" all fit one line in both languages, so the
+top row was never visibly broken in either; "Dusk Sand"/"Dawn Clay" fit
+one line too, but "Sabbia al tramonto" wraps to two while "Argilla
+all'alba" stays on one — so the bottom row grew a visibly ragged edge,
+in Italian only, which is exactly the shape of what was reported ("il
+tema, quando è italiano, non è ben allineato"). The fix does not
+special-case Italian or these particular strings: `Row(Modifier.height(
+IntrinsicSize.Max))` around each pair plus `Modifier.weight(1f)
+.fillMaxHeight()` on every `ThemeGridCell` makes both cells in a row
+stretch to whichever is taller, by construction, for any label length in
+any language — including ones not written yet.
+
+Verified on-device in both languages (the per-app locale override,
+`cmd locale set-app-locales com.calmotter.app --locales it-IT`, rather
+than the emulator's system locale — this app has no other Italian
+region to fall back to since `values/` *is* the Italian base and
+`values-en/` the only other one, so switching the system away from
+English was enough, but the per-app command is the more targeted tool
+and was cleared again afterwards): row label bounds now agree across
+every card, and both theme-grid rows sit flush in Italian.

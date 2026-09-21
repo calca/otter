@@ -6,8 +6,11 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawingPadding
@@ -58,17 +61,19 @@ import com.calmotter.app.PhraseManager
 import com.calmotter.app.R
 
 /**
- * Configurazione: stato di accessibilità/DND (spostati qui dalla Home, vedi
- * MainScreen.kt e home-and-settings/requirements.md — non bloccano l'avvio
- * di una pausa in sé, quindi controllarli a ogni apertura dell'app era
- * percepito come fastidioso), app Home (sezione propria, un solo toggle),
- * personalizzazione (palette, in stile card/lista come i permessi), lo
- * stato della password (chi l'ha impostata, cambio password, elenco app
- * consentite), le preferenze non critiche (frasi riflessive, un toggle), e
- * una sezione "Info" con link esterni (repo GitHub, licenza, sviluppatore).
- * Ogni sezione è una card a bassa opacità con righe divise da
- * [HorizontalDivider] — stesso linguaggio visivo in tutta la schermata,
- * niente più pulsanti pieni o un Checkbox isolato.
+ * Configurazione, in quest'ordine — Tema, Password, Home, Pausa, Permessi,
+ * Info (riordinato, vedi il commento sopra alle chiamate delle sezioni per
+ * il perché): personalizzazione (palette, griglia 2×2); lo stato della
+ * password (chi l'ha impostata, cambio password, elenco app consentite);
+ * app Home (sezione propria, un solo toggle); le preferenze non critiche
+ * (frasi riflessive, un toggle); stato di accessibilità/DND (spostati qui
+ * dalla Home, vedi MainScreen.kt e home-and-settings/requirements.md — non
+ * bloccano l'avvio di una pausa in sé, quindi controllarli a ogni apertura
+ * dell'app era percepito come fastidioso); e una sezione "Info" con link
+ * esterni (repo GitHub, licenza, sviluppatore). Ogni sezione è una card a
+ * bassa opacità con righe divise da [HorizontalDivider] — stesso linguaggio
+ * visivo in tutta la schermata, niente più pulsanti pieni o un Checkbox
+ * isolato.
  *
  * Diversi valori (stato accessibilità/DND/Home) dipendono da stato esterno
  * che Compose non osserva automaticamente: vanno ricalcolati manualmente a
@@ -119,18 +124,15 @@ fun SettingsScreen(
             .verticalScroll(rememberScrollState())
             .padding(24.dp)
     ) {
-        SectionLabel(stringResource(R.string.settings_permissions_label), topPadding = 0.dp)
-        PermissionStatusCard(
-            accessibilityOk = accessibilityOk,
-            dndOk = dndOk,
-            onGrantAccessibility = onGrantAccessibility,
-            onGrantDnd = onGrantDnd,
-        )
-
-        SectionLabel(stringResource(R.string.settings_home_label))
-        HomeCard(homeOk = homeOk, onSetHome = onSetHome)
-
-        SectionLabel(stringResource(R.string.settings_theme_label))
+        // Ordine: Tema, Password, Home, Pausa, Permessi, Info — segnalato
+        // ("riordina le sezioni"). Tema e Password in cima perché sono le
+        // due scelte che qualcuno arriva qui a *fare*; Permessi scende
+        // verso il fondo perché è uno stato da consultare, non un'azione,
+        // e non richiede più attenzione delle altre sezioni solo perché è
+        // di sistema — se manca qualcosa di bloccante, l'app lo dice già
+        // al tap sull'otter (vedi PermissionExplainerDialog in
+        // MainScreen.kt), non serve ripeterlo qui in prima posizione.
+        SectionLabel(stringResource(R.string.settings_theme_label), topPadding = 0.dp)
         ThemeListCard(currentTheme = currentTheme, onPickTheme = onPickTheme)
 
         SectionLabel(stringResource(R.string.settings_password_label))
@@ -140,11 +142,22 @@ fun SettingsScreen(
             onManageApps = { showManageAppsDialog = true },
         )
 
+        SectionLabel(stringResource(R.string.settings_home_label))
+        HomeCard(homeOk = homeOk, onSetHome = onSetHome)
+
         SectionLabel(stringResource(R.string.settings_pause_experience_label))
         PhrasesCard(checked = phrasesEnabled, onCheckedChange = { checked ->
             phrasesEnabled = checked
             phraseManager.setEnabled(checked)
         })
+
+        SectionLabel(stringResource(R.string.settings_permissions_label))
+        PermissionStatusCard(
+            accessibilityOk = accessibilityOk,
+            dndOk = dndOk,
+            onGrantAccessibility = onGrantAccessibility,
+            onGrantDnd = onGrantDnd,
+        )
 
         SectionLabel(stringResource(R.string.settings_info_label))
         InfoCard(
@@ -312,8 +325,13 @@ private fun PermissionStatusRow(
         // Nessun cerchio di stato accanto all'icona: due pastiglie tonde
         // sulla stessa riga si guardavano a vicenda senza che la prima
         // aggiungesse nulla — lo stato è già scritto a destra ("Concedi"
-        // contro "Fatto"), a parole invece che per forma.
-        Spacer(modifier = Modifier.width(12.dp))
+        // contro "Fatto"), a parole invece che per forma. Lo spazio che
+        // occupava è sparito con lei: **senza [SettingsRowIcon] restava
+        // uno Spacer(12dp) in più, che nessun'altra riga della schermata
+        // ha** — le icone qui partivano 12dp più a destra di quelle di
+        // Home, Password e Pausa. Segnalato ("le icone non sono ben
+        // allineate") e verificato sullo schermo: il testo di questa
+        // card iniziava a x=330 contro x=258 di tutte le altre.
         SettingsRowIcon { icon() }
         Text(
             text = label,
@@ -442,14 +460,30 @@ private fun ThemeListCard(currentTheme: AppTheme, onPickTheme: (AppTheme) -> Uni
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
         entries.chunked(2).forEach { row ->
-            Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+            // `IntrinsicSize.Max` sulla Row + `fillMaxHeight()` su ogni
+            // cella: le due celle di una riga si stirano alla più alta
+            // delle due invece di misurarsi ciascuna per conto proprio.
+            // Segnalato in italiano ("il tema non è ben allineato") — "Sabbia
+            // al tramonto" va a capo su due righe mentre "Argilla all'alba"
+            // no, e senza questo le due celle risultavano di altezza
+            // diversa nella stessa riga, col bordo della cella selezionata
+            // che finiva più in alto o più in basso del vicino. La riga
+            // sopra ("Salvia" / "Foresta profonda") capita a stare su una
+            // riga sola in entrambe le lingue, motivo per cui il problema
+            // si vedeva solo in fondo alla griglia — ma la correzione non
+            // dipende da quale etichetta è più lunga in quale lingua, regge
+            // qualunque lunghezza per costruzione.
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                modifier = Modifier.height(IntrinsicSize.Max),
+            ) {
                 row.forEach { (theme, labelRes, colorRes) ->
                     ThemeGridCell(
                         label = stringResource(labelRes),
                         swatchColor = colorResource(colorRes),
                         selected = currentTheme == theme,
                         onClick = { onPickTheme(theme) },
-                        modifier = Modifier.weight(1f),
+                        modifier = Modifier.weight(1f).fillMaxHeight(),
                     )
                 }
             }
