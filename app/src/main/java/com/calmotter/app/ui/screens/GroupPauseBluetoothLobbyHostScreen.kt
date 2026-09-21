@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawingPadding
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
@@ -151,67 +152,99 @@ fun GroupPauseBluetoothLobbyHostScreen(
 
     val participantNames = host.participantNames
 
-    CalmScreenColumn(contentPadding = PaddingValues(32.dp)) {
-        ParticipantRing(participantNames = participantNames, ready = allReady)
+    // Bottoni ancorati al fondo pagina, su richiesta esplicita: il resto del
+    // contenuto (anello, titolo, durata, "preferisci un codice") vive in una
+    // Column interna con weight(1f) e la stessa `Arrangement.Center` che
+    // CalmScreenColumn usava di default per tutto — così resta centrato
+    // *nello spazio sopra i bottoni*, invece che nella pagina intera, mentre
+    // i bottoni (e il banner sotto di loro, invariato) restano l'ultima cosa
+    // in basso indipendentemente da quanto contenuto c'è sopra.
+    CalmScreenColumn(contentPadding = PaddingValues(32.dp), verticalArrangement = Arrangement.Top) {
+        Column(
+            modifier = Modifier.weight(1f).fillMaxWidth(),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center,
+        ) {
+            ParticipantRing(participantNames = participantNames, ready = allReady)
 
-        // **Titolo e sottotitolo non raccontano più lo stato dei permessi.**
-        // Prima swappavano su "Quasi pronti" / "Ancora un passaggio..." a
-        // permessi mancanti — testo scritto per quando questi due passi
-        // erano ancora una schermata a sé (vedi "No more dedicated
-        // permission screens" in specs/group-pause/design.md). Da quando
-        // sono diventati un avviso inline, quello swap ripeteva la stessa
-        // notizia due volte: il titolo diceva "manca qualcosa" e il banner,
-        // subito sotto ai bottoni ora, diceva *cosa* e *come* rimediare.
-        // Il titolo resta quindi sempre quello vero — chi c'è, o chi si
-        // aspetta — esattamente come nel mockup, che non ha uno stato
-        // "permessi mancanti" testuale a parte.
-        Text(
-            text = lobbyTitleFor(participantNames),
-            fontSize = 18.sp,
-            fontWeight = FontWeight.Bold,
-            color = MaterialTheme.colorScheme.primary,
-            textAlign = TextAlign.Center,
-        )
-        Text(
-            text = stringResource(
-                if (participantNames.isEmpty()) R.string.group_pause_lobby_waiting_subtitle
-                else R.string.group_pause_lobby_ready_subtitle
-            ),
-            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.75f),
-            textAlign = TextAlign.Center,
-            modifier = Modifier.padding(top = 6.dp)
-        )
+            // **Titolo e sottotitolo non raccontano più lo stato dei permessi.**
+            // Prima swappavano su "Quasi pronti" / "Ancora un passaggio..." a
+            // permessi mancanti — testo scritto per quando questi due passi
+            // erano ancora una schermata a sé (vedi "No more dedicated
+            // permission screens" in specs/group-pause/design.md). Da quando
+            // sono diventati un avviso inline, quello swap ripeteva la stessa
+            // notizia due volte: il titolo diceva "manca qualcosa" e il banner,
+            // subito sotto ai bottoni ora, diceva *cosa* e *come* rimediare.
+            // Il titolo resta quindi sempre quello vero — chi c'è, o chi si
+            // aspetta — esattamente come nel mockup, che non ha uno stato
+            // "permessi mancanti" testuale a parte.
+            Text(
+                text = lobbyTitleFor(participantNames),
+                fontSize = 18.sp,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.primary,
+                textAlign = TextAlign.Center,
+            )
+            Text(
+                text = stringResource(
+                    if (participantNames.isEmpty()) R.string.group_pause_lobby_waiting_subtitle
+                    else R.string.group_pause_lobby_ready_subtitle
+                ),
+                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.75f),
+                textAlign = TextAlign.Center,
+                modifier = Modifier.padding(top = 6.dp)
+            )
 
-        // Il selettore di durata prima viveva su un passo separato prima
-        // della lobby (GroupPauseSetupScreen, rimosso): incorporarlo qui
-        // toglie uno schermo intero dal percorso di creazione, e non c'è
-        // motivo per bloccarlo mentre si aspetta — l'host non comunica
-        // nulla a nessuno finché non tocca "Iniziamo" (vedi il commento di
-        // classe di questo file). Scorre invece di andare a capo — vedi
-        // [ScrollableMinutePillRow] in GroupPauseHostScreen.kt.
-        SetupLabel(stringResource(R.string.group_pause_duration_label), topPadding = 20.dp)
-        ScrollableMinutePillRow(
-            options = DURATION_OPTIONS,
-            selected = durationMinutes,
-            onSelect = { durationMinutes = it },
-            labelFor = { minutesLabel(it) },
-        )
+            // Il selettore di durata prima viveva su un passo separato prima
+            // della lobby (GroupPauseSetupScreen, rimosso): incorporarlo qui
+            // toglie uno schermo intero dal percorso di creazione, e non c'è
+            // motivo per bloccarlo mentre si aspetta — l'host non comunica
+            // nulla a nessuno finché non tocca "Iniziamo" (vedi il commento di
+            // classe di questo file). Scorre invece di andare a capo — vedi
+            // [ScrollableMinutePillRow] in GroupPauseHostScreen.kt.
+            SetupLabel(stringResource(R.string.group_pause_duration_label), topPadding = 20.dp)
+            ScrollableMinutePillRow(
+                options = DURATION_OPTIONS,
+                selected = durationMinutes,
+                onSelect = { durationMinutes = it },
+                labelFor = { minutesLabel(it) },
+            )
 
-        // L'unica via d'uscita dalla lobby se l'altro telefono non si
-        // fa trovare via Bluetooth, quindi l'unica CTA secondaria di
-        // questa schermata a meritare il contenitore tinto (vedi
-        // [CalmSecondaryButton]): da link nudo si perdeva fra i testi.
-        CalmSecondaryButton(
-            text = stringResource(R.string.group_pause_prefer_code_link),
-            onClick = { onWantCodeInstead(durationMinutes) },
-            modifier = Modifier.padding(top = 20.dp),
-        )
+            // L'unica via d'uscita dalla lobby se l'altro telefono non si
+            // fa trovare via Bluetooth, quindi l'unica CTA secondaria di
+            // questa schermata a meritare il contenitore tinto (vedi
+            // [CalmSecondaryButton]): da link nudo si perdeva fra i testi.
+            CalmSecondaryButton(
+                text = stringResource(R.string.group_pause_prefer_code_link),
+                onClick = { onWantCodeInstead(durationMinutes) },
+                modifier = Modifier.padding(top = 20.dp),
+            )
+        }
 
-        // A tutta larghezza, uno sotto l'altro invece che affiancati — su
-        // richiesta esplicita, applicata qui e all'onboarding (vedi
-        // OnboardingScreen.kt). Azione primaria (Iniziamo) sopra, Cancel
-        // sotto, stesso ordine "positiva prima, negativa dopo".
-        Column(modifier = Modifier.fillMaxWidth().padding(top = 20.dp)) {
+        // A tutta larghezza, uno sotto l'altro invece che affiancati, ancorati
+        // al fondo pagina — su richiesta esplicita, applicata qui e
+        // all'onboarding (vedi OnboardingScreen.kt). L'ordine è stato
+        // invertito su richiesta successiva: **l'azione primaria (Iniziamo)
+        // è l'ultima**, non la prima — Cancel sopra, Iniziamo sotto. Altezza
+        // 48.dp esplicita su entrambi: il default M3 (`ButtonDefaults.MinHeight`)
+        // è 40.dp, sotto il target minimo di tocco raccomandato (48dp,
+        // Material Design/WCAG 2.5.5) — misurato sull'emulatore prima della
+        // modifica (120px / density 3.0 = 40dp, non un'approssimazione).
+        Column(
+            modifier = Modifier.fillMaxWidth().padding(top = 20.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            // `Arrangement.spacedBy` e non `.padding(top = 8.dp)` sul
+            // secondo bottone: applicato *dopo* `.height(48.dp)` nella catena
+            // di modifier, il padding veniva "mangiato" dentro l'altezza già
+            // fissata invece di aggiungersi sopra — misurato 40dp invece di
+            // 48dp sull'emulatore. Lo spazio fra i due va sulla Column.
+            OutlinedButton(
+                onClick = onCancel,
+                modifier = Modifier.fillMaxWidth().height(48.dp)
+            ) {
+                Text(stringResource(android.R.string.cancel))
+            }
             Button(
                 onClick = {
                     val recipe = GroupPauseRecipe(
@@ -228,15 +261,9 @@ fun GroupPauseBluetoothLobbyHostScreen(
                     onRecipeReady(recipe, companions)
                 },
                 enabled = participantNames.isNotEmpty(),
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth().height(48.dp)
             ) {
                 Text(stringResource(R.string.group_pause_start_button))
-            }
-            OutlinedButton(
-                onClick = onCancel,
-                modifier = Modifier.fillMaxWidth().padding(top = 8.dp)
-            ) {
-                Text(stringResource(android.R.string.cancel))
             }
         }
 

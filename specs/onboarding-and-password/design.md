@@ -185,16 +185,35 @@ problem and still fit comfortably without scrolling), so `StepBody`'s
 shared 24dp illustration-to-title spacer was left alone; only this step's
 own values were tightened.
 
-### Back/Next is a `Column` now, not a `Row`
+### Back/Next is a `Column` now, not a `Row` — and the order flipped
 
 On request ("tutti i bottoni, posso essere a tutta larghezza ed uno sotto
-l'altro?"): the bottom navigation is full-width `Next`/`Finish` on top,
-full-width `Back` below it (only rendered from step 2 on, same as before —
-step 1 just shows `Next` alone, no empty spacer needed now that there's no
-sibling to balance a `Row` against). Primary action first, secondary
-below, same "positive above negative" order used for the equivalent change
-in the Bluetooth lobby host screen (`specs/group-pause/design.md`). Text
-and behavior are unchanged, only the layout axis.
+l'altro?"): the bottom navigation went from a side-by-side `Row` to a
+full-width `Column`. A follow-up request reversed the order within that
+same change: **`Back` is on top, `Next`/`Finish` is last** — the primary
+action is the bottom-most one, not the first, which reads as "the one
+closest to where your thumb already is" rather than "positive above
+negative". `Back` only renders from step 2 on, same as before; step 1
+still shows `Next` alone.
+
+Already anchored to the page bottom before this change and unaffected by
+it — the scrollable step-content `Column` above carries `Modifier.weight(1f)`
+(see the root `Column` at the top of `OnboardingScreen`), so the button
+`Column` was already the last, non-scrolling sibling pinned below whatever
+space that leaves. No restructuring needed here, unlike the Bluetooth lobby
+host screen (`specs/group-pause/design.md`), which centred its content with
+`Arrangement.Center` and needed one.
+
+**CTA height made explicit: `.height(48.dp)` on both buttons.** Measured on
+the emulator before this change: 120px at this device's 480dpi (density
+3.0) = 40dp, Material3's own `ButtonDefaults.MinHeight` and below the
+48dp minimum touch target Material Design/WCAG 2.5.5 recommend — not
+trusted from the M3 default, verified and then fixed. The gap between the
+two stacked buttons is `Arrangement.spacedBy(8.dp)` on the `Column`, not
+`.padding(top = 8.dp)` on the second button: that padding, chained *after*
+`.height(48.dp)`, was absorbed into the already-fixed height instead of
+adding space above it — measured 40dp again on that one button specifically
+until caught and moved to the `Column`.
 
 ## Bold emphasis in step bodies: `boldAnnotatedString`
 

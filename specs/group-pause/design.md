@@ -1416,14 +1416,38 @@ the same build.
 ## The host lobby's Cancel/"Iniziamo" is a `Column` now, not a `Row`
 
 On request ("tutti i bottoni, posso essere a tutta larghezza ed uno sotto
-l'altro?"): full-width `Iniziamo`/"Let's go" on top, full-width `Cancel`
-below it, instead of side by side. Primary action first, secondary below —
-same order as the equivalent change to onboarding's Back/Next
-(`specs/onboarding-and-password/design.md`), applied together on the same
-request. Neither the enable condition (`participantNames.isNotEmpty()`)
-nor the click handlers changed, only the layout axis. The three
-Material3-dialog Cancel/Confirm pairs elsewhere in the app (password
-unlock, weekly goal, clear-history confirm) were explicitly left as-is —
-not part of this request, and stacking them needs a different approach
-(both buttons inside the `confirmButton` slot, `dismissButton` left empty)
-since `AlertDialog` lays its own action slots out horizontally.
+l'altro?"): full-width `Cancel`/`Iniziamo` stacked instead of side by side.
+Neither the enable condition (`participantNames.isNotEmpty()`) nor the
+click handlers changed, only the layout axis. The three Material3-dialog
+Cancel/Confirm pairs elsewhere in the app (password unlock, weekly goal,
+clear-history confirm) were explicitly left as-is — not part of this
+request, and stacking them needs a different approach (both buttons inside
+the `confirmButton` slot, `dismissButton` left empty) since `AlertDialog`
+lays its own action slots out horizontally.
+
+Two follow-up requests refined this same change:
+
+- **The order flipped.** First pass put `Iniziamo` on top ("positive above
+  negative"); asked directly afterward, reversed to **`Cancel` on top,
+  `Iniziamo` last** — the primary action is the bottom-most button, not the
+  first.
+- **Anchored to the page bottom**, not just stacked wherever they fell in
+  the content flow. `CalmScreenColumn` (`CalmBackground.kt`) defaults to
+  `Arrangement.Center` — everything passed to it, buttons included, was
+  centred as one group within the whole scrollable page, which on a short
+  lobby (no participants yet, `!allReady` banner hidden) left the buttons
+  floating mid-screen rather than docked at the bottom. Fixed by wrapping
+  everything *except* the button `Column` (and the `GentleBanner` that
+  sits below it, unchanged) in its own inner `Column` with `weight(1f)`
+  and that same `Arrangement.Center` — so the ring/title/duration/link
+  group stays centred *within the space above the buttons*, while the
+  buttons (and the banner beneath them) are the last, non-weighted
+  siblings pinned to whatever's left at the bottom.
+- **CTA height made explicit: `.height(48.dp)` on both buttons**, for the
+  same reason and with the same fix detailed in
+  `specs/onboarding-and-password/design.md` ("CTA height made explicit")
+  — default M3 button height measured 40dp on the emulator, below the
+  48dp minimum touch target; the gap between the two stacked buttons is
+  `Arrangement.spacedBy(8.dp)` on their `Column`, not `.padding(top = 8.dp)`
+  chained after `.height(48.dp)` on the second one, which silently ate
+  into the fixed height instead of adding space above it.

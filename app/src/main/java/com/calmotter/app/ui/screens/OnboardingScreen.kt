@@ -192,19 +192,42 @@ fun OnboardingScreen(
             }
         }
 
-        // A tutta larghezza, una sotto l'altra invece che affiancate — su
-        // richiesta esplicita, applicata qui e alla lobby Bluetooth host
-        // (vedi GroupPauseBluetoothLobbyHostScreen.kt), non ai dialoghi
-        // Material3 con confirmButton/dismissButton, lasciati affiancati.
-        // L'azione primaria (Next/Finish) sta sopra, Back sotto — stesso
-        // ordine "positiva prima, negativa dopo" di un bottom sheet.
+        // A tutta larghezza, una sotto l'altra invece che affiancate, ancorate
+        // al fondo pagina (già così: la Column scrollabile sopra ha
+        // weight(1f), vedi sopra) — su richiesta esplicita, applicata qui e
+        // alla lobby Bluetooth host (vedi GroupPauseBluetoothLobbyHostScreen.kt),
+        // non ai dialoghi Material3 con confirmButton/dismissButton, lasciati
+        // affiancati. L'ordine è stato invertito su richiesta successiva:
+        // **l'azione primaria (Next/Finish) è l'ultima**, non la prima — Back
+        // sopra, Next/Finish sotto. Altezza 48.dp esplicita su entrambi: il
+        // default M3 (`ButtonDefaults.MinHeight`) è 40.dp, sotto il target
+        // minimo di tocco raccomandato (48dp, Material Design/WCAG 2.5.5).
         Column(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(24.dp),
+            // `spacedBy` e non `.padding(top = 8.dp)` sul secondo bottone:
+            // applicato *dopo* `.height(48.dp)` nella catena di modifier, il
+            // padding veniva "mangiato" dentro l'altezza già fissata invece
+            // di aggiungersi sopra — misurato 40dp invece di 48dp
+            // sull'emulatore. Lo spazio fra i due va sulla Column, e con un
+            // solo bottone (step 0, niente Back) non lascia comunque spazio
+            // fantasma perché non ha nulla da distanziare.
+            verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
             val passwordTooShortText = stringResource(R.string.password_too_short)
             val passwordsDontMatchText = stringResource(R.string.passwords_dont_match)
+
+            if (currentStep > 0) {
+                OutlinedButton(
+                    onClick = { currentStep -= 1 },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(48.dp)
+                ) {
+                    Text(stringResource(R.string.onb_back))
+                }
+            }
 
             Button(
                 onClick = {
@@ -230,24 +253,15 @@ fun OnboardingScreen(
                         onFinished()
                     }
                 },
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(48.dp)
             ) {
                 Text(
                     stringResource(
                         if (currentStep == STEP_COUNT - 1) R.string.onb_finish else R.string.onb_next
                     )
                 )
-            }
-
-            if (currentStep > 0) {
-                OutlinedButton(
-                    onClick = { currentStep -= 1 },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(top = 8.dp)
-                ) {
-                    Text(stringResource(R.string.onb_back))
-                }
             }
         }
     }
