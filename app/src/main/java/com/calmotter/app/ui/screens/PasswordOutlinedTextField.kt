@@ -2,7 +2,9 @@ package com.calmotter.app.ui.screens
 
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
@@ -55,6 +57,8 @@ fun PasswordOutlinedTextField(
     label: String,
     modifier: Modifier = Modifier,
     enabled: Boolean = true,
+    imeAction: ImeAction = ImeAction.Default,
+    keyboardActions: KeyboardActions = KeyboardActions.Default,
 ) {
     var passwordVisible by remember { mutableStateOf(false) }
 
@@ -91,7 +95,8 @@ fun PasswordOutlinedTextField(
         label = label,
         enabled = enabled,
         visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
-        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password, imeAction = imeAction),
+        keyboardActions = keyboardActions,
         trailingIcon = {
             val description = stringResource(
                 if (passwordVisible) R.string.hide_password else R.string.show_password

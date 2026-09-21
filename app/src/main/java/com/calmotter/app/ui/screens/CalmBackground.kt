@@ -32,6 +32,7 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 
 /**
@@ -224,6 +225,7 @@ fun CalmTextField(
     enabled: Boolean = true,
     singleLine: Boolean = true,
     keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
+    keyboardActions: KeyboardActions = KeyboardActions.Default,
     visualTransformation: VisualTransformation = VisualTransformation.None,
     leadingIcon: @Composable (() -> Unit)? = null,
     trailingIcon: @Composable (() -> Unit)? = null,
@@ -236,6 +238,7 @@ fun CalmTextField(
         enabled = enabled,
         singleLine = singleLine,
         keyboardOptions = keyboardOptions,
+        keyboardActions = keyboardActions,
         visualTransformation = visualTransformation,
         // Niente `label`: al suo posto il segnaposto, come nel mockup.
         placeholder = { Text(label) },

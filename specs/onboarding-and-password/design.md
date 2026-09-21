@@ -215,6 +215,42 @@ two stacked buttons is `Arrangement.spacedBy(8.dp)` on the `Column`, not
 adding space above it — measured 40dp again on that one button specifically
 until caught and moved to the `Column`.
 
+### The keyboard's "Next" now chains through the three fields
+
+Requested: "quando faccio next mi deve portare alla successiva testbox
+vuota, così da facilitare l'onboarding". Name/password/confirm-password had
+no `KeyboardOptions`/`KeyboardActions` at all before this — the IME's own
+action-button label and behavior fell back to whatever default the system
+picked (observed as "Done"/closes-and-does-nothing-else on this emulator),
+so pressing it never moved focus anywhere.
+
+Both `CalmTextField` (`CalmBackground.kt`) and `PasswordOutlinedTextField`
+gained a `keyboardActions` parameter (default `KeyboardActions.Default`, so
+every other caller — `ChangePasswordScreen`, `PasswordVerifyDialog`,
+`AllowedAppsScreen`'s search field, etc. — is unaffected);
+`PasswordOutlinedTextField` also gained `imeAction`, since it hardcoded
+`KeyboardOptions(keyboardType = Password)` with no way to override the
+action before. Wired as a three-field chain: name → `ImeAction.Next` +
+`onNext` requests focus on a `FocusRequester` pinned to the password field;
+password → same pattern, requesting focus on a second `FocusRequester`
+pinned to the confirm field; confirm → `ImeAction.Done`, no custom
+`onDone`. That last part was not the first attempt — a custom
+`onDone = { focusManager.clearFocus() }` (and then `clearFocus(force = true)`,
+same result) sent focus back to the *name* field instead of releasing it,
+verified on the emulator both times before giving up on it; the system's
+own default handling of the `Done` action — close the keyboard, leave
+focus alone — turned out to already be exactly right, and needed no
+override at all.
+
+Verified end to end on the emulator: filling name, pressing the IME action
+key (`adb shell input keyevent 66`, not a screen tap — the on-screen "Next"
+label the earlier screenshot showed belongs to the wizard's own bottom
+button, not the keyboard's action key, which renders as a plain arrow-into-bar
+glyph) lands focus on password; from there on confirm; from confirm it
+closes the keyboard with focus still on that field, `uiautomator`-dumped
+`focused="true"` each time to confirm the actual target, not just eyeballed
+from a screenshot.
+
 ## Bold emphasis in step bodies: `boldAnnotatedString`
 
 Each step body highlights exactly one key phrase in bold (e.g. "the rest

@@ -14,6 +14,8 @@ import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.foundation.layout.Box
@@ -36,11 +38,14 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -77,6 +82,14 @@ fun OnboardingScreen(
     var partnerName by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var passwordConfirm by remember { mutableStateOf("") }
+
+    // Il tasto "Next" della tastiera passa al campo successivo invece di
+    // chiudersi — segnalato: facilita il riempimento dei tre campi in fila
+    // durante l'onboarding. `passwordFocusRequester`/`confirmFocusRequester`
+    // sono gli unici due bersagli possibili (il nome è il primo campo, non
+    // serve un requester per raggiungerlo).
+    val passwordFocusRequester = remember { FocusRequester() }
+    val confirmFocusRequester = remember { FocusRequester() }
 
     // .imePadding() sull'intera colonna (non solo sull'area scrollabile
     // interna) è ciò che tiene la riga Back/Next sopra la tastiera: senza,
@@ -145,6 +158,10 @@ fun OnboardingScreen(
                         value = partnerName,
                         onValueChange = { partnerName = it },
                         label = stringResource(R.string.hint_partner_name),
+                        keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
+                        keyboardActions = KeyboardActions(
+                            onNext = { passwordFocusRequester.requestFocus() }
+                        ),
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(bottom = 10.dp)
@@ -154,8 +171,13 @@ fun OnboardingScreen(
                         value = password,
                         onValueChange = { password = it },
                         label = stringResource(R.string.hint_new_password),
+                        imeAction = ImeAction.Next,
+                        keyboardActions = KeyboardActions(
+                            onNext = { confirmFocusRequester.requestFocus() }
+                        ),
                         modifier = Modifier
                             .fillMaxWidth()
+                            .focusRequester(passwordFocusRequester)
                             .padding(bottom = 10.dp)
                     )
 
@@ -163,7 +185,18 @@ fun OnboardingScreen(
                         value = passwordConfirm,
                         onValueChange = { passwordConfirm = it },
                         label = stringResource(R.string.hint_confirm_password),
-                        modifier = Modifier.fillMaxWidth()
+                        // Solo `imeAction = Done` (etichetta del tasto,
+                        // niente `onNext`/campo successivo — è l'ultimo),
+                        // senza un `onDone` custom: un `clearFocus()`
+                        // esplicito qui, con o senza `force = true`,
+                        // rimandava il fuoco al campo nome invece di
+                        // chiudere la tastiera — verificato sull'emulatore.
+                        // Il comportamento di default del tasto Done
+                        // (chiude la tastiera, lascia il fuoco dov'è) basta.
+                        imeAction = ImeAction.Done,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .focusRequester(confirmFocusRequester)
                     )
 
                     val error = passwordError
