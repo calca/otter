@@ -23,11 +23,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.animation.core.LinearEasing
-import androidx.compose.animation.core.animateFloat
-import androidx.compose.animation.core.infiniteRepeatable
-import androidx.compose.animation.core.rememberInfiniteTransition
-import androidx.compose.animation.core.tween
 import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
@@ -60,6 +55,11 @@ import com.calmotter.app.hasGroupPauseBluetoothPermissions
 import com.calmotter.app.nfc.GroupPauseNfcReader
 import com.calmotter.app.ui.mascot.OtterZenMark
 import com.calmotter.app.ui.mascot.OtterTapMark
+import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.State
+import androidx.compose.animation.core.withInfiniteAnimationFrameMillis
+import kotlinx.coroutines.delay
+import androidx.compose.runtime.LaunchedEffect
 
 private sealed class JoinLobbyState {
     data object NfcHero : JoinLobbyState()
@@ -368,13 +368,24 @@ private fun SearchingIllustration(hasResults: Boolean, searching: Boolean) {
         // DisposableEffect su allReady), e animarle comunque sarebbe una
         // scansione finta.
         if (!hasResults && searching) {
-            val transition = rememberInfiniteTransition(label = "searching")
-            val t by transition.animateFloat(
-                initialValue = 0f,
-                targetValue = 1f,
-                animationSpec = infiniteRepeatable(animation = tween(1800, easing = LinearEasing)),
-                label = "searchT",
-            )
+            // **A scatti, non a ogni fotogramma** — segnalato ("la CPU
+            // frulla" su questa schermata), stesso bug già trovato e
+            // corretto sul puntino della pagina QR (vedi
+            // specs/group-pause/design.md, "The pulse was implemented
+            // wrong the first time"): `rememberInfiniteTransition().
+            // animateFloat(...)` campionava a ogni fotogramma del display
+            // (60-120Hz), e qui il costo era anche peggiore che lì — non
+            // un singolo Box da 8dp letto in fase di disegno, ma un intero
+            // Canvas che ridisegna tre anelli su un'area di 140dp, dentro
+            // la composable stessa (`val t by ...` letto in composizione,
+            // non in un `graphicsLayer`), quindi ogni scatto ricomponeva
+            // anche il `Canvas`. `rememberSearchPulse()` sotto usa lo
+            // stesso `withInfiniteAnimationFrameMillis` + `delay` a 10
+            // passi al secondo già stabilito altrove nell'app — resta la
+            // ricerca può durare minuti, quindi non c'è un momento in cui
+            // fermarsi come per il puntino, ma il costo per fotogramma
+            // scende comunque di un ordine di grandezza.
+            val t by rememberSearchPulse()
             val ringColor = MaterialTheme.colorScheme.primary
             Canvas(modifier = Modifier.size(140.dp)) {
                 listOf(0f, 0.33f, 0.66f).forEach { phase ->
@@ -390,5 +401,31 @@ private fun SearchingIllustration(hasResults: Boolean, searching: Boolean) {
         }
         OtterZenMark(markSize = 76.dp)
     }
+}
+
+/**
+ * Frazione 0f→1f a scatti (10 al secondo) invece che a ogni fotogramma —
+ * vedi il commento al punto d'uso in [SearchingIllustration] per la misura
+ * che ha portato a scriverla così, e [rememberPulseAlpha] in
+ * GroupPauseCountdownScreen.kt per lo stesso idioma applicato allo stesso
+ * bug altrove in questo flusso.
+ */
+@Composable
+private fun rememberSearchPulse(periodMillis: Int = 1800, stepsPerSecond: Int = 10): State<Float> {
+    val fractionState = remember { mutableFloatStateOf(0f) }
+    var fraction by fractionState
+    LaunchedEffect(periodMillis, stepsPerSecond) {
+        val steps = (periodMillis / 1000f * stepsPerSecond).toInt().coerceAtLeast(1)
+        val stepMillis = (1000f / stepsPerSecond).toLong()
+        while (true) {
+            withInfiniteAnimationFrameMillis { now ->
+                val step = ((now % periodMillis) / periodMillis.toFloat() * steps).toInt()
+                val next = step / steps.toFloat()
+                if (next != fraction) fraction = next
+            }
+            delay(stepMillis)
+        }
+    }
+    return fractionState
 }
 

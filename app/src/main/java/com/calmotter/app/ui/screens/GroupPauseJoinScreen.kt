@@ -32,6 +32,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -77,6 +78,12 @@ private sealed class JoinFlowStep {
  * stessa (prima "Ho un codice o un QR" — poco intuitivo come link, non
  * descriveva un'azione). Stesso conto alla rovescia condiviso alla fine di
  * entrambi i percorsi.
+ *
+ * [JoinFlowStep.QrOrCode] è un ripiego raggiunto dalla lobby, non un passo
+ * alla pari: il suo `onCancel` torna a [JoinFlowStep.Live] invece di uscire
+ * dal flusso — segnalato ("il cancel di scan qr deve tornare alla pagina
+ * di look"), perché usciva fino in fondo, allo stesso posto di "Annulla"
+ * dalla lobby stessa, cancellando la distinzione fra le due uscite.
  */
 @Composable
 fun GroupPauseJoinScreen(
@@ -93,7 +100,13 @@ fun GroupPauseJoinScreen(
         )
         JoinFlowStep.QrOrCode -> GroupPauseCodeEntryScreen(
             onRecipeReady = { recipe -> step = JoinFlowStep.Countdown(recipe) },
-            onCancel = onCancel,
+            // Torna alla lobby dal vivo ("Cerca un amico…"), non fuori dal
+            // flusso — segnalato: "Annulla" dallo scanner QR portava fino in
+            // fondo, allo stesso posto di "Annulla" dalla lobby stessa.
+            // Questo è un ripiego raggiunto da un link dentro la lobby, non
+            // un passo suo pari: uscirne riporta a dov'era chi ci è entrato,
+            // non un passo più indietro di quello.
+            onCancel = { step = JoinFlowStep.Live },
         )
         is JoinFlowStep.Countdown -> GroupPauseCountdownScreen(
             durationMinutes = current.recipe.durationMinutes,
@@ -181,6 +194,22 @@ private fun ScanFullScreen(
     val permissionLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.RequestPermission()
     ) { granted -> hasPermission = granted }
+
+    // Il popup di sistema parte subito, non solo dopo un tap su "Concedi"
+    // nella schermata sotto — segnalato: si toccava "Scansiona o inserisci
+    // un codice" e ci si ritrovava davanti a un'altra schermata da leggere
+    // e un altro bottone da toccare prima di vedere il popup vero, con la
+    // fotocamera già annunciata come lo scopo di questo passo. `Unit` come
+    // chiave: riparte ogni volta che si rientra in questa schermata (non a
+    // ogni ricomposizione), così un rifiuto non intrappola in un loop di
+    // popup ma un nuovo ingresso — dalla lobby dal vivo, di nuovo — la
+    // rischiede. La schermata di motivazione sotto resta: è il ripiego per
+    // chi nega, con il link al codice manuale.
+    LaunchedEffect(Unit) {
+        if (!hasPermission) {
+            permissionLauncher.launch(Manifest.permission.CAMERA)
+        }
+    }
 
     Box(modifier = Modifier.fillMaxSize()) {
         if (hasPermission) {

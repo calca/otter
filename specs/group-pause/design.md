@@ -1337,3 +1337,63 @@ code pattern; its own hero illustrations (`OtterTapMark`,
 `SearchingIllustration`) are a different visual language from
 `ParticipantRing` and were not restyled — the report was specifically
 about the host lobby's ring.
+
+
+## The join flow: three reports, one shared bug among them
+
+**The camera permission popup fires on entry, not behind a "Grant"
+tap.** `ScanFullScreen` used to show a rationale screen with a "Grant"
+button on first arrival — a screen to read and a button to press before
+the actual system dialog appeared, even though the camera is the whole
+point of this step. Reported directly ("preferisci il popup di
+permesso"): a `LaunchedEffect(Unit)` now launches the permission request
+the moment this screen is entered, without waiting for a tap. `Unit` as
+the key rather than nothing, deliberately: it fires once per *entry* into
+this composable, not once per recomposition, so a denial doesn't loop
+into repeated prompts — a fresh ask only happens on a fresh visit, from
+the live lobby's "Scansiona o inserisci un codice" link. The rationale
+screen stays exactly as it was, now reached only after a denial, with its
+"Grant" button and its manual-entry fallback link both still there.
+
+**Cancel from the QR/code screen returns to the live lobby, not out of
+the join flow.** `JoinFlowStep.QrOrCode` is a fallback reached from a
+link inside the live lobby ("Scansiona o inserisci un codice"), not a
+step of equal standing — but its `onCancel` was wired straight to
+`GroupPauseJoinScreen`'s own top-level `onCancel`, the same one the live
+lobby's own Cancel uses to leave the whole flow. Reported directly ("il
+cancel di scan qr deve tornare alla pagina di look"): fixed by setting
+`step = JoinFlowStep.Live` instead, so leaving the fallback returns to
+where the fallback was reached from. This covers both of
+`GroupPauseCodeEntryScreen`'s modes (`ScanFullScreen` and the manual-code
+tab) since they share the one `onCancel` parameter — asked about the
+scanner specifically, but the manual tab is reached from the exact same
+link and deserves the same way back, not a different one depending on
+which of the two sub-modes happens to be showing.
+
+**"Looking for a friend…" was the pulse bug's second occurrence, not a
+new one.** Same shape as the QR/countdown pulse fixed the day before (see
+"The pulse was implemented wrong the first time" in this file):
+`SearchingIllustration`'s three expanding rings were driven by
+`rememberInfiniteTransition().animateFloat(...)`, sampled on every
+display frame indefinitely while a live search runs — which, unlike the
+countdown's bounded few minutes, can be as long as nobody is found.
+Worse than the pulse in one respect: `val t by transition.animateFloat(
+...)` was read directly in the composable's own body, not inside a
+`graphicsLayer` draw-phase lambda, so every step recomposed the whole
+`Canvas` that redraws three rings over a 140dp area — not one 8dp dot.
+Measured the same way, proven by reverting to the broken version and
+re-measuring rather than trusting the fix on inspection alone: **40–60%
+of one core** with `rememberInfiniteTransition`, **0%** with
+`rememberSearchPulse()`, the same `withInfiniteAnimationFrameMillis` +
+`delay` stepper at 10 steps/second already established for this exact
+failure mode. No settle-after-N-seconds here, unlike the countdown pulse
+— the search genuinely can run for as long as the lobby is open — but the
+per-step cost is what dropped, not the duration.
+
+Verified on-device: the system permission dialog appears immediately on
+tapping "Scansiona o inserisci un codice" (camera permission revoked via
+`pm revoke` first, to force the ask); denying it lands on the rationale
+fallback as before; the always-visible Cancel in the scan screen's top
+bar returns to "Look for whoever's waiting for you", not Home; and the
+searching animation's CPU cost confirmed both ways, broken and fixed, on
+the same build.
