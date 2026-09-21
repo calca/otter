@@ -243,6 +243,11 @@ way out of it (unlock, or wait for expiry).
   shows the same `session_ended` toast. `onExpiredImmediately` still shows
   no toast in either caller (session already over before the screen ever
   rendered, so there was nothing to interrupt).
+
+  Reversed later (see "The session toasts are gone" below): both
+  `session_started` and `session_ended` are removed entirely, not just kept
+  symmetrical — the asymmetry fixed here stopped mattering once neither
+  caller shows a toast at all.
 - **A pre-existing minor duplication also removed in the same pass**:
   `MainActivity` used to hand-build the phrase string
   (`"“$it”"`) instead of reusing `R.string.phrase_format`, the same
@@ -1012,3 +1017,27 @@ until you have worked them out once, and the padlock alone does not separate
 "unlock the pause" from "lock something". This does not contradict the row
 caption removed earlier: that one was a heading for the whole group, these
 name the single items.
+
+
+## The session toasts are gone
+
+Reported directly: "non mi piace la toast 'pause session started' e 'pause
+session finished'". There were actually four call sites, not two —
+`session_started` (`MainActivity`, tapping the otter) and `session_ended`
+(`MainActivity`'s `onExpiredNaturally`, `BlockOverlayActivity`'s
+`onExpiredNaturally`, and BOTH manual-unlock paths in `BlockScreen.kt`,
+NFC tap and password) — all showing a system `Toast` on top of a screen
+that was already visibly changing: the `Crossfade` into/out of
+`BlockScreen`, the "ON PAUSE" chip, the unlock dialog closing. Same
+reasoning already applied to `block_title`/`block_message` earlier in this
+file ("an exit affordance that does nothing is worse than none" — here,
+"a toast repeating what the transition already shows is noise, not
+information"): removed outright, no replacement text and no haptic
+substitute either, since the transition alone already tells the story.
+
+`session_started` and `session_ended` are gone from both `strings.xml`
+files — no other caller referenced them (`MainScreen.kt` had a leftover
+unused `sessionStartedText` val from before the toast moved to
+`MainActivity`, cleaned up in the same pass). Verified on the emulator:
+starting a session, letting the block screen close on its own, and
+unlocking with the password all now transition silently.

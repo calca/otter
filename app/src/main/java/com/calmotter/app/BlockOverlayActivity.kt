@@ -1,7 +1,6 @@
 package com.calmotter.app
 
 import android.os.Bundle
-import android.widget.Toast
 import androidx.activity.OnBackPressedCallback
 import androidx.activity.compose.setContent
 import com.calmotter.app.ui.screens.BlockScreen
@@ -51,10 +50,7 @@ class BlockOverlayActivity : BaseActivity() {
                     passwordManager = passwordManager,
                     phraseText = phraseText,
                     onExpiredImmediately = { finish() },
-                    onExpiredNaturally = {
-                        Toast.makeText(this, getString(R.string.session_ended), Toast.LENGTH_SHORT).show()
-                        finish()
-                    },
+                    onExpiredNaturally = { finish() },
                     onUnlocked = { finish() },
                     allowedApps = loadAllowedAppLaunchItems(applicationContext),
                     onLaunchApp = { pkg -> launchAllowedApp(applicationContext, pkg) },

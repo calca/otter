@@ -37,7 +37,6 @@
     <string name="password_saved">Password saved</string>
 
     <string name="session_active_with_time">Pause session active — about %1$d min remaining</string>
-    <string name="session_started">Pause session started</string>
     <string name="home_start_hint">Tap &lt;b&gt;Otter&lt;/b&gt; to start</string>
     <string name="home_active_label">On Pause</string>
     <string name="home_time_remaining">%1$d min left</string>
@@ -51,7 +50,6 @@
         <item>F</item>
         <item>S</item>
     </string-array>
-    <string name="session_ended">Session ended</string>
     <string name="remaining_time_format">%1$d:%2$02d</string>
     <string-array name="calm_countdown_near_end_phrases">
         <item>Almost there</item>

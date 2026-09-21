@@ -1,6 +1,5 @@
 package com.calmotter.app.ui.screens
 
-import android.widget.Toast
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.LinearEasing
@@ -250,8 +249,6 @@ fun MainScreen(
     LaunchedEffect(resumeSignal) {
         refreshDerivedState()
     }
-
-    val sessionStartedText = stringResource(R.string.session_started)
 
     OtterAnchoredScreen(
         horizontalPadding = 24.dp,

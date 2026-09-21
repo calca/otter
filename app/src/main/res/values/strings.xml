@@ -37,7 +37,6 @@
     <string name="password_saved">Password impostata</string>
 
     <string name="session_active_with_time">Sessione di pausa attiva — circa %1$d min rimanenti</string>
-    <string name="session_started">Sessione di pausa avviata</string>
     <string name="home_start_hint">Tocca &lt;b&gt;Otter&lt;/b&gt; per iniziare</string>
     <string name="home_active_label">In pausa</string>
     <string name="home_time_remaining">%1$d min rimasti</string>
@@ -51,7 +50,6 @@
         <item>V</item>
         <item>S</item>
     </string-array>
-    <string name="session_ended">Sessione terminata</string>
     <string name="remaining_time_format">%1$d:%2$02d</string>
     <string-array name="calm_countdown_near_end_phrases">
         <item>Quasi finita</item>

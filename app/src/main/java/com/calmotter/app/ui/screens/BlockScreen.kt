@@ -1,6 +1,5 @@
 package com.calmotter.app.ui.screens
 
-import android.widget.Toast
 import com.calmotter.app.nfc.GroupPauseHceService
 import com.calmotter.app.bluetooth.groupPauseUnlockToken
 import androidx.compose.material3.TextButton
@@ -187,8 +186,6 @@ fun BlockScreen(
         ringRelease.animateTo(1f, animationSpec = tween(700, easing = FastOutSlowInEasing))
         if (canReleaseOthers) releaseThenExit = onExpiredNaturally else onExpiredNaturally()
     }
-
-    val sessionEndedText = stringResource(R.string.session_ended)
 
     // La pausa di questo dispositivo è finita, ma era lui a convocarla: prima
     // di uscire offre il rilascio a chi c'era. Sostituisce la schermata invece
@@ -387,7 +384,6 @@ fun BlockScreen(
                 if (parseGroupPauseUnlockToken(payload) == sessionGroupTag) {
                     mainHandler.post {
                         sessionManager.endSession()
-                        Toast.makeText(context, sessionEndedText, Toast.LENGTH_SHORT).show()
                         onUnlocked()
                     }
                 }
@@ -407,7 +403,6 @@ fun BlockScreen(
             message = if (nfcReleaseEnabled) stringResource(R.string.unlock_or_tap_hint) else null,
             onVerified = {
                 sessionManager.endSession()
-                Toast.makeText(context, sessionEndedText, Toast.LENGTH_SHORT).show()
                 showUnlockDialog = false
                 if (canReleaseOthers) releaseThenExit = onUnlocked else onUnlocked()
             },

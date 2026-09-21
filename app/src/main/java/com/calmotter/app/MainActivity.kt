@@ -6,7 +6,6 @@ import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
 import android.provider.Settings
-import android.widget.Toast
 import androidx.activity.OnBackPressedCallback
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
@@ -187,7 +186,6 @@ class MainActivity : BaseActivity() {
                     mutableIntStateOf(DEFAULT_SESSION_DURATION_MINUTES / 30)
                 }
                 var showPermissionDialog by remember { mutableStateOf(false) }
-                val sessionStartedText = stringResource(R.string.session_started)
 
                 Box(modifier = Modifier.fillMaxSize()) {
                     Crossfade(
@@ -207,10 +205,7 @@ class MainActivity : BaseActivity() {
                                 passwordManager = passwordManager,
                                 phraseText = blockPhraseText,
                                 onExpiredImmediately = { onBlockScreenExit() },
-                                onExpiredNaturally = {
-                                    Toast.makeText(this@MainActivity, getString(R.string.session_ended), Toast.LENGTH_SHORT).show()
-                                    onBlockScreenExit()
-                                },
+                                onExpiredNaturally = { onBlockScreenExit() },
                                 onUnlocked = { onBlockScreenExit() },
                                 allowedApps = loadAllowedAppLaunchItems(applicationContext),
                                 onLaunchApp = { pkg -> launchAllowedApp(applicationContext, pkg) },
@@ -272,7 +267,6 @@ class MainActivity : BaseActivity() {
                                     )
                                 if (ok) {
                                     sessionManager.startSession(selectedDurationIndex * 30)
-                                    Toast.makeText(this@MainActivity, sessionStartedText, Toast.LENGTH_SHORT).show()
                                     enterBlockScreen()
                                 } else {
                                     showPermissionDialog = true
