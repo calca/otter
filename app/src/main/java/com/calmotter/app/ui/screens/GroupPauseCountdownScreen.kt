@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.material3.MaterialTheme
@@ -133,75 +134,101 @@ fun GroupPauseCountdownScreen(
     // Niente più CalmCard: sfondo piatto come il resto del flusso di Tempo
     // Insieme (vedi il commento di classe di
     // GroupPauseBluetoothLobbyHostScreen per il perché).
-    CalmScreenColumn(contentPadding = PaddingValues(32.dp)) {
-        OtterZenMark(markSize = 88.dp, modifier = Modifier.padding(bottom = 14.dp))
-        header()
-
-        // **Un'unica riga invece di due**, "fra quanto" e "per quanto" nello
-        // stesso respiro — chiesto direttamente sul design di Stitch ("come
-        // da design, che dici?"). Prima erano impilate: il conto alla
-        // rovescia grande e in risalto, la durata sotto come didascalia.
-        // Buona gerarchia, ma la richiesta è esplicita e la pillola del
-        // mockup regge bene entrambi i fatti insieme, quindi qui si va con
-        // quella — un contenitore riconoscibile come "stato", non due frasi
-        // separate.
-        //
-    // Il puntino pulsante: l'unica animazione perpetua di questo file,
-        // e la ragione per cui è ammessa dove altrove in questa app non lo
-        // è (vedi Home/PondStill, la lobby, il bivio, tutti fermi apposta):
-        // questa schermata **non può restare aperta a tempo indeterminato**
-        // — il conto alla rovescia la chiude da sé in pochi minuti al più —
-        // quindi non c'è il problema di un'animazione senza fine, e non c'è
-        // una scelta da distrarre: qui non si decide nulla, si aspetta.
-        //
-        // La sorgente però NON è `rememberInfiniteTransition`/`animateFloat`
-        // dirette: la prima versione le usava, e segnalata la CPU che
-        // "frullava" proprio su questa schermata — misurato con /proc/<pid>/
-        // stat su un processo caldo, campioni da 8s: **40-60% di un core**,
-        // sceso a 0% disattivando solo questo puntino, nient'altro. La causa
-        // era la frequenza: `InfiniteTransition` campiona a ogni fotogramma
-        // del display (60-120Hz), senza il freno a scatti che il resto
-        // dell'app applica sempre alle proprie animazioni perpetue (vedi
-        // `steppedFraction` in MainScreen.kt e la spiegazione in
-        // specs/home-and-settings/design.md, "How fast the scene steps") —
-        // qui mancava, per una semplice svista nello scrivere la prima
-        // versione, non per una scelta deliberata di andare senza. Un
-        // Box di 8dp che cambia alpha non aveva bisogno di 120 aggiornamenti
-        // al secondo per leggersi come "vivo"; [rememberPulseAlpha] più sotto
-        // ne fa 10, con lo stesso idioma (`withInfiniteAnimationFrameMillis`
-        // + `delay`) già usato altrove.
-        val pulse by rememberPulseAlpha()
-        Surface(
-            shape = RoundedCornerShape(16.dp),
-            color = MaterialTheme.colorScheme.primary.copy(alpha = 0.08f),
-            modifier = Modifier.padding(top = 8.dp),
+    //
+    // Cancel ancorato al fondo pagina, su richiesta esplicita — stesso
+    // schema già applicato alla lobby host (vedi il commento lì): il resto
+    // del contenuto vive in una Column interna con weight(1f) e la stessa
+    // `Arrangement.Center` che CalmScreenColumn usava di default per tutto,
+    // così resta centrato *nello spazio sopra il bottone* invece che nella
+    // pagina intera, mentre Cancel resta l'ultima cosa in basso a
+    // prescindere da quanto contenuto porta [header] (vuoto per il
+    // countdown "puro" dopo una lobby dal vivo, pieno per il percorso QR).
+    CalmScreenColumn(contentPadding = PaddingValues(32.dp), verticalArrangement = Arrangement.Top) {
+        Column(
+            modifier = Modifier.weight(1f).fillMaxWidth(),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center,
         ) {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.padding(horizontal = 16.dp, vertical = 10.dp),
+            OtterZenMark(markSize = 88.dp, modifier = Modifier.padding(bottom = 14.dp))
+            header()
+
+            // **Un'unica riga invece di due**, "fra quanto" e "per quanto" nello
+            // stesso respiro — chiesto direttamente sul design di Stitch ("come
+            // da design, che dici?"). Prima erano impilate: il conto alla
+            // rovescia grande e in risalto, la durata sotto come didascalia.
+            // Buona gerarchia, ma la richiesta è esplicita e la pillola del
+            // mockup regge bene entrambi i fatti insieme, quindi qui si va con
+            // quella — un contenitore riconoscibile come "stato", non due frasi
+            // separate.
+            //
+        // Il puntino pulsante: l'unica animazione perpetua di questo file,
+            // e la ragione per cui è ammessa dove altrove in questa app non lo
+            // è (vedi Home/PondStill, la lobby, il bivio, tutti fermi apposta):
+            // questa schermata **non può restare aperta a tempo indeterminato**
+            // — il conto alla rovescia la chiude da sé in pochi minuti al più —
+            // quindi non c'è il problema di un'animazione senza fine, e non c'è
+            // una scelta da distrarre: qui non si decide nulla, si aspetta.
+            //
+            // La sorgente però NON è `rememberInfiniteTransition`/`animateFloat`
+            // dirette: la prima versione le usava, e segnalata la CPU che
+            // "frullava" proprio su questa schermata — misurato con /proc/<pid>/
+            // stat su un processo caldo, campioni da 8s: **40-60% di un core**,
+            // sceso a 0% disattivando solo questo puntino, nient'altro. La causa
+            // era la frequenza: `InfiniteTransition` campiona a ogni fotogramma
+            // del display (60-120Hz), senza il freno a scatti che il resto
+            // dell'app applica sempre alle proprie animazioni perpetue (vedi
+            // `steppedFraction` in MainScreen.kt e la spiegazione in
+            // specs/home-and-settings/design.md, "How fast the scene steps") —
+            // qui mancava, per una semplice svista nello scrivere la prima
+            // versione, non per una scelta deliberata di andare senza. Un
+            // Box di 8dp che cambia alpha non aveva bisogno di 120 aggiornamenti
+            // al secondo per leggersi come "vivo"; [rememberPulseAlpha] più sotto
+            // ne fa 10, con lo stesso idioma (`withInfiniteAnimationFrameMillis`
+            // + `delay`) già usato altrove.
+            val pulse by rememberPulseAlpha()
+            Surface(
+                shape = RoundedCornerShape(16.dp),
+                color = MaterialTheme.colorScheme.primary.copy(alpha = 0.08f),
+                modifier = Modifier.padding(top = 8.dp),
             ) {
-                Box(
-                    modifier = Modifier
-                        .size(8.dp)
-                        .graphicsLayer { alpha = pulse }
-                        .background(MaterialTheme.colorScheme.secondary, CircleShape)
-                )
-                Spacer(modifier = Modifier.width(8.dp))
-                Text(
-                    text = stringResource(
-                        R.string.group_pause_countdown_with_duration,
-                        minutes,
-                        seconds,
-                        durationMinutes,
-                    ),
-                    fontWeight = FontWeight.SemiBold,
-                    color = MaterialTheme.colorScheme.primary,
-                    textAlign = TextAlign.Center,
-                )
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 10.dp),
+            ) {
+                    Box(
+                        modifier = Modifier
+                            .size(8.dp)
+                            .graphicsLayer { alpha = pulse }
+                            .background(MaterialTheme.colorScheme.secondary, CircleShape)
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(
+                        text = stringResource(
+                            R.string.group_pause_countdown_with_duration,
+                            minutes,
+                            seconds,
+                            durationMinutes,
+                        ),
+                        fontWeight = FontWeight.SemiBold,
+                        color = MaterialTheme.colorScheme.primary,
+                        textAlign = TextAlign.Center,
+                    )
+                }
             }
         }
 
-        OutlinedButton(onClick = onCancel, modifier = Modifier.padding(top = 24.dp)) {
+        // A tutta larghezza, ancorato al fondo pagina, 48.dp di altezza —
+        // stesso standard applicato al resto dell'app (vedi
+        // specs/onboarding-and-password/design.md, "CTA height made
+        // explicit"): il default M3 misura 40dp, sotto il target minimo di
+        // tocco raccomandato (48dp, Material Design/WCAG 2.5.5).
+        OutlinedButton(
+            onClick = onCancel,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(top = 24.dp)
+                .height(48.dp),
+        ) {
             Text(stringResource(android.R.string.cancel))
         }
     }

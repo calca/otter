@@ -1451,3 +1451,31 @@ Two follow-up requests refined this same change:
   `Arrangement.spacedBy(8.dp)` on their `Column`, not `.padding(top = 8.dp)`
   chained after `.height(48.dp)` on the second one, which silently ate
   into the fixed height instead of adding space above it.
+
+## `GroupPauseCountdownScreen`'s Cancel is the page's bottom CTA now
+
+Same fix as the host lobby above, one screen later: reported "la pagina
+del qrcode è un po' confusionaria... il cancel deve essere la CTA a fondo
+pagina". `GroupPauseCountdownScreen` — shared by both the QR-share header
+(`header` slot full: mascot, QR, code pill, delay picker) and the plain
+post-live-lobby countdown (`header` empty) — had the exact same
+`CalmScreenColumn` default-`Arrangement.Center` problem: `Cancel` was a
+small, centred `OutlinedButton` sitting wherever it fell after whatever
+`header()` contributed, not anchored to the bottom, and not full-width.
+
+Fixed with the identical restructuring: everything `header()` plus the
+countdown pill contributes now lives in an inner `Column` with `weight(1f)`
+and `Arrangement.Center`, `Cancel` is the last, non-weighted sibling —
+`.fillMaxWidth().height(48.dp)`, same 48dp standard as every other CTA in
+this pass (`specs/onboarding-and-password/design.md`, "CTA height made
+explicit"). `.padding(top = 24.dp)` on `Cancel` had to go *before*
+`.height(48.dp)` in the modifier chain, not after — the same ordering trap
+caught twice already in the sibling screens, applied correctly here from
+the start this time rather than re-discovered.
+
+Because this composable is shared, the fix applies to both callers
+(`GroupPauseQrShareScreen`'s full header and the bare post-lobby
+countdown) without touching either caller — verified on the emulator via
+the QR-share path, the one with the most content above the button and
+therefore the one most likely to have exposed a regression if the
+weighted-Column restructuring had been wrong.
