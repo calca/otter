@@ -678,6 +678,57 @@ Two old strings, `group_pause_countdown_label` and
 `group_pause_duration_reminder`, are gone rather than left beside the new
 combined one — same reasoning as the `notready_*` strings above.
 
+### The pulse was implemented wrong the first time, and it was not free
+
+Reported directly the next day: "sulla schermata di qrcode e quella di
+lock la cpu frulla" — the fan-spinning kind of report, the same shape as
+Home's ripple investigation earlier in this project. The QR/countdown
+screen was new that same session; the block screen ("lock") was not, and
+measured clean (see below), which narrows this to one thing: the pulsing
+dot just added, and its shared host `GroupPauseCountdownScreen` is what
+both a QR-page visit and a countdown reached from a completed live lobby
+have in common — "lock" most likely meant the second of those, the
+screen right before the actual block screen, not the block screen itself.
+
+Measured on the emulator with the same method already established for
+this app's other animation work (`/proc/<pid>/stat` kernel-time deltas,
+warm process, screen awake, 8s samples): **40-60% of one core**, steady,
+not settling — and confirmed as *this specific animation's* cost, not
+something else on the same screen, by disabling only the dot (`val pulse
+= 1f`, nothing else touched) and re-measuring: **0%**. The block screen,
+measured the same way both freshly entered (the otter bob's active 30s
+window) and well after, read **0%** throughout — consistent with the bob
+being nearly free at any step rate because it's read inside a
+`graphicsLayer` transform rather than redrawn (see "How fast the scene
+steps" in `specs/home-and-settings/design.md`), and confirming the block
+screen itself was never the problem.
+
+The cause: the pulse was built with `rememberInfiniteTransition().
+animateFloat(...)`, which samples on **every display frame** — 60 to
+120Hz depending on the device — with none of the step-rate throttling
+this app applies everywhere else it animates something forever
+(`steppedFraction` in `MainScreen.kt`; see "How fast the scene steps" for
+the measurements that established *why* — cost is roughly linear in
+redraws, independent of whether the read itself triggers recomposition).
+Reading `pulse` inside `graphicsLayer { alpha = pulse }` was already
+correct — a draw-phase read, not a composition-phase one, the other half
+of that lesson — so the bug was purely the animation's *source*, not
+where its value got consumed. Rewritten as `rememberPulseAlpha()`, a
+`withInfiniteAnimationFrameMillis` + `delay` stepper local to this file
+(same idiom as `steppedFraction`, not shared with it — a pulsing dot
+doesn't need that function's generality, just its principle), at 10 steps
+per second on a 1.8s triangle wave. Re-measured after the fix: **0%**,
+six consecutive 8s samples.
+
+The lesson this confirms rather than introduces: every *other* perpetual
+animation in this app was written with the step-rate discipline already
+in place, because each one followed the ripple investigation that
+established it. This one was written after that investigation, in the
+same session as the reasoning paragraph above defending why a perpetual
+animation was fine here at all — and the reasoning about *whether* to
+animate was sound, but writing the animation itself skipped the *how*.
+Being allowed to animate forever was never permission to sample forever.
+
 ## Honest lobby state: the screen stops claiming to wait
 
 Both lobby screens chose their hero title and subtitle purely from how

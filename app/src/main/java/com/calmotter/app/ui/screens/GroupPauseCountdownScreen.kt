@@ -36,12 +36,9 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.background
-import androidx.compose.animation.core.tween
-import androidx.compose.animation.core.rememberInfiniteTransition
-import androidx.compose.animation.core.infiniteRepeatable
-import androidx.compose.animation.core.animateFloat
-import androidx.compose.animation.core.RepeatMode
-import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.withInfiniteAnimationFrameMillis
+import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.State
 
 /**
  * Ultimo passo comune a chi crea e chi si unisce a una pausa di gruppo
@@ -73,6 +70,38 @@ import androidx.compose.animation.core.FastOutSlowInEasing
  * riserva, scelta deliberata per restare nel perimetro di questa fase
  * (finestra di pochi minuti, rischio accettato).
  */
+/**
+ * Alpha 1↔0.35 a onda triangolare, a scatti invece che a ogni fotogramma —
+ * stesso idioma di `steppedFraction` in MainScreen.kt (duplicato qui e non
+ * condiviso: è privato là, e un puntino che pulsa non ha bisogno della
+ * generalità di quella funzione, solo del suo principio). 10 passi al
+ * secondo bastano a un'onda di 1,8s per leggersi morbida; vedi il commento
+ * al punto d'uso per la misura che ha portato a scriverla così.
+ */
+@Composable
+private fun rememberPulseAlpha(periodMillis: Int = 1800, stepsPerSecond: Int = 10): State<Float> {
+    val alphaState = remember { mutableFloatStateOf(1f) }
+    var alpha by alphaState
+    LaunchedEffect(periodMillis, stepsPerSecond) {
+        val steps = (periodMillis / 1000f * stepsPerSecond).toInt().coerceAtLeast(1)
+        val stepMillis = (1000f / stepsPerSecond).toLong()
+        while (true) {
+            withInfiniteAnimationFrameMillis { now ->
+                val step = ((now % periodMillis) / periodMillis.toFloat() * steps).toInt()
+                val fraction = step / steps.toFloat()
+                // Triangolare: sale nella prima metà del periodo, scende
+                // nella seconda — lo stesso su e giù di un
+                // `RepeatMode.Reverse`, senza bisogno di quel parametro.
+                val triangle = if (fraction < 0.5f) fraction * 2f else (1f - fraction) * 2f
+                val next = 1f - triangle * 0.65f
+                if (next != alpha) alpha = next
+            }
+            delay(stepMillis)
+        }
+    }
+    return alphaState
+}
+
 @Composable
 fun GroupPauseCountdownScreen(
     durationMinutes: Int,
@@ -117,22 +146,31 @@ fun GroupPauseCountdownScreen(
         // quella — un contenitore riconoscibile come "stato", non due frasi
         // separate.
         //
-        // Il puntino pulsante: l'unica animazione perpetua di questo file,
+    // Il puntino pulsante: l'unica animazione perpetua di questo file,
         // e la ragione per cui è ammessa dove altrove in questa app non lo
         // è (vedi Home/PondStill, la lobby, il bivio, tutti fermi apposta):
         // questa schermata **non può restare aperta a tempo indeterminato**
         // — il conto alla rovescia la chiude da sé in pochi minuti al più —
         // quindi non c'è il problema di un'animazione senza fine, e non c'è
         // una scelta da distrarre: qui non si decide nulla, si aspetta.
-        val pulse by rememberInfiniteTransition(label = "countdownPulse").animateFloat(
-            initialValue = 1f,
-            targetValue = 0.35f,
-            animationSpec = infiniteRepeatable(
-                animation = tween(900, easing = FastOutSlowInEasing),
-                repeatMode = RepeatMode.Reverse,
-            ),
-            label = "countdownPulseAlpha",
-        )
+        //
+        // La sorgente però NON è `rememberInfiniteTransition`/`animateFloat`
+        // dirette: la prima versione le usava, e segnalata la CPU che
+        // "frullava" proprio su questa schermata — misurato con /proc/<pid>/
+        // stat su un processo caldo, campioni da 8s: **40-60% di un core**,
+        // sceso a 0% disattivando solo questo puntino, nient'altro. La causa
+        // era la frequenza: `InfiniteTransition` campiona a ogni fotogramma
+        // del display (60-120Hz), senza il freno a scatti che il resto
+        // dell'app applica sempre alle proprie animazioni perpetue (vedi
+        // `steppedFraction` in MainScreen.kt e la spiegazione in
+        // specs/home-and-settings/design.md, "How fast the scene steps") —
+        // qui mancava, per una semplice svista nello scrivere la prima
+        // versione, non per una scelta deliberata di andare senza. Un
+        // Box di 8dp che cambia alpha non aveva bisogno di 120 aggiornamenti
+        // al secondo per leggersi come "vivo"; [rememberPulseAlpha] più sotto
+        // ne fa 10, con lo stesso idioma (`withInfiniteAnimationFrameMillis`
+        // + `delay`) già usato altrove.
+        val pulse by rememberPulseAlpha()
         Surface(
             shape = RoundedCornerShape(16.dp),
             color = MaterialTheme.colorScheme.primary.copy(alpha = 0.08f),
