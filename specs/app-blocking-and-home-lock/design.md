@@ -1041,3 +1041,25 @@ unused `sessionStartedText` val from before the toast moved to
 `MainActivity`, cleaned up in the same pass). Verified on the emulator:
 starting a session, letting the block screen close on its own, and
 unlocking with the password all now transition silently.
+
+
+## `loadApps()` only excluded the running flavor, not both
+
+Reported directly: "nella lista delle app deve essere escluso 'Calm
+Otter', è sempre abilitato come il phone" — seen with `beta` and `stable`
+installed side by side, which `channel`'s whole reason to exist is to
+support (see CLAUDE.md). `loadApps()`'s exclusion filter compared each
+installed launcher activity's package against `packageName` (this
+Activity's own — i.e. whichever flavor is currently running) and against
+the default dialer; correct for a single install, but with both flavors
+present the *other* one is a distinct `applicationId` and sailed straight
+through the filter, showing up as an ordinary toggleable app named "Calm
+Otter" — exactly the dialer problem the existing comment already warned
+about, just for the app's own other self instead of the phone.
+
+Fixed by deriving `ownBasePackage = packageName.removeSuffix(".beta")` and
+excluding both `ownBasePackage` and `"$ownBasePackage.beta"` — works from
+either flavor (`removeSuffix` is a no-op running as `stable`) without
+hardcoding both `applicationId`s twice. Verified on the emulator with both
+flavors installed: beta's list no longer shows "Calm Otter" between
+Calendar and Camera.

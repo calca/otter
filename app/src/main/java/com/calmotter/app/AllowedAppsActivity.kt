@@ -141,12 +141,29 @@ class AllowedAppsActivity : BaseActivity() {
         // dal tetto di MAX_ALLOWED_APPS: mostrarlo qui con una checkbox
         // vuota farebbe pensare all'utente che vada selezionato esplicitamente
         // per restare raggiungibile durante la pausa, il che non è vero.
+        //
+        // Calm Otter stessa è esclusa allo stesso modo — ma per entrambi i
+        // flavor, non solo quello in esecuzione: `channel` (vedi CLAUDE.md)
+        // esiste apposta perché beta e stable stiano installate fianco a
+        // fianco sullo stesso dispositivo, quindi filtrare solo `packageName`
+        // lasciava passare l'ALTRO flavor come se fosse un'app qualunque
+        // (segnalato: "nella lista deve essere escluso Calm Otter, è sempre
+        // abilitato come il phone" — visto proprio con beta e stable
+        // installate insieme). `removeSuffix(".beta")` funziona per entrambe
+        // le direzioni: da beta risale a "com.calmotter.app" e filtra i due
+        // applicationId; da stable non ha nulla da togliere e filtra la
+        // coppia comunque.
+        val ownBasePackage = packageName.removeSuffix(".beta")
         val dialerPackage = dialerPackageName(this)
         val intent = Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_LAUNCHER)
         return packageManager
             .queryIntentActivities(intent, PackageManager.MATCH_ALL)
             .map { it.activityInfo }
-            .filter { it.packageName != packageName && it.packageName != dialerPackage }
+            .filter {
+                it.packageName != ownBasePackage &&
+                    it.packageName != "$ownBasePackage.beta" &&
+                    it.packageName != dialerPackage
+            }
             .distinctBy { it.packageName }
             .sortedWith(compareBy(
                 { it.packageName !in allowed }, // consentite in cima
