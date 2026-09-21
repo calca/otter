@@ -273,3 +273,83 @@ like.
 The mockup also marked night-time sessions with a moon glyph. Dropped on
 request: the data exists (start time), but it is one more signal to learn on
 a row that already carries date, outcome, companions and duration.
+
+
+## Redesign pass: eight things, checked against the mockup one by one
+
+Reported together against "Calm Otter - History & Journey" (Stitch project
+`3158702940609906617`), none of them touching a number — all layout, all
+on `HistoryScreen.kt`/`WeeklyChart.kt`.
+
+**The stats bar scrolls with the page now.** It used to be pinned at the
+top, reproducing `activity_history.xml`'s split between a fixed panel and
+a `NestedScrollView` underneath — a deliberate choice, preserved through
+the first Compose migration. Asked to change: on a page opened rarely and
+read top to bottom, a pinned panel earns nothing a single scrolling
+region doesn't already give, and one region is simpler to reason about
+than two with different behaviour. The session rows stay plain
+composables inside the scrolling `Column` either way (`sessions.forEach`,
+not a nested `LazyColumn` — that was never about what's pinned).
+
+**A `VerticalDivider` between each stat column.** The mockup's
+`divide-x`; ours had none. Same 8%-opacity `onSurface` as every other
+divider on this page, and only as tall as the row's own content
+(`Row(Modifier.height(IntrinsicSize.Min))`), not stretched to the card's
+full padding.
+
+**The streak line is the chart's title, and now looks like one.** It sat
+above the bars at 14sp with no icon, doing the job of a heading for
+everything below it — chart, summary, goal — without the weight of one.
+`SprigMark` (16dp, the same leaf already used for "Pause experience" in
+Settings, not a Material icon pulled in for one occurrence) plus 17sp
+closes that gap.
+
+**Empty days draw a short grey pill instead of nothing.** `WeeklyChart`
+used to skip the bar entirely when a day had zero minutes (`barH`
+computed as literal `0f`) — a day with no session vanished from the
+chart rather than reading as "none". Now every empty day draws a fixed
+3dp pill, `onSurface` at 14% (the same muted tone the goal's own
+`LinearProgressIndicator` track already uses in this file), rounded to a
+full pill rather than the taller bars' `6.dp` corner radius. "Today"'s
+label was already bold and tinted `primary` (`valuePaint`,
+`isFakeBoldText`) before this pass — checked directly against the
+screenshot rather than assumed, since the code read as already doing it.
+
+**No divider between the chart and the goal.** Summary text
+("N sessions this week · Xm") and the goal progress bar are one
+continuing thought — "this week" becoming "toward this week's goal" —
+not two sections the way distinct cards are. A `HorizontalDivider` sat
+between them, cutting that thought in half; the mockup keeps both in one
+card with nothing between. Removed, and `WeekOverviewCard`'s own doc
+comment (which had described the card as using dividers "same as
+Settings' sections") corrected along with it — it doesn't, any more.
+
+**The closing phrase gained the leaf it was missing.** `SprigMark`
+(18dp) centred above the quote, matching the mockup's icon there and the
+same motif the streak line now also carries — this page uses one leaf
+mark for "something reflective, not a metric" throughout, rather than
+introducing a second glyph for the same idea.
+
+**The export icon changed from share to download, and the file changed
+name with it.** `ic_history_share.xml` was deliberately the Material
+"share" glyph, not "download" — its own doc comment explained why: the
+action never writes a file anywhere the user could find it again, it
+opens an `ACTION_SEND` chooser with the CSV attached
+(`HistoryActivity.exportHistory()`), so a download icon would have
+promised a file in Downloads that doesn't exist. That reasoning was
+sound and is still true of the code — but reported directly against how
+it reads in practice: tapping it does hand you a CSV, obtained through a
+system chooser rather than written to disk, and that is "I got the
+file" to whoever taps it, not "I shared something with someone".
+Behaviour is unchanged; only the icon is. Renamed to
+`ic_history_download.xml` (the standard Material `file_download` glyph
+path, same licensing basis as `EyeGlyph`'s reused paths elsewhere in
+this app) rather than leaving a file called "share" containing a
+download icon — `ic_history_delete.xml`'s own comment, which pointed to
+the old file for its tint reasoning, updated to match.
+
+Verified on-device, full-resolution screenshots cropped to each region
+rather than judged from a shrunk full-page capture — a first crop landed
+on the wrong part of the screen entirely (the top bar instead of the
+chart) before bounds read off the accessibility tree pinned down the
+right coordinates.

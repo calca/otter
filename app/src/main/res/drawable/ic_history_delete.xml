@@ -8,7 +8,7 @@
     l'azione non è annullabile, quindi la conferma serve ancora di più di
     prima — non è stata tolta "perché ora si vede".
 
-    Tint come ic_history_share.xml: vedi lì il perché di colorControlNormal.
+    Tint come ic_history_download.xml: vedi lì il perché di colorControlNormal.
 -->
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
     android:width="24dp"

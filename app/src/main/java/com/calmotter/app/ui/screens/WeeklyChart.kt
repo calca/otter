@@ -34,6 +34,18 @@ import java.util.Calendar
  * Sizing: altezza = larghezza * 0.45 nella View originale (via onMeasure).
  * Modifier.aspectRatio(ratio) vincola width/height = ratio, quindi qui
  * ratio = 1f / 0.45f riproduce esattamente lo stesso rapporto.
+ *
+ * **Un giorno vuoto disegna comunque un piccolo segno**, non il vuoto
+ * assoluto di prima (`barH` restava 0, letteralmente nulla sullo schermo).
+ * Confrontato col mockup ("Calm Otter - History & Journey", progetto Stitch
+ * 3158702940609906617), che per i giorni senza sessioni disegna una pillola
+ * bassa e grigia invece di lasciare la colonna vuota — un giorno "a riposo"
+ * si vede ancora, non sparisce dal grafico. Stessa tinta già usata in
+ * questo file per la traccia di [WeeklyGoalSection]'s
+ * `LinearProgressIndicator` (`onSurface` a bassa opacità, non
+ * `surfaceVariant`: quel ruolo non è personalizzato per palette in
+ * CalmOtterTheme.kt, la stessa trappola già documentata più volte in questo
+ * codebase).
  */
 @Composable
 fun WeeklyChart(data: IntArray, modifier: Modifier = Modifier) {
@@ -91,6 +103,13 @@ fun WeeklyChart(data: IntArray, modifier: Modifier = Modifier) {
         val barPadding = barWidth * 0.2f
         val cornerRadius = 6 * dp
         val minBarH = 4 * dp
+        // Il segno di un giorno vuoto: una pillola bassa e ferma, non una
+        // barra minima nel colore della barra vera — deve leggersi come
+        // "niente qui", non come "pochissimo qui". `CornerRadius` pari a
+        // metà della sua stessa altezza la rende una pillola indipendente
+        // da [cornerRadius], che invece è tarato sulle barre alte.
+        val emptyBarH = 3 * dp
+        val emptyBarColor = secondaryColor.copy(alpha = 0.14f)
 
         val maxVal = data.max().coerceAtLeast(1)
 
@@ -108,24 +127,30 @@ fun WeeklyChart(data: IntArray, modifier: Modifier = Modifier) {
             val isToday = i == barCount - 1
             val barColor = if (isToday) primaryColor else tintColor
 
-            // Barra: altezza proporzionale al valore, con un'altezza minima
-            // visibile per i valori non nulli (0 resta invisibile).
-            val barH = (barAreaH * data[i].toFloat() / maxVal).coerceAtLeast(
-                if (data[i] > 0) minBarH else 0f
-            )
-
-            drawRoundRect(
-                color = barColor,
-                topLeft = Offset(cx - barWidth / 2 + barPadding, barAreaBot - barH),
-                size = Size(barWidth - barPadding * 2, barH),
-                cornerRadius = CornerRadius(cornerRadius, cornerRadius)
-            )
-
-            // Valore sopra la barra, solo se > 0.
             if (data[i] > 0) {
+                // Barra vera: altezza proporzionale al valore, con
+                // un'altezza minima visibile.
+                val barH = (barAreaH * data[i].toFloat() / maxVal).coerceAtLeast(minBarH)
+                drawRoundRect(
+                    color = barColor,
+                    topLeft = Offset(cx - barWidth / 2 + barPadding, barAreaBot - barH),
+                    size = Size(barWidth - barPadding * 2, barH),
+                    cornerRadius = CornerRadius(cornerRadius, cornerRadius)
+                )
                 val valueText = formatMinutesShort(data[i])
                 drawContext.canvas.nativeCanvas.drawText(
                     valueText, cx, barAreaBot - barH - 2 * dp, valuePaint
+                )
+            } else {
+                // Giorno senza sessioni: non più il vuoto assoluto di prima
+                // (colonna letteralmente bianca) ma una pillola grigia bassa,
+                // segnalato contro il mockup — vedi il commento di classe.
+                // Nessun valore sopra: non c'è un numero da scrivere.
+                drawRoundRect(
+                    color = emptyBarColor,
+                    topLeft = Offset(cx - barWidth / 2 + barPadding, barAreaBot - emptyBarH),
+                    size = Size(barWidth - barPadding * 2, emptyBarH),
+                    cornerRadius = CornerRadius(emptyBarH / 2, emptyBarH / 2)
                 )
             }
 

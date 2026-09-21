@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Azione "esporta" della Cronologia, promossa da voce dell'overflow a icona
+    nell'ActionBar (vedi HistoryActivity.onCreateOptionsMenu).
+
+    Era l'icona "condividi" di Material (ic_history_share.xml, rinominata
+    qui): scelta apposta perché l'azione non scrive un file da nessuna parte
+    che l'utente possa poi ritrovare, apre solo un chooser ACTION_SEND con
+    il CSV allegato (vedi HistoryActivity.exportHistory()) — un'icona di
+    download avrebbe promesso un file nei Download che non esiste.
+
+    Quella distinzione tecnica non è come si legge l'icona in pratica:
+    segnalato ("l'icona di share non è corretta, perché scarico il csv") —
+    toccarla produce comunque un CSV in mano, ottenuto tramite un chooser di
+    sistema invece che scritto su disco, ma è "ho preso il file" per chi
+    tocca, non "ho condiviso qualcosa con qualcuno". Il comportamento non
+    cambia (resta ACTION_SEND, non un file scritto), solo l'icona.
+
+    Freccia verso un vassoio — il glifo "file_download" standard di
+    Material (stessa licenza Apache-2.0 dei path riusati altrove in questa
+    app, es. EyeGlyph). Tint come ic_history_delete.xml: vedi lì il perché
+    di colorControlNormal.
+-->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24"
+    android:tint="?attr/colorControlNormal">
+    <path
+        android:fillColor="@android:color/white"
+        android:pathData="M19,9h-4V3H9v6H5l7,7l7,-7zM5,18v2h14v-2H5z" />
+</vector>

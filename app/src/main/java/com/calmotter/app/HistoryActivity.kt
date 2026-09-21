@@ -105,7 +105,7 @@ class HistoryActivity : BaseActivity() {
      */
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
         menu.add(0, MENU_EXPORT, 0, getString(R.string.history_export))
-            .setIcon(R.drawable.ic_history_share)
+            .setIcon(R.drawable.ic_history_download)
             .setShowAsAction(MenuItem.SHOW_AS_ACTION_ALWAYS)
         menu.add(0, MENU_CLEAR, 1, getString(R.string.history_clear))
             .setIcon(R.drawable.ic_history_delete)

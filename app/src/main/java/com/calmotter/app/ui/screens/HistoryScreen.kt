@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawingPadding
@@ -23,6 +24,7 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.VerticalDivider
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -48,6 +50,7 @@ import com.calmotter.app.SessionRecord
 import com.calmotter.app.SessionStreak
 import com.calmotter.app.WeeklyGoal
 import com.calmotter.app.ui.mascot.OtterZenMark
+import com.calmotter.app.ui.mascot.SprigMark
 import com.calmotter.app.ui.mascot.OtterHistoryIcon
 import java.text.SimpleDateFormat
 import java.util.Calendar
@@ -68,15 +71,18 @@ private val historyDateFormat = SimpleDateFormat("EEEE d MMM · HH:mm", Locale.g
  * articolato: statistiche, streak, grafico settimanale disegnato a mano,
  * obiettivo opzionale con dialog, lista sessioni, stato vuoto).
  *
- * Riproduce esattamente la struttura della vecchia activity_history.xml:
- * la barra statistiche resta fissa in alto (non scrolla); tutto il resto —
- * streak, grafico, sommario, obiettivo, divisore, etichetta ed elenco
- * sessioni — scorre insieme in un'unica regione, dato che il RecyclerView
- * originale aveva nestedScrollingEnabled="false" apposta per scorrere come
- * parte del NestedScrollView circostante e non in modo indipendente. Qui le
- * righe sessione sono quindi composable semplici dentro la Column scrollabile
- * (sessions.forEach { ... }), NON una LazyColumn annidata — una LazyColumn
- * dentro una Column scrollabile è la traduzione sbagliata per questo layout.
+ * **La barra statistiche scorre con il resto della pagina.** Riproduceva
+ * esattamente la struttura della vecchia activity_history.xml, dove restava
+ * fissa in alto mentre tutto il resto scorreva sotto — comportamento
+ * volutamente preservato nella prima migrazione a Compose, poi segnalato:
+ * su una pagina che si apre raramente e si legge dall'alto in giù, un
+ * pannello fisso non aggiunge nulla che lo scorrimento non dia già, e la
+ * pagina intera come un'unica regione è più semplice da capire di due
+ * regioni con comportamenti diversi. Le righe sessione restano comunque
+ * composable semplici dentro la Column scrollabile (sessions.forEach
+ * { ... }), NON una LazyColumn annidata — una LazyColumn dentro una Column
+ * scrollabile è la traduzione sbagliata per questo layout, indipendentemente
+ * da cosa scorre fisso e cosa no.
  *
  * Nessun refresh legato a onResume(): la vecchia bindAll() veniva chiamata
  * solo da onCreate() e dopo lo svuotamento della cronologia, mai da
@@ -102,7 +108,12 @@ fun HistoryScreen(
         else -> stringResource(R.string.weekly_summary_many, weekSessions, formatMinutes(weekMinutes))
     }
 
-    Column(modifier = Modifier.fillMaxSize().safeDrawingPadding()) {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .safeDrawingPadding()
+            .verticalScroll(rememberScrollState())
+    ) {
         StatsBar(
             sessions = sessions,
             modifier = Modifier
@@ -110,42 +121,34 @@ fun HistoryScreen(
                 .padding(horizontal = 16.dp, vertical = 12.dp)
         )
 
-        // Tutto il resto in scroll — equivalente del NestedScrollView.
-        Column(
+        WeekOverviewCard(
+            streak = streak,
+            minutesByDay = minutesByDay,
+            summaryText = summaryText,
+            goal = goal,
+            weekSessions = weekSessions,
+            weekMinutes = weekMinutes,
+            onEditGoal = onEditGoal,
+            modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp)
+        )
+
+        Text(
+            text = stringResource(R.string.history_all_sessions),
+            fontSize = 13.sp,
+            fontWeight = FontWeight.Bold,
+            color = MaterialTheme.colorScheme.onSurface,
             modifier = Modifier
-                .weight(1f)
                 .fillMaxWidth()
-                .verticalScroll(rememberScrollState())
-        ) {
-            WeekOverviewCard(
-                streak = streak,
-                minutesByDay = minutesByDay,
-                summaryText = summaryText,
-                goal = goal,
-                weekSessions = weekSessions,
-                weekMinutes = weekMinutes,
-                onEditGoal = onEditGoal,
-                modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp)
-            )
+                .padding(start = 16.dp, top = 20.dp, end = 16.dp, bottom = 4.dp)
+        )
 
-            Text(
-                text = stringResource(R.string.history_all_sessions),
-                fontSize = 13.sp,
-                fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.onSurface,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(start = 16.dp, top = 20.dp, end = 16.dp, bottom = 4.dp)
-            )
-
-            sessions.forEach { session ->
-                SessionRow(session)
-            }
-
-            ClosingPhraseCard(modifier = Modifier.padding(horizontal = 16.dp, vertical = 20.dp))
-
-            Spacer(modifier = Modifier.height(16.dp))
+        sessions.forEach { session ->
+            SessionRow(session)
         }
+
+        ClosingPhraseCard(modifier = Modifier.padding(horizontal = 16.dp, vertical = 20.dp))
+
+        Spacer(modifier = Modifier.height(16.dp))
     }
 }
 
@@ -166,17 +169,27 @@ private fun StatsBar(sessions: List<SessionRecord>, modifier: Modifier = Modifie
         color = MaterialTheme.colorScheme.primary.copy(alpha = 0.06f),
         modifier = modifier,
     ) {
-        Row(modifier = Modifier.fillMaxWidth().padding(16.dp)) {
+        // Un VerticalDivider fra ciascuna colonna — segnalato mancante,
+        // confrontato col mockup ("divide-x"). Tenue quanto gli altri
+        // divisori della pagina (onSurface all'8%), e alto quanto il
+        // contenuto della riga (IntrinsicSize.Min sulla Row) invece che
+        // riempire tutta l'altezza della card.
+        Row(
+            modifier = Modifier.fillMaxWidth().padding(16.dp).height(IntrinsicSize.Min),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
             StatColumn(
                 value = total.toString(),
                 label = stringResource(R.string.stat_sessions),
                 modifier = Modifier.weight(1f)
             )
+            VerticalDivider(color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.08f))
             StatColumn(
                 value = formatMinutes(totalMinutes),
                 label = stringResource(R.string.stat_minutes),
                 modifier = Modifier.weight(1f)
             )
+            VerticalDivider(color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.08f))
             StatColumn(
                 value = stringResource(R.string.stat_completed_fraction, completedCount, total),
                 label = stringResource(R.string.stat_completed),
@@ -210,9 +223,15 @@ private fun StatColumn(value: String, label: String, modifier: Modifier = Modifi
 
 /**
  * Streak, grafico settimanale, sommario e obiettivo raggruppati in un'unica
- * card tinta — stesso linguaggio delle sezioni di SettingsScreen.kt (Surface
- * arrotondata + divisore tenue tra sottosezioni) invece di lasciarli sciolti
- * sulla pagina come prima di questo redesign.
+ * card tinta (Surface arrotondata) invece di lasciarli sciolti sulla pagina
+ * come prima di questo redesign. Senza divisori interni, a differenza delle
+ * sezioni di SettingsScreen.kt: lì ogni riga è un'azione o un dato a sé,
+ * qui streak/grafico/sommario/obiettivo sono la stessa storia raccontata in
+ * quattro tappe — un divisore fra sommario e obiettivo c'era, segnalato e
+ * tolto, perché tagliava a metà "questa settimana" → "verso l'obiettivo di
+ * questa settimana" come se fossero due argomenti diversi, mentre nel
+ * mockup ("Calm Otter - History & Journey") restano nella stessa card senza
+ * separatore.
  */
 @Composable
 private fun WeekOverviewCard(
@@ -232,16 +251,31 @@ private fun WeekOverviewCard(
     ) {
         Column(modifier = Modifier.padding(vertical = 8.dp)) {
             if (streak >= 1) {
-                Text(
-                    text = stringResource(R.string.streak_days, streak),
-                    fontSize = 14.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.primary,
-                    textAlign = TextAlign.Center,
+                // Titolo del grafico, non solo un dato in più: segnalato
+                // senza icona e con un font troppo piccolo per il ruolo che
+                // ha (è l'intestazione di tutto ciò che segue — grafico,
+                // sommario, obiettivo). SprigMark, non un'icona Material:
+                // stesso motivo grafico che questa app usa già per "cosa è
+                // fatto di natura" (Impostazioni → Esperienza di pausa),
+                // niente artefatto icone esteso da tirarsi dentro per una
+                // singola foglia.
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(6.dp),
+                    verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(horizontal = 16.dp, vertical = 8.dp)
-                )
+                ) {
+                    Spacer(modifier = Modifier.weight(1f))
+                    SprigMark(markSize = 16.dp)
+                    Text(
+                        text = stringResource(R.string.streak_days, streak),
+                        fontSize = 17.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.primary,
+                    )
+                    Spacer(modifier = Modifier.weight(1f))
+                }
             }
 
             WeeklyChart(
@@ -259,11 +293,12 @@ private fun WeekOverviewCard(
                     .padding(horizontal = 16.dp, vertical = 4.dp)
             )
 
-            HorizontalDivider(
-                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.08f),
-                modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
-            )
-
+            // Nessun divisore qui, segnalato: sommario e obiettivo sono la
+            // stessa storia continuata ("questa settimana" → "verso
+            // l'obiettivo di questa settimana"), non due sezioni distinte
+            // come lo sono card diverse — il mockup le tiene in un'unica
+            // card senza separatore interno, vedi il commento di classe di
+            // [WeekOverviewCard].
             WeeklyGoalSection(
                 goal = goal,
                 weekSessions = weekSessions,
@@ -754,14 +789,26 @@ private fun ClosingPhraseCard(modifier: Modifier = Modifier) {
         color = MaterialTheme.colorScheme.primary.copy(alpha = 0.06f),
         modifier = modifier.fillMaxWidth(),
     ) {
-        Text(
-            text = phrase,
-            fontSize = 15.sp,
-            lineHeight = 23.sp,
-            fontStyle = FontStyle.Italic,
-            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.75f),
-            textAlign = TextAlign.Center,
+        // Segnalato senza icona: la citazione chiudeva la pagina da sola,
+        // senza il piccolo segno che nel resto dell'app accompagna sempre
+        // una frase riflessiva (Impostazioni → Esperienza di pausa, il
+        // pallino verde della pausa attiva). SprigMark sopra il testo,
+        // come nel mockup, non dentro la riga: qui non introduce niente,
+        // è la firma della frase.
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
             modifier = Modifier.padding(20.dp),
-        )
+        ) {
+            SprigMark(markSize = 18.dp)
+            Text(
+                text = phrase,
+                fontSize = 15.sp,
+                lineHeight = 23.sp,
+                fontStyle = FontStyle.Italic,
+                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.75f),
+                textAlign = TextAlign.Center,
+                modifier = Modifier.padding(top = 8.dp),
+            )
+        }
     }
 }
