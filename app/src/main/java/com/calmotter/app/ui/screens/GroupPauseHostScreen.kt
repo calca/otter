@@ -39,6 +39,11 @@ import com.calmotter.app.R
 import com.calmotter.app.encode
 import com.calmotter.app.generateQrCodeBitmap
 import kotlin.random.Random
+import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalClipboardManager
+import androidx.compose.material3.TextButton
+import android.widget.Toast
 
 /**
  * Opzioni di durata offerte sia dal selettore della lobby dal vivo
@@ -310,6 +315,9 @@ internal fun ScrollableMinutePillRow(
 /** QR + codice manuale da condividere — mostrato sopra al conto alla rovescia condiviso. */
 @Composable
 private fun GroupPauseShareHeader(code: String) {
+    val clipboard = LocalClipboardManager.current
+    val context = LocalContext.current
+    val copiedText = stringResource(R.string.group_pause_code_copied)
     // Il QR deve restare scuro-su-chiaro per essere leggibile (vedi
     // generateQrCodeBitmap), ma il "chiaro" non deve per forza essere un
     // quadrato bianco pieno, che sulle palette tenui dell'app stonava.
@@ -364,11 +372,27 @@ private fun GroupPauseShareHeader(code: String) {
             )
             .size(220.dp)
     )
-    Text(
-        text = code,
-        fontFamily = FontFamily.Monospace,
-        fontSize = 16.sp,
-        color = MaterialTheme.colorScheme.primary,
-        modifier = Modifier.padding(top = 16.dp)
-    )
+    // Il codice va anche copiato, non solo letto: dettarlo a voce o
+    // ricopiarlo a mano è l'alternativa quando non si può scansionare, e
+    // ricopiarlo a mano è proprio il fastidio che questo bottone toglie —
+    // segnalato contro il mockup, che ha la sua icona "copia" accanto.
+    Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(top = 16.dp)) {
+        Text(
+            text = code,
+            fontFamily = FontFamily.Monospace,
+            fontSize = 16.sp,
+            color = MaterialTheme.colorScheme.primary,
+        )
+        TextButton(
+            onClick = {
+                clipboard.setText(AnnotatedString(code))
+                Toast.makeText(context, copiedText, Toast.LENGTH_SHORT).show()
+            },
+        ) {
+            Text(
+                text = stringResource(R.string.group_pause_code_copy),
+                fontWeight = FontWeight.SemiBold,
+            )
+        }
+    }
 }

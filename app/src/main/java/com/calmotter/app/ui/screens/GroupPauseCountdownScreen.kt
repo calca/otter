@@ -24,6 +24,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.calmotter.app.R
+import com.calmotter.app.ui.mascot.OtterZenMark
 import kotlinx.coroutines.delay
 
 /**
@@ -39,6 +40,16 @@ import kotlinx.coroutines.delay
  * [header] ospita contenuto specifico del chiamante sopra al conto alla
  * rovescia — il QR/codice da condividere per GroupPauseHostScreen, nulla
  * per GroupPauseJoinScreen (che l'ha già usato per arrivare qui).
+ *
+ * L'otter (`OtterZenMark`, 88dp) sta qui e non dentro [header], apposta:
+ * segnalato contro il mockup ("Time Together - QR & Code") che la pagina
+ * QR era l'unica dell'intero flusso di Tempo Insieme senza una mascotte —
+ * bivio, lobby, entrambe le attese hanno tutte il proprio otter, questa
+ * schermata no. Messo qui invece che nel solo `header` della pagina QR
+ * perché lo stesso vuoto c'era anche nel passo di conto alla rovescia
+ * raggiunto dalla lobby dal vivo (`header = {}`, nessun contenuto): un
+ * componente condiviso vale la stessa cura ovunque venga usato, non solo
+ * dove qualcuno l'ha notato per primo.
  *
  * Limite noto e documentato (specs/group-pause/requirements.md): se il
  * processo viene ucciso mentre questa schermata è in background durante
@@ -78,6 +89,7 @@ fun GroupPauseCountdownScreen(
     // Insieme (vedi il commento di classe di
     // GroupPauseBluetoothLobbyHostScreen per il perché).
     CalmScreenColumn(contentPadding = PaddingValues(32.dp)) {
+        OtterZenMark(markSize = 88.dp, modifier = Modifier.padding(bottom = 14.dp))
         header()
 
         Text(

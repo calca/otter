@@ -213,6 +213,8 @@ Quando sentirai il bisogno di una pausa, basterà aprire l\'app, scegliere quant
     <string name="group_pause_prefer_code_link">Preferisci un codice o un QR?</string>
     <string name="group_pause_start_in_label">Inizia tra</string>
     <string name="group_pause_share_hint">Fai scansionare questo QR, o condividi il codice qui sotto</string>
+    <string name="group_pause_code_copy">Copia</string>
+    <string name="group_pause_code_copied">Codice copiato</string>
     <string name="group_pause_countdown_label">Si inizia tra %1$d:%2$02d</string>
     <string name="group_pause_duration_reminder">Durata: %1$d min</string>
 

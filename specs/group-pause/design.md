@@ -41,7 +41,7 @@ data class GroupPauseRecipe(
 | `QrCodeGenerator.kt` | `generateQrCodeBitmap(content, sizePx, darkColor, lightColor)` — wraps `com.google.zxing.qrcode.QRCodeWriter`, paints the result into a `Bitmap.Config.ARGB_8888` manually. Colours are parameters (see "QR colours" below); `ARGB_8888` rather than `RGB_565` because `lightColor` may be `TRANSPARENT`. |
 | `ui/screens/GroupPauseHostScreen.kt` | Goes **directly** into the live Bluetooth/NFC lobby (`GroupPauseBluetoothLobbyHostScreen`), which now also carries the duration picker (there is no separate duration-picker step any more — see "Two more steps folded away" below); its "Prefer a code or a QR?" link opens a private `GroupPauseQrShareScreen` that shows the QR **immediately**, with the start-delay picker sitting above it (no separate delay-picker step either) → the shared countdown. |
 | `ui/screens/GroupPauseJoinScreen.kt` | The live Bluetooth/NFC lobby by default (`GroupPauseBluetoothLobbyJoinScreen`), or (via its "Scan or enter a code" link — renamed, see "Two more steps folded away") a private `GroupPauseCodeEntryScreen`: Scan is now a **full-screen** camera view (CameraX + zxing) with the guide/instructions overlaid on the live preview, not a small box inside a padded column; manual-code entry is unchanged. Either path decodes a recipe → the shared countdown. |
-| `ui/screens/GroupPauseCountdownScreen.kt` | Shared by both flows — ticks "starting in mm:ss", calls back once at zero. |
+| `ui/screens/GroupPauseCountdownScreen.kt` | Shared by both flows — ticks "starting in mm:ss", calls back once at zero, shows `OtterZenMark` above whatever `header` the caller supplies. |
 | `GroupPauseHostActivity.kt` / `GroupPauseJoinActivity.kt` | Thin `BaseActivity` wrappers: on the countdown reaching zero, call `sessionManager.startSession(durationMinutes, isGroupSession = true)` and `finish()`. |
 
 ## Recipe encoding
@@ -548,6 +548,72 @@ test reproduces). A fourth test asserts that an *inverted* QR is **not**
 decodable by that pipeline, pinning the reason the dark theme needs a
 plate; if zxing ever starts handling inversion, that test fails and the
 decision can be revisited.
+
+## The QR page, on its own report
+
+Reported directly against the mockup ("Time Together - QR & Code",
+Stitch project `3158702940609906617`), after the card-removal and
+lobby-ring passes above had already covered the rest of this flow.
+Comparing against the mockup line by line surfaced one real gap and three
+things deliberately **not** taken, which matter more than the one thing
+that was:
+
+- **No mascot, anywhere on the page.** Every other screen in Tempo
+  Insieme has an otter as its visual anchor — the chooser's
+  `TandemPawsMedallion`, the lobby's `ParticipantRing`, the join lobby's
+  `OtterTapMark`/`SearchingIllustration`. This was the one screen with
+  none: just headline, QR, code, delay pills, countdown, Cancel. Fixed by
+  adding `OtterZenMark(88dp)` — the same size the join lobby already uses
+  for its own `Connecting`/`WaitingForHost` states — but **inside
+  `GroupPauseCountdownScreen`, not inside the QR page's own `header`**.
+  The same emptiness was there in the *other* path through this exact
+  composable too (the countdown reached after a live Bluetooth lobby,
+  `header = {}`, nothing above "Starting in…" at all) — a shared
+  component is worth the same care everywhere it's used, not just where
+  someone happened to look.
+- **A copy action next to the room code.** The mockup has a
+  `content_copy` icon; dictating a code aloud or retyping it by hand is
+  the exact friction a copy button removes, and it's the one piece of
+  this page that was a genuine, unambiguous gap rather than a stylistic
+  difference. `GroupPauseShareHeader` gained a `TextButton("Copy")` next
+  to the code — text rather than a drawn icon (this codebase already pays
+  for procedural or `PathParser`-based icons like `EyeGlyph` when a glyph
+  earns its keep as a permanent, always-visible control; a rarely-used
+  action next to a label that already says what it does isn't that case)
+  — using `LocalClipboardManager` + a confirming `Toast`, the same
+  feedback pattern `session_started` already uses elsewhere in this app.
+
+Not taken, each for a specific reason rather than an oversight:
+
+- **The mockup's "Start now" button.** In this architecture the host and
+  joiner each count down locally to the *same* `startAtEpochMillis`
+  baked into the shared code/QR at generation time — that shared instant
+  is the entire mechanism that keeps two independent devices in sync
+  (see "handshake then autonomy"). A button that skips the host's own
+  wait would only shorten *the host's* countdown; a joiner who already
+  has the original code would still be counting down to the original
+  time, coming apart from a host who no longer is. The spec already
+  accepts a narrower version of this same risk for someone who *changes*
+  the delay after a joiner has scanned — but that is a rare edit,
+  disclosed as a known edge; a permanent "start now" button would make
+  the desync the common case instead of the edge one, every time it's
+  used. Skipped, not forgotten.
+- **A paw watermark in the middle of the QR.** Doable, but only safely
+  with a higher error-correction level than the `M` this app generates
+  today (`QrCodeGenerator.kt`) and real verification that a second
+  camera can still read the result with a logo occluding its centre —
+  exactly the kind of claim `QrCodeGeneratorTest.kt` exists to check
+  mechanically rather than eyeball, and this session had no second
+  device to confirm it against. Left alone rather than shipped unverified.
+- **A live "N friends waiting" readout**, which the mockup shows under
+  the code. This architecture has no channel back to the host once the
+  code/QR is generated — no connection exists to report anyone waiting on
+  (again, "handshake then autonomy"). Showing it would mean inventing
+  state this screen cannot actually know.
+
+Verified on-device: the otter appears above the QR share header, "Copy"
+places the code on the clipboard (confirmed via the system's clipboard
+preview chip) and a toast confirms it.
 
 ## Honest lobby state: the screen stops claiming to wait
 
