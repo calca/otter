@@ -42,6 +42,14 @@ class GroupPauseBluetoothJoin(private val context: Context) {
         autoConnectToNameMarker: String? = null,
         onAutoMatch: (BluetoothDevice) -> Unit = {},
     ) {
+        // Sicura da richiamare più volte sulla stessa istanza (es. dopo un
+        // retry, senza passare da `stop()` — che cancellerebbe `scope` e
+        // con lui la capacità di connettersi di nuovo, vedi il commento su
+        // `stop()` più sotto): senza questo, una seconda chiamata
+        // registrava un secondo `BroadcastReceiver` sovrascrivendo il
+        // riferimento al primo, che restava attivo ma irraggiungibile —
+        // non un crash, ma una perdita silenziosa a ogni retry.
+        receiver?.let { runCatching { context.unregisterReceiver(it) } }
         discovered.clear()
         val adapter = bluetoothAdapterOrNull(context) ?: return
 
@@ -120,6 +128,18 @@ class GroupPauseBluetoothJoin(private val context: Context) {
         }
     }
 
+    // **Definitivo**: `scope.cancel()` chiude per sempre la capacità di
+    // questa istanza di connettersi — qualunque `connectTo()` successivo
+    // farebbe `scope.launch { ... }` su uno scope già cancellato, che non
+    // esegue mai il corpo (il job figlio eredita lo stato cancellato del
+    // genitore). Va chiamato solo quando si abbandona davvero la lobby
+    // (l'istanza stessa verrà scartata), mai per "ripulire e ricominciare"
+    // sulla stessa istanza — per quello vedi `startDiscovery()`, già sicura
+    // da richiamare più volte da sola. Bug reale corretto altrove
+    // (`GroupPauseBluetoothLobbyJoinScreen.kt`): chiamare `stop()` a ogni
+    // cambio di stato invece che solo all'uscita dalla schermata chiudeva
+    // anche connessioni appena riuscite, non solo tentativi falliti — vedi
+    // il commento sul `DisposableEffect` lì.
     @SuppressLint("MissingPermission")
     fun stop() {
         runCatching { bluetoothAdapterOrNull(context)?.cancelDiscovery() }

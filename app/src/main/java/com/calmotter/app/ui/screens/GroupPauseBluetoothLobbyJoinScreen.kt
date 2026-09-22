@@ -142,6 +142,19 @@ fun GroupPauseBluetoothLobbyJoinScreen(
         }
     }
 
+    // Estratta dal `DisposableEffect` qui sotto perché anche il retry dopo
+    // un errore deve poterla richiamare: con l'effetto ora keyato solo su
+    // `allReady` (vedi il commento lì), un errore che riporta a `Listening`
+    // non lo fa ripartire da sé — serve chiamarla a mano dal bottone di
+    // retry, dopo aver ripulito quanto lasciato dal tentativo precedente
+    // (vedi lì).
+    fun startListening() {
+        join.startDiscovery()
+        if (nfcAvailable) {
+            nfcReader.start { marker -> mainHandler.post { pendingNfcMarker = marker } }
+        }
+    }
+
     fun connect(device: BluetoothDevice) {
         state = JoinLobbyState.Connecting
         join.connectTo(
@@ -162,13 +175,35 @@ fun GroupPauseBluetoothLobbyJoinScreen(
     // NFC e ricerca Bluetooth partono insieme quando permessi+Bluetooth sono
     // pronti (allReady) — prima di allora la schermata mostra comunque
     // l'illustrazione e l'avviso gentile, ma nessuna chiamata reale.
-    DisposableEffect(state, allReady) {
-        if (allReady && state == JoinLobbyState.Listening) {
-            join.startDiscovery()
-            if (nfcAvailable) {
-                nfcReader.start { marker -> mainHandler.post { pendingNfcMarker = marker } }
-            }
-        }
+    //
+    // **Bug corretto: era `DisposableEffect(state, allReady)`.** Segnalato
+    // ("il Bluetooth non è stabile, si disconnette da solo"): tenere
+    // `state` come chiave fa girare `onDispose` — quindi `join.stop()` —
+    // a *ogni* cambio di stato, non solo quando si lascia davvero la
+    // schermata. `connect()` (poco sotto) passa a `Connecting` e poi
+    // chiama `join.connectTo(...)`, che lancia una coroutine *asincrona*
+    // sullo scope di `join`; quel cambio di stato fa scattare l'effetto
+    // con la chiave vecchia in disposizione nello stesso istante — una
+    // corsa vera: se la connessione si stabilisce (o si è già stabilita,
+    // caso NFC) prima che Compose finisca di ricomporre,
+    // `join.stop()` chiude `socket`, cioè la connessione appena
+    // riuscita, un attimo dopo che è nata. Da fuori si vede esattamente
+    // come "provo a collegarmi e risulto subito disconnesso" — non un
+    // problema del Bluetooth del dispositivo, un `stop()` chiamato sulla
+    // connessione sbagliata.
+    //
+    // La lobby host non aveva questo bug: il suo `DisposableEffect` è già
+    // keyato solo su `allReady` (vedi GroupPauseBluetoothLobbyHostScreen.kt),
+    // mai su un proprio stato interno — stesso schema riapplicato qui.
+    // `connectTo()` cancella già il discovery per conto proprio appena
+    // parte (vedi GroupPauseBluetoothJoin.kt), quindi non c'è nulla da
+    // fermare esplicitamente al cambio di stato: NFC e ricerca restano
+    // vivi in sottofondo durante `Connecting`/`WaitingForHost` (innocuo:
+    // il discovery a livello di adapter è già cancellato, il reader NFC
+    // semplicemente non ha più nulla da fare) e vengono chiusi una volta
+    // sola, quando si lascia davvero la lobby o `allReady` torna falso.
+    DisposableEffect(allReady) {
+        if (allReady) startListening()
         onDispose {
             nfcReader.stop()
             join.stop()
@@ -344,7 +379,20 @@ fun GroupPauseBluetoothLobbyJoinScreen(
                         textAlign = TextAlign.Center,
                         modifier = Modifier.padding(bottom = 16.dp),
                     )
-                    Button(onClick = { state = JoinLobbyState.Listening }) {
+                    Button(onClick = {
+                        // Fa ripartire la ricerca da capo — l'effetto qui
+                        // sopra non lo fa più da sé al rientro in Listening
+                        // (vedi il suo commento). **Non** `join.stop()`
+                        // prima: cancellerebbe per sempre `scope`, e con lui
+                        // la capacità di questa stessa istanza di
+                        // connettersi di nuovo — vedi il commento su
+                        // `GroupPauseBluetoothJoin.stop()`.
+                        // `startDiscovery()` è già sicura da richiamare più
+                        // volte di fila (ripulisce il proprio
+                        // `BroadcastReceiver` precedente da sé).
+                        if (allReady) startListening()
+                        state = JoinLobbyState.Listening
+                    }) {
                         Text(stringResource(R.string.group_pause_join_retry_button))
                     }
                 }

@@ -2066,3 +2066,54 @@ però lo stesso idioma `withInfiniteAnimationFrameMillis`/passo fisso già
 verificato altrove in questo file per lo stesso tipo di animazione (vedi
 "The pulse was implemented wrong the first time"), non un codice nuovo
 da verificare da zero. Full build/lint/test verde.
+
+## Bug: connessione Bluetooth "instabile", risulta disconnessa subito dopo essersi collegata
+
+Segnalato direttamente: "quando provo a collegarmi con il BT non
+funzione ed esce che sono disconnesso. Non sembra stabile".
+
+Causa: il `DisposableEffect` che avvia NFC e discovery nella lobby join
+era keyato su `(state, allReady)`, non solo su `allReady` — a differenza
+dell'equivalente lato host (`GroupPauseBluetoothLobbyHostScreen.kt`), già
+keyato solo su `allReady`. `connect(device)` passa lo stato a
+`Connecting` e poi chiama `join.connectTo(...)`, che lancia una
+coroutine *asincrona* sullo `scope` di `join`; quel cambio di stato fa
+scattare l'`onDispose` con la chiave vecchia (`Listening`) nello stesso
+istante in cui la connessione sta per stabilirsi. Se la connessione
+riesce (o si è già stabilita — il caso NFC, dove il match arriva più
+tardi ma la connessione può essere già in corso) prima che Compose
+finisca di ricomporre, `onDispose` chiama `join.stop()`, che chiude
+`socket` — cioè la connessione appena riuscita, non un tentativo fallito.
+Da fuori si vede esattamente il sintomo segnalato: si prova a
+collegarsi, e il risultato è "disconnesso", senza che il Bluetooth del
+dispositivo stesso c'entri.
+
+Corretto: `DisposableEffect(allReady)`, stesso schema del lato host.
+`connectTo()` cancella già la discovery per conto proprio non appena
+parte (`GroupPauseBluetoothJoin.kt`), quindi non c'è nulla da fermare
+esplicitamente al cambio di stato — NFC e discovery restano vivi in
+sottofondo durante `Connecting`/`WaitingForHost` (innocuo) e vengono
+chiusi una volta sola, all'uscita dalla lobby o quando `allReady` torna
+falso.
+
+**Effetto collaterale trovato e corretto nello stesso giro**: con
+l'effetto non più keyato su `state`, il retry dopo un errore non fa più
+ripartire la ricerca da sé. Il bottone di retry ora richiama
+`startListening()` esplicitamente — ma **non** `join.stop()` prima:
+`GroupPauseBluetoothJoin.stop()` cancella `scope` in modo definitivo (un
+`connectTo()` successivo lancerebbe la propria coroutine su uno scope
+già cancellato, che non esegue mai il corpo — nessun errore visibile,
+la connessione semplicemente non parte mai più su quella stessa
+istanza). `startDiscovery()` è stata resa sicura da richiamare più
+volte di seguito sulla stessa istanza (ripulisce da sé il
+`BroadcastReceiver` della chiamata precedente, prima registrato una
+volta e mai più raggiungibile a ogni retry).
+
+**Limite di verifica dichiarato**: non verificato con una connessione
+Bluetooth reale — richiederebbe due dispositivi fisici con Bluetooth
+vero, non disponibili in questa sessione (l'emulatore non ha un
+adattatore Bluetooth reale, stesso limite già documentato più volte in
+questo file per le funzioni Bluetooth/NFC dal vivo). Il fix nasce da
+un'analisi concreta della race condition nel codice (non da un
+tentativo alla cieca), verificata per analogia contro il pattern già
+stabile e mai segnalato del lato host. Full build/lint/test verde.
