@@ -1063,3 +1063,20 @@ either flavor (`removeSuffix` is a no-op running as `stable`) without
 hardcoding both `applicationId`s twice. Verified on the emulator with both
 flavors installed: beta's list no longer shows "Calm Otter" between
 Calendar and Camera.
+
+
+## "Massimo N app consentite" was a fixed plural regardless of N
+
+Found during a full-project review (`TODO.md` "5.1"), not a report.
+`allowed_apps_limit_reached` interpolated `%1$d` into a hardcoded plural
+adjective — wrong in Italian for `MAX_ALLOWED_APPS == 1` ("1 app
+consentite" instead of "1 app consentita"; "app" itself is invariant in
+Italian, it's the adjective that needs agreement). Converted to
+`<plurals>`, called from `AllowedAppsActivity.kt` (a plain `Activity`, not
+Compose) via `resources.getQuantityString(...)` rather than
+`pluralStringResource` — the Compose-only equivalent used elsewhere in
+this pass. Verified via lint (`PluralsCandidate` gone) and the full
+build/lint/test pass; not re-verified live on device (would need changing
+`AllowedAppsManager.MAX_ALLOWED_APPS`, a compile-time constant, purely to
+exercise a UI string — judged not worth a temporary code change for this
+one).

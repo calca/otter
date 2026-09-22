@@ -117,7 +117,11 @@ class AllowedAppsActivity : BaseActivity() {
             if (current.size >= AllowedAppsManager.MAX_ALLOWED_APPS) {
                 Toast.makeText(
                     this,
-                    getString(R.string.allowed_apps_limit_reached, AllowedAppsManager.MAX_ALLOWED_APPS),
+                    resources.getQuantityString(
+                        R.plurals.allowed_apps_limit_reached,
+                        AllowedAppsManager.MAX_ALLOWED_APPS,
+                        AllowedAppsManager.MAX_ALLOWED_APPS,
+                    ),
                     Toast.LENGTH_SHORT
                 ).show()
                 return

@@ -43,6 +43,7 @@ import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -369,7 +370,12 @@ private fun lobbyTitleFor(participantNames: List<String>): String = when (partic
     0 -> stringResource(R.string.group_pause_lobby_waiting_title)
     1 -> stringResource(R.string.group_pause_lobby_with_one, participantNames[0])
     2 -> stringResource(R.string.group_pause_lobby_with_two, participantNames[0], participantNames[1])
-    else -> stringResource(R.string.group_pause_lobby_with_many, participantNames[0], participantNames.size - 1)
+    else -> pluralStringResource(
+        R.plurals.group_pause_lobby_with_many,
+        participantNames.size - 1,
+        participantNames[0],
+        participantNames.size - 1,
+    )
 }
 
 /**

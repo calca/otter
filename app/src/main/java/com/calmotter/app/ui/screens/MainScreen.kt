@@ -63,6 +63,7 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
@@ -657,7 +658,7 @@ private fun SessionsSummaryLink(
         Spacer(modifier = Modifier.width(6.dp))
         Text(
             text = if (streakDays >= 1) {
-                stringResource(R.string.streak_days, streakDays)
+                pluralStringResource(R.plurals.streak_days, streakDays, streakDays)
             } else {
                 weeklySummaryText(weekSummary)
             },
@@ -1144,10 +1145,15 @@ private fun weekSummaryOf(records: List<SessionRecord>): WeekSummary {
 }
 
 @Composable
-private fun weeklySummaryText(summary: WeekSummary): String = when {
-    summary.totalSessions == 0 -> stringResource(R.string.weekly_summary_none)
-    summary.totalSessions == 1 -> stringResource(R.string.weekly_summary_one, formatMinutes(summary.totalMinutes))
-    else -> stringResource(R.string.weekly_summary_many, summary.totalSessions, formatMinutes(summary.totalMinutes))
+private fun weeklySummaryText(summary: WeekSummary): String = if (summary.totalSessions == 0) {
+    stringResource(R.string.weekly_summary_none)
+} else {
+    pluralStringResource(
+        R.plurals.weekly_summary_sessions,
+        summary.totalSessions,
+        summary.totalSessions,
+        formatMinutes(summary.totalMinutes),
+    )
 }
 
 /** Duplica HistoryScreen.kt's formatMinutes(): stessa resa "1h 30m", non

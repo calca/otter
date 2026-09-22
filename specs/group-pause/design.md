@@ -1708,3 +1708,29 @@ host lobby's Cancel/'Iniziamo' is a `Column` now, not a `Row`" above) —
 this screen briefly had it first. Reordered: `Cancel` (outlined) then
 `Scan` (filled, primary) as the last sibling, matching the convention.
 Verified the same way, screenshot checked and discarded.
+
+
+## `group_pause_lobby_with_many`, converted to plurals despite `quantity="one"` being unreachable today
+
+Found during a full-project review (`TODO.md` "5.1"), not a report.
+`lobbyTitleFor()` (`GroupPauseBluetoothLobbyHostScreen.kt`) already
+branches `1 -> ...with_one`, `2 -> ...with_two`, `else -> ...with_many` —
+so `with_many`'s `%2$d` (`participantNames.size - 1`) is always ≥ 2 by
+construction; `quantity="one"` can never actually be selected for it in
+English or Italian. Converted to `<plurals>` anyway, same reasoning
+already applied to the pre-existing, structurally identical
+`block_group_with_many` (`BlockScreen.kt`) elsewhere in this same feature:
+a fixed string can't distinguish counts the way a language with a separate
+"few" category (Polish, Russian — 2 through 4 take their own form) needs,
+even though English/Italian never exercise that difference themselves.
+Lint's `MissingQuantity` check requires the `one` variant to exist
+regardless (every quantity the declared locale's plural rules define must
+have an entry) — written with the same wording as `block_group_with_many`'s
+own `one` variant for consistency, understood to be dead text for as long
+as the calling code keeps its current 1/2/else split.
+
+Verified: `PluralsCandidate`/`MissingQuantity` both clear from lint, full
+build/lint/test pass. Not exercised live (would need three physical/second
+devices in a lobby simultaneously, same live-Bluetooth verification limit
+already documented elsewhere in this file for other NFC/Bluetooth-gated
+features).

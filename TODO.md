@@ -293,7 +293,7 @@ lower traffic than the two fixed here.
 
 ## 5. Internationalisation
 
-### 5.1 Fourteen strings should be `<plurals>` — **M**
+### 5.1 Fourteen strings should be `<plurals>` — **M** — ✅ fixed
 
 *Verified by lint (`PluralsCandidate`), both locales.* Counts are
 interpolated into fixed noun forms: `%d secondi`, `%d sessioni`, `%d
@@ -306,7 +306,26 @@ English's (Polish, Russian, Arabic have three to six forms). Fixing it
 before more locales arrive is far cheaper than after, because every
 translation file would otherwise need reworking.
 
-### 5.2 Eight unused strings are being handed to translators — **S**
+*Fixed:* all 7 strings (14 findings = 7 strings × 2 locales) converted to
+`<plurals>` — `password_locked_out`, `weekly_summary_one`/`_many` (merged
+into one `weekly_summary_sessions`), `streak_days`,
+`weekly_goal_progress_sessions`/`_minutes` (quantity on the *target*, not
+the current count — the one place in this batch where the "obvious" arg
+choice would've been wrong), `allowed_apps_limit_reached`,
+`group_pause_lobby_with_many` (quantity="one" is unreachable given how
+it's called today, kept anyway — lint's `MissingQuantity` requires it, and
+a future call site could change that guarantee). `CONTRIBUTING.md` now
+tells translators to add whichever quantities their language needs, not
+just copy English's two. Verified live on the emulator for the three
+call sites reachable without lengthy setup (weekly summary, streak, goal
+progress) by seeding history directly via SQLite; the other two
+(`password_locked_out`'s live countdown, `allowed_apps_limit_reached`'s
+compile-time constant) verified by lint + the same code pattern rather
+than re-triggered live. See `specs/session-history-and-stats/design.md`,
+`specs/onboarding-and-password/design.md`,
+`specs/app-blocking-and-home-lock/design.md`, `specs/group-pause/design.md`.
+
+### 5.2 Eight unused strings are being handed to translators — **S** — ✅ fixed
 
 *Verified by lint (`UnusedResources`).* `settings_theme_selected`,
 `setup_password_info`, `save_password`, `password_saved`,
@@ -315,6 +334,16 @@ translation file would otherwise need reworking.
 `CONTRIBUTING.md` tells contributors to "translate every `<string>`". That
 is volunteer effort spent on strings nothing renders. Delete them from both
 locales.
+
+*Fixed:* all 8 removed from both `values/strings.xml` and
+`values-en/strings.xml`, confirmed gone from `R.string.*` usage first.
+Side effect noticed in the same lint pass: the eight `*_accent`/`*_veil`
+color resources originally flagged unused in the initial review (section
+7, "Eighteen unused resources") are no longer flagged — not because
+anything started rendering them, but because `CalmOtterThemeColorSyncTest`
+(fixed under "2.3") now reads them via `ContextCompat.getColor()`, and
+lint's unused-resource scan includes test sources. A real reference, if a
+narrow one; the housekeeping bullet below is updated to reflect it.
 
 ---
 
@@ -356,9 +385,12 @@ is unintentional rather than chosen.
   beyond the two `CLAUDE.md` already names — worth either deleting
   (it's dead) or fixing and folding into `CalmOtterThemeColorSyncTest`'s
   coverage if something ends up calling it later. **S**
-- **Eighteen unused resources** — the eight strings above, eight
-  `*_accent`/`*_veil` colors, and two `ic_launcher_*_still_otter`
-  drawables. **S**
+- ~~Eighteen unused resources~~ — the eight strings are gone (✅ "5.2");
+  the eight `*_accent`/`*_veil` colors are no longer flagged either, but
+  only because a test now reads them (see "5.2"'s note), not because
+  anything in the app does — worth revisiting if that test ever changes.
+  What's left, genuinely unused by anything: two
+  `ic_launcher_*_still_otter` drawables. **S**
 - **`screenshot/` is untracked and un-ignored** — 24 PNGs that show up in
   every `git status`. Either commit them (they are useful for the README
   and a store listing) or add them to `.gitignore`. Right now they are in

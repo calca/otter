@@ -31,7 +31,14 @@ To add a new language:
    for all translations (the Italian original is the source of truth for meaning, but
    English is easier to read for most contributors).
 
-3. **Translate every `<string>` and every `<item>` inside `<string-array>`.**
+3. **Translate every `<string>` and every `<item>` inside `<string-array>` and `<plurals>`.**
+   For a `<plurals>` block, `values-en/strings.xml` only defines the quantities
+   English needs (`one`, `other`) — your language may need more (Polish and
+   Russian, for example, also use `few` and `many`; Arabic uses all six). Add
+   whichever quantities your language's plural rules require, following
+   [Android's plural rules reference](https://developer.android.com/guide/topics/resources/string-resource.html#Plurals)
+   or [CLDR's table](https://cldr.unicode.org/index/cldr-spec/plural-rules) for
+   your locale — don't just copy the two English already has.
 
 4. **Do not translate:**
    - The `name` attributes (e.g. `name="app_name"`) — these are code identifiers.

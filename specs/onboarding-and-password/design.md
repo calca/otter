@@ -480,3 +480,24 @@ recovered instance works normally from there.
 Verified: `assembleDebug`/`lintStableDebug`/`lintBetaDebug`/
 `testStableDebugUnitTest`/`testBetaDebugUnitTest` all green, all 9 cases
 pass (confirmed via the JUnit XML report, not just "build succeeded").
+
+
+## Lockout countdown said "1 secondi"/"1 seconds" for the last tick
+
+Found during a full-project review (`TODO.md` "5.1"), not a report.
+`password_locked_out` interpolated `%1$d` directly into a fixed plural noun
+("secondi"/"seconds") — grammatically wrong on the last second of a lockout
+countdown in both locales (Italian more visibly so: "1 secondi" reads as an
+obvious mistake, where English's "1 seconds" is a smaller wrongness some
+readers skim past).
+
+Converted to `<plurals name="password_locked_out">` (`one`/`other`), called
+via `pluralStringResource(R.plurals.password_locked_out, it, it)` in both
+`PasswordVerifyDialog.kt` and `ChangePasswordScreen.kt`. Verified:
+`lintStableDebug`/`lintBetaDebug` (the `PluralsCandidate` finding is gone),
+`testStableDebugUnitTest`/`testBetaDebugUnitTest`; not re-verified on
+device specifically for the count-down-to-1 case (would need waiting out a
+real lockout) — the same `pluralStringResource` call pattern was verified
+end-to-end elsewhere in this same pass (see
+`specs/session-history-and-stats/design.md`), so this one is judged safe
+by construction rather than independently re-checked live.

@@ -5,7 +5,6 @@
     <string name="settings_home_label">Home</string>
     <string name="settings_theme_label">Tema</string>
     <string name="settings_pause_experience_label">Esperienza di pausa</string>
-    <string name="settings_theme_selected">Selezionato</string>
     <string name="settings_password_label">Password</string>
     <string name="settings_password_set_by">Impostata da %1$s</string>
     <string name="permission_row_accessibility">Accessibilità</string>
@@ -25,18 +24,14 @@
     <string name="settings_info_developer">Sviluppatore — @calca</string>
     <string name="settings_version">Calm Otter %1$s (build %2$d)</string>
 
-    <string name="setup_password_info">Imposta la password che SOLO un\'altra persona conoscerà: servirà per terminare le sessioni di pausa.</string>
     <string name="hint_partner_name">Il tuo nome (opzionale)</string>
     <string name="hint_new_password">Nuova password</string>
     <string name="hint_confirm_password">Conferma password</string>
     <string name="show_password">Mostra password</string>
     <string name="hide_password">Nascondi password</string>
-    <string name="save_password">Salva password</string>
     <string name="password_too_short">La password deve avere almeno 4 caratteri</string>
     <string name="passwords_dont_match">Le due password non coincidono</string>
-    <string name="password_saved">Password impostata</string>
 
-    <string name="session_active_with_time">Sessione di pausa attiva — circa %1$d min rimanenti</string>
     <string name="home_start_hint">Tocca &lt;b&gt;Otter&lt;/b&gt; per iniziare</string>
     <string name="home_active_label">In pausa</string>
     <string name="home_time_remaining">%1$d min rimasti</string>
@@ -50,7 +45,6 @@
         <item>V</item>
         <item>S</item>
     </string-array>
-    <string name="remaining_time_format">%1$d:%2$02d</string>
     <string-array name="calm_countdown_near_end_phrases">
         <item>Quasi finita</item>
         <item>Ancora un momento…</item>
@@ -81,7 +75,10 @@
     <string name="hint_unlock_password">Password</string>
     <string name="unlock">Sblocca</string>
     <string name="wrong_password">Password errata</string>
-    <string name="password_locked_out">Troppi tentativi errati. Riprova tra %1$d secondi.</string>
+    <plurals name="password_locked_out">
+        <item quantity="one">Troppi tentativi errati. Riprova tra %1$d secondo.</item>
+        <item quantity="other">Troppi tentativi errati. Riprova tra %1$d secondi.</item>
+    </plurals>
 
     <string name="accessibility_service_description">Permette a PauseLock di rilevare quale app è in primo piano per applicare il blocco durante le sessioni di pausa.</string>
 
@@ -95,8 +92,12 @@
 
     <string name="history_all_sessions">Tutte le sessioni</string>
     <string name="weekly_summary_none">Nessuna sessione questa settimana</string>
-    <string name="weekly_summary_one">1 sessione questa settimana · %1$s</string>
-    <string name="weekly_summary_many">%1$d sessioni questa settimana · %2$s</string>
+    <!-- quantity="one" ignora %1$d apposta: è sempre "1", quindi il numero
+         non serve scriverlo. -->
+    <plurals name="weekly_summary_sessions">
+        <item quantity="one">1 sessione questa settimana · %2$s</item>
+        <item quantity="other">%1$d sessioni questa settimana · %2$s</item>
+    </plurals>
 
     <string name="history_title">Cronologia</string>
     <string name="history_empty">Nessuna sessione ancora</string>
@@ -119,7 +120,10 @@
     <string name="stat_completed">completate</string>
     <string name="stat_completed_fraction">%1$d / %2$d</string>
 
-    <string name="streak_days">%1$d giorni di fila</string>
+    <plurals name="streak_days">
+        <item quantity="one">%1$d giorno di fila</item>
+        <item quantity="other">%1$d giorni di fila</item>
+    </plurals>
 
     <string name="weekly_goal_none">Nessun obiettivo per questa settimana</string>
     <string name="weekly_goal_set_button">Imposta obiettivo</string>
@@ -127,8 +131,17 @@
     <string name="weekly_goal_dialog_title">Obiettivo settimanale</string>
     <string name="weekly_goal_type_sessions">Sessioni</string>
     <string name="weekly_goal_type_minutes">Minuti</string>
-    <string name="weekly_goal_progress_sessions">%1$d di %2$d sessioni questa settimana</string>
-    <string name="weekly_goal_progress_minutes">%1$d di %2$d minuti questa settimana</string>
+    <!-- quantity scelta su %2$d (l'obiettivo), non %1$d: è quello che
+         concorda con "sessioni"/"minuti" grammaticalmente ("1 di 1
+         sessione", non "1 di 1 sessioni"). -->
+    <plurals name="weekly_goal_progress_sessions">
+        <item quantity="one">%1$d di %2$d sessione questa settimana</item>
+        <item quantity="other">%1$d di %2$d sessioni questa settimana</item>
+    </plurals>
+    <plurals name="weekly_goal_progress_minutes">
+        <item quantity="one">%1$d di %2$d minuto questa settimana</item>
+        <item quantity="other">%1$d di %2$d minuti questa settimana</item>
+    </plurals>
 
     <string name="history_export">Esporta cronologia</string>
     <string name="history_export_empty">Nessuna sessione da esportare</string>
@@ -151,7 +164,12 @@
     <string name="allowed_apps_empty_filtered">Nessuna app trovata</string>
     <string name="save">Salva</string>
     <string name="allowed_apps_saved">Elenco aggiornato</string>
-    <string name="allowed_apps_limit_reached">Massimo %1$d app consentite</string>
+    <!-- "app" non cambia (invariante in italiano), ma l'aggettivo sì:
+         "consentita"/"consentite". -->
+    <plurals name="allowed_apps_limit_reached">
+        <item quantity="one">Massimo %1$d app consentita</item>
+        <item quantity="other">Massimo %1$d app consentite</item>
+    </plurals>
 
     <string name="widget_description">Avvia una sessione di pausa in un tap</string>
     <string name="widget_label_idle">Pausa</string>
@@ -195,7 +213,6 @@ Quando sentirai il bisogno di una pausa, basterà aprire l\'app, scegliere quant
 
     <!-- Tempo Insieme, ex "Pausa di gruppo" (specs/group-pause/) -->
     <string name="group_pause_entry_button">Tempo insieme</string>
-    <string name="group_pause_chooser_intro">Volete fermarvi insieme?</string>
     <string name="group_pause_chooser_create_desc">Scegli la durata e invita chi vuoi</string>
     <string name="group_pause_chooser_join_desc">Entra in uno già pronto</string>
     <string name="group_pause_chooser_create">Crea</string>
@@ -217,7 +234,6 @@ Quando sentirai il bisogno di una pausa, basterà aprire l\'app, scegliere quant
 
     <string name="group_pause_join_title">Unisciti al tempo insieme</string>
     <string name="group_pause_join_scan_tab">Scansiona</string>
-    <string name="group_pause_join_manual_tab">Codice manuale</string>
     <string name="group_pause_camera_permission_rationale">Serve il permesso fotocamera per leggere il QR.</string>
     <string name="group_pause_scan_instruction">Inquadra il codice QR</string>
     <string name="group_pause_manual_entry_link">Inserisci un codice manualmente</string>
@@ -247,7 +263,18 @@ Quando sentirai il bisogno di una pausa, basterà aprire l\'app, scegliere quant
     <string name="group_pause_lobby_waiting_subtitle">Avvicinate i telefoni o condividete il Bluetooth</string>
     <string name="group_pause_lobby_with_one">%1$s è con te</string>
     <string name="group_pause_lobby_with_two">%1$s e %2$s sono con te</string>
-    <string name="group_pause_lobby_with_many">%1$s e altre %2$d persone sono con te</string>
+    <!-- quantity="one" è irraggiungibile per come questa stringa è
+         davvero chiamata — participantNames.size >= 3 qui (1 e 2 hanno le
+         proprie stringhe a parte, group_pause_lobby_with_one/_two), quindi
+         %2$d (size - 1) vale sempre almeno 2 — ma il controllo
+         MissingQuantity di lint richiede comunque ogni quantity che
+         l'italiano considera ("one"/"other"), e un futuro punto di
+         chiamata potrebbe cambiare questa garanzia. Scritta comunque,
+         stesso testo dell'equivalente block_group_with_many. -->
+    <plurals name="group_pause_lobby_with_many">
+        <item quantity="one">%1$s e un\'altra persona sono con te</item>
+        <item quantity="other">%1$s e altre %2$d persone sono con te</item>
+    </plurals>
     <string name="group_pause_lobby_ready_subtitle">Quando siete pronti, si parte insieme</string>
     <string name="group_pause_start_button">Iniziamo</string>
 

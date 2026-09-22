@@ -20,6 +20,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.calmotter.app.PasswordManager
@@ -64,7 +65,7 @@ fun ChangePasswordScreen(
     }
 
     val displayErrorMessage = lockoutSecondsRemaining?.let {
-        stringResource(R.string.password_locked_out, it)
+        pluralStringResource(R.plurals.password_locked_out, it, it)
     } ?: errorMessage
 
     // Bottone ancorato al fondo pagina, a tutta larghezza, 48.dp — stesso

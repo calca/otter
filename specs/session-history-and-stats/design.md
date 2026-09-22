@@ -532,3 +532,51 @@ lesson learned during the otter fix above), the chart region's
 `content-desc` now reads the exact same text as the `Text` beneath it
 ("2 sessions this week · 0m"), confirmed against the real app database's
 seeded history from earlier in this session.
+
+
+## Three plural bugs: weekly summary, streak, and goal progress
+
+Found during a full-project review (`TODO.md` "5.1"), not a report — the
+visible symptom (`"1 giorni"`, `"1 sessioni"`) is the kind of thing that's
+easy to never notice once a streak passes 1, and easy for a first-time user
+to notice immediately.
+
+- **`weekly_summary_one`/`weekly_summary_many`** (two separate strings,
+  hand-branched in code for the 0/1/many cases) merged into one
+  `<plurals name="weekly_summary_sessions">`. The `one` variant skips
+  `%1$d` on purpose — it's always literally "1", nothing to print — and
+  keeps `%2$s` (the formatted time) at the same positional index as the
+  `other` variant, so both call sites (`HistoryScreen.kt`,
+  `MainScreen.kt`'s `weeklySummaryText`) can pass the same two args
+  (`weekSessions, formatMinutes(...)`) regardless of which variant gets
+  selected. `weekly_summary_none` (the 0 case) stays a separate plain
+  string — Android `<plurals>` `quantity="zero"` is only ever selected by
+  locales whose CLDR plural rules define a zero category (Arabic does;
+  English/Italian don't, and would silently fall through to `other`), so
+  it can't carry this case reliably even if written.
+- **`streak_days`** → `<plurals>`, `one`/`other`. Interesting asymmetry:
+  Italian genuinely needs both forms ("1 giorno" vs "N giorni"), but
+  English's "%1$d day streak" is grammatically fine unchanged at any count
+  — "day" here is attributive ("5-day streak"), not the plural head noun.
+  Written with identical `one`/`other` text on the English side anyway,
+  both because `getQuantityString`/`pluralStringResource` need the
+  resource to exist for whichever quantity Java's plural rules select, and
+  for structural symmetry with the Italian resource.
+- **`weekly_goal_progress_sessions`/`_minutes`** → `<plurals>` each,
+  quantity selected on `goal.target` (`%2$d`), not `current` (`%1$d`) —
+  "1 of 3 sessions" is still plural even though the first number is 1;
+  it's the second number "sessions" grammatically agrees with. Verified
+  this distinction specifically, since it's the one call site in this
+  batch where the "obvious" choice (quantity on the first `%d` you see)
+  would have been wrong.
+
+Verified: lint's `PluralsCandidate` gone for all of these (both locales),
+`assembleDebug`/`lintStableDebug`/`lintBetaDebug`/
+`testStableDebugUnitTest`/`testBetaDebugUnitTest` all green. Checked live
+on the emulator, seeding history directly via SQLite (same
+pull-edit-checkpoint-push technique used earlier in this project's
+history) to force each boundary: one session this week reads
+`"1 session this week · 30m"` (not "1 sessions"); a streak of 1 reads
+`"1 day streak"`; a weekly goal of 3 sessions with 1 completed reads
+`"1 of 3 sessions this week"` — all three correct, no crash in `adb
+logcat`.

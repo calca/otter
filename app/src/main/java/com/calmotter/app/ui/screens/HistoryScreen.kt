@@ -38,6 +38,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalLocale
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringArrayResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontStyle
@@ -125,10 +126,10 @@ fun HistoryScreen(
     val streak = SessionStreak.currentStreakDays(sessions)
     val (minutesByDay, weekSessions, weekMinutes) = weeklyChartData(sessions)
 
-    val summaryText = when {
-        weekSessions == 0 -> stringResource(R.string.weekly_summary_none)
-        weekSessions == 1 -> stringResource(R.string.weekly_summary_one, formatMinutes(weekMinutes))
-        else -> stringResource(R.string.weekly_summary_many, weekSessions, formatMinutes(weekMinutes))
+    val summaryText = if (weekSessions == 0) {
+        stringResource(R.string.weekly_summary_none)
+    } else {
+        pluralStringResource(R.plurals.weekly_summary_sessions, weekSessions, weekSessions, formatMinutes(weekMinutes))
     }
 
     Column(
@@ -292,7 +293,7 @@ private fun WeekOverviewCard(
                     Spacer(modifier = Modifier.weight(1f))
                     SprigMark(markSize = 16.dp)
                     Text(
-                        text = stringResource(R.string.streak_days, streak),
+                        text = pluralStringResource(R.plurals.streak_days, streak, streak),
                         fontSize = 17.sp,
                         fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.primary,
@@ -374,9 +375,12 @@ private fun WeeklyGoalSection(
             )
 
             Text(
+                // Quantity su goal.target, non su current: è quello con cui
+                // "sessioni"/"minuti" concorda grammaticalmente — vedi il
+                // commento sulla risorsa in strings.xml.
                 text = when (goal.type) {
-                    GoalType.SESSIONS -> stringResource(R.string.weekly_goal_progress_sessions, current, goal.target)
-                    GoalType.MINUTES -> stringResource(R.string.weekly_goal_progress_minutes, current, goal.target)
+                    GoalType.SESSIONS -> pluralStringResource(R.plurals.weekly_goal_progress_sessions, goal.target, current, goal.target)
+                    GoalType.MINUTES -> pluralStringResource(R.plurals.weekly_goal_progress_minutes, goal.target, current, goal.target)
                 },
                 fontSize = 13.sp,
                 color = MaterialTheme.colorScheme.onSurface,
