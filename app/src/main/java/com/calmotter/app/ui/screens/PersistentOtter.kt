@@ -22,7 +22,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
+import com.calmotter.app.R
 import com.calmotter.app.ui.mascot.OtterZenMark
 
 /**
@@ -119,6 +123,23 @@ fun PersistentOtter(
         if (isStarting) {
             TapConfirmBurst(progress = burstProgress.value, modifier = Modifier.size(OtterHaloSize))
         }
+        // TODO.md "4.2": è questo il nodo davvero toccato in produzione
+        // (MainActivity passa sempre di qui, non da PondOtter — vedi il
+        // commento di classe sopra) — OtterZenMark è un Canvas, quindi
+        // senza un'etichetta esplicita TalkBack lo annuncia come un
+        // "Pulsante" muto. Stessa frase già visibile sotto l'otter in Home
+        // (home_start_hint), non una seconda copia da mantenere allineata.
+        // Solo quando è davvero toccabile: durante una pausa `enabled` è
+        // già false, e l'otter non deve leggersi come un pulsante.
+        val otterContentDescription = if (enabled && !isStarting) {
+            // .text, non la stringa grezza: home_start_hint porta i tag
+            // <b>/</b> che boldAnnotatedString() interpreta per il grassetto
+            // visibile — letti alla lettera da TalkBack sarebbero rumore
+            // ("Tap apri parentesi b Otter...").
+            boldAnnotatedString(stringResource(R.string.home_start_hint)).text
+        } else {
+            null
+        }
         Box(
             modifier = Modifier
                 // Le due trasformazioni stanno sullo **stesso nodo** che
@@ -127,7 +148,14 @@ fun PersistentOtter(
                 .graphicsLayer { translationY = floatOffset.value * density }
                 .scale(otterScale)
                 .clip(CircleShape)
-                .clickable(enabled = enabled && !isStarting, onClick = { isStarting = true }),
+                .clickable(enabled = enabled && !isStarting, onClick = { isStarting = true })
+                .then(
+                    if (otterContentDescription != null) {
+                        Modifier.semantics { contentDescription = otterContentDescription }
+                    } else {
+                        Modifier
+                    }
+                ),
             contentAlignment = Alignment.Center,
         ) {
             OtterZenMark(markSize = OtterMarkSize)

@@ -64,6 +64,8 @@ import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
@@ -563,12 +565,35 @@ private fun PondOtter(
                     restartKey = restartKey,
                 )
 
+            // TODO.md "4.2": l'otter è il tasto di avvio principale
+            // dell'app, ma OtterZenMark è disegnato con Canvas — senza
+            // un'etichetta esplicita TalkBack lo annuncia come un
+            // "Pulsante" muto, senza dire cosa fa. La stessa frase già
+            // visibile sotto ("Tap Otter to start", home_start_hint) fa
+            // anche da contentDescription — non serve inventarne una
+            // seconda. Solo quando è davvero toccabile: durante una pausa
+            // (sessionActive) l'otter non è un pulsante, non deve leggersi
+            // come tale.
+            val otterContentDescription = if (!sessionActive && !isStarting) {
+                // .text, non la stringa grezza — vedi lo stesso commento in
+                // PersistentOtter.kt.
+                boldAnnotatedString(stringResource(R.string.home_start_hint)).text
+            } else {
+                null
+            }
             Box(
                 modifier = Modifier
                     .graphicsLayer { translationY = floatOffset.value * density }
                     .scale(otterScale)
                     .clip(CircleShape)
-                    .clickable(enabled = !sessionActive && !isStarting, onClick = { isStarting = true }),
+                    .clickable(enabled = !sessionActive && !isStarting, onClick = { isStarting = true })
+                    .then(
+                        if (otterContentDescription != null) {
+                            Modifier.semantics { contentDescription = otterContentDescription }
+                        } else {
+                            Modifier
+                        }
+                    ),
                 contentAlignment = Alignment.Center,
             ) {
                 OtterZenMark(markSize = OtterMarkSize)

@@ -874,3 +874,56 @@ region to fall back to since `values/` *is* the Italian base and
 English was enough, but the per-app command is the more targeted tool
 and was cleared again afterwards): row label bounds now agree across
 every card, and both theme-grid rows sit flush in Italian.
+
+
+## The otter — the app's main button — had no accessibility label
+
+Found during a full-project review (`TODO.md` "4.2"), not a report:
+`OtterZenMark` is drawn with `Canvas`, which carries no text a screen
+reader can read. Without an explicit label, TalkBack announced the tap
+target as an unlabelled "Button" — for the one action every session in
+this app starts with.
+
+**The actual clickable node in production isn't in this file.** "Living
+Pond: `PondOtter`" above describes the version this section was
+originally written against; a later refactor (see `PersistentOtter.kt`'s
+own class doc, and `app-blocking-and-home-lock/design.md` for where it's
+referenced from that side) moved the real, always-on-screen otter out of
+both `MainScreen`/`BlockScreen` into a single node, `PersistentOtter`,
+that `MainActivity` renders *above* the Home/Block cross-fade so it never
+has to jump or re-clip mid-transition. `PondOtter`'s own `OtterZenMark` +
+`.clickable(...)` (described above) still exists and is still correct,
+but `MainActivity` always passes `drawOtter = false` to both screens — so
+that copy only actually runs for the two standalone callers that skip
+`MainActivity` entirely (`BlockOverlayActivity`, the accessibility
+service's bridge overlay), and neither of those makes the otter
+clickable in the first place. First attempt at this fix only touched
+`PondOtter`, verified against the wrong node with `uiautomator dump` (an
+otherwise-installed rebuild's `content-desc` didn't change), and only the
+process being stale — not the fix being on the wrong composable — was
+suspected at first; re-checked by tracing the actual `setContent{}` call
+graph before finding `PersistentOtter`.
+
+Fixed in both places — `PersistentOtter.kt` (the one that matters) and
+`MainScreen.kt`'s `PondOtter` (for consistency/future-proofing the
+standalone path): `Modifier.semantics { contentDescription = ... }`
+chained after the existing `.clickable(...)`, applied only while the tap
+is actually live (`enabled && !isStarting` / `!sessionActive &&
+!isStarting`) — during an active pause the otter isn't a button and
+shouldn't announce as one.
+
+The label reuses `home_start_hint` ("Tap **Otter** to start", the same
+string already visible on screen) rather than inventing new copy — but
+not verbatim: that string carries literal `<b>`/`</b>` tags that
+`boldAnnotatedString()` (`OnboardingScreen.kt`) parses into visual bold
+styling. Read to `contentDescription` as-is, TalkBack would speak the
+tags themselves. Fixed by taking `boldAnnotatedString(...).text` — the
+plain-text projection of the same `AnnotatedString` used for the visible
+label — instead of the raw resource string.
+
+Verified end-to-end via `uiautomator dump`'s `content-desc` output (a
+reasonable proxy for what TalkBack itself would announce, without a
+physical accessibility-service pass): after force-stopping and
+relaunching so the freshly built code actually ran (`am start` on an
+already-resumed activity does not restart its process), the otter node
+now reports `content-desc="Tap Otter to start"` — clean text, no markup.

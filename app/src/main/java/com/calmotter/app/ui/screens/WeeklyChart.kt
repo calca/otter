@@ -13,6 +13,8 @@ import androidx.compose.ui.graphics.nativeCanvas
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.res.stringArrayResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import com.calmotter.app.R
 import java.util.Calendar
 
@@ -47,8 +49,18 @@ import java.util.Calendar
  * CalmOtterTheme.kt, la stessa trappola già documentata più volte in questo
  * codebase).
  */
+/**
+ * TODO.md "4.2": disegnata con Canvas, quindi altrimenti invisibile a
+ * TalkBack — un grafico senza alternativa testuale è un dato che chi usa
+ * uno screen reader non può proprio raggiungere. [accessibilityLabel] non
+ * inventa una frase nuova: è pensato per ricevere la stessa
+ * [summaryText]/`weekly_summary_*` già calcolata e mostrata come `Text`
+ * subito sotto questo grafico in [WeekOverviewCard] — non c'è un secondo
+ * riepilogo da scrivere e mantenere sincronizzato con quello visibile,
+ * solo da rendere raggiungibile anche da qui.
+ */
 @Composable
-fun WeeklyChart(data: IntArray, modifier: Modifier = Modifier) {
+fun WeeklyChart(data: IntArray, modifier: Modifier = Modifier, accessibilityLabel: String? = null) {
     // I colori del tema si leggono solo in scope @Composable, non dentro la
     // lambda di disegno di Canvas (DrawScope) — vanno quindi catturati qui,
     // prima di entrare in Canvas { ... }.
@@ -85,6 +97,13 @@ fun WeeklyChart(data: IntArray, modifier: Modifier = Modifier) {
         modifier = modifier
             .fillMaxWidth()
             .aspectRatio(1f / 0.45f)
+            .then(
+                if (accessibilityLabel != null) {
+                    Modifier.semantics { contentDescription = accessibilityLabel }
+                } else {
+                    Modifier
+                }
+            )
     ) {
         val w = size.width
         val h = size.height

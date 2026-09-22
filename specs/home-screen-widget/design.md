@@ -209,3 +209,24 @@ slow.
   countdown/phrase text doesn't distinguish a Tempo Insieme (group) session
   from a solo one — same generic treatment `BlockScreen` already gives
   group sessions (see `specs/group-pause/design.md`).
+
+
+## `widget_pause.xml`'s two icons were invisible *and* unlabelled to TalkBack
+
+Found during a full-project review (`TODO.md` "4.1"), not a report. This is
+the plain XML `initialLayout` (see "Built on Jetpack Glance" above — still
+required by the platform, briefly shown before Glance's real content loads)
+— the real Glance widget (`PauseWidgetProvider.kt`) already gets this right,
+consistently passing `contentDescription = null` on every decorative
+`Image` because the adjacent `Text` already carries the same information in
+words. `widget_pause.xml` was the one place that pattern hadn't been
+applied: both `ImageView`s (`ic_otter_widget`, `ic_pause_widget`) had no
+`android:contentDescription`, and both `TextView`s were `10sp`, under the
+11sp floor.
+
+Fixed the same way the Glance version already does it: `android:
+contentDescription="@null"` on both images (explicitly decorative — the
+label alongside says the same thing, echoing it would be a second,
+redundant announcement, not a fix), `textSize` bumped to `11sp` on both.
+Verified by lint (`ContentDescription`/`SmallSp`, both gone from the
+report).

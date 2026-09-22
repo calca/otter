@@ -28,16 +28,20 @@
             android:gravity="center"
             android:visibility="visible">
 
+            <!-- Decorativa: il testo qui sotto porta già la stessa informazione,
+                 stesso trattamento delle icone equivalenti nel widget Glance
+                 vero (PauseWidgetProvider.kt, contentDescription = null). -->
             <ImageView
                 android:layout_width="26dp"
                 android:layout_height="26dp"
-                android:src="@drawable/ic_otter_widget" />
+                android:src="@drawable/ic_otter_widget"
+                android:contentDescription="@null" />
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/widget_label_idle"
-                android:textSize="10sp"
+                android:textSize="11sp"
                 android:textColor="#2C4A3E"
                 android:textStyle="bold"
                 android:layout_marginTop="2dp" />
@@ -52,16 +56,18 @@
             android:gravity="center"
             android:visibility="gone">
 
+            <!-- Decorativa, stesso motivo dell'otter idle qui sopra. -->
             <ImageView
                 android:layout_width="26dp"
                 android:layout_height="26dp"
-                android:src="@drawable/ic_pause_widget" />
+                android:src="@drawable/ic_pause_widget"
+                android:contentDescription="@null" />
 
             <TextView
                 android:id="@+id/widgetTimeText"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:textSize="10sp"
+                android:textSize="11sp"
                 android:textColor="#3D7A5C"
                 android:textStyle="bold"
                 android:layout_marginTop="2dp" />

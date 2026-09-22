@@ -251,14 +251,19 @@ capping/paginating the query.
 This is the weakest area relative to the rest of the project's care. Nine
 `semantics {}` usages in the whole app.
 
-### 4.1 The widget is unusable with TalkBack — **S**
+### 4.1 The widget is unusable with TalkBack — **S** — ✅ fixed
 
 *Verified by lint.* `widget_pause.xml:31` and `:55` are images with no
 `contentDescription`, and `:40` and `:64` use 10sp text (below the 11sp
 floor lint enforces, and well below comfortable). The widget is a primary
 entry point for starting a pause.
 
-### 4.2 Canvas-drawn content is invisible to screen readers — **M**
+*Fixed:* `android:contentDescription="@null"` on both images (decorative —
+matches the pattern the real Glance widget already used correctly), both
+`TextView`s bumped to `11sp`. Confirmed gone from the lint report. See
+`specs/home-screen-widget/design.md`.
+
+### 4.2 Canvas-drawn content is invisible to screen readers — **M** — partially addressed
 
 Nine files draw with `Canvas`, and the drawings carry meaning:
 `WeeklyChart.kt` *is* the weekly statistics; `ParticipantRing` says who has
@@ -271,9 +276,18 @@ To TalkBack these are blank areas.
 icon (`:294`) — meaning "Tap Otter to start", the primary action of the
 app, is currently unlabelled.
 
-Two cheap wins: give the otter tap target a label, and give `WeeklyChart` a
-`contentDescription` summarising the week ("4 pauses, 2 h 10 min") so the
-data is reachable at all.
+*Fixed, the two cheap wins named above:* the otter tap target now carries
+`contentDescription` = the plain-text version of `home_start_hint` (only
+while actually tappable), and `WeeklyChart` takes an
+`accessibilityLabel` now wired to the same `summaryText` already rendered
+below it, not a new phrase. Both verified end-to-end via `uiautomator
+dump`'s `content-desc` output after a full force-stop-and-relaunch (an
+`am start` on an already-resumed Activity does not pick up a freshly
+installed build — caught the hard way, see
+`specs/home-and-settings/design.md`). The real fix landed in
+`PersistentOtter.kt`, not `MainScreen.kt`'s `PondOtter` — same writeup for
+why. `ParticipantRing` (group-pause lobby) is untouched — still open,
+lower traffic than the two fixed here.
 
 ---
 

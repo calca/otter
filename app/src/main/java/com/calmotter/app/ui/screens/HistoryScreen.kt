@@ -303,7 +303,10 @@ private fun WeekOverviewCard(
 
             WeeklyChart(
                 data = minutesByDay,
-                modifier = Modifier.padding(top = 8.dp, start = 16.dp, end = 16.dp)
+                modifier = Modifier.padding(top = 8.dp, start = 16.dp, end = 16.dp),
+                // Stessa frase del Text subito sotto (summaryText) — vedi il
+                // commento di classe su WeeklyChart per il perché.
+                accessibilityLabel = summaryText,
             )
 
             Text(

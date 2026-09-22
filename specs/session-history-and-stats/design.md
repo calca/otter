@@ -502,3 +502,33 @@ tests run and pass, `app/schemas/com.calmotter.app.CalmOtterDatabase/3.json`
 present after the build. Installed on the emulator and reopened History on
 top of the app's existing (already-v3) local database — opens and renders
 correctly, no exception in `adb logcat` for the app's process.
+
+
+## `WeeklyChart` was invisible to TalkBack — given the summary line's own words, not a new one
+
+Found during a full-project review (`TODO.md` "4.2"), not a report:
+`WeeklyChart` draws entirely with `Canvas` (bars, day labels, values) — to
+a screen reader that whole region was blank, and the per-day breakdown was
+data with no way to reach it at all.
+
+Didn't invent new copy for this. `WeekOverviewCard`'s caller already
+computes `summaryText` (`weekly_summary_none`/`_one`/`_many` — "2 sessions
+this week · 0m", etc.) and renders it as a plain `Text` right below the
+chart, which is already readable by TalkBack on its own. `WeeklyChart`
+gained an optional `accessibilityLabel: String?` param, applied via
+`Modifier.semantics { contentDescription = it }` on the `Canvas`, and the
+one call site passes the same `summaryText` it already had in scope — no
+second phrase to keep in sync with the first, just making the chart's
+region carry the summary that already exists a few dp below it instead of
+staying silent.
+
+Doesn't (and can't, from a single string) surface the per-day breakdown —
+"which day had 40 minutes" stays visual-only. Flagged, not solved: a fuller
+fix would need a longer, per-day description, left for if this turns out
+to matter to an actual TalkBack user rather than guessed at.
+
+Verified via `uiautomator dump`: after relaunching (same "stale process"
+lesson learned during the otter fix above), the chart region's
+`content-desc` now reads the exact same text as the `Text` beneath it
+("2 sessions this week · 0m"), confirmed against the real app database's
+seeded history from earlier in this session.
