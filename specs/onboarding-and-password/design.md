@@ -501,3 +501,33 @@ real lockout) — the same `pluralStringResource` call pattern was verified
 end-to-end elsewhere in this same pass (see
 `specs/session-history-and-stats/design.md`), so this one is judged safe
 by construction rather than independently re-checked live.
+
+
+## `security-crypto` moved off the alpha it had been pinned to since day one
+
+TODO.md "6.1": `1.1.0-alpha06` → stable `1.1.0`, done as its own commit
+rather than folded into the rest of the dependency-drift cleanup ("6.2") —
+deliberately, since this is the exact library behind the
+`AEADBadTagException` crash fixed earlier in this file, making it the one
+upgrade worth attributing on its own if anything regresses.
+
+Nothing about `PasswordManager.kt` needed to change: `MasterKey`/
+`EncryptedSharedPreferences`'s public API is unchanged between the two
+versions. The compiler does now flag both classes `@Deprecated` — the
+library has a newer recommended surface as of 1.1.0 that this project
+hasn't adopted — noted here as a fact, not acted on; migrating off a
+now-deprecated-but-still-functional API is a separate, larger piece of
+work than a version bump, and isn't what this pass set out to do.
+
+Verified beyond the standard build/lint/test pass (all green, including
+all 9 `PasswordManagerTest` cases — the fake-Keystore suite from "2.1"
+turned out to double as regression coverage for exactly this upgrade):
+installed on the emulator and actually exercised the encrypted-prefs
+round trip on a real device rather than just the JVM test double — opened
+Settings → Change password on the app's existing password (set under the
+*old* alpha library, in an earlier session), verified the current
+password against it, wrote a new one, confirmed the screen returned to
+Settings (the success path) with no exception in `adb logcat`. Both
+directions of the exact operation the AEADBadTag crash involved — reading
+an existing encrypted file, writing a new one — worked under the upgraded
+library.

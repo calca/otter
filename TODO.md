@@ -349,13 +349,24 @@ narrow one; the housekeeping bullet below is updated to reflect it.
 
 ## 6. Dependencies
 
-### 6.1 `androidx.security:security-crypto` is on an alpha — **S**
+### 6.1 `androidx.security:security-crypto` is on an alpha — **S** — ✅ fixed
 
 `1.1.0-alpha06` is pinned while **stable `1.1.0` is available**. This is
 the library behind the `EncryptedSharedPreferences` crash just fixed, which
 makes it the one upgrade worth doing deliberately rather than in a batch:
 read its changelog, then upgrade on its own commit so any fallout is
 attributable.
+
+*Fixed:* bumped to `1.1.0`, no API changes needed in `PasswordManager.kt`
+(though `MasterKey`/`EncryptedSharedPreferences` are now `@Deprecated` as
+of this version — noted, not acted on; a real migration is separate,
+larger work). Verified beyond build/lint/test: all 9
+`PasswordManagerTest` cases still pass, and — since this is exactly the
+library behind a real crash already fixed once — exercised live on the
+emulator too: changed the password on the app's existing (old-library)
+encrypted store, both the read of the old value and the write of the new
+one succeeded with no exception. See
+`specs/onboarding-and-password/design.md`.
 
 ### 6.2 The rest of the dependency drift — **M**
 

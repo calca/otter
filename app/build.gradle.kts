@@ -133,8 +133,13 @@ dependencies {
     implementation("androidx.recyclerview:recyclerview:1.3.2")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3")
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.8.3")
-    // Storage cifrato per salt + hash della password (AES256 via Android Keystore)
-    implementation("androidx.security:security-crypto:1.1.0-alpha06")
+    // Storage cifrato per salt + hash della password (AES256 via Android Keystore).
+    // TODO.md "6.1": era pinnata su un'alpha (1.1.0-alpha06) mentre la 1.1.0
+    // stabile è disponibile da tempo — proprio la libreria dietro il crash
+    // AEADBadTagException risolto in PasswordManager.kt, motivo per cui
+    // questo aggiornamento è isolato nel proprio commit invece che in blocco
+    // con gli altri di "6.2".
+    implementation("androidx.security:security-crypto:1.1.0")
     implementation("androidx.room:room-runtime:2.8.5")
     implementation("androidx.room:room-ktx:2.8.5")
     ksp("androidx.room:room-compiler:2.8.5")
