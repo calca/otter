@@ -1,9 +1,9 @@
 # Calm Otter
 
-A native Android app that helps you put the phone down. Start a pause and
-every app except Phone is blocked and notifications go quiet — only the
-person who set the password can end it early. No account, no backend, no
-analytics: everything happens on the device.
+Put the phone down, on purpose. Calm Otter blocks every app but Phone and
+silences notifications for as long as you choose — and only the person who
+holds the password can end it early. No sign-up, no backend, no tracking:
+just you, your phone, and a bit of quiet.
 
 <p align="center">
   <img src="docs/screenshots/home.png" width="200" alt="Home screen with weekly streak" />
@@ -14,59 +14,55 @@ analytics: everything happens on the device.
 
 ## How it works
 
-1. **First run** — the other person (the "accountability partner") opens
-   the app and sets the password. It's saved as a PBKDF2-HMAC-SHA256 hash
+1. **Set a password** — you, or someone you trust to hold you accountable,
+   opens the app and sets it once. It's kept as a PBKDF2-HMAC-SHA256 hash
    with a random salt inside `EncryptedSharedPreferences`, encrypted via
-   Android Keystore — the plain-text password is never stored.
-2. **Grant permissions** (one-time) — Accessibility + Notification Policy
-   Access (Do Not Disturb).
-3. **Start a pause** — choose a duration and tap the otter. From that
-   moment: any app that isn't allowed gets covered by a full-screen block
-   with a countdown, Do Not Disturb silences notifications — phone calls,
-   alarms and whatever you're listening to still come through — and a
-   system alarm guarantees the session ends on time even if you never touch
+   Android Keystore — the actual password is never stored anywhere.
+2. **Grant two permissions** — Accessibility and Do Not Disturb access.
+   That's the whole setup, one time only.
+3. **Pick a duration and tap the otter.** Every app but Phone gets covered
+   by a calm full-screen countdown, notifications go quiet — calls, alarms
+   and whatever you're listening to still get through — and the pause is
+   backed by a system alarm, so it ends on time even if you never touch
    the phone again.
-4. **End the pause** — automatically when time is up, or earlier if the
-   correct password is entered on the block screen.
+4. **The pause ends itself** when time's up, or earlier if the right
+   password is entered on the block screen.
 
 ## Extra Allowed Apps
 
-Beyond the Phone app, you can allow a small list of other apps to stay
-usable during a pause — maps, a family group chat, whatever is
-non-negotiable. Managing that list requires the password, so only the
-accountability partner can add or remove apps.
+Not everything needs to wait. Keep a short list of apps that stay
+reachable during a pause — maps, a family chat, whatever is
+non-negotiable. Only the password holder can change that list, so it
+stays a deliberate exception, not a loophole.
 
 ## Home App
 
-Calm Otter can also be set as your phone's Home app. With that on, the
-Home button itself gets caught during an active session instead of just
-being another way to escape to app icons — closing the most obvious
-loophole in the block. It's optional and doesn't replace the
-Accessibility service; see "Known Limits" below for why neither one is
-airtight on its own.
+For an even quieter phone, set Calm Otter as your Home app. Now the Home
+button itself is part of the pause instead of a side door back to your
+app icons. It's optional, and it doesn't replace Accessibility — see
+"Known Limits" below for why the two work together rather than either
+one being enough alone.
 
 ## Tempo Insieme (Group Pause)
 
-Two or more people can start the *same* pause together, each on their own
-phone. From Home, "Time together" opens two roles, each with two ways to
-pair:
+Some pauses are better together. "Time together" lets two or more people
+start the *same* pause at the *same* moment, each on their own phone —
+made for a couple, a family, or a team that wants to disconnect as one:
 
-- **QR / manual code** — fully offline: the host generates a code (also
-  shown as a QR) that encodes the duration and an agreed start time; the
-  other person scans it or types it in. No live connection at any point —
-  the phones never talk to each other, they just start at the same
-  pre-agreed moment.
+- **QR / manual code** — fully offline. The host shares a code (or a QR)
+  with the duration and an agreed start time baked in; everyone else
+  scans or types it in. The phones never actually talk to each other —
+  they just agree in advance and start together.
 - **Live lobby (Bluetooth, with NFC as a shortcut)** — the host opens a
-  live lobby; the other person either taps their phone against the host's
-  (NFC) or searches for it manually, then the host starts once at least
-  one person has joined. The phones briefly connect only to agree on when
-  to start — the connection ends the moment the pause itself begins.
+  lobby, everyone else joins with a tap (NFC) or a quick search, and the
+  host starts once people are in. The phones connect just long enough to
+  agree on a start time, then disconnect the moment the pause begins.
 
-This is why the app asks for a few extra permissions beyond
-Accessibility/Do Not Disturb: **Camera** (to scan a QR) and
-**Bluetooth + NFC** (for the live lobby). None of them enable any network
-call or data collection — everything stays between the two phones
-involved, or doesn't leave the device at all in the QR/code case.
+That's why Calm Otter asks for a couple of extra permissions here —
+**Camera** to scan a QR, **Bluetooth + NFC** for the live lobby — and
+why it's worth saying plainly: none of it goes anywhere. No network
+calls, no data collection. It stays between the phones in the room, or
+never leaves the device at all in the QR/code case.
 
 ## Known Limits of this version ("soft" block)
 
