@@ -421,3 +421,62 @@ Verified on the emulator: `onb1` (three-line note) still looks correctly
 aligned centred against its block; `onb5` ("Take care of yourself.") now
 has its icon and text vertically centred together in the card instead of
 icon-centred/text-top-aligned.
+
+
+## `PasswordManager` was the only untested state holder — fixed, with a fake AndroidKeyStore
+
+Found during a full-project review (`TODO.md` "2.1"), not a report: the most
+security-critical class in the app — password hashing, lockout, the
+self-healing recovery path added for the `AEADBadTagException` crash above —
+was the one singleton with zero test coverage.
+
+**Why it had none.** `PasswordManager`'s `prefs` property is initialized at
+construction via `MasterKey.Builder(context).setKeyScheme(AES256_GCM).build()`,
+which needs a real `KeyStore.getInstance("AndroidKeyStore")`. Robolectric
+doesn't provide one — `AndroidKeyStore` is a system/hardware-backed service,
+not a plain Android class, and out of scope for what Robolectric shadows
+(confirmed: no `AndroidKeyStore` shadow anywhere in `shadows-framework-4.17.jar`).
+Every `PasswordManagerTest` attempt failed at construction with
+`NoSuchAlgorithmException: AndroidKeyStore KeyStore not available` before this
+fix.
+
+**Fix: a minimal fake `AndroidKeyStore` JCA provider**, `FakeAndroidKeyStore.kt`
+(test-only, `app/src/test/`). Registers a `java.security.Provider` named
+`"AndroidKeyStore"` with two services:
+
+- `KeyStore.AndroidKeyStore` — a `KeyStoreSpi` backed by a plain in-memory
+  `Map<String, SecretKey>`, enough for `containsAlias`/`getKey`/`setKeyEntry`/
+  `deleteEntry` (what `MasterKey`/Tink's keyset manager actually calls).
+- `KeyGenerator.AES` — a `KeyGeneratorSpi` that reads the alias out of the
+  `KeyGenParameterSpec` it's given, generates a real (software, extractable —
+  unlike the hardware-backed original) AES key via the JVM's own `KeyGenerator`,
+  and stores it under that alias in the same backend map.
+
+That's the whole surface `EncryptedSharedPreferences`/`MasterKey` touch for
+the `AES256_GCM` master key scheme (purely symmetric — no EC/RSA key
+generation to fake). `installFakeAndroidKeyStore()` registers it once,
+idempotently, called from `@Before`.
+
+**What this does and doesn't prove.** The fake keys are software and
+extractable, not hardware-backed like the real Android Keystore — this
+suite verifies `PasswordManager`'s own logic (hashing, lockout wiring,
+partner-name handling, the corrupted-keyset self-heal path), not the
+hardware security guarantees of the real Keystore, which no JVM unit test
+can exercise. That distinction is spelled out in the file's own class doc
+so it isn't mistaken for more than it is.
+
+Coverage added (`PasswordManagerTest`, 9 cases): set/verify round-trip,
+wrong password, `verify()` before any password is set, partner name
+surviving a password change that omits it (`PasswordManager.kt:78`'s
+documented behavior), partner name absent/trimmed, lockout counters
+persisting across a fresh singleton instance on the same prefs file (not
+just in-memory), and — the one this class existed to protect —
+`corruptedKeysetSelfHealsInsteadOfCrashing`: writes garbage directly into
+the Tink keyset's own `SharedPreferences` keys (the same two entries a
+backup-restore corrupts, per the crash writeup above), then asserts
+`PasswordManager.getInstance()` recovers instead of throwing, and that the
+recovered instance works normally from there.
+
+Verified: `assembleDebug`/`lintStableDebug`/`lintBetaDebug`/
+`testStableDebugUnitTest`/`testBetaDebugUnitTest` all green, all 9 cases
+pass (confirmed via the JUnit XML report, not just "build succeeded").

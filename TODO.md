@@ -127,19 +127,24 @@ source. What is tested is tested well (pure logic: `LockoutPolicy`,
 `SessionStreak`, `CalmCountdown`, `GroupPauseRecipe`, the Bluetooth
 protocol). The gaps are structural.
 
-### 2.1 `PasswordManager` has no test at all — **M**
+### 2.1 `PasswordManager` has no test at all — **M** — ✅ fixed
 
 The most security-critical class in the app is the only state holder with
 zero coverage — including the self-healing recovery path added after the
 `AEADBadTagException` crash, which is precisely the code that must not
 regress. `LockoutPolicy` is tested, but the wiring around it is not.
 
-Worth covering: set/verify round-trip, wrong password, partner name never
-overwritten by a blank one (`PasswordManager.kt:78`), lockout counters
-persisting, and — if Robolectric's Keystore shadow allows it — corrupting
-the prefs file and asserting the instance still constructs.
+*Fixed:* Robolectric has no `AndroidKeyStore` (hardware-backed, out of its
+scope), so `PasswordManagerTest` ships a minimal fake JCA provider
+(`FakeAndroidKeyStore.kt`) — a `KeyStoreSpi` + `KeyGeneratorSpi` backed by an
+in-memory map, enough for `MasterKey`/`EncryptedSharedPreferences`'s
+`AES256_GCM` scheme. 9 cases: round-trip, wrong password, partner name never
+overwritten by a blank one, lockout persisting across a fresh singleton
+instance, and — the one this class exists to protect — a corrupted Tink
+keyset (same two prefs keys a backup-restore corrupts) self-healing instead
+of crashing. See `specs/onboarding-and-password/design.md`.
 
-### 2.2 No instrumented or Compose UI tests exist — **L**
+### 2.2 No instrumented or Compose UI tests exist — **L** — partially addressed
 
 `app/src/androidTest/` is empty. The app is 100% Compose, and every UI
 defect fixed recently (CTA anchoring, button order, vertical alignment,
@@ -155,9 +160,34 @@ being re-broken by hand:
 - Every top-level screen root applies `safeDrawingPadding()`.
 
 That last one is currently enforced only by a paragraph in `CLAUDE.md` and
-by remembering. Also unblocks 1.4.
+by remembering. ~~Also unblocks 1.4.~~ (1.4 was fixed a different way —
+Room's own runtime schema validation, not this suite — so that
+cross-reference no longer applies.)
 
-### 2.3 Nothing enforces the two-palette sync rule — **S**
+*Partially addressed, deliberately not exhaustively:* `app/src/androidTest/`
+is still empty — everything below runs under Robolectric in
+`app/src/test/`, matching `OtterAnchoredScreenTest`'s existing precedent of
+testing shared building blocks/hand-picked screens rather than composing
+every real screen (which would pull in Room/Keystore/permissions per
+screen, same reasoning as that file's own comment).
+
+- **`safeDrawingPadding()` on every top-level screen** — done exhaustively,
+  all 10 `setContent{}` entry points, but as a static source-text check
+  (`TopLevelScreenSafeDrawingPaddingTest`), not a runtime Compose test:
+  the modifier leaves no trace in the semantics tree a `createComposeRule`
+  test could query, and simulating real window insets under Robolectric
+  to verify it structurally isn't worth the fragility.
+- **CTA 48dp/full-width + primary-CTA-last** — done for two screens
+  (`CtaButtonInvariantsTest`): `ChangePasswordScreen` (safe to compose —
+  takes `PasswordManager` as a parameter rather than reading a singleton)
+  and `GroupPauseCodeEntryScreen`'s manual-entry mode (protects the
+  Cancel/Scan order fixed earlier this same session). Not every screen —
+  see the file's own comment for why that's "modest" rather than
+  exhaustive. Verified these two tests actually catch a regression, not
+  just pass tautologically: temporarily re-broke the Cancel/Scan order,
+  confirmed the test failed, reverted.
+
+### 2.3 Nothing enforces the two-palette sync rule — **S** — ✅ fixed
 
 `CLAUDE.md` states the invariant plainly: `values/colors.xml` +
 `values/themes.xml` and `ui/theme/CalmOtterTheme.kt` define the same three
@@ -169,6 +199,15 @@ between them. Drift here has already caused one real bug
 A Robolectric test that resolves each `@color/*` and asserts it equals the
 corresponding `ColorScheme` role would make the rule self-enforcing instead
 of a thing to remember. Cheap, and permanently useful.
+
+*Fixed, and it paid for itself immediately:* `CalmOtterThemeColorSyncTest`
+failed on its very first run — `DuskSandLight`/`DawnClayLight` in
+`CalmOtterTheme.kt` were still carrying old Lavender/Terracotta hex values
+for `surface`/`primary`/`onSurface`/`onPrimary` (the rename had only
+updated `secondary`/`tertiary`). Both palettes were rendering a color
+scheme that never fully existed in either the old or new design. Fixed and
+verified visually on the emulator. See
+`specs/multi-theme-system/design.md`.
 
 ---
 

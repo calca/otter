@@ -318,3 +318,51 @@ This is the same trap CLAUDE.md documents for `surfaceVariant` and
 `primaryContainer`, seen from the other side: those roles fall back to
 Material's stock purple when unset, while these two were being *avoided*
 altogether and replaced with translucent `primary`.
+
+
+## The Lavender→Dusk Sand and Terracotta→Dawn Clay renames never fully reached `CalmOtterTheme.kt`
+
+Found writing a test (`TODO.md` "2.3": "nothing enforces the two-palette
+sync rule"), not reported directly — but it's exactly the class of bug that
+rule exists to catch.
+
+`CalmOtterThemeColorSyncTest` resolves every `@color/*_surface`, `*_primary`,
+`*_on_surface`, `*_on_primary`, `*_accent`, `*_veil` (plus the shared
+`m3_error`/`m3_on_error`) for all four palettes and compares them against
+`CalmOtterTheme.kt`'s `light*` `ColorScheme`s — the correspondence the
+file's own `// @color/xxx` comments already claimed, turned into an
+assertion. First run failed immediately: `DuskSandLight`'s `surface` was
+`0xFFFDF7FF` (`@color/lavender_surface`, the *old* palette's value) against
+`values/colors.xml`'s actual `dusk_sand_surface` of `#fcf9f4` — a real, live
+mismatch, not a test bug.
+
+Full extent, once checked by eye: the Lavender→Dusk Sand and
+Terracotta→Dawn Clay renames (see `AppTheme.kt`'s `renamed` map) had updated
+`secondary`/`tertiary` (`*_accent`/`*_veil`) in `CalmOtterTheme.kt` but not
+`surface`/`primary`/`onSurface`/`onPrimary` — both `DuskSandLight` and
+`DawnClayLight` were rendering their *old* palette's core colors (Lavender's
+purple, Terracotta's orange-red) while their pond rings/mascot tint
+(secondary/tertiary) had already moved to the new tan/brown and clay tones.
+Anyone on either theme was seeing a color scheme that never fully existed in
+either the old or new design — half-migrated, not merely stale. Only the
+light schemes were affected; dark schemes have never been tied to
+`values/colors.xml` in the first place (see the class doc — they come from
+`values-night/themes.xml`'s pre-redesign MaterialComponents colors), so
+there was nothing to drift there.
+
+Fixed by replacing the three stale values in both `DuskSandLight` and
+`DawnClayLight` with the real `dusk_sand_*`/`dawn_clay_*` hex values from
+`values/colors.xml`, correcting the comments to match, and adding an
+explicit note on why this took two commits (or would have, without the
+test) to actually finish.
+
+Also fixed in the same pass: `lightSchemeFor()` changed from `private` to
+`@VisibleForTesting internal` so the test can call it directly — same
+pattern as `CalmOtterDatabase.MIGRATION_1_2`/`MIGRATION_2_3` (TODO.md "1.4").
+
+Verified: `assembleDebug`/`lintStableDebug`/`lintBetaDebug`/
+`testStableDebugUnitTest`/`testBetaDebugUnitTest` all green, the sync test
+passes for all four palettes; installed on the emulator, switched Settings
+to Dusk Sand then Dawn Clay, screenshot confirmed both now render their
+correct tan/brown and clay tones (not the old purple/orange-red) with no
+crash, then switched back to Sage.

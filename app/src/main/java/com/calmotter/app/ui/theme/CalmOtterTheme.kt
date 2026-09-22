@@ -5,6 +5,7 @@ import androidx.compose.material3.ColorScheme
 import androidx.compose.material3.MaterialExpressiveTheme
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
+import androidx.annotation.VisibleForTesting
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.compositeOver
@@ -119,15 +120,21 @@ private val SageDark = run {
 }
 
 private val DuskSandLight = run {
-    val surface = Color(0xFFFDF7FF)   // @color/lavender_surface
-    val primary = Color(0xFF7C6FA0)   // @color/lavender_primary
+    // Il rename Lavanda → Dusk Sand (vedi ThemeManager.kt) aveva aggiornato
+    // secondary/tertiary qui sotto ma non questi tre — segnalato da
+    // CalmOtterThemeColorSyncTest (TODO.md "2.3"), che confronta questi
+    // valori con quelli veri in values/colors.xml: la palette Dusk Sand
+    // in Compose rendeva ancora nel viola di Lavanda invece del
+    // marrone/tan del redesign.
+    val surface = Color(0xFFFCF9F4)   // @color/dusk_sand_surface
+    val primary = Color(0xFF61462D)   // @color/dusk_sand_primary
     lightColorScheme(
-        background = surface,             // @color/lavender_background
+        background = surface,             // @color/dusk_sand_background
         surface = surface,
-        onBackground = Color(0xFF1C1B1F), // @color/lavender_on_surface
-        onSurface = Color(0xFF1C1B1F),    // @color/lavender_on_surface
+        onBackground = Color(0xFF1C1C19), // @color/dusk_sand_on_surface
+        onSurface = Color(0xFF1C1C19),    // @color/dusk_sand_on_surface
         primary = primary,
-        onPrimary = Color(0xFFFFFFFF),    // @color/lavender_on_primary
+        onPrimary = Color(0xFFFFFFFF),    // @color/dusk_sand_on_primary
         error = Color(0xFFBA1A1A),        // @color/m3_error
         onError = OnError,
         surfaceContainerHigh = dialogContainerFor(primary, surface),
@@ -157,15 +164,17 @@ private val DuskSandDark = run {
 }
 
 private val DawnClayLight = run {
-    val surface = Color(0xFFFFFBFF)   // @color/terracotta_surface
-    val primary = Color(0xFFA0604A)   // @color/terracotta_primary
+    // Stessa correzione, stesso motivo di DuskSandLight qui sopra: il
+    // rename Terracotta → Dawn Clay non aveva toccato questi tre valori.
+    val surface = Color(0xFFFDF8F6)   // @color/dawn_clay_surface
+    val primary = Color(0xFF6E352B)   // @color/dawn_clay_primary
     lightColorScheme(
-        background = surface,             // @color/terracotta_background
+        background = surface,             // @color/dawn_clay_background
         surface = surface,
-        onBackground = Color(0xFF201A18), // @color/terracotta_on_surface
-        onSurface = Color(0xFF201A18),    // @color/terracotta_on_surface
+        onBackground = Color(0xFF1C1B1A), // @color/dawn_clay_on_surface
+        onSurface = Color(0xFF1C1B1A),    // @color/dawn_clay_on_surface
         primary = primary,
-        onPrimary = Color(0xFFFFFFFF),    // @color/terracotta_on_primary
+        onPrimary = Color(0xFFFFFFFF),    // @color/dawn_clay_on_primary
         error = Color(0xFFBA1A1A),        // @color/m3_error
         onError = OnError,
         surfaceContainerHigh = dialogContainerFor(primary, surface),
@@ -232,7 +241,13 @@ private val DeepForestDark = run {
     )
 }
 
-private fun lightSchemeFor(appTheme: AppTheme): ColorScheme = when (appTheme) {
+// `internal`, non `private`: CalmOtterThemeColorSyncTest (TODO.md "2.3")
+// la esercita direttamente per confrontare questi valori con quelli letti
+// da values/colors.xml, invece di fidarsi che i commenti "// @color/..."
+// qui sopra restino veri a ogni modifica — stesso genere di correzione già
+// fatta per CalmOtterDatabase.MIGRATION_1_2/MIGRATION_2_3 (TODO.md "1.4").
+@VisibleForTesting
+internal fun lightSchemeFor(appTheme: AppTheme): ColorScheme = when (appTheme) {
     AppTheme.SAGE -> SageLight
     AppTheme.DUSK_SAND -> DuskSandLight
     AppTheme.DAWN_CLAY -> DawnClayLight

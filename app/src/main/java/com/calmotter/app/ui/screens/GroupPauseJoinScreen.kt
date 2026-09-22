@@ -2,6 +2,7 @@ package com.calmotter.app.ui.screens
 
 import android.Manifest
 import android.content.pm.PackageManager
+import androidx.annotation.VisibleForTesting
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.camera.core.CameraSelector
@@ -130,7 +131,12 @@ fun GroupPauseJoinScreen(
  * [CalmScreenColumn].
  */
 @Composable
-private fun GroupPauseCodeEntryScreen(onRecipeReady: (GroupPauseRecipe) -> Unit, onCancel: () -> Unit) {
+// `internal`, non `private`: CtaButtonInvariantsTest (TODO.md "2.2") la
+// compone direttamente per proteggere l'ordine Cancel/Scan appena
+// corretto ("Scan dovrebbe essere l'ultimo bottone") da una regressione
+// silenziosa.
+@VisibleForTesting
+internal fun GroupPauseCodeEntryScreen(onRecipeReady: (GroupPauseRecipe) -> Unit, onCancel: () -> Unit) {
     var mode by remember { mutableStateOf(JoinMode.SCAN) }
 
     when (mode) {
