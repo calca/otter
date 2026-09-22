@@ -423,9 +423,16 @@ private fun OnboardingNoteCard(
         color = MaterialTheme.colorScheme.primary.copy(alpha = 0.06f),
         modifier = modifier.fillMaxWidth(),
     ) {
+        // Alignment.Top faceva sembrare l'icona "attaccata in alto" invece
+        // che affiancata al testo per le note di una sola riga (es. onb5,
+        // "Take care of yourself.") — segnalato: "la label non è centrata
+        // verticalmente nel box". CenterVertically resta corretto anche per
+        // le note più lunghe (onb1/onb4, che vanno a capo): l'icona è
+        // piccola (34dp) rispetto al blocco di testo, quindi centrarla sul
+        // blocco intero non la stacca dalla prima riga in modo percepibile.
         Row(
             modifier = Modifier.padding(16.dp),
-            verticalAlignment = Alignment.Top,
+            verticalAlignment = Alignment.CenterVertically,
         ) {
             Box(
                 modifier = Modifier

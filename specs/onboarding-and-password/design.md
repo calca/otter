@@ -397,3 +397,27 @@ to this one — same visible behavior, just now bounded above the button
 instead of taking the whole screen); the button is the last, non-weighted
 sibling, `.fillMaxWidth().height(48.dp)` — the same 48dp standard as every
 other CTA fixed in this session ("CTA height made explicit", above).
+
+
+## `OnboardingNoteCard`'s label wasn't centred for one-line notes
+
+Reported: "in 'all set' la label 'take care ..' non è centrata
+verticalmente nel box" — `onb5_note` ("Take care of yourself.") is a
+single short line, unlike `onb1_note`/`onb4_note` which wrap to several.
+The card's `Row` used `verticalAlignment = Alignment.Top`, which aligns
+the icon circle's top edge with the text's top edge — fine when the text
+is tall enough to visually "contain" the icon, but for a single line
+shorter than the 34dp icon circle it left the text sitting near the top
+of the row with visible empty space below it, next to an icon that's
+centred within its own circle.
+
+Fixed by switching to `Alignment.CenterVertically`. Checked this doesn't
+regress the two longer, wrapping notes (`onb1`, `onb4`): the icon is only
+34dp against a multi-line text block, so centring it against the whole
+block still reads as "aligned with the text," not detached from the first
+line the way a large icon next to a long paragraph might.
+
+Verified on the emulator: `onb1` (three-line note) still looks correctly
+aligned centred against its block; `onb5` ("Take care of yourself.") now
+has its icon and text vertically centred together in the card instead of
+icon-centred/text-top-aligned.
