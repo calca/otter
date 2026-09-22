@@ -213,7 +213,7 @@ verified visually on the emulator. See
 
 ## 3. Performance
 
-### 3.1 PBKDF2 (120k iterations) runs on the main thread at unlock — **S**
+### 3.1 PBKDF2 (120k iterations) runs on the main thread at unlock — **S** — ✅ fixed
 
 *Verified as synchronous; **not measured**, so measure before deciding.*
 
@@ -228,6 +228,20 @@ app broke," not "the app is being careful."
 Measure it on the S22 and on the oldest realistic device first. If it is
 tens of milliseconds, leave it and write down the number. If it is hundreds,
 move it into a coroutine with a spinner.
+
+*Measured, then fixed:* ~167ms per call on the emulator (temporary
+instrumentation, removed before committing) — the S22 wasn't available
+(locked, no one present to unlock it; this codebase has an established
+rule against touching a locked personal device). The emulator number is
+likely optimistic (native ARM64 on Apple Silicon, probably faster than
+"the oldest realistic device"), and 167ms already clears the "hundreds"
+threshold on its own. Moved `verify()`/`setPassword()` in both call sites
+onto `Dispatchers.Default` via a launched coroutine, with a
+`CircularProgressIndicator` replacing the button label and inputs disabled
+while in flight. Verified live on the emulator: caught the spinner
+mid-operation in a screenshot, confirmed both the change-password and
+verify-password paths complete correctly afterward with the new password.
+See `specs/onboarding-and-password/design.md`.
 
 ### 3.2 Four autoboxing state creations — **S** — ✅ fixed
 

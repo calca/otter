@@ -7,9 +7,11 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawingPadding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -17,6 +19,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -25,7 +28,10 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.calmotter.app.PasswordManager
 import com.calmotter.app.R
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 /**
  * Schermata di cambio password (pilota della migrazione a Compose).
@@ -49,6 +55,15 @@ fun ChangePasswordScreen(
     // chiamata dentro il LaunchedEffect che aggiorna il conto alla rovescia.
     var lockoutSecondsRemaining by remember { mutableStateOf<Int?>(null) }
     var isLockedOut by remember { mutableStateOf(passwordManager.isLockedOut()) }
+    // TODO.md "3.1": verify()/setPassword() fanno girare PBKDF2 a 120k
+    // iterazioni ciascuna — misurato ~167ms sull'emulatore (probabilmente
+    // ottimistico rispetto a un device reale/più vecchio, ma comunque nella
+    // fascia "centinaia di millisecondi" che il TODO indicava come soglia).
+    // Questo bottone li chiama entrambi in sequenza nel percorso di
+    // successo — fino a ~330ms sul thread principale, prima di questo fix.
+    var isChanging by remember { mutableStateOf(false) }
+    val scope = rememberCoroutineScope()
+    val busy = isLockedOut || isChanging
 
     // Equivalente Compose del CountDownTimer usato dalla versione XML: finché
     // il lockout è attivo, aggiorna il messaggio con il conto alla rovescia
@@ -96,16 +111,21 @@ fun ChangePasswordScreen(
                 value = current,
                 onValueChange = { current = it },
                 label = stringResource(R.string.hint_current_password),
-                enabled = !isLockedOut,
+                enabled = !busy,
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(bottom = 16.dp)
             )
 
+            // new1/new2 restano scrivibili durante il lockout (comportamento
+            // preesistente, invariato: solo la password *attuale* è sotto
+            // rate-limiting) — disabilitati solo mentre isChanging è vera,
+            // non durante l'intero isLockedOut.
             PasswordOutlinedTextField(
                 value = new1,
                 onValueChange = { new1 = it },
                 label = stringResource(R.string.hint_new_password),
+                enabled = !isChanging,
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(bottom = 16.dp)
@@ -115,6 +135,7 @@ fun ChangePasswordScreen(
                 value = new2,
                 onValueChange = { new2 = it },
                 label = stringResource(R.string.hint_confirm_password),
+                enabled = !isChanging,
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(bottom = 24.dp)
@@ -141,40 +162,57 @@ fun ChangePasswordScreen(
                     return@Button
                 }
 
-                // verify() ha effetti collaterali sul rate-limiting: va chiamata
-                // una sola volta e il risultato riutilizzato, non richiamata due volte.
-                val currentValid = passwordManager.verify(current)
+                scope.launch {
+                    isChanging = true
+                    // verify() ha effetti collaterali sul rate-limiting: va
+                    // chiamata una sola volta e il risultato riutilizzato,
+                    // non richiamata due volte. Entrambe le chiamate PBKDF2
+                    // (verify + l'eventuale setPassword) girano fuori dal
+                    // thread principale — vedi il commento su isChanging
+                    // qui sopra.
+                    val currentValid = withContext(Dispatchers.Default) {
+                        passwordManager.verify(current)
+                    }
 
-                val error = when {
-                    !currentValid -> wrongCurrentPasswordText
-                    new1.length < 4 -> passwordTooShortText
-                    new1 != new2 -> passwordsDontMatchText
-                    else -> null
-                }
+                    val error = when {
+                        !currentValid -> wrongCurrentPasswordText
+                        new1.length < 4 -> passwordTooShortText
+                        new1 != new2 -> passwordsDontMatchText
+                        else -> null
+                    }
 
-                if (error != null) {
-                    errorMessage = error
-                    // Pulisce solo il campo errato per non costringere a riscrivere tutto
-                    if (!currentValid) {
-                        current = ""
+                    if (error != null) {
+                        errorMessage = error
+                        // Pulisce solo il campo errato per non costringere a riscrivere tutto
+                        if (!currentValid) {
+                            current = ""
+                        } else {
+                            new1 = ""
+                            new2 = ""
+                        }
+
+                        if (passwordManager.isLockedOut()) {
+                            isLockedOut = true
+                        }
+                        isChanging = false
                     } else {
-                        new1 = ""
-                        new2 = ""
+                        withContext(Dispatchers.Default) {
+                            passwordManager.setPassword(new1)
+                        }
+                        isChanging = false
+                        Toast.makeText(context, passwordChangedText, Toast.LENGTH_SHORT).show()
+                        onDone()
                     }
-
-                    if (passwordManager.isLockedOut()) {
-                        isLockedOut = true
-                    }
-                } else {
-                    passwordManager.setPassword(new1)
-                    Toast.makeText(context, passwordChangedText, Toast.LENGTH_SHORT).show()
-                    onDone()
                 }
             },
-            enabled = !isLockedOut,
+            enabled = !busy,
             modifier = Modifier.fillMaxWidth().height(48.dp)
         ) {
-            Text(stringResource(R.string.change_password_confirm))
+            if (isChanging) {
+                CircularProgressIndicator(modifier = Modifier.size(18.dp))
+            } else {
+                Text(stringResource(R.string.change_password_confirm))
+            }
         }
     }
 }

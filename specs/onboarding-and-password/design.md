@@ -544,3 +544,53 @@ magnitude), but `MessageDigest.isEqual()` is a drop-in, constant-time
 replacement that removes the question rather than reasoning about how
 theoretical it is. One-line swap, no behavior change for any legitimate
 caller.
+
+
+## PBKDF2 measured, then moved off the main thread
+
+`TODO.md` "3.1" set a concrete decision rule rather than a vague "consider
+async": measure `verify()`'s real cost first, leave it alone if it's tens
+of milliseconds, move it off the main thread if it's hundreds.
+
+**Measured with temporary instrumentation** (a `System.nanoTime()` wrap
+around `hash()`, logged, then removed before committing — never shipped):
+**~167ms** per PBKDF2 call (120,000 rounds) on the emulator. Real device
+measurement (the S22 already used for other verification in this project)
+wasn't possible this session — the phone was locked with no one present to
+unlock it, and this codebase has an established rule against interacting
+with a locked personal device (see the crash writeup earlier in this
+file). The emulator number is very likely optimistic, not pessimistic: it
+runs as a native ARM64 image accelerated by this Mac's own Apple Silicon
+cores, which are not slower than a typical Android phone SoC and are
+almost certainly faster than "the oldest realistic device" the TODO item
+asked to check. 167ms already lands in the "hundreds" bucket the TODO's
+own rule treats as the trigger; a real, older device would not plausibly
+be faster.
+
+**Fixed** in both places `PasswordManager.verify()`/`setPassword()` are
+called from a button handler — `PasswordVerifyDialog.kt` (used for
+`BlockScreen` unlock and "Manage allowed apps") and `ChangePasswordScreen.kt`
+(which calls both `verify()` *and* `setPassword()` in its success path, so
+up to ~330ms combined before this fix). Both now launch a coroutine from
+`rememberCoroutineScope()`, run the PBKDF2 call(s) via `withContext(
+Dispatchers.Default)`, and show a small `CircularProgressIndicator` in
+place of the confirm button's label while in flight — the button, and in
+`ChangePasswordScreen`'s case the three password fields, are disabled for
+the same window so a second tap can't race the first. `ChangePasswordScreen`
+keeps one pre-existing distinction unchanged: the *new*-password fields
+stay editable during an active lockout (only the *current*-password
+attempt is rate-limited) — they're now gated on the new `isChanging` flag
+alone, not folded into the broader "busy" state that also covers
+`isLockedOut`, to avoid quietly changing that behavior while fixing an
+unrelated problem.
+
+Verified: full `assembleDebug`/`lintStableDebug`/`lintBetaDebug`/
+`testStableDebugUnitTest`/`testBetaDebugUnitTest` pass (16 suites, zero
+failures — including `PasswordManagerTest` and `CtaButtonInvariantsTest`'s
+existing `ChangePasswordScreen` coverage, neither of which needed changes).
+Live on the emulator: onboarded fresh, changed the password through
+`ChangePasswordScreen` (caught the spinner mid-flight in a screenshot,
+confirmed screen returns to Settings on success), then verified the *new*
+password through the separate `PasswordVerifyDialog` path ("Manage allowed
+apps" opened) — both async paths exercised end to end, no crash, no
+exception in `adb logcat`.
