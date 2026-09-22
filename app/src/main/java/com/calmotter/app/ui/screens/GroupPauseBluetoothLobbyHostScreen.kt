@@ -11,7 +11,6 @@ import android.os.Looper
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Canvas
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -19,7 +18,6 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawingPadding
@@ -41,7 +39,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
@@ -302,31 +299,14 @@ fun GroupPauseBluetoothLobbyHostScreen(
             // distraeva troppo per essere solo l'uscita di riserva della
             // lobby. Se dovesse tornare a perdersi fra gli altri testi della
             // schermata, [CalmSecondaryButton] è il trattamento già provato
-            // in precedenza per il motivo opposto.
-            Row(
-                modifier = Modifier
-                    .padding(top = 20.dp)
-                    .clip(RoundedCornerShape(50))
-                    .clickable(onClick = { onWantCodeInstead(durationMinutes) })
-                    .heightIn(min = 48.dp)
-                    .padding(horizontal = 16.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.Center,
-            ) {
-                Text(
-                    text = stringResource(R.string.group_pause_prefer_code_link),
-                    style = MaterialTheme.typography.labelMedium,
-                    fontWeight = FontWeight.Medium,
-                    color = MaterialTheme.colorScheme.primary,
-                )
-                Text(
-                    text = "›",
-                    style = MaterialTheme.typography.labelMedium,
-                    fontWeight = FontWeight.Medium,
-                    color = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.padding(start = 6.dp),
-                )
-            }
+            // in precedenza per il motivo opposto. Estratto in
+            // [CalmLinkRow] (CalmBackground.kt) da quando la stessa forma
+            // serve anche alla lobby join.
+            CalmLinkRow(
+                text = stringResource(R.string.group_pause_prefer_code_link),
+                onClick = { onWantCodeInstead(durationMinutes) },
+                modifier = Modifier.padding(top = 20.dp),
+            )
         }
 
         // A tutta larghezza, uno sotto l'altro invece che affiancati, ancorati

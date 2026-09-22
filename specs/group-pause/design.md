@@ -1854,3 +1854,70 @@ dispositivo Bluetooth reale, stesso limite di verifica già documentato
 altrove in questo file) e la variante "onde di ricerca attive" di
 `SearchingIllustration` (stesso motivo — l'emulatore non ha un vero
 adattatore Bluetooth con cui scoprire nulla). Full build/lint/test verde.
+
+## Lobby join: NFC e ricerca fuse in un'unica schermata, non più due stati alternati
+
+Segnalato subito dopo l'anello attorno all'otter qui sopra, sullo stesso
+punto: "avvicinati a chi ti aspetta" (NFC) e "cerca un amico" (ricerca
+Bluetooth manuale) erano due stati pieni della stessa lobby
+(`JoinLobbyState.NfcHero`/`SearchHero`), raggiungibili l'uno dall'altro
+solo toccando un link di testo — un passaggio in più per arrivare alla
+ricerca quando l'NFC non basta (o non c'è un secondo telefono NFC a
+portata), l'esatto "doppio step" segnalato.
+
+Unificati in un solo stato `JoinLobbyState.Listening`: NFC (quando
+`nfcAvailable`) e `join.startDiscovery()` partono **insieme** appena
+`allReady`, non più l'uno o l'altro a seconda dello stato. Il testo
+resta condizionato solo da `nfcAvailable` (titolo "Avvicinati a chi ti
+aspetta" con NFC, altrimenti "Cerca chi ti sta aspettando" — lo stesso
+delle due schermate di prima, non un terzo testo nuovo) e da se la lista
+dei dispositivi trovati è vuota o no — non più da quale "modalità" è
+attiva, perché non esiste più una modalità da scegliere.
+
+**Perché non si riavvia `startDiscovery(autoConnectToNameMarker = ...)`
+alla lettura NFC**: farlo avrebbe richiesto fermare la ricerca già in
+corso e ripartire con un secondo `BroadcastReceiver`, o smontare/rimontare
+`GroupPauseBluetoothJoin`. Invece il nome letto via NFC resta in
+`pendingNfcMarker` (stato locale), e un `LaunchedEffect(pendingNfcMarker,
+join.discovered.size)` si connette da sé appena quel nome compare fra i
+dispositivi che la ricerca — già attiva — sta comunque trovando. Stesso
+risultato per chi tocca i telefoni (connessione automatica, nessun tap
+sulla lista), zero relitti Bluetooth da gestire in più.
+
+**CTA "Scansiona o inserisci un codice": da pastiglia tinta a link nudo**
+(`CalmLinkRow`, estratto in `CalmBackground.kt` dal Row già scritto a
+mano per l'equivalente della lobby host — vedi la sezione precedente:
+stesso identico trattamento, ora condiviso da due chiamanti invece di
+uno). Segnalato per "alleggerire la pagina": fusa con l'ex `NfcHero`,
+questa schermata ha ora anche l'elenco Bluetooth potenzialmente visibile,
+non solo titolo+sottotitolo — la stessa pastiglia tinta che sulla lobby
+host era già stata giudicata troppo pesante (vedi sezione "codice o QR"
+qui sopra) lo sarebbe stata ancora di più qui.
+
+`SearchingIllustration` (le onde animate) ora accetta l'otter come
+parametro invece di disegnare sempre `OtterZenMark`: `OtterTapMark`
+quando `nfcAvailable` (indizio "puoi anche avvicinare i telefoni"),
+`OtterZenMark` altrimenti — l'anello e le onde restano identici in
+entrambi i casi, cambia solo la mascotte al centro.
+
+**Stringhe**: `group_pause_join_search_link` ("Cerca un amico nelle
+vicinanze") e `group_pause_join_nfc_subtitle` ("Tieni i telefoni vicini
+per un secondo") rimosse, non più raggiungibili da nessun punto del
+codice — la seconda sostituita da `group_pause_join_listening_subtitle`
+("Tieni i telefoni vicini, o aspetta che compaia qui sotto"), che
+menziona entrambe le vie invece di una sola. `group_pause_join_nfc_title`
+e `group_pause_join_search_hero_title` restano invariate, riusate come
+titolo condizionato invece che uno per stato.
+
+Verificato sull'emulatore (Pixel 10 Pro AVD, flavor stable, NFC non
+disponibile — quindi solo il ramo `!nfcAvailable`, verificato dal vivo):
+Home → Tempo insieme → Join mostra "Look for whoever's waiting for you" /
+"Looking for a friend…" senza alcun link di switch, "Scan or enter a
+code" come link con "›", nessun `GentleReadinessBanner` (Bluetooth già
+concesso/attivo da una sessione precedente di questa stessa verifica), e
+il link porta correttamente allo scanner QR. **Non verificato dal vivo**:
+il ramo `nfcAvailable` (titolo "Avvicinati a chi ti aspetta" +
+`OtterTapMark`, sottotitolo combinato) e l'auto-match via
+`pendingNfcMarker` — richiedono un dispositivo con NFC reale, stesso
+limite di verifica già documentato più volte in questo file per le
+funzioni NFC/Bluetooth dal vivo. Full build/lint/test verde.

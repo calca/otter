@@ -2,7 +2,9 @@ package com.calmotter.app.ui.screens
 
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.ui.draw.clip
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.MaterialTheme
@@ -16,6 +18,7 @@ import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.fillMaxSize
@@ -35,6 +38,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.foundation.text.KeyboardActions
@@ -192,6 +196,46 @@ fun CalmSecondaryButton(
             Spacer(modifier = Modifier.width(8.dp))
         }
         Text(text = text)
+    }
+}
+
+/**
+ * CTA secondaria "a link nudo": testo colorato `primary` + "›", nessun
+ * contenitore — stessa forma di [SessionsSummaryLink] in HomeSummary.kt,
+ * estratta qui perché ora ha due chiamanti (prima solo
+ * [GroupPauseBluetoothLobbyHostScreen], inline) e un terzo in arrivo
+ * ([GroupPauseBluetoothLobbyJoinScreen]). Rispetto a [CalmSecondaryButton]
+ * — pastiglia tinta — questo trattamento è quello giusto quando anche un
+ * contenitore pieno "pesa" troppo sulla schermata: vedi la nota
+ * sull'inversione di trattamento in specs/group-pause/design.md, la stessa
+ * CTA ("Preferisci un codice o un QR?") è passata da un verso all'altro a
+ * seconda di quanto altro c'era intorno.
+ */
+@Composable
+fun CalmLinkRow(text: String, onClick: () -> Unit, modifier: Modifier = Modifier) {
+    val linkColor = MaterialTheme.colorScheme.primary
+    Row(
+        modifier = modifier
+            .clip(RoundedCornerShape(50))
+            .clickable(onClick = onClick)
+            .heightIn(min = 48.dp)
+            .padding(horizontal = 16.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.Center,
+    ) {
+        Text(
+            text = text,
+            style = MaterialTheme.typography.labelMedium,
+            fontWeight = FontWeight.Medium,
+            color = linkColor,
+        )
+        Text(
+            text = "›",
+            style = MaterialTheme.typography.labelMedium,
+            fontWeight = FontWeight.Medium,
+            color = linkColor,
+            modifier = Modifier.padding(start = 6.dp),
+        )
     }
 }
 

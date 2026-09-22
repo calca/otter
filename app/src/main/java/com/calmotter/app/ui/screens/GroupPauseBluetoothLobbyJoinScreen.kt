@@ -29,7 +29,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
@@ -63,8 +62,7 @@ import kotlinx.coroutines.delay
 import androidx.compose.runtime.LaunchedEffect
 
 private sealed class JoinLobbyState {
-    data object NfcHero : JoinLobbyState()
-    data object SearchHero : JoinLobbyState()
+    data object Listening : JoinLobbyState()
     data object Connecting : JoinLobbyState()
     data object WaitingForHost : JoinLobbyState()
     data class Error(val message: String) : JoinLobbyState()
@@ -72,18 +70,31 @@ private sealed class JoinLobbyState {
 
 /**
  * Lobby dal vivo lato joiner (Fase 2, vedi specs/group-pause/design.md):
- * l'NFC è il gesto predefinito quando disponibile ("avvicina i telefoni"),
- * con la ricerca Bluetooth manuale e il codice/QR come ripieghi secondari —
- * non tre opzioni alla pari come nella prima versione. Stesso avviso
- * gentile permessi/Bluetooth di [GroupPauseBluetoothLobbyHostScreen], nessuna
- * schermata dedicata per quei due passi.
+ * l'NFC (quando disponibile) e la ricerca Bluetooth girano **insieme**,
+ * sulla stessa schermata, non più come due stati alternativi
+ * (`NfcHero`/`SearchHero`) fra cui passare con un tap su un link — segnalato
+ * come "doppio step" da evitare. Il codice/QR resta il ripiego secondario,
+ * ora un link nudo ([CalmLinkRow]) invece di una pastiglia tinta, per
+ * alleggerire una schermata che con la fusione ha comunque più contenuto
+ * (l'elenco Bluetooth può comparire in qualunque momento, non solo dopo
+ * uno switch esplicito).
  *
- * Stessi due ritocchi fatti lì, per la stessa ragione — vedi il commento di
- * classe di [GroupPauseBluetoothLobbyHostScreen]: via la card tinta di
- * fondo (sfondo piatto come il resto del flusso), e titolo/sottotitolo che
- * non swappano più su un testo "permessi mancanti" — quello lo dice ormai
- * solo [GentleReadinessBanner], e dirlo due volte era il residuo di quando
- * questi due passi erano ancora una schermata a sé.
+ * `join.startDiscovery()` parte sempre appena pronta (`allReady`), non più
+ * solo nello stato "ricerca": popola `join.discovered` indipendentemente
+ * da NFC. Il marker NFC letto da [GroupPauseNfcReader] non riavvia il
+ * discovery con `autoConnectToNameMarker` (che richiederebbe fermare e
+ * ripartire, con un secondo `BroadcastReceiver` da gestire): resta in
+ * `pendingNfcMarker` finché lo stesso nome non compare fra i dispositivi
+ * già trovati dalla ricerca già in corso, poi si connette da sé — vedi il
+ * `LaunchedEffect` più sotto.
+ *
+ * Stessi due ritocchi già fatti sulla lobby host, per la stessa ragione —
+ * vedi il commento di classe di [GroupPauseBluetoothLobbyHostScreen]: via
+ * la card tinta di fondo (sfondo piatto come il resto del flusso), e
+ * titolo/sottotitolo che non swappano più su un testo "permessi mancanti"
+ * — quello lo dice ormai solo [GentleReadinessBanner], e dirlo due volte
+ * era il residuo di quando questi due passi erano ancora una schermata a
+ * sé.
  */
 @Composable
 fun GroupPauseBluetoothLobbyJoinScreen(
@@ -111,7 +122,11 @@ fun GroupPauseBluetoothLobbyJoinScreen(
     val nfcReader = remember { GroupPauseNfcReader(activity) }
     val mainHandler = remember { Handler(Looper.getMainLooper()) }
 
-    var state by remember { mutableStateOf(if (nfcAvailable) JoinLobbyState.NfcHero else JoinLobbyState.SearchHero) }
+    var state by remember { mutableStateOf<JoinLobbyState>(JoinLobbyState.Listening) }
+    // Nome annunciato letto via NFC, in attesa che la ricerca Bluetooth già
+    // in corso lo trovi — vedi il commento di classe per perché non si
+    // riavvia startDiscovery() con autoConnectToNameMarker.
+    var pendingNfcMarker by remember { mutableStateOf<String?>(null) }
     // Popolati dal LOBBY: dell'host appena connessi. Restano null se all'altro
     // capo gira una versione che non lo invia — in quel caso la schermata
     // ricade sul vecchio "in attesa dell'host", senza rompersi.
@@ -150,24 +165,32 @@ fun GroupPauseBluetoothLobbyJoinScreen(
         )
     }
 
-    // L'NFC/il discovery partono solo quando permessi+Bluetooth sono pronti
-    // (allReady) — prima di allora la schermata mostra comunque l'illustrazione
-    // e l'avviso gentile, ma nessuna chiamata Bluetooth/NFC reale.
+    // NFC e ricerca Bluetooth partono insieme quando permessi+Bluetooth sono
+    // pronti (allReady) — prima di allora la schermata mostra comunque
+    // l'illustrazione e l'avviso gentile, ma nessuna chiamata reale.
     DisposableEffect(state, allReady) {
-        if (allReady && state == JoinLobbyState.NfcHero) {
-            nfcReader.start { marker ->
-                mainHandler.post {
-                    state = JoinLobbyState.Connecting
-                    join.startDiscovery(autoConnectToNameMarker = marker, onAutoMatch = { device -> connect(device) })
-                }
-            }
-        } else if (allReady && state == JoinLobbyState.SearchHero) {
+        if (allReady && state == JoinLobbyState.Listening) {
             join.startDiscovery()
+            if (nfcAvailable) {
+                nfcReader.start { marker -> mainHandler.post { pendingNfcMarker = marker } }
+            }
         }
         onDispose {
             nfcReader.stop()
             join.stop()
         }
+    }
+
+    // Appena il nome letto via NFC compare fra i dispositivi trovati dalla
+    // ricerca (già in corso), ci si connette — senza aspettare che l'utente
+    // tocchi nulla, stesso comportamento "automatico" di prima. `state` in
+    // guardia: dopo la prima connessione (o un errore che fa tornare qui)
+    // `pendingNfcMarker` potrebbe ancora valere, ma la lista continua ad
+    // aggiornarsi solo mentre si è davvero in ascolto.
+    LaunchedEffect(pendingNfcMarker, join.discovered.size) {
+        val marker = pendingNfcMarker ?: return@LaunchedEffect
+        if (state != JoinLobbyState.Listening) return@LaunchedEffect
+        join.discovered.firstOrNull { it.name == marker }?.let { connect(it.device) }
     }
 
     // Cancel ancorato al fondo pagina, su richiesta esplicita — stesso
@@ -183,56 +206,41 @@ fun GroupPauseBluetoothLobbyJoinScreen(
             verticalArrangement = Arrangement.Center,
         ) {
             when (val current = state) {
-                JoinLobbyState.NfcHero -> {
-                    OtterRingIllustration(dashed = !allReady) { OtterTapMark(markSize = 88.dp) }
+                JoinLobbyState.Listening -> {
+                    val hasResults = join.discovered.isNotEmpty()
+                    SearchingIllustration(hasResults = hasResults, searching = allReady) {
+                        // L'icona resta un indizio di *come* cercare, non di
+                        // *se* si sta cercando (quello lo dice l'anello/le
+                        // onde) — tap se l'NFC c'è, altrimenti l'otter
+                        // generico già usato altrove nel flusso.
+                        if (nfcAvailable) OtterTapMark(markSize = 88.dp) else OtterZenMark(markSize = 88.dp)
+                    }
                     // Il testo non racconta più lo stato dei permessi (vedi il
-                    // commento di classe): resta sempre "Avvicinati a chi ti
-                    // aspetta", vero o no che il lettore NFC sia già partito
-                    // — [GentleReadinessBanner] qui sotto dice cosa manca.
+                    // commento di classe): [GentleReadinessBanner] qui sotto
+                    // dice cosa manca. Titolo condizionato solo da nfcAvailable
+                    // (fisso per tutta la visita: un adattatore NFC non compare
+                    // o scompare mentre si guarda questa schermata).
                     Text(
-                        text = stringResource(R.string.group_pause_join_nfc_title),
+                        text = stringResource(
+                            if (nfcAvailable) R.string.group_pause_join_nfc_title
+                            else R.string.group_pause_join_search_hero_title
+                        ),
                         fontSize = 19.sp,
                         fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.primary,
                         textAlign = TextAlign.Center,
                         modifier = Modifier.padding(top = 14.dp)
                     )
-                    Text(
-                        text = stringResource(R.string.group_pause_join_nfc_subtitle),
-                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.75f),
-                        textAlign = TextAlign.Center,
-                        modifier = Modifier.padding(top = 6.dp)
-                    )
-                    if (!allReady) {
-                        GentleReadinessBanner(hasPermissions, onReadinessAction)
-                    }
-                    // Lo switch NFC↔ricerca resta un link di testo: cambia
-                    // solo il modo di cercare, e restando in questa lobby.
-                    // Il codice/QR invece è l'uscita di sicurezza quando il
-                    // Bluetooth non basta — una sola CTA secondaria per
-                    // schermata prende il contenitore tinto, altrimenti si
-                    // torna al punto di partenza, con tutto uguale.
-                    TextButton(onClick = { state = JoinLobbyState.SearchHero }, modifier = Modifier.padding(top = 20.dp)) {
-                        Text(stringResource(R.string.group_pause_join_search_link))
-                    }
-                    CalmSecondaryButton(
-                        text = stringResource(R.string.group_pause_join_code_link),
-                        onClick = onWantCodeInstead,
-                    )
-                }
-                JoinLobbyState.SearchHero -> {
-                    SearchingIllustration(hasResults = join.discovered.isNotEmpty(), searching = allReady)
-                    Text(
-                        text = stringResource(R.string.group_pause_join_search_hero_title),
-                        fontSize = 18.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.primary,
-                        textAlign = TextAlign.Center,
-                        modifier = Modifier.padding(top = 14.dp)
-                    )
-                    if (join.discovered.isEmpty()) {
+                    if (!hasResults) {
+                        // Stesso sottotitolo per NFC e ricerca quando la lista
+                        // è vuota: menziona entrambe le vie, non solo quella
+                        // che questo device ha — chi non ha NFC non ha motivo
+                        // di sapere che esiste.
                         Text(
-                            text = stringResource(R.string.group_pause_join_searching),
+                            text = stringResource(
+                                if (nfcAvailable) R.string.group_pause_join_listening_subtitle
+                                else R.string.group_pause_join_searching
+                            ),
                             color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.75f),
                             textAlign = TextAlign.Center,
                             modifier = Modifier.padding(top = 6.dp)
@@ -245,7 +253,7 @@ fun GroupPauseBluetoothLobbyJoinScreen(
                                     shape = RoundedCornerShape(12.dp),
                                     color = MaterialTheme.colorScheme.primary.copy(alpha = 0.08f),
                                     modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp),
-            ) {
+                                ) {
                                     Text(
                                         text = found.name,
                                         modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
@@ -258,16 +266,15 @@ fun GroupPauseBluetoothLobbyJoinScreen(
                     if (!allReady) {
                         GentleReadinessBanner(hasPermissions, onReadinessAction)
                     }
-                    if (nfcAvailable) {
-                        TextButton(onClick = { state = JoinLobbyState.NfcHero }, modifier = Modifier.padding(top = 16.dp)) {
-                            Text(stringResource(R.string.group_pause_join_nfc_title))
-                        }
-                    }
-                    // Stessa CTA dello stato NfcHero qui sopra, stesso
-                    // trattamento: è la stessa schermata in due stati, non due.
-                    CalmSecondaryButton(
+                    // Link nudo, non più pastiglia tinta — segnalato
+                    // ("alleggerire la pagina"): fusa con l'ex NfcHero, questa
+                    // schermata ha già l'elenco Bluetooth potenzialmente
+                    // visibile, non solo titolo+sottotitolo. Stesso
+                    // [CalmLinkRow] della lobby host.
+                    CalmLinkRow(
                         text = stringResource(R.string.group_pause_join_code_link),
                         onClick = onWantCodeInstead,
+                        modifier = Modifier.padding(top = 20.dp),
                     )
                 }
                 JoinLobbyState.Connecting -> {
@@ -318,7 +325,7 @@ fun GroupPauseBluetoothLobbyJoinScreen(
                         textAlign = TextAlign.Center,
                         modifier = Modifier.padding(bottom = 16.dp),
                     )
-                    Button(onClick = { state = if (nfcAvailable) JoinLobbyState.NfcHero else JoinLobbyState.SearchHero }) {
+                    Button(onClick = { state = JoinLobbyState.Listening }) {
                         Text(stringResource(R.string.group_pause_join_retry_button))
                     }
                 }
@@ -380,10 +387,12 @@ private fun GentleReadinessBanner(hasPermissions: Boolean, onAction: () -> Unit)
  * Otter al centro di anelli concentrici che si espandono e svaniscono in
  * loop mentre [hasResults] è falso — "sto cercando un amico", non un
  * dispositivo. Si ferma da sola (nessun anello) appena la lista smette di
- * essere vuota.
+ * essere vuota. [otter] è un parametro (non sempre `OtterZenMark`) da
+ * quando questa schermata fonde NFC e ricerca: la mascotte cambia a
+ * seconda che l'NFC sia disponibile o no, l'anello e le onde no.
  */
 @Composable
-private fun SearchingIllustration(hasResults: Boolean, searching: Boolean) {
+private fun SearchingIllustration(hasResults: Boolean, searching: Boolean, otter: @Composable () -> Unit) {
     // L'anello (tratteggiato finché la ricerca non è davvero partita,
     // pieno quando sì) è lo stesso di tutti gli altri stati "in attesa"
     // di questo flusso — vedi OtterRingIllustration in CalmBackground.kt.
@@ -429,7 +438,7 @@ private fun SearchingIllustration(hasResults: Boolean, searching: Boolean) {
                 }
             }
         }
-        OtterZenMark(markSize = 76.dp)
+        otter()
     }
 }
 
