@@ -177,17 +177,22 @@ private fun GroupPauseCodeEntryScreen(onRecipeReady: (GroupPauseRecipe) -> Unit,
                 )
                 ManualCodeTab(onRecipeReady)
             }
+            // Cancel sopra, Scan (la CTA primaria di questa schermata)
+            // sotto — stesso ordine del resto del flusso "Tempo insieme"
+            // (Cancel/"Iniziamo" nella lobby host, Cancel/conferma nel
+            // countdown): l'azione primaria è sempre l'ultimo bottone,
+            // non il primo.
+            OutlinedButton(
+                onClick = onCancel,
+                modifier = Modifier.fillMaxWidth().padding(top = 8.dp).height(48.dp),
+            ) {
+                Text(stringResource(android.R.string.cancel))
+            }
             Button(
                 onClick = { mode = JoinMode.SCAN },
                 modifier = Modifier.fillMaxWidth().padding(top = 8.dp).height(48.dp),
             ) {
                 Text(stringResource(R.string.group_pause_join_scan_tab))
-            }
-            OutlinedButton(
-                onClick = onCancel,
-                modifier = Modifier.fillMaxWidth().padding(top = 20.dp).height(48.dp),
-            ) {
-                Text(stringResource(android.R.string.cancel))
             }
         }
     }

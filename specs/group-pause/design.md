@@ -1699,3 +1699,12 @@ not committed): otter mark now sits above the title, "Scan" renders as the
 solid dark-green primary button, "Join" (manual submit) as the lighter
 tonal pill beneath the text field, "Cancel" outlined at the bottom —
 matching the CTA hierarchy used everywhere else in this flow.
+
+Follow-up, same screen: "Scan dovrebbe essere l'ultimo bottone, come da
+specifica" — the swap above got the right button styled as primary but
+left it in the wrong position. Every other screen in this pass puts the
+primary CTA *last* (`Cancel` above, "Iniziamo"/confirm below, see "The
+host lobby's Cancel/'Iniziamo' is a `Column` now, not a `Row`" above) —
+this screen briefly had it first. Reordered: `Cancel` (outlined) then
+`Scan` (filled, primary) as the last sibling, matching the convention.
+Verified the same way, screenshot checked and discarded.
