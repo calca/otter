@@ -207,6 +207,12 @@ fun BlockScreen(
     // un'intestazione questa schermata non ce l'ha.
     OtterAnchoredScreen(
         horizontalPadding = 40.dp,
+        // 48dp di bottone + 12dp di distacco dal contenuto sopra + 24dp di
+        // margine dal fondo vero dello schermo — stessi tre numeri usati
+        // dentro [footer] qui sotto, ripetuti qui perché la colonna
+        // scorrevole sappia quanto spazio lasciare libero in fondo e non
+        // farsi mai coprire dall'overlay.
+        footerHeight = 84.dp,
         otter = {
             // Stesso anello di avanzamento + otter fluttuante della Home
             // durante una sessione attiva (vedi PondOtter/ProgressRing in
@@ -238,6 +244,32 @@ fun BlockScreen(
                 Box(modifier = Modifier.graphicsLayer { translationY = floatOffset.value * density }) {
                     OtterZenMark(markSize = OtterMarkSize)
                 }
+            }
+        },
+        // Sblocco non è un'app da lanciare, è l'unica azione che chiude la
+        // pausa: overlay ancorato al vero fondo del viewport (vedi
+        // [OtterAnchoredScreen.footer]), stesso trattamento CTA usato
+        // altrove nell'app (Next dell'onboarding, Salva di
+        // ChangePasswordScreen) — segnalato: prima stava semplicemente
+        // sotto la row di badge nel flusso scorrevole, non ancorato come le
+        // altre CTA a fondo pagina.
+        footer = {
+            Button(
+                onClick = { showUnlockDialog = true },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 12.dp, bottom = 24.dp)
+                    .height(48.dp),
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Lock,
+                    contentDescription = null,
+                    modifier = Modifier.size(18.dp),
+                )
+                Text(
+                    text = stringResource(R.string.unlock),
+                    modifier = Modifier.padding(start = 8.dp),
+                )
             }
         },
     ) {
@@ -363,24 +395,6 @@ fun BlockScreen(
                     )
                 }
             }
-        }
-
-        Button(
-            onClick = { showUnlockDialog = true },
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(top = 20.dp)
-                .height(48.dp),
-        ) {
-            Icon(
-                imageVector = Icons.Default.Lock,
-                contentDescription = null,
-                modifier = Modifier.size(18.dp),
-            )
-            Text(
-                text = stringResource(R.string.unlock),
-                modifier = Modifier.padding(start = 8.dp),
-            )
         }
     }
 

@@ -103,6 +103,15 @@ fun OtterAnchoredScreen(
     modifier: Modifier = Modifier,
     horizontalPadding: Dp = 0.dp,
     headerHeight: Dp = 0.dp,
+    // Fissa come [headerHeight] e per lo stesso motivo — vedi il commento di
+    // classe. `footer` (sotto) è un overlay ancorato al vero fondo del
+    // viewport, non un ultimo elemento della colonna scorrevole: questa
+    // altezza è lo spazio che la colonna lascia libero in fondo perché
+    // quell'overlay non copra mai il contenuto vero — vedi [BlockScreen],
+    // il primo chiamante ad averne bisogno ("il bottone Unlock deve stare a
+    // fondo pagina come le altre CTA, non semplicemente sotto la row di
+    // badge").
+    footerHeight: Dp = 0.dp,
     // Livello decorativo a piena pagina, disegnato per primo (quindi sotto
     // tutto il resto) e ricevuto già insieme al centro Y dell'otter — vedi
     // [AmbientRipples] in MainScreen.kt, l'unico chiamante: le onde partono
@@ -113,6 +122,18 @@ fun OtterAnchoredScreen(
     background: @Composable BoxScope.(otterCenterY: Dp) -> Unit = {},
     header: @Composable BoxScope.() -> Unit = {},
     otter: @Composable BoxScope.() -> Unit,
+    // CTA ancorata al fondo vero del viewport (stesso trattamento delle CTA
+    // a fondo pagina del resto dell'app), non al fondo del contenuto
+    // scorrevole: un `Box` allineato in basso, fuori dalla `Column` che
+    // scorre/centra l'otter, così resta ferma anche quando quel contenuto
+    // scorre. Vuota di default — nessun chiamante esistente (solo Home la
+    // usava finora) ne aveva bisogno. Prima di `below`, non dopo: la
+    // lambda finale di una chiamata resta quella di `below`, come già per
+    // tutti i chiamanti esistenti — un `footer` per ultimo l'avrebbe
+    // rotta silenziosamente (well, in realtà no: `below` non ha default,
+    // quindi sarebbe stato un errore di compilazione subito visibile, ma
+    // comunque da evitare).
+    footer: @Composable BoxScope.() -> Unit = {},
     below: @Composable ColumnScope.() -> Unit,
 ) {
     // calmBackground sul Box esterno a schermo pieno, non sulla colonna: il
@@ -122,7 +143,10 @@ fun OtterAnchoredScreen(
         // BoxWithConstraints *dentro* safeDrawingPadding: misurato fuori,
         // maxHeight conterebbe anche le barre di sistema, e sia il centro
         // calcolato qui sotto sia heightIn(min) risulterebbero sbagliati
-        // esattamente di quegli inset — vedi [CalmScreenColumn].
+        // esattamente di quegli inset — vedi [CalmScreenColumn]. Vale anche
+        // per [footer]: stando dentro questo stesso `BoxWithConstraints`,
+        // l'inset della barra di navigazione lo consuma già
+        // `safeDrawingPadding()` qui, non serve applicarlo una seconda volta.
         BoxWithConstraints(modifier = Modifier.fillMaxSize().safeDrawingPadding()) {
             val otterCenterY = otterCenterY(maxHeight)
             val gapAboveOtter = (otterCenterY - OtterSlotHeight / 2 - headerHeight)
@@ -137,8 +161,10 @@ fun OtterAnchoredScreen(
                     .heightIn(min = maxHeight)
                     // Solo orizzontale: un padding verticale qui falserebbe il
                     // centro calcolato sopra. Lo spazio in alto lo dà
-                    // [headerHeight], quello in basso se lo gestisce [below].
-                    .padding(horizontal = horizontalPadding),
+                    // [headerHeight], quello in basso se lo gestisce [below]
+                    // più [footerHeight] (riservato per l'overlay, vedi sopra).
+                    .padding(horizontal = horizontalPadding)
+                    .padding(bottom = footerHeight),
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
                 Box(
@@ -161,6 +187,16 @@ fun OtterAnchoredScreen(
                     content = otter,
                 )
                 below()
+            }
+
+            if (footerHeight > 0.dp) {
+                Box(
+                    modifier = Modifier
+                        .align(Alignment.BottomCenter)
+                        .fillMaxWidth()
+                        .padding(horizontal = horizontalPadding),
+                    content = footer,
+                )
             }
         }
     }

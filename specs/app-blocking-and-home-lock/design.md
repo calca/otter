@@ -1118,3 +1118,46 @@ confirmed all 4 badges (Phone + 3 apps) render together and the Unlock
 button is fully visible and tappable below them — opened the password
 dialog, entered the password, ended the pause successfully. Full
 build/lint/test pass.
+
+
+### Follow-up: Unlock anchored to the true page bottom, not just below the row
+
+Reported right after the fix above: "il bottone deve essere a fondo
+pagina, come le altre CTA" — pulling Unlock out of the badge row (see
+above) was only half the fix. It landed right after the row inside
+`OtterAnchoredScreen`'s scrollable, otter-centering `below` content —
+functionally fine (always visible, no more overflow), but visually
+floating with a variable gap of empty space underneath instead of sitting
+flush at the screen's bottom edge the way this app's other primary CTAs do
+(onboarding's Next, `ChangePasswordScreen`'s save button — both anchored
+via a `weight(1f)` scrollable region + a non-weighted last sibling).
+
+`OtterAnchoredScreen` couldn't use that same weight-based pattern as-is:
+its whole `below` content lives inside one `Column` that both scrolls and
+centers the otter via computed spacer heights (`gapAboveOtter`), not a
+`weight(1f)` split between "flexible content" and "fixed footer". Gave it
+a new `footer` slot instead — a `Box` aligned `BottomCenter`, a *sibling*
+of that scrollable `Column` inside the same `BoxWithConstraints`, so it
+stays pinned to the viewport's true bottom edge regardless of how much the
+column above it scrolls. A `footerHeight: Dp` parameter (fixed, like
+`headerHeight` — same reasoning: a measured height here would introduce
+exactly the kind of layout feedback loop `headerHeight` was made fixed to
+avoid, see the class doc) reserves matching space at the bottom of the
+scrollable column so its content can never end up hidden behind the
+overlay.
+
+Both new parameters default to `0.dp`/empty, so `MainScreen` (the only
+other `OtterAnchoredScreen` caller, which has no such footer) is
+unaffected — confirmed by screenshot comparison against the emulator
+before/after this change, pixel-identical. `BlockScreen` passes
+`footerHeight = 84.dp` (48dp button + 12dp top gap + 24dp bottom margin,
+the same three numbers the `footer` content itself uses) and moves the
+`Unlock` `Button` from `below` into `footer`.
+
+Verified on-device (Pixel 10 Pro AVD, flavor stable): Home renders
+unchanged; the pause screen with 3 allowed apps configured now shows
+Unlock flush against the bottom edge (above the gesture-nav inset,
+respected via the same `safeDrawingPadding()` this container already
+applies to everything else), independent of the badge row above it —
+tapped it, entered the password, ended the pause successfully. Full
+build/lint/test pass.
