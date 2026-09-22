@@ -1,8 +1,11 @@
 package com.calmotter.app.ui.screens
 
+import android.app.Activity
 import android.bluetooth.BluetoothAdapter
+import android.content.ComponentName
 import android.content.Intent
 import android.nfc.NfcAdapter
+import android.nfc.cardemulation.CardEmulation
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Canvas
@@ -116,7 +119,8 @@ fun GroupPauseBluetoothLobbyHostScreen(
     ) { /* risultato ignorato: se rifiutata, host.start() gira comunque — solo meno visibile */ }
 
     val allReady = hasPermissions && bluetoothEnabled
-    val nfcAvailable = remember { NfcAdapter.getDefaultAdapter(context) != null }
+    val nfcAdapter = remember { NfcAdapter.getDefaultAdapter(context) }
+    val nfcAvailable = remember { nfcAdapter != null }
     val groupTag = remember { Random.nextInt(0, 65536) }
     val markerName = remember(groupTag) { groupPauseLobbyNameMarker(groupTag) }
     val host = remember { GroupPauseBluetoothHost(context) }
@@ -142,11 +146,40 @@ fun GroupPauseBluetoothLobbyHostScreen(
                 discoverableLauncher.launch(intent)
             }
             host.start(markerName, hostName, durationMinutes)
-            if (nfcAvailable) GroupPauseHceService.pendingMarker = markerName
+            if (nfcAvailable) {
+                GroupPauseHceService.pendingMarker = markerName
+                // Senza questo, un tap NFC apriva il selettore di sistema
+                // "Completa azione con" invece di rispondere subito —
+                // segnalato, riprodotto su un Galaxy S22. L'AID dichiarato in
+                // apduservice.xml è categoria "other" (non "payment"): per
+                // quella categoria Android instrada un tap verso il servizio
+                // preferito solo se qualcuno lo dichiara esplicitamente
+                // tale mentre è in primo piano — altrimenti, con più di un
+                // gestore possibile per lo stesso AID (anche solo il nostro
+                // servizio più un gestore di sistema/OEM), chiede all'utente
+                // ogni volta. `setPreferredService`/`unsetPreferredService`
+                // vogliono l'Activity, non un Context qualunque: questa
+                // composable vive sempre dentro una, come già assunto altrove
+                // in questo file (vedi `activity` in BlockScreen.kt per lo
+                // stesso pattern).
+                nfcAdapter?.let {
+                    runCatching {
+                        CardEmulation.getInstance(it).setPreferredService(
+                            context as Activity,
+                            ComponentName(context, GroupPauseHceService::class.java),
+                        )
+                    }
+                }
+            }
         }
         onDispose {
             host.stop()
             GroupPauseHceService.pendingMarker = null
+            if (nfcAvailable) {
+                nfcAdapter?.let {
+                    runCatching { CardEmulation.getInstance(it).unsetPreferredService(context as Activity) }
+                }
+            }
         }
     }
 

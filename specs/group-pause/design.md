@@ -292,6 +292,41 @@ deprecated and unreliable since Android 10, not a sound foundation here.
   `android:permission="android.permission.BIND_NFC_SERVICE"`, which only
   the system holds.
 
+### A tap opened Android's own "which app" dialog instead of connecting
+
+Reported: "quando i due telefoni si tappano, esce un dialog di sistema
+per indicare l'app da usare in nfc" — the host side, since it's the one
+running `GroupPauseHceService`. `apduservice.xml` declares
+`android:category="other"` (correctly — this is not a payment service),
+but for that category Android only routes a detected AID straight to a
+service without asking if that service has explicitly told the system
+"route to me while I'm in the foreground" via
+`CardEmulation.setPreferredService()`. Nothing in this codebase ever
+called it — the host lobby just set `pendingMarker` and otherwise trusted
+the manifest's `<intent-filter>` to be enough, which it is not for
+`category="other"`. Without a registered preferred service, any tap with
+more than one possible handler for the AID (this app plus, on some
+OEMs/Android versions, a system or pre-installed handler) shows the
+resolver dialog on every single tap instead of connecting silently.
+
+Fixed in `GroupPauseBluetoothLobbyHostScreen.kt`'s same `DisposableEffect`
+that already sets/clears `pendingMarker`:
+`CardEmulation.getInstance(nfcAdapter).setPreferredService(activity, ComponentName(...))`
+when the lobby becomes ready, `unsetPreferredService(activity)` on
+dispose — both wrapped in `runCatching`, matching this file's existing
+defensive style for NFC calls (`GroupPauseNfcReader.stop()`). Both calls
+need the hosting `Activity`, not just any `Context` — same assumption
+`GroupPauseBluetoothLobbyJoinScreen.kt`/`BlockScreen.kt` already make
+about where these composables live.
+
+Verified as far as a single physical device allows: on a Galaxy S22
+(the device the report came from), reaching the lobby's "ready" state —
+which is exactly when `setPreferredService` now runs — produced no crash
+and no exception in `adb logcat`. The actual "no more resolver dialog on
+tap" behavior needs a second NFC-capable phone to tap against to confirm
+end-to-end, which wasn't available; flagged rather than claimed as fully
+verified.
+
 ### Permissions
 
 `BLUETOOTH_CONNECT`/`BLUETOOTH_ADVERTISE`/`BLUETOOTH_SCAN` (Android 12+,
