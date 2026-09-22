@@ -10,12 +10,15 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.relocation.BringIntoViewRequester
+import androidx.compose.foundation.relocation.bringIntoViewRequester
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -293,6 +296,20 @@ internal fun MinutePillRow(
  * l'utente già conosce da lì. [MinutePillRow] resta invariata per chi la usa
  * già (il ritardo di avvio nella pagina QR, tre sole opzioni: andare a capo
  * non è mai stato un problema lì).
+ *
+ * **La pillola selezionata entra in vista da sola all'apertura della
+ * pagina.** Segnalato: `selected` arriva da fuori (la durata scelta in
+ * Home, vedi `initialDurationMinutes` in
+ * [GroupPauseBluetoothLobbyHostScreen]) e può essere una qualunque delle
+ * otto opzioni, ma lo scroll di questa riga parte sempre da zero — se la
+ * durata portata da Home era oltre le prime due o tre pillole visibili
+ * (es. "3h30"/"4h"), la selezione restava fuori quadro, invisibile finché
+ * non si scorreva a caso, indistinguibile da "nessuna selezione". Un solo
+ * `BringIntoViewRequester` sulla pillola selezionata (ce n'è sempre e solo
+ * una) + `bringIntoView()` in un `LaunchedEffect(Unit)`, quindi solo
+ * all'ingresso — una volta che l'utente sceglie una pillola toccandola,
+ * quella è già in vista per definizione, niente da riportare a fuoco a ogni
+ * selezione.
  */
 @Composable
 internal fun ScrollableMinutePillRow(
@@ -301,6 +318,10 @@ internal fun ScrollableMinutePillRow(
     onSelect: (Int) -> Unit,
     labelFor: (Int) -> String,
 ) {
+    val bringSelectedIntoView = remember { BringIntoViewRequester() }
+    LaunchedEffect(Unit) {
+        bringSelectedIntoView.bringIntoView()
+    }
     Row(
         modifier = Modifier.horizontalScroll(rememberScrollState()),
         horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -314,6 +335,11 @@ internal fun ScrollableMinutePillRow(
                     MaterialTheme.colorScheme.primary
                 } else {
                     MaterialTheme.colorScheme.tertiary.copy(alpha = 0.55f)
+                },
+                modifier = if (isSelected) {
+                    Modifier.bringIntoViewRequester(bringSelectedIntoView)
+                } else {
+                    Modifier
                 },
             ) {
                 Text(

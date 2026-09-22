@@ -1921,3 +1921,29 @@ il ramo `nfcAvailable` (titolo "Avvicinati a chi ti aspetta" +
 `pendingNfcMarker` — richiedono un dispositivo con NFC reale, stesso
 limite di verifica già documentato più volte in questo file per le
 funzioni NFC/Bluetooth dal vivo. Full build/lint/test verde.
+
+## Bug: la pillola di durata selezionata poteva essere fuori vista all'apertura della lobby host
+
+Segnalato: `initialDurationMinutes` (la durata scelta in Home,
+propagata dentro `GroupPauseBluetoothLobbyHostScreen`'s `durationMinutes`)
+può essere una qualunque delle otto opzioni di `ScrollableMinutePillRow`
+("30m"→"4h"), ma la riga scorrevole apre sempre con lo scroll a zero. Se
+la durata portata da Home era oltre le prime due o tre pillole visibili
+(es. "3h30"/"4h" — proprio il tipo di scelta che la dissolvenza sul bordo
+destro della Home, aggiunta in questa stessa sessione, ora rende più
+facile fare), la selezione restava fuori quadro: indistinguibile da
+"nessuna selezione" finché non si scorreva a caso per trovarla.
+
+Fix in `ScrollableMinutePillRow` (`GroupPauseHostScreen.kt`, unico punto
+di definizione, condiviso dall'unico chiamante reale
+`GroupPauseBluetoothLobbyHostScreen`): un `BringIntoViewRequester`
+agganciato alla pillola selezionata (una sola alla volta, per
+costruzione) + `bringIntoView()` in un `LaunchedEffect(Unit)` — quindi
+solo alla prima composizione, non a ogni cambio di selezione: una volta
+che l'utente tocca una pillola per cambiarla, quella è già in vista per
+definizione (l'ha appena toccata), niente da riportare a fuoco.
+
+Verificato sull'emulatore (Pixel 10 Pro AVD, flavor stable): selezionata
+"4h" in Home (scorrendo la riga durate lì), Home → Tempo insieme →
+Create — la lobby host si apre con "4h" già visibile ed evidenziata,
+senza alcuno scroll manuale. Full build/lint/test verde.
