@@ -978,3 +978,40 @@ otter's position regressed). Live on the emulator: Home renders identically
 a pause, `BlockScreen` renders its shared ring/otter from the new
 `HomePond.kt` correctly, unlocked with the password, back to Home — full
 round trip, no crash, no exception in `adb logcat`.
+
+## Dissolvenza sul bordo destro della riga di durata, quando scorre
+
+Trovato nella stessa revisione screenshot-by-screenshot citata in
+specs/group-pause/design.md ("Anello attorno all'otter..."): l'ultima
+pillola della riga durate (`DurationChipRow`, `MainScreen.kt`) finiva
+tagliata a filo del bordo destro senza alcun indizio che la riga
+scorresse — si leggeva come "le opzioni finiscono qui", non "scorri per
+vederne altre".
+
+`Modifier.horizontalFadeEdge()` (nuovo, privato a `MainScreen.kt`) sfuma
+l'ultimo tratto (24dp) in trasparenza con `BlendMode.DstIn` invece di
+ricoprirlo con una toppa a tinta unita: funziona sopra qualunque sfondo
+senza dover indovinare un colore da abbinare. `visible`, guidato da
+`ScrollState.canScrollForward`, spegne la sfumatura quando non c'è più
+nulla da scorrere — altrimenti l'ultima pillola resterebbe
+permanentemente più tenue anche a fine corsa, leggendosi come un difetto
+invece che come un indizio. Verificato: con lo scroll all'inizio "2h30"
+sfuma sul bordo, scorrendo fino in fondo "4h" (l'ultima) torna a piena
+opacità.
+
+**Due bug trovati e corretti prima di arrivare a questo risultato, sul
+proprio dispositivo, non solo a lettura di codice:**
+- Il trucco `graphicsLayer { alpha = 0.999f }` per forzare la
+  composizione off-screen richiesta da `DstIn` non basta più su questa
+  versione di Compose: senza `compositingStrategy =
+  CompositingStrategy.Offscreen` esplicito, l'intera riga appariva come
+  una barra nera piena.
+- Con quello corretto, l'intera riga *spariva* — l'ordine dei colori del
+  gradiente era invertito (`Transparent` prima, `Black` dopo): col
+  `TileMode.Clamp` di default, tutto ciò che sta a sinistra della zona
+  `[startX, endX]` eredita il colore/alfa del primo stop, quindi l'intera
+  riga (non solo l'ultimo tratto) ereditava l'alfa 0 di `Transparent`.
+  Va `Black` (alfa 1, "lascia intatto") prima, `Transparent` dopo, solo
+  al bordo.
+
+Full build/lint/test verde sul risultato finale.

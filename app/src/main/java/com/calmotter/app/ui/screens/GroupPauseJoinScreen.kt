@@ -172,7 +172,7 @@ internal fun GroupPauseCodeEntryScreen(onRecipeReady: (GroupPauseRecipe) -> Unit
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center,
             ) {
-                OtterZenMark(markSize = 88.dp)
+                OtterRingIllustration(dashed = false) { OtterZenMark(markSize = 88.dp) }
                 Text(
                     text = stringResource(R.string.group_pause_join_title),
                     fontSize = 22.sp,
@@ -320,11 +320,18 @@ private fun ScanFullScreen(
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.Center,
                 ) {
+                    // Prima era l'unica schermata dell'intero flusso "Tempo
+                    // insieme" senza alcuna mascotte — segnalato insieme al
+                    // vuoto verticale delle altre schermate "in attesa" di
+                    // questo file. Tratteggiato perché il permesso manca
+                    // davvero: stessa logica di OtterRingIllustration nelle
+                    // altre schermate del flusso Join.
+                    OtterRingIllustration(dashed = true) { OtterZenMark(markSize = 88.dp) }
                     Text(
                         text = stringResource(R.string.group_pause_camera_permission_rationale),
                         color = MaterialTheme.colorScheme.onSurface,
                         textAlign = TextAlign.Center,
-                        modifier = Modifier.padding(bottom = 12.dp)
+                        modifier = Modifier.padding(top = 14.dp, bottom = 12.dp)
                     )
                 }
                 Button(

@@ -184,7 +184,7 @@ fun GroupPauseBluetoothLobbyJoinScreen(
         ) {
             when (val current = state) {
                 JoinLobbyState.NfcHero -> {
-                    OtterTapMark(markSize = 88.dp)
+                    OtterRingIllustration(dashed = !allReady) { OtterTapMark(markSize = 88.dp) }
                     // Il testo non racconta più lo stato dei permessi (vedi il
                     // commento di classe): resta sempre "Avvicinati a chi ti
                     // aspetta", vero o no che il lettore NFC sia già partito
@@ -271,7 +271,7 @@ fun GroupPauseBluetoothLobbyJoinScreen(
                     )
                 }
                 JoinLobbyState.Connecting -> {
-                    OtterZenMark(markSize = 88.dp)
+                    OtterRingIllustration(dashed = false) { OtterZenMark(markSize = 88.dp) }
                     Text(
                         text = stringResource(R.string.group_pause_join_connecting),
                         color = MaterialTheme.colorScheme.onSurface,
@@ -280,7 +280,7 @@ fun GroupPauseBluetoothLobbyJoinScreen(
                     )
                 }
                 JoinLobbyState.WaitingForHost -> {
-                    OtterZenMark(markSize = 88.dp)
+                    OtterRingIllustration(dashed = false) { OtterZenMark(markSize = 88.dp) }
                     // Chi ospita e per quanto, appena l'host lo comunica: è ciò a
                     // cui si sta dicendo di sì, e va detto prima che la pausa
                     // cominci, non quando è già cominciata.
@@ -384,7 +384,14 @@ private fun GentleReadinessBanner(hasPermissions: Boolean, onAction: () -> Unit)
  */
 @Composable
 private fun SearchingIllustration(hasResults: Boolean, searching: Boolean) {
-    Box(modifier = Modifier.size(140.dp), contentAlignment = Alignment.Center) {
+    // L'anello (tratteggiato finché la ricerca non è davvero partita,
+    // pieno quando sì) è lo stesso di tutti gli altri stati "in attesa"
+    // di questo flusso — vedi OtterRingIllustration in CalmBackground.kt.
+    // Prima questo era l'unico stato ad avere già qualcosa attorno
+    // all'otter (le onde), ma solo mentre `searching` era vero: appena
+    // mancava un permesso restava un otter nudo di 76dp, indistinguibile
+    // dal problema segnalato sugli altri stati.
+    OtterRingIllustration(dashed = !searching) {
         // Le onde che si espandono raccontano una ricerca in corso: vanno
         // mostrate solo quando la discovery Bluetooth sta davvero girando.
         // Con permessi o Bluetooth mancanti non parte nulla (vedi il

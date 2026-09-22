@@ -13,6 +13,12 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.ui.draw.drawWithContent
+import androidx.compose.ui.graphics.BlendMode
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.CompositingStrategy
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.AlertDialog
@@ -35,6 +41,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.calmotter.app.BuildConfig
@@ -450,9 +457,11 @@ private fun PermissionReasonRow(reason: String, actionLabel: String, onGrant: ()
  */
 @Composable
 private fun DurationChipRow(selectedIndex: Int, onSelect: (Int) -> Unit) {
+    val scrollState = rememberScrollState()
     Row(
         modifier = Modifier
-            .horizontalScroll(rememberScrollState())
+            .horizontalScroll(scrollState)
+            .horizontalFadeEdge(visible = scrollState.canScrollForward)
             .padding(horizontal = 8.dp),
         horizontalArrangement = Arrangement.spacedBy(8.dp),
     ) {
@@ -484,4 +493,56 @@ private fun DurationChipRow(selectedIndex: Int, onSelect: (Int) -> Unit) {
             }
         }
     }
+}
+
+/**
+ * Dissolve il bordo destro del contenuto in trasparenza invece che tagliarlo
+ * di netto — segnalato: l'ultima pillola della fila ("2h30") finiva
+ * tagliata a filo bordo senza alcun indizio che la riga scorresse, quindi
+ * si leggeva come "le opzioni finiscono qui" invece che "scorri per
+ * vederne altre".
+ *
+ * Sfuma l'*alfa* del contenuto già disegnato (`BlendMode.DstIn`), non lo
+ * ricopre con una toppa a tinta unita: funziona sopra qualunque sfondo, sia
+ * lui statico (colore pieno) sia un gradiente come [calmBackground] più in
+ * alto in questa stessa schermata, senza dover indovinare un colore di
+ * sfondo da abbinare. `graphicsLayer { compositingStrategy =
+ * CompositingStrategy.Offscreen }` forza la composizione off-screen
+ * richiesta da `DstIn` per applicarsi solo al contenuto di questo
+ * Composable — senza, `DstIn` agisce sull'intera superficie già
+ * disegnata sotto, e il risultato era una barra nera piena al posto
+ * della dissolvenza (verificato sull'emulatore, corretto prima di
+ * committare). Il vecchio trucco `alpha = 0.999f` per ottenere lo stesso
+ * effetto non basta più su questa versione di Compose.
+ *
+ * `visible` (guidato da `ScrollState.canScrollForward` nel chiamante):
+ * niente sfumatura quando non c'è altro da scorrere, altrimenti l'ultima
+ * pillola resterebbe permanentemente più tenue delle altre anche a fine
+ * corsa — che si legge come un difetto grafico, non come un indizio.
+ */
+private fun Modifier.horizontalFadeEdge(visible: Boolean, width: Dp = 24.dp): Modifier = if (!visible) {
+    this
+} else {
+    this
+        .graphicsLayer { compositingStrategy = CompositingStrategy.Offscreen }
+        .drawWithContent {
+            drawContent()
+            // L'ordine dei colori conta più del solito: fuori da
+            // [startX, endX] il gradiente si blocca (ClampMode di
+            // default) sul colore più vicino, quindi Black va PRIMA
+            // (alfa 1 = "lascia intatto" per tutta la riga a sinistra
+            // della zona di sfumatura) e Transparent DOPO (alfa 0 solo
+            // al bordo destro). Invertiti per errore nella prima stesura:
+            // l'intera riga spariva (alfa 0 su tutta l'area a sinistra
+            // di startX, non solo l'ultimo tratto) — trovato
+            // sull'emulatore, corretto prima di committare.
+            drawRect(
+                brush = Brush.horizontalGradient(
+                    colors = listOf(Color.Black, Color.Transparent),
+                    startX = size.width - width.toPx(),
+                    endX = size.width,
+                ),
+                blendMode = BlendMode.DstIn,
+            )
+        }
 }

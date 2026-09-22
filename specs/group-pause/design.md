@@ -1806,3 +1806,51 @@ build was reinstalled and re-tested: tapping "Time together" with no
 permissions granted now goes straight to `GroupPauseChooserActivity`
 again, as intended for local development. Full build/lint/test suite
 passes on the final, reverted-to-real code.
+
+## Anello attorno all'otter, condiviso da tutte le schermate "in attesa" del flusso Join
+
+Segnalato insieme al bug precedente, come continuazione della stessa
+revisione screenshot-by-screenshot che aveva già trovato il vuoto
+verticale eccessivo su lobby join, ripiego permesso fotocamera e
+inserimento manuale del codice (le tre schermate, insieme a Change
+Password, con più spazio vuoto della media del resto dell'app — trovato
+mentre si rifacevano gli screenshot marketing del README, non da un
+report esplicito). Proposta dell'utente per risolverlo: dare a tutte le
+pagine di Tempo Insieme lo stesso trattamento "waiting for someone" già
+usato dalla lobby host.
+
+`OtterRingIllustration` (nuova, `CalmBackground.kt`) estrae lo
+specchio d'acqua + anello di `ParticipantRing`
+(`GroupPauseBluetoothLobbyHostScreen.kt`) in una versione senza satelliti
+partecipante, riusabile da qualunque schermata con un singolo otter:
+stessi raggi/colori, scalati per un otter da 88dp anziché 110dp (140dp di
+canvas anziché 180dp). `dashed` segue la stessa logica dell'anello host:
+tratteggiato quando la schermata non sta ancora facendo nulla di concreto
+(permesso mancante, ricerca non partita), pieno quando lo sta facendo.
+
+Applicato a:
+- `GroupPauseBluetoothLobbyJoinScreen.kt` — `NfcHero` (`dashed = !allReady`,
+  prima nudo), `SearchHero`/`SearchingIllustration` (`dashed = !searching`,
+  le onde di ricerca animate restano un overlay sopra l'anello quando
+  `searching` è vero, non lo sostituiscono — prima l'anello vero e proprio
+  non c'era mai, solo le onde quando la ricerca era attiva), `Connecting` e
+  `WaitingForHost` (`dashed = false`, prima nudi).
+- `GroupPauseJoinScreen.kt` — l'inserimento manuale del codice
+  (`dashed = false`, prima nudo) e il ripiego senza permesso fotocamera
+  (`dashed = true`, **prima l'unica schermata dell'intero flusso Tempo
+  Insieme senza alcuna mascotte**).
+
+Non toccati: la lobby host (ha già `ParticipantRing`, che questa
+composable non sostituisce — disegna anche i satelliti partecipante) e la
+pagina QR/countdown (hanno già abbastanza contenuto sotto l'otter — QR,
+codice, chip "parte tra" — da non aver mai avuto il problema segnalato).
+
+Verificato sull'emulatore (Pixel 10 Pro AVD, flavor stable), tutte e
+quattro le schermate toccate: lobby join (tratteggiato, permessi
+Bluetooth mancanti), ripiego fotocamera (tratteggiato, permesso negato in
+diretta per la verifica), inserimento manuale codice (pieno). Non
+verificato dal vivo: `Connecting`/`WaitingForHost` (richiedono un secondo
+dispositivo Bluetooth reale, stesso limite di verifica già documentato
+altrove in questo file) e la variante "onde di ricerca attive" di
+`SearchingIllustration` (stesso motivo — l'emulatore non ha un vero
+adattatore Bluetooth con cui scoprire nulla). Full build/lint/test verde.

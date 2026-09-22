@@ -1,5 +1,6 @@
 package com.calmotter.app.ui.screens
 
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ButtonDefaults
@@ -27,6 +28,10 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.PathEffect
+import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.foundation.layout.size
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.contentDescription
@@ -187,6 +192,69 @@ fun CalmSecondaryButton(
             Spacer(modifier = Modifier.width(8.dp))
         }
         Text(text = text)
+    }
+}
+
+/**
+ * Specchio d'acqua + anello dietro l'otter, condiviso da tutte le
+ * schermate "in attesa" di Tempo Insieme — prima ognuna era per conto
+ * suo: solo [GroupPauseBluetoothLobbyHostScreen]'s `ParticipantRing` (non
+ * riusabile qui, disegna anche i satelliti dei partecipanti) aveva un
+ * trattamento del genere, le altre (lobby join in tutti i suoi stati,
+ * l'inserimento manuale del codice, il ripiego senza permesso fotocamera)
+ * avevano solo l'otter da solo, o niente affatto — l'ultima, unica
+ * schermata dell'intero flusso senza mascotte. Segnalato ("si legge come
+ * a metà, troppo vuoto"): un'icona piccola dentro a un [CalmScreenColumn]
+ * a piena altezza si perde nello spazio, mentre lo stesso spazio pieno
+ * dall'anello dell'host si legge come intenzionale.
+ *
+ * Stessi raggi/colori dell'anello host (`ParticipantRing`), scalati per
+ * un otter da 88dp anziché 110dp (nessun satellite da fare spazio):
+ * 140dp di canvas anziché 180dp, stesso rapporto raggio/canvas per
+ * ciascuno dei tre cerchi dello stagno.
+ *
+ * `dashed` segue la stessa logica dell'anello host: tratteggiato e più
+ * tenue quando questa schermata non sta ancora facendo nulla di
+ * concreto (permesso mancante, ricerca non partita), pieno quando lo sta
+ * facendo (connessione in corso, in attesa dell'host, codice pronto da
+ * digitare). Il contenuto dell'otter resta un parametro: schermate
+ * diverse ci mettono mascotte diverse (`OtterZenMark`, `OtterTapMark`) o,
+ * per la ricerca Bluetooth attiva, le proprie onde animate sopra
+ * l'otter — vedi `SearchingIllustration` in
+ * GroupPauseBluetoothLobbyJoinScreen.kt.
+ */
+@Composable
+fun OtterRingIllustration(
+    dashed: Boolean,
+    modifier: Modifier = Modifier,
+    otter: @Composable () -> Unit,
+) {
+    val ringColor = MaterialTheme.colorScheme.primary
+    val pondColor = MaterialTheme.colorScheme.tertiary
+    val pondBright = MaterialTheme.colorScheme.surfaceBright
+
+    Box(modifier = modifier.size(160.dp), contentAlignment = Alignment.Center) {
+        Canvas(modifier = Modifier.size(140.dp)) {
+            drawCircle(color = pondColor, radius = 64.dp.toPx(), alpha = 0.14f)
+            drawCircle(color = pondColor, radius = 53.dp.toPx(), alpha = 0.26f)
+            drawCircle(color = pondBright, radius = 43.dp.toPx())
+            if (dashed) {
+                drawCircle(
+                    color = ringColor.copy(alpha = 0.12f),
+                    style = Stroke(
+                        width = 2.dp.toPx(),
+                        cap = StrokeCap.Round,
+                        pathEffect = PathEffect.dashPathEffect(floatArrayOf(10f, 8f)),
+                    ),
+                )
+            } else {
+                drawCircle(
+                    color = ringColor.copy(alpha = 0.22f),
+                    style = Stroke(width = 2.dp.toPx()),
+                )
+            }
+        }
+        otter()
     }
 }
 
