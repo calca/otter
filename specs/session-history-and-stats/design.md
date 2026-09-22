@@ -436,3 +436,69 @@ re-renders without restarting the app) was not attempted — out of scope
 for a single-device emulator pass — but the mechanism (`CompositionLocal`
 recomposition) is what Compose apps are supposed to rely on for exactly
 this, and is no longer bypassed the way `Locale.getDefault()` was.
+
+
+## Room migrations had no verification at all until now
+
+Found during the same review as the locale bug above (`TODO.md` "1.4").
+`CalmOtterDatabase` had `exportSchema = false` since it was written, and
+`MIGRATION_1_2`/`MIGRATION_2_3` (hand-written `ALTER TABLE` statements)
+had zero test coverage. History is the only irreplaceable local data this
+app holds — no backend, no cloud copy — so a wrong migration is a launch
+crash for every existing user on the next update, discovered only by
+someone hitting it on a real device with real data already in the table.
+
+**`exportSchema = true`, going forward.** KSP now writes one JSON snapshot
+per database version to `app/schemas/` (`room.schemaLocation` set in
+`app/build.gradle.kts`), committed. This is exactly the same self-checking
+mechanism this project already leans on elsewhere — the two-palette sync
+rule, i18n string parity — a machine-checkable record instead of "we'll
+remember." It only starts protecting from version 3 onward: versions 1 and
+2 were never exported while the flag was `false`, and there is no way to
+retroactively reconstruct a historical JSON snapshot that KSP would accept
+as authoritative. The next migration (3→4, whenever it comes) is the first
+one this will actually catch a mismatch on.
+
+**The migrations themselves are now tested despite that gap.** The
+textbook approach — Room's `MigrationTestHelper`, which builds a database
+at an old version straight from its exported schema JSON — isn't available
+for 1→2 or 2→3 for the same reason: no `1.json`/`2.json` ever existed to
+build from, and fabricating one by hand to satisfy the helper would be
+asserting a historical fact with no way to verify it's actually right.
+
+Instead, `CalmOtterDatabaseMigrationTest` hand-writes the v1 `CREATE TABLE`
+statement directly against a real (Robolectric-backed, native SQLite)
+`.db` file — its exact shape isn't a guess, it's read straight off
+`MIGRATION_1_2`/`MIGRATION_2_3`'s own `ALTER TABLE ... ADD COLUMN`
+statements, which enumerate precisely the two columns added since v1,
+cross-checked against `SessionRecord.kt`'s column types. It seeds a row,
+then opens the file through the exact same `Room.databaseBuilder(...)
+.addMigrations(...)` call `CalmOtterDatabase.getInstance()` uses in
+production — not a reimplementation of it. Room validates the resulting
+schema against what it compiled from the current `@Entity` at every open,
+regardless of whether `exportSchema` JSON exists for the versions in
+between; a wrong migration fails this test the same way it would fail on
+a real device, by throwing when the database opens. This makes it a real
+behavioral test of the migration path, not a smoke test of "the function
+runs without throwing."
+
+`MIGRATION_1_2`/`MIGRATION_2_3` changed from `private val` to
+`@VisibleForTesting internal val` so the test can pass them to its own
+`Room.databaseBuilder()` call — the same visibility pattern already used
+for `resetInstanceForTests()` in this file and elsewhere in the codebase.
+
+Two tests: one confirms a v1 row survives the trip to v3 with the exact
+values it started with, plus the documented defaults
+(`isGroupSession = false`, `companions = ""`) for the two backfilled
+columns; the other confirms the migrated database still accepts new writes
+afterward (insert a fresh group-session row, read it back) — catching the
+narrower but real failure mode of a migration that produces a schema Room
+can *open* but not *write to* correctly (a missing `NOT NULL DEFAULT`
+would show up here, for instance).
+
+Verified: `assembleDebug`/`lintStableDebug`/`lintBetaDebug`/
+`testStableDebugUnitTest`/`testBetaDebugUnitTest` all green, both new
+tests run and pass, `app/schemas/com.calmotter.app.CalmOtterDatabase/3.json`
+present after the build. Installed on the emulator and reopened History on
+top of the app's existing (already-v3) local database — opens and renders
+correctly, no exception in `adb logcat` for the app's process.

@@ -118,6 +118,14 @@ android {
     }
 }
 
+// Snapshot JSON dello schema Room per versione, in app/schemas/ (committato,
+// vedi CalmOtterDatabase.kt) — richiesto da `exportSchema = true`. Deve
+// essere una closure separata da `android { }`: `ksp` è un blocco top-level
+// del suo stesso plugin, non un'opzione dentro `android`.
+ksp {
+    arg("room.schemaLocation", "$projectDir/schemas")
+}
+
 dependencies {
     implementation("androidx.core:core-ktx:1.13.1")
     implementation("androidx.appcompat:appcompat:1.7.0")

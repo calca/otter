@@ -98,10 +98,15 @@ dates keep rendering in the old locale if the user switches language while
 the app is alive. Given this project ships two locales and actively courts
 translators, it will be seen.
 
-### 1.4 Room migrations are hand-written, unexported, and untested — **M**
+### 1.4 Room migrations are hand-written, unexported, and untested — **M** — ✅ fixed
 
 *Verified: `CalmOtterDatabase.kt:11` has `exportSchema = false`, two
-hand-written migrations, and no `androidTest`.*
+hand-written migrations, and no `androidTest`. Now `exportSchema = true`
+(protects future migrations; versions 1/2 predate this and can't be
+retrofitted), and both migrations are tested directly against a
+hand-seeded v1 database opened through the real production
+`Room.databaseBuilder()` call — no `androidTest` needed, this runs under
+Robolectric. See `specs/session-history-and-stats/design.md`.*
 
 Session history is the only irreplaceable data this app holds — there is no
 backend and no cloud copy. A missing or wrong migration is a crash loop on
