@@ -366,3 +366,36 @@ passes for all four palettes; installed on the emulator, switched Settings
 to Dusk Sand then Dawn Clay, screenshot confirmed both now render their
 correct tan/brown and clay tones (not the old purple/orange-red) with no
 crash, then switched back to Sage.
+
+
+## A dependency bump broke `MainActivity`'s status bar color — `com.google.android.material.R.attr.colorPrimary` stopped resolving
+
+Found bumping `material:material` 1.12.0 → 1.14.0 as part of clearing the
+dependency drift in `TODO.md` "6.2" — a straight version-number edit, not
+a code change, immediately failed the Kotlin compile with `Unresolved
+reference 'colorPrimary'` at `MainActivity.kt`'s `MaterialColors.getColor(
+this, com.google.android.material.R.attr.colorPrimary, ...)` call, which
+sets `window.statusBarColor` to match the active theme (see "DND priority
+categories" — no, wrong file; this call reads the *already-applied* theme
+attribute via `MaterialColors`, so it automatically picks up whichever of
+the four palettes × light/dark is active, the same way `values-night/
+themes.xml`'s own `colorPrimary` differs from `values/colors.xml`'s).
+
+Material had been re-declaring its own `colorPrimary` attr as a
+pre-Lollipop compatibility shim since long before this project started;
+1.14.0 apparently stopped doing that. Fixed by pointing at
+`android.R.attr.colorPrimary` instead — the platform's own attribute,
+present since API 21, which this project's `minSdk 26` has always
+satisfied anyway. `MaterialColors.getColor()` itself is untouched;
+only which `R.attr` constant gets passed to it changed.
+
+Verified: compiles clean again on `material:material:1.14.0`, full
+`assembleDebug`/`lintStableDebug`/`lintBetaDebug`/
+`testStableDebugUnitTest`/`testBetaDebugUnitTest` pass. Not screenshot-
+diffed specifically for status bar color (targetSdk 37 makes the status
+bar transparent under edge-to-edge on the Android 15+ emulator this
+session used anyway, per `CLAUDE.md` — this code path is mostly inert on
+that OS version, and was already documented as "still visible on older
+versions" before this fix). Confirmed instead via a live Home → pause →
+unlock round trip on the emulator (this exact code runs on every one of
+those transitions) with no crash and no exception in `adb logcat`.

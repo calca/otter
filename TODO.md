@@ -368,7 +368,7 @@ encrypted store, both the read of the old value and the write of the new
 one succeeded with no exception. See
 `specs/onboarding-and-password/design.md`.
 
-### 6.2 The rest of the dependency drift — **M**
+### 6.2 The rest of the dependency drift — **M** — ✅ fixed
 
 Twelve `GradleDependency` warnings. Notable: `core-ktx` 1.13.1 → 1.19.0,
 `lifecycle-runtime-ktx` 2.8.3 → 2.11.0, `activity-compose` 1.9.0 → 1.13.0,
@@ -379,6 +379,34 @@ Worth noting the contrast: the Compose BOM and Kotlin/AGP toolchain are
 deliberately kept on the bleeding edge (documented in `CLAUDE.md`), while
 these have quietly fallen years behind. Not urgent, but the inconsistency
 is unintentional rather than chosen.
+
+*Fixed:* all twelve bumped (`appcompat` 1.7.0 → 1.8.0, `material` 1.12.0 →
+1.14.0, `recyclerview` 1.3.2 → 1.4.0, and `androidx.test:core` 1.6.1 →
+1.7.0 in addition to the ones named above), plus the two
+`NewerVersionAvailable` findings (`zxing:core` 3.5.3 → 3.5.4) and the
+Gradle wrapper itself (9.7.0 → 9.7.1) — all fifteen `GradleDependency`/
+`NewerVersionAvailable`/`AndroidGradlePluginVersion` findings confirmed
+gone from the lint report afterward.
+
+One real breakage, not a routine version bump: `material:material` 1.14.0
+stopped exposing `com.google.android.material.R.attr.colorPrimary`
+(`MainActivity.kt`'s status-bar-color call), failing the Kotlin compile
+outright rather than a runtime surprise. Fixed by switching to
+`android.R.attr.colorPrimary` — the platform's own attribute since API 21,
+which this project's `minSdk 26` has always satisfied. See
+`specs/multi-theme-system/design.md`.
+
+Verified: full `assembleDebug`/`lintStableDebug`/`lintBetaDebug`/
+`testStableDebugUnitTest`/`testBetaDebugUnitTest` pass (all 16 test
+suites, zero failures). Installed on the emulator and exercised the
+libraries most likely to break silently rather than trusting the compile
+alone: a full Home → start pause → unlock round trip (core-ktx,
+lifecycle-runtime-ktx, activity-compose, the fixed `colorPrimary` path —
+all run on every one of those transitions), and the group-pause QR
+scanner (CameraX, bumped two minor versions across four artifacts) —
+granted the camera permission live and confirmed the preview actually
+renders a frame, not just that the screen opens. No crash, no exception
+in `adb logcat`, across either.
 
 ---
 

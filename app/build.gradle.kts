@@ -127,12 +127,12 @@ ksp {
 }
 
 dependencies {
-    implementation("androidx.core:core-ktx:1.13.1")
-    implementation("androidx.appcompat:appcompat:1.7.0")
-    implementation("com.google.android.material:material:1.12.0")
-    implementation("androidx.recyclerview:recyclerview:1.3.2")
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3")
-    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.8.3")
+    implementation("androidx.core:core-ktx:1.19.0")
+    implementation("androidx.appcompat:appcompat:1.8.0")
+    implementation("com.google.android.material:material:1.14.0")
+    implementation("androidx.recyclerview:recyclerview:1.4.0")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.11.0")
+    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.11.0")
     // Storage cifrato per salt + hash della password (AES256 via Android Keystore).
     // TODO.md "6.1": era pinnata su un'alpha (1.1.0-alpha06) mentre la 1.1.0
     // stabile è disponibile da tempo — proprio la libreria dietro il crash
@@ -160,7 +160,7 @@ dependencies {
     implementation("androidx.compose.material:material-icons-core")
     implementation("androidx.compose.ui:ui-tooling-preview")
     debugImplementation("androidx.compose.ui:ui-tooling")
-    implementation("androidx.activity:activity-compose:1.9.0")
+    implementation("androidx.activity:activity-compose:1.13.0")
 
     // Widget home screen in Compose (sostituisce RemoteViews/AppWidgetProvider)
     implementation("androidx.glance:glance-appwidget:1.2.0")
@@ -172,15 +172,15 @@ dependencies {
     // di ML Kit/zxing-android-embedded: niente Google Play Services, niente
     // Activity di scansione preconfezionata — l'anteprima resta una nostra
     // schermata Compose, coerente con lo stile del resto dell'app.
-    implementation("com.google.zxing:core:3.5.3")
-    implementation("androidx.camera:camera-core:1.4.1")
-    implementation("androidx.camera:camera-camera2:1.4.1")
-    implementation("androidx.camera:camera-lifecycle:1.4.1")
-    implementation("androidx.camera:camera-view:1.4.1")
+    implementation("com.google.zxing:core:3.5.4")
+    implementation("androidx.camera:camera-core:1.6.2")
+    implementation("androidx.camera:camera-camera2:1.6.2")
+    implementation("androidx.camera:camera-lifecycle:1.6.2")
+    implementation("androidx.camera:camera-view:1.6.2")
 
     testImplementation("junit:junit:4.13.2")
     testImplementation("org.robolectric:robolectric:4.17")
-    testImplementation("androidx.test:core:1.6.1")
+    testImplementation("androidx.test:core:1.7.0")
 
     // Test di composizione su JVM (Robolectric, nessun dispositivo): servono
     // per l'unica invariante grafica di questa app che si è rotta più volte

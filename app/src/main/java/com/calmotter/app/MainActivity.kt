@@ -398,9 +398,16 @@ class MainActivity : BaseActivity() {
         // 15+ (edge-to-edge imposto da targetSdk 37 rende la barra di stato
         // trasparente, vedi CLAUDE.md), ma resta visibile sulle versioni
         // precedenti.
+        // TODO.md "6.2": com.google.android.material.R.attr.colorPrimary
+        // ha smesso di risolvere con material:material aggiornato a
+        // 1.14.0 — Material non ridichiara più questo attr come proprio
+        // duplicato (esisteva solo come compatibilità pre-Lollipop).
+        // android.R.attr.colorPrimary è l'attributo di piattaforma vero,
+        // presente dall'API 21: con minSdk 26 di questo progetto è sempre
+        // stato quello davvero risolto a runtime comunque.
         window.statusBarColor = MaterialColors.getColor(
             this,
-            com.google.android.material.R.attr.colorPrimary,
+            android.R.attr.colorPrimary,
             android.graphics.Color.BLACK,
         )
         resumeSignal++
