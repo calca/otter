@@ -24,6 +24,12 @@ class GroupPauseHceService : HostApduService() {
     override fun processCommandApdu(commandApdu: ByteArray?, extras: Bundle?): ByteArray {
         val marker = pendingMarker
         return if (marker != null) {
+            // L'altro telefono ha appena letto il marker: segnale diretto e
+            // affidabile di "un tap è appena avvenuto", indipendente dalla
+            // connessione Bluetooth che segue (vedi onTapRead in
+            // GroupPauseBluetoothLobbyHostScreen.kt e
+            // specs/group-pause/design.md).
+            onTapRead?.invoke()
             marker.toByteArray(StandardCharsets.UTF_8) + STATUS_OK
         } else {
             STATUS_NOT_FOUND
@@ -41,6 +47,13 @@ class GroupPauseHceService : HostApduService() {
         // alla volta — nessuna concorrenza reale da gestire qui.
         @Volatile
         var pendingMarker: String? = null
+
+        // Chiamato dal thread NFC del sistema (non quello principale): chi si
+        // registra qui deve postare sul main thread da sé, se serve. Gestito
+        // dalla lobby host esattamente come pendingMarker — impostato
+        // all'attivazione, azzerato alla disattivazione o all'uscita.
+        @Volatile
+        var onTapRead: (() -> Unit)? = null
 
         private val STATUS_OK = byteArrayOf(0x90.toByte(), 0x00)
         private val STATUS_NOT_FOUND = byteArrayOf(0x6A, 0x82.toByte())

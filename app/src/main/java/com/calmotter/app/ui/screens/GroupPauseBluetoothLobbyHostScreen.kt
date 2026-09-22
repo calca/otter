@@ -6,6 +6,8 @@ import android.content.ComponentName
 import android.content.Intent
 import android.nfc.NfcAdapter
 import android.nfc.cardemulation.CardEmulation
+import android.os.Handler
+import android.os.Looper
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Canvas
@@ -128,6 +130,16 @@ fun GroupPauseBluetoothLobbyHostScreen(
     // apposta per il discovery. Serve il nome vero del telefono.
     val hostName = remember { localBluetoothDisplayName(context) }
 
+    // L'NFC è pensato per l'incontro di due persone: dopo il tap non ha
+    // senso chiedere ancora di toccare "Iniziamo" a mano. `onTapRead` (vedi
+    // GroupPauseHceService.kt) segnala solo che il marker è stato letto,
+    // prima che la connessione Bluetooth che segue sia completa — non basta
+    // da solo per avviare, va combinato con la comparsa del partecipante in
+    // participantNames (vedi il LaunchedEffect più sotto e
+    // broadcastRecipeAndClose in GroupPauseBluetoothHost.kt, che consegna la
+    // ricetta solo a chi è già connesso).
+    var nfcTapDetected by remember { mutableStateOf(false) }
+
     // Propaga ogni cambio del selettore all'host già in ascolto (se lo è
     // già — altrimenti è un no-op ininfluente, perché start() qui sotto
     // legge comunque durationMinutes al momento in cui gira davvero).
@@ -170,11 +182,17 @@ fun GroupPauseBluetoothLobbyHostScreen(
                         )
                     }
                 }
+                // processCommandApdu() gira sul thread NFC del sistema, non
+                // su quello principale: mutableStateOf va toccato dal main
+                // thread, da cui il post esplicito.
+                val mainHandler = Handler(Looper.getMainLooper())
+                GroupPauseHceService.onTapRead = { mainHandler.post { nfcTapDetected = true } }
             }
         }
         onDispose {
             host.stop()
             GroupPauseHceService.pendingMarker = null
+            GroupPauseHceService.onTapRead = null
             if (nfcAvailable) {
                 nfcAdapter?.let {
                     runCatching { CardEmulation.getInstance(it).unsetPreferredService(context as Activity) }
@@ -184,6 +202,38 @@ fun GroupPauseBluetoothLobbyHostScreen(
     }
 
     val participantNames = host.participantNames
+
+    // Estratta dal Button "Iniziamo" così sia l'avvio manuale che quello
+    // automatico via NFC (vedi il LaunchedEffect subito sotto) condividano
+    // esattamente la stessa logica.
+    fun startSession() {
+        val recipe = GroupPauseRecipe(
+            durationMinutes = durationMinutes,
+            startAtEpochMillis = System.currentTimeMillis() + 5_000L,
+            groupTag = groupTag,
+        )
+        // Copiati prima di broadcastRecipeAndClose(), che chiude
+        // le connessioni: participantNames è la lista viva della
+        // lobby, e dopo la chiusura non è più ciò che si vuole
+        // registrare.
+        val companions = participantNames.toList()
+        host.broadcastRecipeAndClose(recipe.encode())
+        onRecipeReady(recipe, companions)
+    }
+
+    // Un tap letto da solo non basta: prova solo che il marker NFC è stato
+    // scambiato, non che l'altro telefono si sia già connesso via Bluetooth
+    // (che arriva qualche istante dopo, vedi il commento su nfcTapDetected
+    // più sopra). Si aspetta quindi la comparsa in participantNames prima di
+    // avviare davvero, e si azzera il flag subito dopo per non riavviare a
+    // ogni variazione successiva (es. un secondo tap o un altro
+    // partecipante che si aggiunge più tardi).
+    LaunchedEffect(nfcTapDetected, participantNames.size) {
+        if (nfcTapDetected && participantNames.isNotEmpty()) {
+            nfcTapDetected = false
+            startSession()
+        }
+    }
 
     // Bottoni ancorati al fondo pagina, su richiesta esplicita: il resto del
     // contenuto (anello, titolo, durata, "preferisci un codice") vive in una
@@ -279,20 +329,7 @@ fun GroupPauseBluetoothLobbyHostScreen(
                 Text(stringResource(android.R.string.cancel))
             }
             Button(
-                onClick = {
-                    val recipe = GroupPauseRecipe(
-                        durationMinutes = durationMinutes,
-                        startAtEpochMillis = System.currentTimeMillis() + 5_000L,
-                        groupTag = groupTag,
-                    )
-                    // Copiati prima di broadcastRecipeAndClose(), che chiude
-                    // le connessioni: participantNames è la lista viva della
-                    // lobby, e dopo la chiusura non è più ciò che si vuole
-                    // registrare.
-                    val companions = participantNames.toList()
-                    host.broadcastRecipeAndClose(recipe.encode())
-                    onRecipeReady(recipe, companions)
-                },
+                onClick = { startSession() },
                 enabled = participantNames.isNotEmpty(),
                 modifier = Modifier.fillMaxWidth().height(48.dp)
             ) {

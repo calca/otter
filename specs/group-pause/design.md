@@ -327,6 +327,61 @@ tap" behavior needs a second NFC-capable phone to tap against to confirm
 end-to-end, which wasn't available; flagged rather than claimed as fully
 verified.
 
+### After a tap, the session starts on its own — no manual "Iniziamo" needed
+
+Requested: "l'nfc è pensato per quando la pausa è 2, quindi dopo il tap la
+sessione deve partire subito" — NFC pairing only makes sense between two
+phones physically touched together, so once that's happened there's no
+scenario where the host still needs to tap "Iniziamo" by hand; the tap
+itself is the intent to start.
+
+The tricky part is that "the tap happened" and "it's safe to start" are two
+different moments. `GroupPauseHceService.processCommandApdu()` fires the
+instant the joining phone reads the marker — but
+`GroupPauseBluetoothHost.broadcastRecipeAndClose()` only delivers the
+recipe to sockets already present in its connection list; the Bluetooth
+connection + HELLO handshake that populates `participantNames` completes a
+few seconds *after* the NFC exchange, not before it. Starting on the tap
+alone would broadcast to an empty connection list and close the host
+before the joiner ever connects.
+
+Fixed with two signals combined, not one:
+
+- `GroupPauseHceService` gained a `@Volatile var onTapRead: (() -> Unit)?`
+  companion callback, invoked from `processCommandApdu()` right next to the
+  existing `pendingMarker` read — same lifecycle as `pendingMarker` itself
+  (set when the lobby becomes ready, cleared on dispose). Runs on the
+  system's NFC/Binder thread, so the registered callback in
+  `GroupPauseBluetoothLobbyHostScreen.kt` posts to the main thread via a
+  plain `Handler(Looper.getMainLooper())` before touching Compose state —
+  the same pattern `GroupPauseBluetoothLobbyJoinScreen` already uses for
+  `GroupPauseNfcReader`'s callback.
+- The screen tracks `nfcTapDetected` as local state, and the "Iniziamo"
+  logic was extracted out of the button's `onClick` into a plain
+  `startSession()` function so both triggers — the manual button and the
+  new automatic path — share the exact same code instead of drifting apart.
+  A `LaunchedEffect(nfcTapDetected, participantNames.size)` starts the
+  session only once *both* conditions hold: a tap was read *and*
+  `participantNames` is non-empty (i.e., someone has actually connected),
+  resetting `nfcTapDetected` back to `false` immediately after firing so a
+  later, unrelated change to `participantNames` (a second tap, a third
+  person joining) doesn't retrigger an auto-start.
+
+This still doesn't skip the 5-second `startAtEpochMillis` grace period
+already baked into `GroupPauseRecipe` — the actual pause begins the same
+way it always did, just without the host needing to notice and tap a
+button first.
+
+Verified: `startSession()`'s extraction is a pure refactor (same recipe
+construction, same `broadcastRecipeAndClose`/`onRecipeReady` calls,
+unchanged), checked by reading the diff rather than re-testing the manual
+"Iniziamo" path from scratch. The automatic trigger itself has the same
+verification limit as the resolver-dialog fix above: no second NFC-capable
+device was available to physically tap and confirm the session actually
+starts end-to-end. What was checked was code-level: `onTapRead` is
+registered/cleared in the same `DisposableEffect(allReady)` block, on the
+same lifecycle, as `pendingMarker` and `setPreferredService`.
+
 ### Permissions
 
 `BLUETOOTH_CONNECT`/`BLUETOOTH_ADVERTISE`/`BLUETOOTH_SCAN` (Android 12+,
