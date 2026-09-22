@@ -308,7 +308,44 @@ closes the keyboard with focus still on that field, `uiautomator`-dumped
 `focused="true"` each time to confirm the actual target, not just eyeballed
 from a screenshot.
 
-## Bold emphasis in step bodies: `boldAnnotatedString`
+### Bug report: "on Samsung, with Gboard, Next does nothing" — a discarded fix that was worse
+
+Reported directly, no repro steps beyond device (Samsung) and IME (Gboard,
+not the Samsung keyboard). Not reproducible in this environment — no
+Samsung hardware, and the verification method documented just above has a
+real gap: `adb shell input keyevent 66` injects a hardware Enter key,
+which Compose translates into the field's `imeAction` — a completely
+different code path from `InputConnection.performEditorAction()`, the one
+a real software keyboard calls when its own "Next" glyph is tapped. The
+previous verification only ever exercised the first path, never the
+second, on this same screen.
+
+**First attempt, reverted**: replace both `FocusRequester`s with
+`LocalFocusManager.current.moveFocus(FocusDirection.Next)` — walks the
+focus tree in composition order instead of requesting an exact target,
+which looked like a plausible fix for "a manually-placed `FocusRequester`
+occasionally fails to receive focus on some device/IME combo." Verified
+on the emulator (via the same `keyevent 66` method, still not the real
+software-keyboard path — but enough to catch this) and found a concrete,
+*worse* bug: from the password field, `moveFocus(Next)` does not land on
+the confirm field. It lands on the password field's own "show password"
+`IconButton` (`PasswordOutlinedTextField`'s trailing icon) — also a valid
+focus target for directional search, and the nearer one. Confirmed via
+`uiautomator dump`: after the second "Next", the only `focused="true"`
+node is `content-desc="Show password"`, keyboard closed, no text field
+focused. The *first* hop (name → password, no icon in the way) worked
+correctly, which is exactly why a test that only checks one hop can look
+like a fix. Reverted to the two `FocusRequester`s — confirmed correct
+again on both hops with the same `uiautomator`-dump method.
+
+**Net result: no fix for the actual Samsung/Gboard report.** The reverted
+code is identical in behavior to what shipped before this report — this
+session could not reproduce the bug, and the one alternative implementation
+tried made things concretely worse rather than better. If it recurs, the
+next step needs either real Samsung hardware or a more specific repro
+(does it happen on the name→password hop too, or only password→confirm —
+the two hops are not equivalent, as this investigation found the hard
+way).
 
 Each step body highlights exactly one key phrase in bold (e.g. "the rest
 can wait" on the final step) rather than reading as a flat block of text.

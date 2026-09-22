@@ -88,6 +88,26 @@ fun OnboardingScreen(
     // durante l'onboarding. `passwordFocusRequester`/`confirmFocusRequester`
     // sono gli unici due bersagli possibili (il nome è il primo campo, non
     // serve un requester per raggiungerlo).
+    //
+    // **Tentativo scartato**: sostituire i due `FocusRequester` con
+    // `LocalFocusManager.moveFocus(FocusDirection.Next)`, dopo un report
+    // ("su Samsung, con Gboard, Next non fa nulla") non riproducibile
+    // sull'emulatore. Sembrava l'API più robusta — cammina l'albero del
+    // focus invece di richiedere un bersaglio piazzato a mano — ma
+    // verificato sull'emulatore ha un bug concreto e peggiore di quello
+    // che doveva risolvere: dal campo password, `moveFocus(Next)` non
+    // arriva al campo "Conferma password", arriva prima all'icona
+    // "mostra password" dello stesso campo password (`trailingIcon` di
+    // [PasswordOutlinedTextField], anch'essa un bersaglio di focus valido
+    // per la ricerca direzionale) — confermato con `uiautomator dump`:
+    // dopo il secondo "Next" il nodo con `focused="true"` è
+    // `content-desc="Show password"`, non il campo successivo, tastiera
+    // chiusa, nessun campo di testo a fuoco. Il primo salto (nome →
+    // password, nessuna icona di mezzo) funzionava, il secondo no — motivo
+    // per cui un test rapido su un solo hop può sembrare che funzioni.
+    // Tornato ai due `FocusRequester`: mirano esattamente al campo voluto,
+    // senza passare per una ricerca direzionale che può fermarsi su
+    // qualunque altro elemento focusabile di mezzo.
     val passwordFocusRequester = remember { FocusRequester() }
     val confirmFocusRequester = remember { FocusRequester() }
 

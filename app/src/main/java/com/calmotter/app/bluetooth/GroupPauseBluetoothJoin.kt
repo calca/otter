@@ -1,6 +1,7 @@
 package com.calmotter.app.bluetooth
 
 import android.annotation.SuppressLint
+import android.bluetooth.BluetoothClass
 import android.bluetooth.BluetoothDevice
 import android.bluetooth.BluetoothSocket
 import android.content.BroadcastReceiver
@@ -48,6 +49,17 @@ class GroupPauseBluetoothJoin(private val context: Context) {
             override fun onReceive(receivedContext: Context, intent: Intent) {
                 val device = intent.bluetoothDeviceExtra() ?: return
                 val name = device.name ?: return
+                // Segnalato: senza filtro, il discovery Bluetooth classico
+                // mostra qualunque dispositivo classico in raggio —
+                // lavatrice, stampante, lampadine — non solo l'altro
+                // telefono che sta ospitando la lobby. L'host qui è sempre
+                // e solo un telefono Android (nessun altro tipo di
+                // dispositivo espone il servizio RFCOMM di questa app), e
+                // Android riporta la classe hardware reale del dispositivo
+                // trovato (non qualcosa che l'app annuncia da sé) —
+                // `Major.PHONE` la filtra correttamente senza dover
+                // indovinare nomi o pattern.
+                if (!device.isPhoneClass()) return
                 if (discovered.none { it.device.address == device.address }) {
                     discovered.add(DiscoveredBtDevice(device, name))
                 }
@@ -127,3 +139,12 @@ private fun Intent.bluetoothDeviceExtra(): BluetoothDevice? =
     } else {
         getParcelableExtra(BluetoothDevice.EXTRA_DEVICE)
     }
+
+// `getBluetoothClass()` può tornare null (dispositivo che non l'ha ancora
+// annunciato al momento di ACTION_FOUND, o adapter che non la conosce
+// affatto) — in quel caso il dispositivo resta escluso invece di essere
+// mostrato per dubbio: coerente con lo scopo del filtro (nascondere ciò
+// che non si sa essere un telefono), non un edge case da gestire a parte.
+@SuppressLint("MissingPermission")
+private fun BluetoothDevice.isPhoneClass(): Boolean =
+    bluetoothClass?.majorDeviceClass == BluetoothClass.Device.Major.PHONE

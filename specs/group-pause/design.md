@@ -1947,3 +1947,32 @@ Verificato sull'emulatore (Pixel 10 Pro AVD, flavor stable): selezionata
 "4h" in Home (scorrendo la riga durate lì), Home → Tempo insieme →
 Create — la lobby host si apre con "4h" già visibile ed evidenziata,
 senza alcuno scroll manuale. Full build/lint/test verde.
+
+## Lista dispositivi Bluetooth della lobby join, filtrata ai soli telefoni
+
+Segnalato: senza filtro, il discovery Bluetooth classico
+(`GroupPauseBluetoothJoin.startDiscovery()`) elenca qualunque dispositivo
+classico in raggio con Bluetooth accesso — lavatrice, stampante,
+lampadine — non solo l'altro telefono che ospita la lobby.
+
+`BluetoothDevice.getBluetoothClass()?.majorDeviceClass ==
+BluetoothClass.Device.Major.PHONE` filtra i dispositivi già dentro il
+`BroadcastReceiver` di `ACTION_FOUND`, prima di aggiungerli a
+`discovered`: è la classe hardware reale che Android riporta per il
+dispositivo trovato (letta dal dispositivo remoto, non qualcosa che
+questa app annuncia da sé), e l'host qui è sempre e solo un telefono
+Android — nessun altro tipo di dispositivo espone il servizio RFCOMM di
+questa app, quindi non c'è un caso legittimo in cui un non-telefono
+dovrebbe comparire nell'elenco. `bluetoothClass` nullo (dispositivo che
+non l'ha ancora annunciata al momento di `ACTION_FOUND`, o adapter che
+non la conosce) esclude per dubbio, coerente con lo scopo del filtro.
+
+**Non verificato dal vivo**: richiederebbe elettrodomestici Bluetooth
+Classic reali nel raggio dell'emulatore per confermare che vengano
+davvero esclusi (l'emulatore non ha un vero adattatore Bluetooth — stesso
+limite di verifica già documentato più volte in questo file per le
+funzioni Bluetooth dal vivo). Il filtro stesso è una singola condizione
+booleana su un campo documentato dell'API pubblica `BluetoothClass`, non
+euristica: il rischio residuo è che un dispositivo riporti la propria
+classe in modo scorretto (fuori dal controllo di questa app), non che il
+confronto sia sbagliato. Full build/lint/test verde.
