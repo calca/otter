@@ -135,6 +135,63 @@ The change stays on its own merit.
 bytes (`SecureRandom`). Both salt and hash are Base64-encoded
 (`Base64.NO_WRAP`) before being written to `EncryptedSharedPreferences`.
 
+### A restored backup could crash the app on every launch, forever
+
+Reported: "ho installato la build da zero e l'app va in crash" — no
+logcat at first, so ruled out the obvious things by reproducing rather
+than guessing: a clean debug install and the exact signed beta APK
+downloaded from the CI run (`gh run download`) both launched fine on the
+emulator. The real device (a Galaxy S22, connected over `adb` once
+available) gave the actual trace: `javax.crypto.AEADBadTagException` in
+`PasswordManager.<init>`, thrown from `EncryptedSharedPreferences.create()`
+— a `RuntimeException` at `MainActivity.onCreate()`, i.e. the app cannot
+reach a single screen, ever, not even onboarding.
+
+Root cause: `calm_otter_secure_prefs.xml` doesn't just hold the salted
+password hash — androidx.security.crypto also stores its own Tink keyset
+(the key actually used to encrypt/decrypt individual entries) as two
+further string entries in that *same* file, and that keyset is itself
+encrypted with a key held in Android Keystore. The manifest had
+`android:allowBackup="true"` with no exclusions, so Android's backup
+mechanism could restore this file's *contents* (the ciphertext) on a
+reinstall — but the Keystore key that ciphertext was encrypted under is
+hardware/install-bound and is never part of any backup. Restored
+ciphertext against a different key decrypts to garbage, which the AEAD
+tag check catches and throws on — precisely the reported symptom, and
+reproduced by hand: after setting a password, overwriting just the key
+keyset string in `calm_otter_secure_prefs.xml` with different bytes and
+relaunching, on the actual S22 reproduced the identical stack trace.
+
+Two independent fixes, not one:
+
+- **`AndroidManifest.xml`** gained `android:dataExtractionRules` (API 31+)
+  and `android:fullBackupContent` (API 23–30, still relevant at
+  `minSdk = 26`), both excluding `calm_otter_secure_prefs.xml` by name —
+  closes the actual trigger. Restoring a Keystore-encrypted file without
+  its key was never going to work anyway; the file is simply not backed
+  up now.
+- **`PasswordManager`'s `prefs` initializer** wraps `EncryptedSharedPreferences.create()`
+  in a try/catch: on any failure, it clears the underlying
+  `SharedPreferences` file (`context.getSharedPreferences(...).edit().clear()`)
+  and creates it again fresh, rather than letting the exception propagate.
+  This is deliberately broader than "undo the backup-restore case" — any
+  future cause of the same Keystore-key/ciphertext mismatch (a factory
+  Keystore reset, an OEM bug, manual tampering) hits the exact same
+  crash-on-every-launch otherwise, with no way for the user to recover
+  short of clearing app data themselves (which they'd have no reason to
+  suspect, since the app never told them why it keeps crashing). The
+  recovered state is equivalent to "no password set yet" — a real loss
+  if one was set, but the alternative is an app that never opens again.
+
+Verified end to end on the S22, not just by reasoning about the trace:
+the original crash (captured live via `adb logcat` while the user
+reopened the app) gave the exact stack trace above. Separately, on the
+*fixed* build, set a password, corrupted `calm_otter_secure_prefs.xml`'s
+key keyset by hand (same file, same entries, deliberately mangled bytes)
+to recreate the identical mismatch, then relaunched: no crash,
+`PasswordManager` silently rebuilt a fresh keyset, the app landed back on
+onboarding instead of crash-looping.
+
 ## Partner name
 
 The password step (`STEP_PASSWORD`) also has an optional "Your name"

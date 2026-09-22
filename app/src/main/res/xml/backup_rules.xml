@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    API 23-30: stesso ruolo di data_extraction_rules.xml (che copre l'API
+    31+), per le versioni Android più vecchie ancora coperte da minSdk=26.
+    Stessa esclusione, stesso motivo — vedi il commento lì.
+-->
+<full-backup-content>
+    <exclude domain="sharedpref" path="calm_otter_secure_prefs.xml" />
+</full-backup-content>

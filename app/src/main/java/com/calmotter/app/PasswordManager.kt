@@ -27,13 +27,34 @@ class PasswordManager private constructor(context: Context) {
             .setKeyScheme(MasterKey.KeyScheme.AES256_GCM)
             .build()
 
-        EncryptedSharedPreferences.create(
+        fun openPrefs() = EncryptedSharedPreferences.create(
             context,
-            "calm_otter_secure_prefs",
+            PREFS_FILE_NAME,
             masterKey,
             EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
             EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM
         )
+
+        try {
+            openPrefs()
+        } catch (e: Exception) {
+            // Segnalato: crash immediato a ogni avvio,
+            // javax.crypto.AEADBadTagException qui dentro. La chiave in
+            // Android Keystore non corrispondeva più al contenuto cifrato —
+            // riprodotto su un Galaxy S22 reinstallando l'app: il file
+            // cifrato (compreso il keyset Tink che ci vive dentro, non solo
+            // password/hash) viene ripristinato da un backup, ma la chiave
+            // Keystore è legata al dispositivo/installazione e non lo
+            // segue — allowBackup non esclude(va) più questo file da quando
+            // è stato introdotto (vedi AndroidManifest.xml). Non c'è nulla
+            // da recuperare da un file che non si decifra più: l'unica
+            // alternativa a questo reset è un crash-loop permanente che
+            // blocca l'app per sempre, ben peggio di perdere una password
+            // già impostata (chi ha il telefono può comunque reimpostarla
+            // dall'onboarding).
+            context.getSharedPreferences(PREFS_FILE_NAME, Context.MODE_PRIVATE).edit().clear().apply()
+            openPrefs()
+        }
     }
 
     fun isPasswordSet(): Boolean = prefs.contains(KEY_HASH)
@@ -118,6 +139,7 @@ class PasswordManager private constructor(context: Context) {
     }
 
     companion object {
+        private const val PREFS_FILE_NAME = "calm_otter_secure_prefs"
         private const val KEY_SALT = "password_salt"
         private const val KEY_HASH = "password_hash"
         private const val KEY_PARTNER_NAME = "partner_name"

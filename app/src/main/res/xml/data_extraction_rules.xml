@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    API 31+ (Android 12+): sostituisce fullBackupContent.xml per il backup
+    su cloud e il trasferimento diretto dispositivo-dispositivo.
+
+    calm_otter_secure_prefs (PasswordManager.kt) è escluso da entrambi: è
+    cifrato con una chiave in Android Keystore legata al dispositivo/
+    installazione, che il backup non porta con sé. Un ripristino di questo
+    file senza la chiave che lo ha cifrato produce un testo cifrato che non
+    decifra più — segnalato come crash immediato a ogni avvio
+    (AEADBadTagException in PasswordManager.<init>, riprodotto su un Galaxy
+    S22 dopo una reinstallazione). PasswordManager ora si riprende da solo
+    se capita comunque (vedi il commento lì), ma è comunque un dato che non
+    ha senso salvare: senza la chiave Keystore originale è inutilizzabile,
+    quindi tanto vale non restituirlo mai.
+-->
+<data-extraction-rules>
+    <cloud-backup>
+        <exclude domain="sharedpref" path="calm_otter_secure_prefs.xml" />
+    </cloud-backup>
+    <device-transfer>
+        <exclude domain="sharedpref" path="calm_otter_secure_prefs.xml" />
+    </device-transfer>
+</data-extraction-rules>
