@@ -330,6 +330,18 @@ is unintentional rather than chosen.
 
 ## 7. Housekeeping
 
+- **`ThemeManager.accentColor()` is dead code with the same rename bug
+  2.3 just fixed elsewhere** — found while mapping out every place a
+  theme's colors are hand-copied, not by lint (it doesn't flag unused
+  Kotlin functions, only XML resources). `accentColor()`
+  (`ThemeManager.kt:78`) is called from nowhere in the app, and its
+  `DUSK_SAND` entry is `0xFF61462B` against the real
+  `dusk_sand_primary` of `#61462d` in `values/colors.xml` — off by one
+  hex digit. Low priority precisely because it's unused (nothing renders
+  it today), but it's a third, undocumented copy of these palette values
+  beyond the two `CLAUDE.md` already names — worth either deleting
+  (it's dead) or fixing and folding into `CalmOtterThemeColorSyncTest`'s
+  coverage if something ends up calling it later. **S**
 - **Eighteen unused resources** — the eight strings above, eight
   `*_accent`/`*_veil` colors, and two `ic_launcher_*_still_otter`
   drawables. **S**
