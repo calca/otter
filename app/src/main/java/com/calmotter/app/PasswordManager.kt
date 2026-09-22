@@ -5,6 +5,7 @@ import android.util.Base64
 import androidx.annotation.VisibleForTesting
 import androidx.security.crypto.EncryptedSharedPreferences
 import androidx.security.crypto.MasterKey
+import java.security.MessageDigest
 import java.security.SecureRandom
 import java.security.spec.KeySpec
 import javax.crypto.SecretKeyFactory
@@ -103,7 +104,12 @@ class PasswordManager private constructor(context: Context) {
         val salt = Base64.decode(saltStr, Base64.NO_WRAP)
         val expected = Base64.decode(hashStr, Base64.NO_WRAP)
         val actual = hash(password, salt)
-        val matches = actual.contentEquals(expected)
+        // MessageDigest.isEqual(), non contentEquals(): confronto a tempo
+        // costante, non uno che esce al primo byte diverso. Il canale
+        // temporale è quasi teorico qui (chi tenta l'unlock ha comunque il
+        // telefono in mano, e PBKDF2 domina qualunque misurazione), ma
+        // eliminare la domanda costa una riga (TODO.md "7").
+        val matches = MessageDigest.isEqual(actual, expected)
 
         val next = LockoutPolicy.afterAttempt(current, matches, now)
         prefs.edit()

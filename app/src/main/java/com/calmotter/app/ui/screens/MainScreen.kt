@@ -49,6 +49,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.animation.core.withInfiniteAnimationFrameMillis
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -230,8 +231,8 @@ fun MainScreen(
     var accessibilityOk by remember { mutableStateOf(false) }
     var dndOk by remember { mutableStateOf(false) }
     var sessionActive by remember { mutableStateOf(false) }
-    var remainingMillis by remember { mutableStateOf(0L) }
-    var totalMillis by remember { mutableStateOf(0L) }
+    var remainingMillis by remember { mutableLongStateOf(0L) }
+    var totalMillis by remember { mutableLongStateOf(0L) }
     var streakDays by remember { mutableIntStateOf(0) }
     var weekSummary by remember { mutableStateOf(WeekSummary(0, 0)) }
 

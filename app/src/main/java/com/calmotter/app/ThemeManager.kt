@@ -73,16 +73,6 @@ object ThemeManager {
         }
         activity.setTheme(styleId)
     }
-
-    /** Colore accent del tema corrente (per il widget e altri usi non-Activity). */
-    fun accentColor(context: Context): Int {
-        return when (getTheme(context)) {
-            AppTheme.SAGE        -> 0xFF0F5238.toInt()
-            AppTheme.DUSK_SAND    -> 0xFF61462B.toInt()
-            AppTheme.DAWN_CLAY  -> 0xFF6E352B.toInt()
-            AppTheme.DEEP_FOREST -> 0xFF1B3B2B.toInt()
-        }
-    }
 }
 
 enum class ThemeVariant { BASE, BLOCK, WITH_ACTION_BAR }

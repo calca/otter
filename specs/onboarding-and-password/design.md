@@ -531,3 +531,16 @@ Settings (the success path) with no exception in `adb logcat`. Both
 directions of the exact operation the AEADBadTag crash involved — reading
 an existing encrypted file, writing a new one — worked under the upgraded
 library.
+
+
+## `verify()`'s hash comparison, made constant-time
+
+`TODO.md` "7": `PasswordManager.verify()` compared the computed and stored
+hashes with `ByteArray.contentEquals()`, which returns as soon as it finds
+a differing byte — not a timing side-channel with much practical bite here
+(whoever is attempting the unlock is already holding the device, and
+120,000 rounds of PBKDF2 dominates any measurement by orders of
+magnitude), but `MessageDigest.isEqual()` is a drop-in, constant-time
+replacement that removes the question rather than reasoning about how
+theoretical it is. One-line swap, no behavior change for any legitimate
+caller.

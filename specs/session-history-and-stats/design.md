@@ -580,3 +580,30 @@ history) to force each boundary: one session this week reads
 `"1 day streak"`; a weekly goal of 3 sessions with 1 completed reads
 `"1 of 3 sessions this week"` — all three correct, no crash in `adb
 logcat`.
+
+
+## `allowMainThreadQueries()`'s unstated bound, written down
+
+TODO.md "3.3": the reasoning for `allowMainThreadQueries()` in
+`CalmOtterDatabase.kt` (tiny dataset, `SessionManager.endSession()` writes
+synchronously from a `BroadcastReceiver` with no coroutine scope) is sound
+today, but nothing said *how* tiny "tiny" has to stay for it to remain
+true — `getAll()` has no pagination and returns the whole table.
+
+Bound, made explicit rather than left implicit: this stops being sound
+comfortably before the row count itself becomes the bottleneck. A pause
+tracked twice a day, every day, for ten straight years is ~7,300 rows —
+still a trivial, sub-millisecond `SELECT * ... ORDER BY startTimeMs DESC`
+for SQLite on any hardware this app runs on. The thing to watch for isn't
+"how many rows," it's whether `getAll()`/`SessionHistoryManager.getAll()`
+ever starts being called *more than once per screen open* — from inside a
+loop, a recomposition that re-triggers the query, or a future feature that
+polls history repeatedly — since that changes the cost model from "read
+the whole (small) table once" to "read the whole table N times," and N is
+the number that actually determines whether this remains invisible.
+
+No code change: this section exists so the bound is written down instead
+of assumed, per the TODO item's own request. If `HistoryScreen`'s single
+`weeklyChartData(sessions)` computation (already `sessions: List<SessionRecord>`,
+read once per screen open) ever needs to become paginated or windowed,
+that's the trigger — not a row-count milestone.

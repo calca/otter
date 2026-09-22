@@ -2,9 +2,9 @@
 <!--
     "Zen Otter": la mascotte del redesign (design system "Calm Otter
     Sanctuary") — muso di fronte, occhi chiusi in due archi, guance rosate.
-    Geometria presa dall'SVG originale, non ridisegnata a mano; la versione
-    precedente ("Still Otter") resta in
-    ic_launcher_foreground_still_otter.xml.
+    Geometria presa dall'SVG originale, non ridisegnata a mano. La versione
+    precedente ("Still Otter") è stata rimossa (TODO.md "7"): non più
+    referenziata da nessuna parte, solo citata in questo commento.
 
     Viewport 120 come l'SVG di partenza, mentre width/height restano 108dp:
     il contenuto occupa 66 unità su 120, cioè meno del cerchio di sicurezza

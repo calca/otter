@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+    TODO.md "7": Typos segnala "momento" (italiano corretto, "moment") come
+    refuso di "memento" — un falso positivo del correttore di lint, tarato
+    sull'inglese, contro values/strings.xml (la lingua di base italiana di
+    questo progetto, vedi CLAUDE.md). Soppresso solo per quel file, non
+    globalmente: values-en/strings.xml e il resto del codice restano
+    coperti, nel caso emerga un vero refuso altrove.
+-->
+<lint>
+    <issue id="Typos">
+        <ignore path="src/main/res/values/strings.xml" />
+    </issue>
+</lint>

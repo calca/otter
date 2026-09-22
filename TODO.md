@@ -229,12 +229,15 @@ Measure it on the S22 and on the oldest realistic device first. If it is
 tens of milliseconds, leave it and write down the number. If it is hundreds,
 move it into a coroutine with a spinner.
 
-### 3.2 Four autoboxing state creations — **S**
+### 3.2 Four autoboxing state creations — **S** — ✅ fixed
 
 Lint `AutoboxingStateCreation`: `BlockScreen.kt:122`, `MainScreen.kt:230`
 and `:231` want `mutableLongStateOf`; `HistoryScreen.kt:670` wants
 `mutableIntStateOf`. Two of them are in per-frame countdown paths, which is
 where it actually matters slightly. Mechanical fix.
+
+*Fixed:* all four swapped (`mutableLongStateOf` ×3, `mutableIntStateOf` ×1).
+Confirmed gone from the lint report.
 
 ### 3.3 `allowMainThreadQueries()` is justified but unbounded — **S**
 
@@ -412,40 +415,37 @@ in `adb logcat`, across either.
 
 ## 7. Housekeeping
 
-- **`ThemeManager.accentColor()` is dead code with the same rename bug
-  2.3 just fixed elsewhere** — found while mapping out every place a
-  theme's colors are hand-copied, not by lint (it doesn't flag unused
-  Kotlin functions, only XML resources). `accentColor()`
-  (`ThemeManager.kt:78`) is called from nowhere in the app, and its
-  `DUSK_SAND` entry is `0xFF61462B` against the real
-  `dusk_sand_primary` of `#61462d` in `values/colors.xml` — off by one
-  hex digit. Low priority precisely because it's unused (nothing renders
-  it today), but it's a third, undocumented copy of these palette values
-  beyond the two `CLAUDE.md` already names — worth either deleting
-  (it's dead) or fixing and folding into `CalmOtterThemeColorSyncTest`'s
-  coverage if something ends up calling it later. **S**
+- ~~`ThemeManager.accentColor()` is dead code with the same rename bug
+  2.3 just fixed elsewhere~~ — ✅ deleted. It was called from nowhere in
+  the app, so there was nothing to fold into `CalmOtterThemeColorSyncTest`
+  either — dead code, not a bug worth keeping around to fix. **S**
 - ~~Eighteen unused resources~~ — the eight strings are gone (✅ "5.2");
   the eight `*_accent`/`*_veil` colors are no longer flagged either, but
   only because a test now reads them (see "5.2"'s note), not because
   anything in the app does — worth revisiting if that test ever changes.
-  What's left, genuinely unused by anything: two
-  `ic_launcher_*_still_otter` drawables. **S**
+  The two `ic_launcher_*_still_otter` drawables — ✅ deleted (confirmed
+  only referenced from a comment, not `@drawable/...`, before removing;
+  the two comments pointing at them updated too). **S**
 - ~~`screenshot/` is untracked and un-ignored~~ — ✅ resolved: added to
   `.gitignore` (used only for manual verification, not meant to be
   committed). **S**
-- **`mipmap-anydpi-v26` is redundant** — `minSdk` is 26, so the `-v26`
-  qualifier does nothing (lint `ObsoleteSdkInt`). **S**
+- ~~`mipmap-anydpi-v26` is redundant~~ — ✅ renamed to `mipmap-anydpi`.
+  Caught a real Gradle incremental-build gap doing this: a plain rebuild
+  after the `git mv` failed resource linking (`AAPT: error: resource
+  mipmap/ic_launcher not found`) because stale merged-resource
+  intermediates from the old path name weren't invalidated; `./gradlew
+  clean` before rebuilding fixed it. Not a lasting issue (CI always
+  builds clean), but worth knowing if a local incremental build ever
+  does something similar after a resource-directory rename. **S**
 - **`MainScreen.kt` is 1,139 lines** — the largest file in the project
   (next is `HistoryScreen.kt` at 821). No specific defect found in it;
   flagged only because size eventually becomes its own problem. **M**
-- **`verify()` compares hashes with `contentEquals`**
-  (`PasswordManager.kt:106`) — not constant-time. The timing channel is
-  close to theoretical here (the attacker holds the device, and PBKDF2
-  dominates the measurement), but `MessageDigest.isEqual()` is a one-line
-  swap and removes the question entirely. **S**
-- **Lint reports five `Typos` for "momento"** — false positives on Italian
-  text. If they are noise on every run, suppress the check for
-  `values/strings.xml` rather than living with them. **S**
+- ~~`verify()` compares hashes with `contentEquals`~~ — ✅ swapped to
+  `MessageDigest.isEqual()`. **S**
+- ~~Lint reports five `Typos` for "momento"~~ — ✅ suppressed via
+  `app/lint.xml`, scoped to `values/strings.xml` only (not globally —
+  `values-en/strings.xml` and the rest of the codebase stay covered).
+  **S**
 
 ---
 

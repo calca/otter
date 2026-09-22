@@ -399,3 +399,18 @@ that OS version, and was already documented as "still visible on older
 versions" before this fix). Confirmed instead via a live Home → pause →
 unlock round trip on the emulator (this exact code runs on every one of
 those transitions) with no crash and no exception in `adb logcat`.
+
+
+## `ThemeManager.accentColor()`, a fourth undocumented copy of the palette values, deleted
+
+`TODO.md` "7": found while mapping every place a theme's colors are hand-
+copied for "2.3" above — `accentColor()` (`ThemeManager.kt`) was a third
+(really fourth, counting this file's own two) hardcoded copy of the four
+palettes' primary colors, called from nowhere in the app, and already
+wrong for `DUSK_SAND` (`0xFF61462B` against the real `#61462d` — the same
+class of rename-left-behind bug fixed elsewhere in this file, just in code
+nothing ever executed). Deleted rather than fixed: fixing a value nothing
+reads doesn't remove the risk, it just makes the dead copy *currently*
+correct until the next rename drifts it again. One fewer place this
+project's own convention ("if you touch one palette, mirror the change in
+the other file") has to be remembered.

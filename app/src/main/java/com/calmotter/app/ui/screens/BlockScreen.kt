@@ -39,6 +39,7 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -119,7 +120,7 @@ fun BlockScreen(
     // volta sola: questo Composable viene sempre ricomposto da capo quando si
     // entra in questo stato (vedi MainActivity.enterBlockScreen()).
     val totalMillis = remember { sessionManager.totalMillis() }
-    var remainingMillisState by remember { mutableStateOf(sessionManager.remainingMillis()) }
+    var remainingMillisState by remember { mutableLongStateOf(sessionManager.remainingMillis()) }
 
     // Chiusura dell'anello a scadenza naturale. Deliberatamente NON usata
     // allo sblocco con password né in `onExpiredImmediately` (sessione già
