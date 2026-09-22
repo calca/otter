@@ -1080,3 +1080,41 @@ build/lint/test pass; not re-verified live on device (would need changing
 `AllowedAppsManager.MAX_ALLOWED_APPS`, a compile-time constant, purely to
 exercise a UI string — judged not worth a temporary code change for this
 one).
+
+
+## Bug: Unlock fell off the action row with 3 allowed apps configured
+
+Reported directly. The row of `BlockActionBadge`s (Phone + up to 3
+configurable apps + Unlock, see the redesign pass above) was documented as
+never needing a scroll — "telefono + 3 app + sblocco (5 badge) restano
+sempre entro la riga a questa dimensione" — but that was only checked up
+to 2 configured apps. Each badge is a fixed 64dp column
+(`BlockActionBadge`'s own `Modifier.width(64.dp)`) with 16dp gaps between
+them: 5 badges need 5×64 + 4×16 = 384dp of row width. `OtterAnchoredScreen`
+gives this row 40dp of horizontal padding on each side, so on a real,
+narrow phone (~360dp wide, well under the emulator used to originally
+verify this) the available width is ~280dp — well short of 384dp. The row
+has no horizontal scroll (deliberately, per the same comment — a hidden
+scroll would just move the same problem one step later), so the last
+badge, Unlock, simply got clipped off past the visible width instead of
+wrapping or scrolling into view.
+
+Fixed by pulling Unlock out of the row entirely: it's not an app to
+launch, it's the one action that actually ends the pause, and treating it
+as a same-size peer of a Calendar or Chrome badge was already a stretch —
+it now gets its own full-width `Button` (48dp height, primary style, lock
+icon + label), anchored right below the row, matching the CTA treatment
+used elsewhere in the app for a screen's primary action (onboarding's
+Next, `ChangePasswordScreen`'s save button). The row itself now only ever
+holds Phone + up to 3 apps (4 badges, 320dp needed at most) — comfortably
+under the ~280dp+ available on any phone this app targets, so the
+original "no scroll needed" reasoning is now actually true for what's left
+in the row, instead of being true only for a case narrower than what was
+ever tested.
+
+Verified on-device (Pixel 10 Pro AVD, flavor stable): configured 3
+allowed apps (Calendar, Camera, Chrome) via Settings, started a pause,
+confirmed all 4 badges (Phone + 3 apps) render together and the Unlock
+button is fully visible and tappable below them — opened the password
+dialog, entered the password, ended the pause successfully. Full
+build/lint/test pass.

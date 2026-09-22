@@ -21,6 +21,7 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
@@ -29,6 +30,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Surface
+import androidx.compose.material3.Button
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material3.Icon
@@ -314,26 +316,35 @@ fun BlockScreen(
             )
         }
 
-        // Un'unica row di azioni, tutte con lo stesso badge circolare tinto
-        // (primary a bassa opacità + contenuto primary — non più un riempimento
-        // primary pieno con onPrimary: quel look, ereditato da prima che il
-        // resto dell'app passasse al linguaggio "card tinta" di Settings/
-        // AllowedApps/History, stonava rispetto a tutto il resto, segnalato
+        // Row di sole app consentite, badge circolare tinto (primary a bassa
+        // opacità + contenuto primary — non più un riempimento primary pieno
+        // con onPrimary: quel look, ereditato da prima che il resto dell'app
+        // passasse al linguaggio "card tinta" di Settings/AllowedApps/
+        // History, stonava rispetto a tutto il resto, segnalato
         // direttamente). Le app consentite mostrano le prime 2 lettere del
         // nome al posto di un'icona reale (nessuna icona da caricare/
-        // desaturare), e lo sblocco — ultimo a destra, non il primo elemento —
-        // apre un dialog con il campo password invece di tenerlo sempre
-        // visibile in pagina. Nessuna didascalia sopra la row (rimossa: il
-        // lucchetto e le iniziali già dicono cosa sono) — resta comunque
-        // compatta anche senza app consentite configurate (il badge di
-        // sblocco è l'unico elemento sempre presente) — vedi
-        // AllowedAppLaunchItems.kt per il telefono sempre incluso/il tetto di
-        // 3 app configurabili, condiviso da tutti e tre i chiamanti. Niente
-        // scroll orizzontale di proposito: telefono + 3 app + sblocco (5
-        // badge) restano sempre entro la riga a questa dimensione, quindi uno
-        // scroll nascosto farebbe solo perdere lo sblocco di vista come
-        // capitava prima con il tetto a 5 app (7 badge, l'ultimo — lo sblocco
-        // stesso — finiva fuori schermo).
+        // desaturare). Nessuna didascalia sopra la row (rimossa: le iniziali
+        // già dicono cosa sono) — vedi AllowedAppLaunchItems.kt per il
+        // telefono sempre incluso/il tetto di 3 app configurabili, condiviso
+        // da tutti e tre i chiamanti.
+        //
+        // **Sblocco non è più un badge in questa row** — segnalato: con 3
+        // app consentite configurate, telefono + 3 app + sblocco erano 5
+        // badge da 64dp l'uno più le spaziature, ~384dp di contenuto — più
+        // largo dei ~280-300dp disponibili su un telefono reale stretto
+        // (`horizontalPadding = 40.dp` per lato tolti dalla larghezza dello
+        // schermo), quindi l'ultimo badge — lo sblocco stesso — finiva
+        // tagliato fuori senza alcun modo di raggiungerlo (niente scroll
+        // orizzontale, di proposito: vedi la nota storica più sotto).
+        // Sbagliava il presupposto, non il codice: "restano sempre entro la
+        // riga" era vero solo fino a 2 app, non fino al tetto reale di 3.
+        //
+        // Tolto dalla row invece di stringere ulteriormente i badge (che
+        // avrebbe solo spostato la stessa soglia più in là): sblocco non è
+        // un'app da lanciare, è l'unica azione che chiude la pausa — merita
+        // il trattamento CTA a piena larghezza già usato altrove nell'app
+        // (Next dell'onboarding, Salva di ChangePasswordScreen), non la
+        // stessa forma di un tasto rapido per Calendar o Fotocamera.
         Row(
             modifier = Modifier.fillMaxWidth().padding(top = 12.dp),
             horizontalArrangement = Arrangement.spacedBy(16.dp, Alignment.CenterHorizontally),
@@ -352,18 +363,24 @@ fun BlockScreen(
                     )
                 }
             }
+        }
 
-            BlockActionBadge(
-                label = stringResource(R.string.unlock),
-                onClick = { showUnlockDialog = true },
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Lock,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.size(22.dp)
-                )
-            }
+        Button(
+            onClick = { showUnlockDialog = true },
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(top = 20.dp)
+                .height(48.dp),
+        ) {
+            Icon(
+                imageVector = Icons.Default.Lock,
+                contentDescription = null,
+                modifier = Modifier.size(18.dp),
+            )
+            Text(
+                text = stringResource(R.string.unlock),
+                modifier = Modifier.padding(start = 8.dp),
+            )
         }
     }
 
