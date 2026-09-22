@@ -430,10 +430,9 @@ in `adb logcat`, across either.
   anything in the app does — worth revisiting if that test ever changes.
   What's left, genuinely unused by anything: two
   `ic_launcher_*_still_otter` drawables. **S**
-- **`screenshot/` is untracked and un-ignored** — 24 PNGs that show up in
-  every `git status`. Either commit them (they are useful for the README
-  and a store listing) or add them to `.gitignore`. Right now they are in
-  limbo. **S**
+- ~~`screenshot/` is untracked and un-ignored~~ — ✅ resolved: added to
+  `.gitignore` (used only for manual verification, not meant to be
+  committed). **S**
 - **`mipmap-anydpi-v26` is redundant** — `minSdk` is 26, so the `-v26`
   qualifier does nothing (lint `ObsoleteSdkInt`). **S**
 - **`MainScreen.kt` is 1,139 lines** — the largest file in the project

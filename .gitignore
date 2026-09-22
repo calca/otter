@@ -35,3 +35,7 @@ gradle-app.setting
 
 # Capture profiling data
 *.hprof
+
+# Screenshot presi a mano/da agenti durante le verifiche manuali su
+# emulatore/device — usa e getta, non fanno parte del repo.
+screenshot/
