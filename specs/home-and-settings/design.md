@@ -65,7 +65,7 @@ that state or those callbacks belong to Home anymore. Added:
 composables at that time, unchanged internally — later replaced outright by
 `ThemeListCard`/`ThemeListRow`, see "Full list-card redesign" below.
 
-## Living Pond: `PondOtter` (`MainScreen.kt`)
+## Living Pond: `PondOtter` (`HomePond.kt`, moved from `MainScreen.kt` — see "MainScreen.kt split" below)
 
 A second redesign pass replaced the plain duration-picker/Start-button/
 streak-text/History-button column with an otter-centric "pond" scene, kept
@@ -927,3 +927,54 @@ physical accessibility-service pass): after force-stopping and
 relaunching so the freshly built code actually ran (`am start` on an
 already-resumed activity does not restart its process), the otter node
 now reports `content-desc="Tap Otter to start"` — clean text, no markup.
+
+
+## `MainScreen.kt` split into three files
+
+`TODO.md` "7": 1,171 lines, the largest file in the project — no specific
+defect tied to the size, flagged and fixed anyway as housekeeping. Split
+along the natural seams the file already had, moving code, not rewriting
+it:
+
+- **`HomePond.kt`** — the pond scene: `PondOtter`, `PondStill`,
+  `AmbientRipples`, `steppedFraction`, `TapConfirmBurst`,
+  `rememberOtterFloatOffset`, `RingReleaseBurst`, `ProgressRing`. Kept
+  together because they're one visual system (`PondOtter` itself calls
+  `ProgressRing` directly), and because three of them —
+  `rememberOtterFloatOffset`, `RingReleaseBurst`, `ProgressRing` — are also
+  called from `BlockScreen.kt`, not just from here.
+- **`HomeSummary.kt`** — the weekly stats row: `SessionsSummaryLink`,
+  `WeekSummary`, `weekSummaryOf`, `weeklySummaryText`, `formatMinutes`.
+  Home-only, used nowhere else.
+- **`MainScreen.kt`** (trimmed) — the actual screen entry point:
+  `MainScreen()` itself, `PermissionExplainerDialog`/`PermissionReasonRow`,
+  `DurationChipRow`, and the module-wide constants (`HomeHeaderHeight`,
+  `OtterSlotHeight`, `DEFAULT_SESSION_DURATION_MINUTES`) that other files
+  (`OtterAnchoredScreen.kt`, `MainActivity.kt`) already depended on by name.
+
+All three stay in `com.calmotter.app.ui.screens` — same package as before,
+so nothing anywhere else in the project needed an import changed; Kotlin
+resolves same-package symbols without one. The only visibility changes
+were `private` → `internal` on the handful of functions/types now called
+from a sibling file instead of from within the same one (`PondOtter`,
+`PondStill`, `AmbientRipples`, `TapConfirmBurst`, `SessionsSummaryLink`,
+`WeekSummary`, `weekSummaryOf`) — `rememberOtterFloatOffset`/
+`RingReleaseBurst`/`ProgressRing` were already non-`private` beforehand,
+since `BlockScreen.kt` was already calling them across files.
+
+Also removed in the same pass: an unused `val context = LocalContext.current`
+at the top of `MainScreen()`, noticed while rewriting the file wholesale —
+pre-existing dead code, unrelated to the split itself, left in because
+touching a file completely anyway is a reasonable moment to remove a stray
+line nothing read.
+
+Verified: `assembleDebug` compiled clean on the first attempt (no
+unresolved-reference errors from the visibility changes), full
+`lintStableDebug`/`lintBetaDebug`/`testStableDebugUnitTest`/
+`testBetaDebugUnitTest` pass (16 suites, zero failures, including
+`OtterAnchoredScreenTest` — the one test most likely to notice if the
+otter's position regressed). Live on the emulator: Home renders identically
+(screenshot compared against the pre-split one), tapped the otter to start
+a pause, `BlockScreen` renders its shared ring/otter from the new
+`HomePond.kt` correctly, unlocked with the password, back to Home — full
+round trip, no crash, no exception in `adb logcat`.

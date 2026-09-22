@@ -451,9 +451,15 @@ in `adb logcat`, across either.
   clean` before rebuilding fixed it. Not a lasting issue (CI always
   builds clean), but worth knowing if a local incremental build ever
   does something similar after a resource-directory rename. **S**
-- **`MainScreen.kt` is 1,139 lines** — the largest file in the project
-  (next is `HistoryScreen.kt` at 821). No specific defect found in it;
-  flagged only because size eventually becomes its own problem. **M**
+- ~~`MainScreen.kt` is 1,139 lines~~ — ✅ split into three files along its
+  existing natural seams: `HomePond.kt` (the pond scene — `PondOtter`,
+  ripples, ring; three of these are also shared with `BlockScreen.kt`),
+  `HomeSummary.kt` (the weekly stats row, Home-only), and `MainScreen.kt`
+  itself trimmed to the screen entry point + permission dialog. Same
+  package throughout, so no import changed anywhere else in the project —
+  only a handful of `private` → `internal` visibility bumps for the
+  functions now called from a sibling file. See
+  `specs/home-and-settings/design.md`. **M**
 - ~~`verify()` compares hashes with `contentEquals`~~ — ✅ swapped to
   `MessageDigest.isEqual()`. **S**
 - ~~Lint reports five `Typos` for "momento"~~ — ✅ suppressed via
