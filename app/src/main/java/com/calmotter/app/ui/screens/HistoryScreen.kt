@@ -37,6 +37,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalLocale
 import androidx.compose.ui.res.stringArrayResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontStyle
@@ -57,14 +58,36 @@ import java.util.Calendar
 import java.util.Date
 import java.util.Locale
 
-// Formatter con giorno della settimana esteso — un'unica istanza riusata per
-// tutte le righe, stesso pattern del vecchio SessionAdapter (uso esclusivo
-// dal thread main durante la composizione, nessun problema di concorrenza).
-// Locale.getDefault(), non Locale.ITALY: era hardcoded in italiano, quindi
-// ogni riga mostrava sempre "Domenica 13 set" anche con l'app in inglese
-// (dove il resto della schermata usa correttamente values-en/strings.xml) —
-// stesso bug di WeeklyChart.kt ("Lu"/"Ma"/... e "oggi" hardcoded).
-private val historyDateFormat = SimpleDateFormat("EEEE d MMM · HH:mm", Locale.getDefault())
+// Formatter con giorno della settimana esteso. Locale.getDefault(), non
+// Locale.ITALY: era hardcoded in italiano, quindi ogni riga mostrava sempre
+// "Domenica 13 set" anche con l'app in inglese (dove il resto della
+// schermata usa correttamente values-en/strings.xml) — stesso bug di
+// WeeklyChart.kt ("Lu"/"Ma"/... e "oggi" hardcoded).
+//
+// **Non più un `val` a livello di file.** Un `val` top-level in Kotlin
+// gira nell'inizializzatore statico della classe che lo racchiude,
+// eseguito una sola volta per processo — non a ogni ricomposizione né a
+// ogni ricreazione di HistoryActivity. `Locale.getDefault()` veniva quindi
+// letto una volta sola e restava quello per tutta la vita del processo:
+// chi cambiava lingua di sistema mentre l'app era già in esecuzione (senza
+// forzarne la chiusura, cosa che Android non fa per un cambio lingua)
+// continuava a vedere le date nella lingua di prima. Segnalato in
+// TODO.md ("1.3").
+//
+// **Non `Locale.getDefault()` nemmeno dentro la composable.** Il primo
+// tentativo lo leggeva lì (con `remember(locale)` per ricreare il
+// formatter solo al cambio) — lint lo boccia comunque
+// (`NonObservableLocale`): `Locale.getDefault()` non è stato letto tramite
+// stato osservabile da Compose, quindi anche dentro una composable non è
+// garantito che la ricomposizione lo rilegga quando cambia. `LocalLocale
+// .current` è la fonte corretta — è un `CompositionLocal`, quindi *è*
+// stato osservabile, e la ricomposizione scatta davvero quando il locale
+// cambia.
+@Composable
+private fun rememberHistoryDateFormat(): SimpleDateFormat {
+    val locale = LocalLocale.current.platformLocale
+    return remember(locale) { SimpleDateFormat("EEEE d MMM · HH:mm", locale) }
+}
 
 /**
  * Schermata cronologia (ultimo step della migrazione a Compose — il più
@@ -431,7 +454,7 @@ private fun SessionRow(session: SessionRecord) {
                     .weight(1f)
                     .padding(start = 14.dp)
             ) {
-                val rawDate = historyDateFormat.format(Date(session.startTimeMs))
+                val rawDate = rememberHistoryDateFormat().format(Date(session.startTimeMs))
                 Text(
                     text = rawDate.replaceFirstChar { it.uppercase() },
                     fontSize = 15.sp,

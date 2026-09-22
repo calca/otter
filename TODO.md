@@ -85,9 +85,13 @@ survive a reboot — `reapplyAfterBoot()` needs them too), and restore both
 in `endSession()` instead of hardcoding `FILTER_ALL`. Worth a line in
 `specs/pause-session-core/design.md` once done.
 
-### 1.3 Date formatting breaks on a runtime locale change — **S**
+### 1.3 Date formatting breaks on a runtime locale change — **S** — ✅ fixed
 
-*Verified by lint (`ConstantLocale`), `HistoryScreen.kt:67`.*
+*Verified by lint (`ConstantLocale`), `HistoryScreen.kt:67`. Fixed by
+reading `LocalLocale.current.platformLocale` (a `CompositionLocal`, so
+actually observable by recomposition) instead of `Locale.getDefault()` —
+lint caught a first attempt too (`NonObservableLocale`) and pointed at the
+right fix. See `specs/session-history-and-stats/design.md`.*
 
 `Locale.getDefault()` is captured into a top-level/static formatter, so
 dates keep rendering in the old locale if the user switches language while

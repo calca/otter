@@ -387,3 +387,52 @@ gone. The summary keeps 4dp above (it stays close to the chart it
 describes) and gains 16dp below, so the separation from the goal is
 whitespace on purpose now rather than a line that happened to also carry
 spacing.
+
+
+## Session dates were stuck in whatever locale the process started in
+
+Found during a full-project review (`TODO.md` "1.3"), not a user report.
+`historyDateFormat` was a top-level `val` — `SimpleDateFormat("EEEE d MMM ·
+HH:mm", Locale.getDefault())`, one instance shared by every row. A
+top-level `val` in Kotlin runs inside a static initializer that executes
+once per class-load, effectively once per app process — not once per
+`HistoryActivity` instance, and not once per composition. `Locale
+.getDefault()` was read exactly once, the first time this file's class was
+touched, and never again for the life of the process. A device language
+change (Android recreates activities for a locale change, it does not kill
+the process) left every session date rendering in whatever locale the
+process had first loaded with, silently out of step with the rest of the
+screen — which reads `values`/`values-en` fresh on every recomposition and
+therefore *did* follow the change correctly.
+
+First fix attempt read `Locale.getDefault()` inside the composable instead
+(with `remember(locale) { SimpleDateFormat(...) }` so the formatter is
+only rebuilt when the locale actually changes) — lint's own
+`NonObservableLocale` check rejected it: `Locale.getDefault()` is a plain
+static getter, not Compose state, so even reading it from inside a
+composable body doesn't make recomposition pick up on a subsequent change.
+Its message pointed at the actual fix: `LocalLocale.current.platformLocale`
+is a `CompositionLocal`, i.e. real observable Compose state, and
+recomposition *does* re-run when it changes. `rememberHistoryDateFormat()`
+in `HistoryScreen.kt` now reads that instead, still wrapped in
+`remember(locale)` for the same reason as before — cheap to recompute, no
+reason to allocate a new `SimpleDateFormat` on every unrelated
+recomposition of the row.
+
+`WeeklyChart.kt`'s own weekday labels (`weekdayInitials =
+stringArrayResource(...)`) were checked as part of the same review and are
+unaffected — `stringResource`/`stringArrayResource` already re-read on
+every composition, no static capture there.
+
+Verified: `assembleDebug`/`lintStableDebug`/`lintBetaDebug`/
+`testStableDebugUnitTest`/`testBetaDebugUnitTest` all green (lint
+specifically, since this was originally a lint-caught issue both times —
+`ConstantLocale` on the original code and `NonObservableLocale` on the
+first fix attempt). Installed on the emulator and opened History with a
+seeded session: date row renders correctly (`"Tuesday 22 Sep · 11:02"`),
+no crash in `adb logcat` for the app process. A live locale-switch
+end-to-end (change system language mid-session, confirm the row
+re-renders without restarting the app) was not attempted — out of scope
+for a single-device emulator pass — but the mechanism (`CompositionLocal`
+recomposition) is what Compose apps are supposed to rely on for exactly
+this, and is no longer bypassed the way `Locale.getDefault()` was.
