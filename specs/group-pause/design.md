@@ -1291,12 +1291,32 @@ offer it, and read as a caption rather than a way out. It now uses the
 shared `CalmSecondaryButton` (`primary` at 14%, explicit colours — see
 specs/home-and-settings/design.md for why the defaults can't be used):
 
-- `GroupPauseBluetoothLobbyHostScreen` — "Preferisci un codice o un QR?"
 - `GroupPauseBluetoothLobbyJoinScreen` — "Scansiona o inserisci un codice",
   in **both** hero states (NFC and search): one screen in two states, not
   two screens.
 - `GroupPauseJoinScreen`'s manual-entry card — "Scansiona", below the
   filled "Unisciti" button.
+
+`GroupPauseBluetoothLobbyHostScreen`'s "Preferisci un codice o un QR?"
+was moved back to a bare link, reversing the original link → tonal
+change documented above: the tonal container, meant as this screen's one
+sanctioned exception ("l'unica via d'uscita dalla lobby... la sola CTA
+secondaria di questa schermata a meritare il contenitore tinto"), ended
+up reading as distracting rather than as a clear way out, on direct
+feedback while looking at the screen. It now uses the same bare-link
+treatment as `SessionsSummaryLink` in `HomeSummary.kt` (primary-coloured
+text + "›", `clip(RoundedCornerShape(50))` + `clickable` +
+`heightIn(min = 48.dp)`, no shared composable — the two link instances
+don't share enough to be worth extracting one). Verified on-device
+(Pixel 10 Pro AVD, stable flavour): the link now sits under the duration
+picker and reads calmly against the "Cancel"/"Let's go" pair and the
+Bluetooth-permission banner below it, without the tonal pill drawing the
+eye away from "Let's go". If it goes back to getting lost among the
+surrounding text — the original reason it became a tonal button — that's
+the one open risk with this reversal; there's no on-device count of how
+many other CTAs are visible above which it turns into the other
+failure mode, so this is a judgment call revisited on user feedback, not
+a proven threshold.
 
 Deliberately left as plain text links: the NFC↔search switch in the join
 lobby (it only changes how this same screen looks for a host, and making
