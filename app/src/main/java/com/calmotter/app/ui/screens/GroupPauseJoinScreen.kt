@@ -55,6 +55,7 @@ import androidx.lifecycle.compose.LocalLifecycleOwner
 import com.calmotter.app.GroupPauseRecipe
 import com.calmotter.app.R
 import com.calmotter.app.decodeGroupPauseRecipe
+import com.calmotter.app.ui.mascot.OtterZenMark
 import com.google.zxing.BinaryBitmap
 import com.google.zxing.MultiFormatReader
 import com.google.zxing.NotFoundException
@@ -147,30 +148,41 @@ private fun GroupPauseCodeEntryScreen(onRecipeReady: (GroupPauseRecipe) -> Unit,
         // CalmScreenColumn usava di default per tutto, "Scansiona invece" e
         // Cancel restano gli ultimi fratelli non pesati, a tutta larghezza e
         // 48.dp di altezza come le altre CTA di questa serie di modifiche.
+        //
+        // **L'otter e la gerarchia dei due bottoni** sono stati corretti su
+        // segnalazione ("è un po' vuota e manca otter, le CTA sono errate,
+        // scan è la primary"): prima questa schermata non aveva alcuna
+        // mascotte (unica dell'intero flusso "Tempo insieme" a esserne
+        // priva), e "Scansiona invece" era un `CalmSecondaryButton` mentre
+        // il bottone di invio del codice manuale era il `Button` pieno —
+        // al contrario di quanto dice il commento originale di
+        // [ManualCodeTab] qui sotto: scansionare è la via più rapida delle
+        // due, quindi è lei ad avere il trattamento da CTA primaria, non
+        // l'inserimento manuale (il ripiego per chi non può o non vuole
+        // usare la fotocamera).
         JoinMode.MANUAL -> CalmScreenColumn(contentPadding = PaddingValues(32.dp), verticalArrangement = Arrangement.Top) {
             Column(
                 modifier = Modifier.weight(1f).fillMaxWidth(),
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center,
             ) {
+                OtterZenMark(markSize = 88.dp)
                 Text(
                     text = stringResource(R.string.group_pause_join_title),
                     fontSize = 22.sp,
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.primary,
                     textAlign = TextAlign.Center,
-                    modifier = Modifier.padding(bottom = 20.dp)
+                    modifier = Modifier.padding(top = 14.dp, bottom = 20.dp)
                 )
                 ManualCodeTab(onRecipeReady)
             }
-            // Scansionare è la strada più rapida delle due: chi arriva
-            // qui e vede il campo di testo deve accorgersi che può
-            // ancora inquadrare il QR invece di ricopiare un codice.
-            CalmSecondaryButton(
-                text = stringResource(R.string.group_pause_join_scan_tab),
+            Button(
                 onClick = { mode = JoinMode.SCAN },
                 modifier = Modifier.fillMaxWidth().padding(top = 8.dp).height(48.dp),
-            )
+            ) {
+                Text(stringResource(R.string.group_pause_join_scan_tab))
+            }
             OutlinedButton(
                 onClick = onCancel,
                 modifier = Modifier.fillMaxWidth().padding(top = 20.dp).height(48.dp),
@@ -368,15 +380,18 @@ private fun ManualCodeTab(onRecipeReady: (GroupPauseRecipe) -> Unit) {
             modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp)
         )
     }
-    Button(
+    // Non più il `Button` pieno: la CTA primaria di questa schermata è
+    // "Scansiona invece" (vedi il commento al punto di chiamata in
+    // [GroupPauseCodeEntryScreen]) — l'invio del codice digitato resta
+    // un'azione secondaria, coerente con [CalmSecondaryButton].
+    CalmSecondaryButton(
+        text = stringResource(R.string.group_pause_manual_code_join_button),
         onClick = {
             val recipe = decodeGroupPauseRecipe(code)
             if (recipe != null) onRecipeReady(recipe) else errorText = invalidCodeText
         },
-        modifier = Modifier.fillMaxWidth()
-    ) {
-        Text(stringResource(R.string.group_pause_manual_code_join_button))
-    }
+        modifier = Modifier.fillMaxWidth().height(48.dp),
+    )
 }
 
 /**

@@ -1666,3 +1666,36 @@ Verified on the emulator: the join lobby's short `NfcHero` state now shows
 mascot; the manual-code screen shows "Scan"/`Cancel` both full-width at
 the bottom; the camera-rationale screen shows "Grant"/"enter a code
 manually" the same way.
+
+
+## The manual-code screen was the one bare spot in the whole flow, and had the wrong CTA on top
+
+Reported: "la pagina join time toghere è un po' vuota e manca otter. le ct
+sono errate (scan è la primary)" — `GroupPauseCodeEntryScreen`'s
+`JoinMode.MANUAL` branch, reached via "Enter a code manually" from the
+full-screen scanner. Two separate complaints, both real:
+
+- **No mascot.** Every other screen in this flow anchors itself around an
+  otter mark — `OtterTapMark` for the NFC hero, `OtterZenMark` for
+  connecting/waiting, `ParticipantRing`'s `OtterZenMark` in the host lobby.
+  The manual-code screen alone had just a title and a text field, floating
+  in otherwise empty space above the buttons. Fixed by adding
+  `OtterZenMark(markSize = 88.dp)` above the title, same size already used
+  for the sibling `Connecting`/`WaitingForHost` states in
+  `GroupPauseBluetoothLobbyJoinScreen.kt`.
+- **Wrong CTA hierarchy.** The screen had *two* buttons competing for
+  "primary" attention: `ManualCodeTab`'s own submit button (a plain filled
+  `Button`) and "Scan instead" (a `CalmSecondaryButton`, tonal). That's
+  backwards from what this file's own comment already said —
+  "Scansionare è la strada più rapida delle due" — the code disagreed with
+  its own reasoning. Swapped: "Scan" is now the filled `Button` (primary),
+  the manual-code submit is now `CalmSecondaryButton` (tonal, matching
+  [CalmSecondaryButton]'s own doc comment: "resta comunque *sotto*
+  all'azione primaria della schermata"). `Cancel` is unchanged, outlined,
+  at the very bottom.
+
+Verified on the emulator (screenshot taken and discarded after checking,
+not committed): otter mark now sits above the title, "Scan" renders as the
+solid dark-green primary button, "Join" (manual submit) as the lighter
+tonal pill beneath the text field, "Cancel" outlined at the bottom —
+matching the CTA hierarchy used everywhere else in this flow.
