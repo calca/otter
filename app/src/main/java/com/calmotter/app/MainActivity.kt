@@ -187,6 +187,26 @@ class MainActivity : BaseActivity() {
                 }
                 var showPermissionDialog by remember { mutableStateOf(false) }
 
+                // Condivisa fra il tap sull'otter e il fallback "senza
+                // permessi" del bottone Tempo Insieme (vedi il commento su
+                // MainScreen.kt:onGroupPause) — prima esisteva solo dentro
+                // PersistentOtter.onStart, e MainScreen.onOtterTap non
+                // veniva passato affatto da qui: restava il default `{}` a
+                // vuoto, quindi su un'installazione pulita senza permessi
+                // toccare "Tempo insieme" non faceva letteralmente nulla.
+                val startOrPromptPermissions: () -> Unit = {
+                    val ok = BuildConfig.DEBUG || (
+                        isAccessibilityServiceEnabled(this@MainActivity) &&
+                            isDndAccessGranted(this@MainActivity)
+                        )
+                    if (ok) {
+                        sessionManager.startSession(selectedDurationIndex * 30)
+                        enterBlockScreen()
+                    } else {
+                        showPermissionDialog = true
+                    }
+                }
+
                 Box(modifier = Modifier.fillMaxSize()) {
                     Crossfade(
                         targetState = showBlockScreen,
@@ -235,6 +255,7 @@ class MainActivity : BaseActivity() {
                                 onSelectDuration = { selectedDurationIndex = it },
                                 showPermissionDialog = showPermissionDialog,
                                 onDismissPermissionDialog = { showPermissionDialog = false },
+                                onOtterTap = startOrPromptPermissions,
                             )
                         }
                     }
@@ -252,26 +273,18 @@ class MainActivity : BaseActivity() {
                         PersistentOtter(
                             floatOffset = otterFloatOffset,
                             enabled = !showBlockScreen,
-                            onStart = {
-                                // In debug (incluso quello prodotto in CI) i
-                                // permessi Accessibilità/DND non bloccano
-                                // l'avvio, per poter provare il resto del
-                                // flusso senza concederli davvero a ogni
-                                // installazione pulita — vedi
-                                // SessionManager.setPauseDnd(), che già
-                                // ignora il DND se non concesso. In release
-                                // il controllo resta invariato.
-                                val ok = BuildConfig.DEBUG || (
-                                    isAccessibilityServiceEnabled(this@MainActivity) &&
-                                        isDndAccessGranted(this@MainActivity)
-                                    )
-                                if (ok) {
-                                    sessionManager.startSession(selectedDurationIndex * 30)
-                                    enterBlockScreen()
-                                } else {
-                                    showPermissionDialog = true
-                                }
-                            },
+                            // In debug (incluso quello prodotto in CI) i
+                            // permessi Accessibilità/DND non bloccano
+                            // l'avvio, per poter provare il resto del
+                            // flusso senza concederli davvero a ogni
+                            // installazione pulita — vedi
+                            // SessionManager.setPauseDnd(), che già ignora
+                            // il DND se non concesso. In release il
+                            // controllo resta invariato. Vedi
+                            // startOrPromptPermissions qui sopra: stessa
+                            // lambda usata dal fallback del bottone Tempo
+                            // Insieme.
+                            onStart = startOrPromptPermissions,
                             modifier = Modifier.padding(top = centerY - OtterHaloSize / 2),
                         )
                     }

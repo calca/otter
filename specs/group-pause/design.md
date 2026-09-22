@@ -1754,3 +1754,55 @@ build/lint/test pass. Not exercised live (would need three physical/second
 devices in a lobby simultaneously, same live-Bluetooth verification limit
 already documented elsewhere in this file for other NFC/Bluetooth-gated
 features).
+
+## Bug: "Time together" did nothing on a fresh install with no permissions granted
+
+Reported directly ("prima installazione, non ho ancora dato i permessi e
+tappando su 'tempo assieme' non succede nulla"). Root cause:
+`MainScreen`'s `CalmSecondaryButton` for "Time together"
+(`ui/screens/MainScreen.kt`) gates on the same
+`BuildConfig.DEBUG || (accessibilityOk && dndOk)` check as tapping the
+otter, and when that's false it calls the `onOtterTap` parameter instead
+of navigating — the intent being to reuse the exact same
+`PermissionExplainerDialog` the otter tap already shows, documented
+inline as "Stesso controllo del tap sull'otter... così un controllo solo
+le copre tutte e due". The wiring was never finished: `MainActivity.kt`'s
+`MainScreen(...)` call never passed `onOtterTap`, so it silently fell
+back to the composable's own `onOtterTap: () -> Unit = {}` default — a
+no-op. The *actual* permission-check-and-show-dialog logic lived only
+inside `PersistentOtter`'s own `onStart` lambda, built inline in
+`MainActivity.kt` and never exposed anywhere else.
+
+Fixed by lifting that lambda out of `PersistentOtter`'s `onStart` into a
+shared `startOrPromptPermissions` in `MainActivity.kt`, used by both
+`PersistentOtter.onStart` and `MainScreen`'s new `onOtterTap =
+startOrPromptPermissions` argument — one source of truth for "check
+permissions, either start a session or show the dialog", instead of one
+real copy and one unwired parameter. Because `MainScreen`'s button
+already private-gates on `ok` before ever calling `onOtterTap`, calling
+the *session-starting* lambda from that else-branch is safe: it's only
+reached when `ok` is false, so `startOrPromptPermissions` always takes
+its "show the dialog" branch there, never "start a session by accident."
+
+**Verified with the actual defect reproduced first, on-device.** Debug
+builds bypass this entirely (`BuildConfig.DEBUG ||` short-circuits both
+checks), which is exactly why the bug shipped unnoticed through this
+project's usual debug-build testing — so verifying the fix required
+temporarily forcing both `BuildConfig.DEBUG ||` checks to `false` (one in
+`MainActivity.kt`, one duplicated inline in `MainScreen.kt`'s button
+`onClick` — easy to miss the second one, which is what made the first
+fix attempt still show nothing, still navigating straight through via
+the *other* untouched bypass), reinstalling on a freshly-uninstalled app
+(no password, no permissions), completing onboarding, denying the
+notification-permission prompt, and tapping "Time together" from Home:
+before the fix, `GroupPauseChooserActivity` opened anyway (confirms the
+bug — the DEBUG bypass, not the `onOtterTap` no-op, was masking it once
+one of the two checks was patched); after fixing `onOtterTap`'s wiring,
+the same tap correctly shows "Permissions needed" (Accessibility +
+Do Not Disturb, each with its own "Grant"). Both temporary `false &&`
+overrides were then reverted (confirmed via the real
+`BuildConfig.DEBUG ||` text restored in both files), and a normal debug
+build was reinstalled and re-tested: tapping "Time together" with no
+permissions granted now goes straight to `GroupPauseChooserActivity`
+again, as intended for local development. Full build/lint/test suite
+passes on the final, reverted-to-real code.
