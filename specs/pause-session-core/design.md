@@ -118,3 +118,75 @@ pattern `PhraseManagerTest` already used.
 `SessionHistoryManager`, and `CalmOtterDatabase` singletons in `@Before` —
 `endSession()` writes through to Room via `SessionHistoryManager`, so all
 three singleton instances leak across tests otherwise. See CLAUDE.md.
+
+## Two bugs found by review, not by report: double history writes and a lost DND setting
+
+Found during a full-project review (`TODO.md` "1.1"/"1.2"), not from a user
+report — both were latent from the start.
+
+### `endSession()` could run twice for the same pause
+
+Two independent call sites both react to natural expiry:
+`SessionExpiryReceiver` (the `AlarmManager` broadcast at `endTime`) and
+`BlockScreen`'s own countdown loop (`remainingMillis()` polled every 60s,
+`endSession()` called when it hits 0). Neither knew about the other, and
+`endSession()` had no guard — it used `startTime > 0 && plannedMinutes > 0`
+as its "should I write history" check, and never cleared either value, so
+a second call still passed. Having the block screen open exactly when the
+alarm also fires is not a rare race — it is the normal case, since that
+screen is what the user is looking at for the whole pause.
+
+Fixed with one line: `if (!prefs.getBoolean(KEY_ACTIVE, false)) return` at
+the top of `endSession()`, plus clearing `KEY_START_TIME`/
+`KEY_PLANNED_MINUTES` alongside the other session keys it already cleared
+(they weren't being removed before — harmless while `KEY_ACTIVE` gated
+everything downstream correctly, but sloppy, and it was silently relying
+on nothing ever reading them while `KEY_ACTIVE` was false).
+
+`endSessionCalledTwoRecordsHistoryOnlyOnce` in `SessionManagerTest`
+(actually named `endSessionCalledTwiceRecordsHistoryOnlyOnce`) locks this
+in directly — start a session, call `endSession()` twice, assert one row.
+
+### The user's own Do Not Disturb setting was overwritten and never given back
+
+`setPauseDnd()` (now split into three functions, see below) replaced
+`NotificationManager`'s global policy with the pause's own "calls + alarms
++ media" policy on start, and on end unconditionally called
+`setInterruptionFilter(INTERRUPTION_FILTER_ALL)` — regardless of what
+filter was active before the pause began. Someone who already had DND on
+for their own reasons found it *off* after an unrelated pause ended. This
+is global device state, not app state, and the code was editing it without
+reading it first.
+
+Split `setPauseDnd(enabled: Boolean)` into three named steps that make the
+capture/restore explicit instead of implicit in a boolean parameter:
+
+- `captureDndForRestore()` — called only from `startSession()`, reads
+  `nm.currentInterruptionFilter` and the four fields of
+  `nm.notificationPolicy` and persists them. Guarded by
+  `isNotificationPolicyAccessGranted`, same as the rest of this file — if
+  the permission isn't granted, it records that nothing was captured
+  rather than crashing.
+- `applyPauseDnd()` — unchanged logic, just renamed; this is what used to
+  be the `enabled = true` branch. Also what `reapplyAfterBoot()` calls, and
+  that call site is exactly why capture had to be a separate function: a
+  reboot mid-pause must *reapply* the pause's quiet policy without
+  *recapturing* it — the value worth keeping was already saved before the
+  reboot, and recapturing at that point would save the pause's own quiet
+  policy as if it were the user's, permanently losing the real one.
+- `restoreDnd()` — called from `endSession()`. Restores the captured
+  filter and policy if there is one, clears the stored copy so it can't be
+  reapplied stale by a later pause, and falls back to the old
+  `INTERRUPTION_FILTER_ALL` behavior only when nothing was captured
+  (permission wasn't granted at start, or data predates this fix) — that
+  fallback is still strictly better than leaving the pause's restrictive
+  filter on indefinitely.
+
+`endSessionRestoresThePreviousDndPolicyInsteadOfClearingIt` in
+`SessionManagerTest` sets a distinct "alarms only" policy via Robolectric's
+`ShadowNotificationManager`, starts and ends a pause, and asserts the
+original filter and all four policy fields come back exactly.
+
+Verified on the emulator beyond the unit tests: started a real pause,
+unlocked it with the password, confirmed exactly one row in History (not
+two) and no crash in `adb logcat` for the app's own process.

@@ -20,9 +20,11 @@ not a defect, and this document does not relitigate it.
 
 ## 1. Correctness
 
-### 1.1 A pause that ends naturally can be written to history twice — **S**
+### 1.1 A pause that ends naturally can be written to history twice — **S** — ✅ fixed
 
-*Verified by reading; not yet reproduced on a device.*
+*Verified by reading, then reproduced-and-confirmed-fixed on the emulator
+and locked in by `SessionManagerTest.endSessionCalledTwiceRecordsHistoryOnlyOnce`.
+See `specs/pause-session-core/design.md`.*
 
 `SessionManager.endSession()` (`SessionManager.kt:111`) has no guard and is
 not idempotent:
@@ -56,10 +58,12 @@ false, and clear `KEY_START_TIME`/`KEY_PLANNED_MINUTES` with the rest. Add
 a `SessionManagerTest` case that calls `endSession()` twice and asserts one
 record — the test harness for this already exists.
 
-### 1.2 The user's own Do Not Disturb setting is overwritten and never restored — **M**
+### 1.2 The user's own Do Not Disturb setting is overwritten and never restored — **M** — ✅ fixed
 
 *Verified: there is no `getNotificationPolicy()` or
-`getCurrentInterruptionFilter()` call anywhere in the codebase.*
+`getCurrentInterruptionFilter()` call anywhere in the codebase. Now fixed
+and locked in by `SessionManagerTest.endSessionRestoresThePreviousDndPolicyInsteadOfClearingIt`.
+See `specs/pause-session-core/design.md`.*
 
 `SessionManager.setPauseDnd()` (`SessionManager.kt:180`):
 
