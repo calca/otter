@@ -1,5 +1,6 @@
 package com.calmotter.app.ui.screens
 
+import androidx.compose.animation.core.withInfiniteAnimationFrameMillis
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -11,6 +12,12 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.State
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -29,6 +36,7 @@ import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.PathEffect
@@ -43,6 +51,8 @@ import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
+import kotlinx.coroutines.delay
+import kotlin.math.pow
 
 /**
  * Velo tenue di "primary" sullo sfondo (più percepibile in alto, sfuma verso
@@ -243,63 +253,147 @@ fun CalmLinkRow(text: String, onClick: () -> Unit, modifier: Modifier = Modifier
  * Specchio d'acqua + anello dietro l'otter, condiviso da tutte le
  * schermate "in attesa" di Tempo Insieme — prima ognuna era per conto
  * suo: solo [GroupPauseBluetoothLobbyHostScreen]'s `ParticipantRing` (non
- * riusabile qui, disegna anche i satelliti dei partecipanti) aveva un
- * trattamento del genere, le altre (lobby join in tutti i suoi stati,
- * l'inserimento manuale del codice, il ripiego senza permesso fotocamera)
- * avevano solo l'otter da solo, o niente affatto — l'ultima, unica
- * schermata dell'intero flusso senza mascotte. Segnalato ("si legge come
- * a metà, troppo vuoto"): un'icona piccola dentro a un [CalmScreenColumn]
- * a piena altezza si perde nello spazio, mentre lo stesso spazio pieno
- * dall'anello dell'host si legge come intenzionale.
+ * riusabile qui, disegna anche i satelliti dei partecipanti) e
+ * `GroupPauseChooserScreen`'s `TandemPawsMedallion` (non riusabile
+ * direttamente, disegnava a mano lo stesso identico specchio d'acqua)
+ * avevano un trattamento del genere, le altre (lobby join in tutti i suoi
+ * stati, l'inserimento manuale del codice, il ripiego senza permesso
+ * fotocamera) avevano solo l'otter da solo, o niente affatto — l'ultima,
+ * unica schermata dell'intero flusso senza mascotte. Segnalato ("si legge
+ * come a metà, troppo vuoto"): un'icona piccola dentro a un
+ * [CalmScreenColumn] a piena altezza si perde nello spazio, mentre lo
+ * stesso spazio pieno dall'anello dell'host si legge come intenzionale.
  *
- * Stessi raggi/colori dell'anello host (`ParticipantRing`), scalati per
- * un otter da 88dp anziché 110dp (nessun satellite da fare spazio):
- * 140dp di canvas anziché 180dp, stesso rapporto raggio/canvas per
- * ciascuno dei tre cerchi dello stagno.
+ * **Cinque livelli, gli stessi di `TandemPawsMedallion`** (segnalato:
+ * "unificare la grafica" fra la lobby join e il resto del flusso, invece
+ * di due disegni simili ma diversi mantenuti a mano in due file) —
+ * proporzioni ricavate dallo stesso riferimento a 224dp che
+ * `TandemPawsMedallion` usava per i propri raggi, quindi identiche a
+ * qualunque [size] venga passata:
  *
- * `dashed` segue la stessa logica dell'anello host: tratteggiato e più
- * tenue quando questa schermata non sta ancora facendo nulla di
- * concreto (permesso mancante, ricerca non partita), pieno quando lo sta
- * facendo (connessione in corso, in attesa dell'host, codice pronto da
- * digitare). Il contenuto dell'otter resta un parametro: schermate
- * diverse ci mettono mascotte diverse (`OtterZenMark`, `OtterTapMark`) o,
- * per la ricerca Bluetooth attiva, le proprie onde animate sopra
- * l'otter — vedi `SearchingIllustration` in
- * GroupPauseBluetoothLobbyJoinScreen.kt.
+ * 1. anello di contorno, sempre pieno e tenue — il bordo dello stagno;
+ * 2. anello **tratteggiato** appena dentro, la cui opacità segue [dashed]
+ *    (più tenue quando questa schermata non sta ancora facendo nulla di
+ *    concreto — permesso mancante, ricerca non partita — più marcato
+ *    quando lo sta facendo: connessione in corso, in attesa dell'host,
+ *    codice pronto da digitare);
+ * 3-5. i tre dischi dello stagno (velato, pallido, chiaro al centro).
+ *
+ * `pulsing` aggiunge le stesse increspature della Home (`AmbientRipples`
+ * in HomePond.kt: stesso colore `tertiary`, stessa idea di anelli che
+ * rallentano e svaniscono), ma **in loop continuo invece che a scatto
+ * unico**: la Home rappresenta un sasso caduto nell'acqua (le onde
+ * finiscono), qui rappresentano una ricerca Bluetooth che può durare
+ * minuti — fermarle dopo pochi secondi, come fa la Home, avrebbe detto
+ * "ho smesso di cercare" mentre la ricerca è ancora attiva. Non è
+ * [AmbientRipples] stessa (pensata per una tela grande quanto lo
+ * schermo, ancorata a un centro calcolato altrove): la stessa idea
+ * visiva, scalata al riquadro di questo specchio d'acqua.
+ *
+ * Il contenuto dell'otter resta un parametro: schermate diverse ci
+ * mettono mascotte diverse (`OtterZenMark`, `OtterTapMark`,
+ * `TogetherMark`).
  */
 @Composable
 fun OtterRingIllustration(
     dashed: Boolean,
+    size: Dp = 160.dp,
+    pulsing: Boolean = false,
     modifier: Modifier = Modifier,
     otter: @Composable () -> Unit,
 ) {
     val ringColor = MaterialTheme.colorScheme.primary
     val pondColor = MaterialTheme.colorScheme.tertiary
     val pondBright = MaterialTheme.colorScheme.surfaceBright
+    // Increspature a scatti (10 al secondo), non a ogni fotogramma — stessa
+    // misura già fatta per il puntino della pagina QR e per questa stessa
+    // ricerca prima che si spostasse qui, vedi
+    // specs/group-pause/design.md "The pulse was implemented wrong the
+    // first time". `remember(pulsing)` invece di un `if` attorno alla
+    // chiamata: l'effetto deve ripartire da zero ogni volta che la ricerca
+    // si riattiva, non continuare da dove aveva lasciato l'ultima volta.
+    val pulse = if (pulsing) rememberRipplePulse() else null
 
-    Box(modifier = modifier.size(160.dp), contentAlignment = Alignment.Center) {
-        Canvas(modifier = Modifier.size(140.dp)) {
-            drawCircle(color = pondColor, radius = 64.dp.toPx(), alpha = 0.14f)
-            drawCircle(color = pondColor, radius = 53.dp.toPx(), alpha = 0.26f)
-            drawCircle(color = pondBright, radius = 43.dp.toPx())
-            if (dashed) {
-                drawCircle(
-                    color = ringColor.copy(alpha = 0.12f),
-                    style = Stroke(
-                        width = 2.dp.toPx(),
-                        cap = StrokeCap.Round,
-                        pathEffect = PathEffect.dashPathEffect(floatArrayOf(10f, 8f)),
-                    ),
-                )
-            } else {
-                drawCircle(
-                    color = ringColor.copy(alpha = 0.22f),
-                    style = Stroke(width = 2.dp.toPx()),
-                )
+    Box(modifier = modifier.size(size), contentAlignment = Alignment.Center) {
+        Canvas(modifier = Modifier.fillMaxSize()) {
+            val outer = this.size.minDimension / 2f
+            fun r(diameterDp: Float) = outer * (diameterDp / 224f)
+
+            drawCircle(
+                color = ringColor,
+                radius = outer - 0.5.dp.toPx(),
+                alpha = 0.18f,
+                style = Stroke(width = 1.dp.toPx()),
+            )
+            // `dashed` sceglie fra due trattamenti davvero diversi, non
+            // solo due tratteggi — bug trovato sull'emulatore prima di
+            // committare: la prima stesura usava un `pathEffect`
+            // tratteggiato in *entrambi* i rami (solo il passo cambiava),
+            // quindi l'anello non diventava mai pieno per gli stati
+            // "pronto" (ricerca attiva, connessione in corso...) di
+            // lobby join/host — lo stesso identico anello tratteggiato di
+            // `TandemPawsMedallion`, sempre, qualunque fosse `dashed`.
+            // `dashed = true` riusa esattamente i valori di
+            // `TandemPawsMedallion` (dash 4/6, alfa .25): quel medaglione
+            // non ha un concetto di "pronto", il suo anello è sempre
+            // tratteggiato per scelta decorativa, quindi vi passa
+            // `dashed = true` fisso — non una terza variante da mantenere
+            // a parte.
+            drawCircle(
+                color = ringColor,
+                radius = r(190f),
+                alpha = if (dashed) 0.25f else 0.22f,
+                style = Stroke(
+                    width = 1.dp.toPx(),
+                    cap = StrokeCap.Round,
+                    pathEffect = if (dashed) {
+                        PathEffect.dashPathEffect(floatArrayOf(4.dp.toPx(), 6.dp.toPx()))
+                    } else {
+                        null
+                    },
+                ),
+            )
+            drawCircle(color = pondColor, radius = r(168f), alpha = 0.28f)
+            drawCircle(color = pondColor, radius = r(136f), alpha = 0.75f)
+            drawCircle(color = pondBright, radius = r(96f))
+
+            if (pulse != null) {
+                val t = pulse.value
+                val baseRadius = r(96f)
+                val maxExtra = outer - baseRadius
+                listOf(0f, 0.33f, 0.66f).forEach { phase ->
+                    val localT = (t + phase) % 1f
+                    val eased = localT.pow(0.8f)
+                    drawCircle(
+                        color = pondColor,
+                        radius = baseRadius + eased * maxExtra,
+                        alpha = (1f - localT) * 0.85f,
+                        style = Stroke(width = (2.5f - 1.7f * eased).dp.toPx()),
+                    )
+                }
             }
         }
         otter()
     }
+}
+
+@Composable
+private fun rememberRipplePulse(periodMillis: Int = 2200, stepsPerSecond: Int = 10): State<Float> {
+    val fractionState = remember { mutableFloatStateOf(0f) }
+    var fraction by fractionState
+    LaunchedEffect(periodMillis, stepsPerSecond) {
+        val steps = (periodMillis / 1000f * stepsPerSecond).toInt().coerceAtLeast(1)
+        val stepMillis = (1000f / stepsPerSecond).toLong()
+        while (true) {
+            withInfiniteAnimationFrameMillis { now ->
+                val step = ((now % periodMillis) / periodMillis.toFloat() * steps).toInt()
+                val next = step / steps.toFloat()
+                if (next != fraction) fraction = next
+            }
+            delay(stepMillis)
+        }
+    }
+    return fractionState
 }
 
 /**

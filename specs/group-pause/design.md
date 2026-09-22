@@ -2013,3 +2013,56 @@ lista — stesso limite di verifica documentato più volte in questo file).
 Verificato invece "Sei visibile come sdk_gphone16k_arm64" comparire
 correttamente sulla lobby join reale (Pixel 10 Pro AVD, flavor stable).
 Full build/lint/test verde.
+
+## Grafica della lobby join unificata a quella di Home/Chooser, increspature animate mentre cerca
+
+Segnalato: unificare la grafica della pagina "Unisciti" con quella di
+Home e del medaglione della schermata di scelta, e rendere più chiaro
+che l'app sta cercando dispositivi Bluetooth e che una lista dinamica
+comparirà.
+
+`OtterRingIllustration` (`CalmBackground.kt`) passa da un disegno a 3
+livelli scritto per questa fusione a un disegno a **5 livelli**, lo
+stesso di `TandemPawsMedallion` (`GroupPauseChooserScreen.kt`) — anello
+di contorno, anello interno (`dashed` sceglie fra tratteggiato/decorativo
+e pieno/"pronto"), tre dischi dello stagno — con un parametro `size`
+(default 160dp, invariato per gli altri chiamanti) per poterla
+ingrandire dove serve. `TandemPawsMedallion` è ora un guscio sottile
+attorno alla stessa funzione (`dashed = true` fisso: il suo anello
+tratteggiato non ha mai rappresentato uno stato "non pronto", solo una
+scelta decorativa del mockup) — non due disegni simili mantenuti a mano
+in due file, uno solo.
+
+Nuovo parametro `pulsing`: increspature animate in loop continuo (non a
+scatto unico come `AmbientRipples` della Home — la ricerca può durare
+minuti, fermarsi dopo pochi secondi avrebbe detto "ho smesso di
+cercare"), stesso colore/idea visiva della Home, scalate al riquadro
+dello specchio d'acqua invece che alla pagina intera. `SearchingIllustration`
+(`GroupPauseBluetoothLobbyJoinScreen.kt`) ora delega interamente a
+`OtterRingIllustration(size = 200.dp, pulsing = !hasResults && searching)`
+invece di disegnare a mano il proprio pulse (rimosso insieme al suo
+`rememberSearchPulse()`, la cui logica è confluita in
+`rememberRipplePulse()` dentro `CalmBackground.kt`, condivisa).
+
+**Bug trovato e corretto sull'emulatore prima di committare**: la prima
+stesura del passaggio a 5 livelli usava un `pathEffect` tratteggiato in
+*entrambi* i rami del parametro `dashed` (cambiava solo il passo del
+tratteggio), quindi l'anello interno non diventava mai pieno per gli
+stati "pronto" di lobby join/host (ricerca attiva, connessione in
+corso...) — sempre lo stesso anello tratteggiato di `TandemPawsMedallion`,
+qualunque fosse `dashed`. Corretto: `dashed = false` disegna ora un
+tratto pieno (nessun `pathEffect`), come faceva la versione a 3 livelli
+prima di questa fusione.
+
+Verificato sull'emulatore (Pixel 10 Pro AVD, flavor stable): il
+medaglione della schermata di scelta resta pixel-identico a prima del
+refactor (confrontato screenshot contro screenshot); la lobby join, con
+Bluetooth concesso e attivo, mostra ora l'anello interno pieno (non più
+tratteggiato) nello stato "in ricerca" — la distinzione dashed/pieno
+funziona di nuovo. Le increspature animate stesse non sono state
+catturate in un singolo screenshot (l'animazione è ciclica, un frame
+statico può cadere in un momento di bassa opacità) — la logica riusa
+però lo stesso idioma `withInfiniteAnimationFrameMillis`/passo fisso già
+verificato altrove in questo file per lo stesso tipo di animazione (vedi
+"The pulse was implemented wrong the first time"), non un codice nuovo
+da verificare da zero. Full build/lint/test verde.

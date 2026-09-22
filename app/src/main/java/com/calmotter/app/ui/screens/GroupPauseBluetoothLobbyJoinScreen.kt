@@ -11,7 +11,6 @@ import android.os.Looper
 import android.provider.Settings
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -37,7 +36,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -55,10 +53,6 @@ import com.calmotter.app.hasGroupPauseBluetoothPermissions
 import com.calmotter.app.nfc.GroupPauseNfcReader
 import com.calmotter.app.ui.mascot.OtterZenMark
 import com.calmotter.app.ui.mascot.OtterTapMark
-import androidx.compose.runtime.mutableFloatStateOf
-import androidx.compose.runtime.State
-import androidx.compose.animation.core.withInfiniteAnimationFrameMillis
-import kotlinx.coroutines.delay
 import androidx.compose.runtime.LaunchedEffect
 
 private sealed class JoinLobbyState {
@@ -409,87 +403,36 @@ private fun GentleReadinessBanner(hasPermissions: Boolean, onAction: () -> Unit)
 }
 
 /**
- * Otter al centro di anelli concentrici che si espandono e svaniscono in
- * loop mentre [hasResults] è falso — "sto cercando un amico", non un
- * dispositivo. Si ferma da sola (nessun anello) appena la lista smette di
- * essere vuota. [otter] è un parametro (non sempre `OtterZenMark`) da
- * quando questa schermata fonde NFC e ricerca: la mascotte cambia a
- * seconda che l'NFC sia disponibile o no, l'anello e le onde no.
+ * Otter al centro dello stesso specchio d'acqua del resto del flusso, con
+ * le increspature che si espandono e svaniscono in loop mentre
+ * [hasResults] è falso — "sto cercando un amico", non un dispositivo. Si
+ * fermano da sole appena la lista smette di essere vuota. [otter] è un
+ * parametro (non sempre `OtterZenMark`) da quando questa schermata fonde
+ * NFC e ricerca: la mascotte cambia a seconda che l'NFC sia disponibile o
+ * no, l'anello e le onde no.
+ *
+ * `size = 200.dp` (non il default 160dp di [OtterRingIllustration]) e
+ * `pulsing`/le onde vere e proprie sono entrambi su richiesta esplicita
+ * ("unificare la grafica" con la Home e con `TandemPawsMedallion" della
+ * schermata di scelta — vedi `OtterRingIllustration`, e "non si capisce
+ * che l'app sta cercando"): prima questa era l'unica illustrazione del
+ * flusso ad avere già un'animazione propria (le onde, scritte a mano qui
+ * dentro), ma un disegno più piccolo delle altre e con un pulse diverso da
+ * quello della Home — due stagni diversi invece di uno solo disegnato in
+ * due punti.
  */
 @Composable
 private fun SearchingIllustration(hasResults: Boolean, searching: Boolean, otter: @Composable () -> Unit) {
-    // L'anello (tratteggiato finché la ricerca non è davvero partita,
-    // pieno quando sì) è lo stesso di tutti gli altri stati "in attesa"
-    // di questo flusso — vedi OtterRingIllustration in CalmBackground.kt.
-    // Prima questo era l'unico stato ad avere già qualcosa attorno
-    // all'otter (le onde), ma solo mentre `searching` era vero: appena
-    // mancava un permesso restava un otter nudo di 76dp, indistinguibile
-    // dal problema segnalato sugli altri stati.
-    OtterRingIllustration(dashed = !searching) {
-        // Le onde che si espandono raccontano una ricerca in corso: vanno
-        // mostrate solo quando la discovery Bluetooth sta davvero girando.
-        // Con permessi o Bluetooth mancanti non parte nulla (vedi il
+    OtterRingIllustration(
+        dashed = !searching,
+        size = 200.dp,
+        // Le increspature raccontano una ricerca in corso: vanno mostrate
+        // solo quando la discovery Bluetooth sta davvero girando. Con
+        // permessi o Bluetooth mancanti non parte nulla (vedi il
         // DisposableEffect su allReady), e animarle comunque sarebbe una
         // scansione finta.
-        if (!hasResults && searching) {
-            // **A scatti, non a ogni fotogramma** — segnalato ("la CPU
-            // frulla" su questa schermata), stesso bug già trovato e
-            // corretto sul puntino della pagina QR (vedi
-            // specs/group-pause/design.md, "The pulse was implemented
-            // wrong the first time"): `rememberInfiniteTransition().
-            // animateFloat(...)` campionava a ogni fotogramma del display
-            // (60-120Hz), e qui il costo era anche peggiore che lì — non
-            // un singolo Box da 8dp letto in fase di disegno, ma un intero
-            // Canvas che ridisegna tre anelli su un'area di 140dp, dentro
-            // la composable stessa (`val t by ...` letto in composizione,
-            // non in un `graphicsLayer`), quindi ogni scatto ricomponeva
-            // anche il `Canvas`. `rememberSearchPulse()` sotto usa lo
-            // stesso `withInfiniteAnimationFrameMillis` + `delay` a 10
-            // passi al secondo già stabilito altrove nell'app — resta la
-            // ricerca può durare minuti, quindi non c'è un momento in cui
-            // fermarsi come per il puntino, ma il costo per fotogramma
-            // scende comunque di un ordine di grandezza.
-            val t by rememberSearchPulse()
-            val ringColor = MaterialTheme.colorScheme.primary
-            Canvas(modifier = Modifier.size(140.dp)) {
-                listOf(0f, 0.33f, 0.66f).forEach { phase ->
-                    val localT = (t + phase) % 1f
-                    drawCircle(
-                        color = ringColor,
-                        radius = size.minDimension / 5f + localT * size.minDimension / 2.6f,
-                        alpha = (1f - localT) * 0.4f,
-                        style = Stroke(width = 1.5.dp.toPx()),
-                    )
-                }
-            }
-        }
-        otter()
-    }
-}
-
-/**
- * Frazione 0f→1f a scatti (10 al secondo) invece che a ogni fotogramma —
- * vedi il commento al punto d'uso in [SearchingIllustration] per la misura
- * che ha portato a scriverla così, e [rememberPulseAlpha] in
- * GroupPauseCountdownScreen.kt per lo stesso idioma applicato allo stesso
- * bug altrove in questo flusso.
- */
-@Composable
-private fun rememberSearchPulse(periodMillis: Int = 1800, stepsPerSecond: Int = 10): State<Float> {
-    val fractionState = remember { mutableFloatStateOf(0f) }
-    var fraction by fractionState
-    LaunchedEffect(periodMillis, stepsPerSecond) {
-        val steps = (periodMillis / 1000f * stepsPerSecond).toInt().coerceAtLeast(1)
-        val stepMillis = (1000f / stepsPerSecond).toLong()
-        while (true) {
-            withInfiniteAnimationFrameMillis { now ->
-                val step = ((now % periodMillis) / periodMillis.toFloat() * steps).toInt()
-                val next = step / steps.toFloat()
-                if (next != fraction) fraction = next
-            }
-            delay(stepMillis)
-        }
-    }
-    return fractionState
+        pulsing = !hasResults && searching,
+        otter = otter,
+    )
 }
 

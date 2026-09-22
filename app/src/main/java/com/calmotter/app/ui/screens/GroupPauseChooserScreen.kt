@@ -1,6 +1,5 @@
 package com.calmotter.app.ui.screens
 
-import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -33,9 +32,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.graphics.PathEffect
-import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -198,72 +194,30 @@ private val TopBarHeight = 56.dp
 /**
  * Le impronte dentro lo stagno fermo, come in Home la lontra.
  *
- * Cinque livelli, presi dal mockup uno per uno invece che a occhio
- * (contenitore 224, `inset-0/3/7/11` più il disco centrale da 96):
- *
- * 1. anello di contorno, il bordo dello stagno;
- * 2. anello **tratteggiato**, appena dentro e leggermente più stretto;
- * 3. disco velato;
- * 4. disco pallido;
- * 5. disco chiaro al centro, su cui stanno le impronte.
- *
- * Non riusa `PondStill` della Home: là lo stagno è a piena pagina e il suo
- * centro è un'invariante condivisa con `BlockScreen` (vedi
- * OtterAnchoredScreen.kt). Ne riusa però **i colori** — `tertiary` per i
- * dischi e `surfaceBright` per quello chiaro — perché siano lo stesso
- * stagno anche se disegnati da due file diversi.
- *
- * I due anelli di contorno invece prendono `primary` a bassa opacità e non
- * `tertiary`: nel mockup sono un mezzo tono, mentre il nostro `tertiary` è
- * già pallido di suo (#d5e0d5 nelle palette verdi) e su questo sfondo un
- * contorno sottile in quella tinta semplicemente non si vedrebbe.
+ * Ora un guscio sottile attorno a [OtterRingIllustration]
+ * (`CalmBackground.kt`): questo disegno — cinque livelli, misure prese dal
+ * mockup uno per uno (contenitore 224, `inset-0/3/7/11` più il disco
+ * centrale da 96) — è quello da cui `OtterRingIllustration` è nata,
+ * quando "unificare la grafica" fra questa schermata e la lobby join ha
+ * smesso di voler dire "farle sembrare simili" e ha iniziato a voler dire
+ * "farle disegnare dalla stessa funzione". Vedi la doc di
+ * `OtterRingIllustration` per il dettaglio dei cinque livelli.
  *
  * **Ferme.** Il mockup fa pulsare l'anello esterno su quattro secondi; qui
- * no. Le onde che si muovono sono della Home e vogliono dire "lo stagno
- * aspetta, tocca l'otter": questa è una schermata dove si sceglie, e
- * un'animazione perpetua accanto a due opzioni tira l'occhio via da quelle.
- * Vale anche il resto del discorso sul costo — vedi
- * specs/home-and-settings/design.md — con l'aggravante che qui non ci
- * sarebbe nemmeno un momento in cui fermarla.
+ * no — `pulsing` resta `false`. Le onde animate (`OtterRingIllustration`
+ * ne ha, riusate dalla lobby join per "sto cercando") vogliono dire "lo
+ * stagno aspetta, tocca l'otter/il nome giusto": questa è una schermata
+ * dove si sceglie fra due card, e un'animazione perpetua accanto a loro
+ * tira l'occhio via da quelle. Vale anche il resto del discorso sul costo
+ * — vedi specs/home-and-settings/design.md — con l'aggravante che qui non
+ * ci sarebbe nemmeno un momento in cui fermarla.
  */
 @Composable
 private fun TandemPawsMedallion() {
-    val primary = MaterialTheme.colorScheme.primary
-    val ringColor = MaterialTheme.colorScheme.tertiary
-    val brightColor = MaterialTheme.colorScheme.surfaceBright
-
-    Box(
-        modifier = Modifier.size(MedallionSize),
-        contentAlignment = Alignment.Center,
-    ) {
-        Canvas(modifier = Modifier.fillMaxSize()) {
-            val center = Offset(size.width / 2f, size.height / 2f)
-            val outer = size.minDimension / 2f
-            fun r(diameterDp: Float) = outer * (diameterDp / MEDALLION_DIAMETER)
-
-            drawCircle(
-                color = primary,
-                radius = outer - 0.5.dp.toPx(),
-                center = center,
-                alpha = 0.18f,
-                style = Stroke(width = 1.dp.toPx()),
-            )
-            drawCircle(
-                color = primary,
-                radius = r(190f),
-                center = center,
-                alpha = 0.25f,
-                style = Stroke(
-                    width = 1.dp.toPx(),
-                    pathEffect = PathEffect.dashPathEffect(
-                        floatArrayOf(4.dp.toPx(), 6.dp.toPx()),
-                    ),
-                ),
-            )
-            drawCircle(color = ringColor, radius = r(168f), center = center, alpha = 0.28f)
-            drawCircle(color = ringColor, radius = r(136f), center = center, alpha = 0.75f)
-            drawCircle(color = brightColor, radius = r(96f), center = center)
-        }
+    // dashed = true, sempre: qui non è uno stato "pronto/non pronto" (la
+    // Chooser non controlla permessi/Bluetooth), è la scelta decorativa
+    // fissa del mockup — vedi la nota su `dashed` in OtterRingIllustration.
+    OtterRingIllustration(dashed = true, size = MedallionSize) {
         // Stessa misura del disco, non meno: il marchio ha il suo margine
         // dentro — il disegno occupa il 57% del proprio riquadro — quindi a
         // 96 l'inchiostro ne copre poco più della metà, che è la
@@ -274,13 +228,8 @@ private fun TandemPawsMedallion() {
     }
 }
 
-/**
- * Diametro del medaglione, in dp e come numero nudo: il numero serve per
- * ricavare gli anelli interni dalle misure del mockup, che sono espresse
- * sullo stesso diametro.
- */
-private const val MEDALLION_DIAMETER = 224f
-private val MedallionSize = MEDALLION_DIAMETER.dp
+/** Diametro del medaglione — lo stesso 224dp a cui [OtterRingIllustration] proporziona i suoi cinque livelli. */
+private val MedallionSize = 224.dp
 
 /**
  * Una delle due strade. Rispetto alla riga che stava nel dialogo guadagna
