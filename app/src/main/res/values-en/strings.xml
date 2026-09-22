@@ -272,7 +272,9 @@ Whenever you feel the need for a break, just open the app, choose how long — &
     <string name="group_pause_start_button">Let\'s go</string>
 
     <string name="group_pause_join_nfc_title">Tap phones to find each other</string>
-    <string name="group_pause_join_listening_subtitle">Hold the phones close, or wait for it to appear below</string>
+    <string name="group_pause_join_listening_subtitle">Hold the backs of the phones together, or pick your friend\'s name below</string>
+    <string name="group_pause_join_pick_hint">Tap your friend\'s name to connect</string>
+    <string name="group_pause_join_your_name">You show up as %1$s</string>
     <string name="group_pause_join_search_hero_title">Look for whoever\'s waiting for you</string>
     <string name="group_pause_join_code_link">Scan or enter a code</string>
     <string name="group_pause_join_searching">Looking for a friend…</string>

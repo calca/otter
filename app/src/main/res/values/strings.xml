@@ -279,7 +279,9 @@ Quando sentirai il bisogno di una pausa, basterà aprire l\'app, scegliere quant
     <string name="group_pause_start_button">Iniziamo</string>
 
     <string name="group_pause_join_nfc_title">Avvicinati a chi ti aspetta</string>
-    <string name="group_pause_join_listening_subtitle">Tieni i telefoni vicini, o aspetta che compaia qui sotto</string>
+    <string name="group_pause_join_listening_subtitle">Avvicina il retro dei telefoni, o scegli il nome del tuo amico qui sotto</string>
+    <string name="group_pause_join_pick_hint">Tocca il nome del tuo amico per collegarti</string>
+    <string name="group_pause_join_your_name">Sei visibile come %1$s</string>
     <string name="group_pause_join_search_hero_title">Cerca chi ti sta aspettando</string>
     <string name="group_pause_join_code_link">Scansiona o inserisci un codice</string>
     <string name="group_pause_join_searching">Alla ricerca di un amico…</string>

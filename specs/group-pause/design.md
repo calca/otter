@@ -1976,3 +1976,40 @@ booleana su un campo documentato dell'API pubblica `BluetoothClass`, non
 euristica: il rischio residuo è che un dispositivo riporti la propria
 classe in modo scorretto (fuori dal controllo di questa app), non che il
 confronto sia sbagliato. Full build/lint/test verde.
+
+## Lobby join: istruzioni più esplicite, nome Bluetooth locale visibile
+
+Segnalato: la pagina "Unisciti" non spiegava di avvicinare il *retro* dei
+telefoni (dove sta l'antenna NFC — dire solo "avvicina i telefoni" non
+bastava a capire quale lato) né che i nomi nell'elenco Bluetooth vanno
+toccati per collegarsi. Inoltre non c'era modo di controllare, a voce o
+per messaggio con l'altra persona, che il proprio nome fosse comparso
+correttamente dall'altra parte — soprattutto quando l'elenco mostra più
+di un dispositivo.
+
+Tre modifiche, tutte in `GroupPauseBluetoothLobbyJoinScreen.kt`:
+
+- `group_pause_join_listening_subtitle` (mostrata quando nfcAvailable e
+  la lista è vuota) ora dice esplicitamente "retro" ("Avvicina il retro
+  dei telefoni, o scegli il nome del tuo amico qui sotto" — prima
+  "Tieni i telefoni vicini, o aspetta che compaia qui sotto").
+- Nuova `group_pause_join_pick_hint` ("Tocca il nome del tuo amico per
+  collegarti"), mostrata sopra l'elenco dei dispositivi trovati quando
+  non è vuoto — prima l'elenco appariva senza alcuna spiegazione di cosa
+  farne, in nessuno dei due rami (NFC o ricerca: stesso elenco per
+  entrambi da quando sono stati fusi, vedi la sezione sopra).
+- Nuova `group_pause_join_your_name`, mostrata sempre (non solo quando
+  la lista ha risultati): "Sei visibile come %1$s", con lo stesso
+  `localName` (`localBluetoothDisplayName(context)`) già usato
+  nell'handshake — non un valore separato da tenere sincronizzato a
+  mano. Font più piccolo (13sp) e più tenue (alfa 0.55) delle altre
+  scritte della schermata: è un'informazione di controllo, non
+  un'istruzione da leggere per prima.
+
+**Non verificato dal vivo**: il sottotitolo NFC-specifico e l'hint
+sull'elenco non sono esercitabili su questo emulatore (nessun NFC,
+nessun vero dispositivo Bluetooth Classic da scoprire per popolare la
+lista — stesso limite di verifica documentato più volte in questo file).
+Verificato invece "Sei visibile come sdk_gphone16k_arm64" comparire
+correttamente sulla lobby join reale (Pixel 10 Pro AVD, flavor stable).
+Full build/lint/test verde.

@@ -246,6 +246,17 @@ fun GroupPauseBluetoothLobbyJoinScreen(
                             modifier = Modifier.padding(top = 6.dp)
                         )
                     } else {
+                        // Prima l'elenco non spiegava cosa farne — segnalato
+                        // insieme al sottotitolo NFC: chi ci arriva non sa se
+                        // deve toccare un nome o aspettare altro. Un'unica
+                        // frase basta per entrambe le vie (NFC/ricerca):
+                        // arrivati qui la scelta è sempre "tocca il nome".
+                        Text(
+                            text = stringResource(R.string.group_pause_join_pick_hint),
+                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.75f),
+                            textAlign = TextAlign.Center,
+                            modifier = Modifier.padding(top = 6.dp)
+                        )
                         Column(modifier = Modifier.fillMaxWidth().padding(top = 8.dp)) {
                             join.discovered.forEach { found ->
                                 Surface(
@@ -263,6 +274,20 @@ fun GroupPauseBluetoothLobbyJoinScreen(
                             }
                         }
                     }
+                    // Segnalato: senza vedere il proprio nome Bluetooth, non
+                    // c'è modo di controllare con chi sta aspettando (via
+                    // messaggio, voce) che il nome giusto sia comparso
+                    // dall'altra parte — soprattutto quando la lista mostra
+                    // più di un dispositivo. `localName` è lo stesso valore
+                    // già inviato nell'handshake (vedi `connect()` più sopra),
+                    // non un valore diverso da tenere sincronizzato a mano.
+                    Text(
+                        text = stringResource(R.string.group_pause_join_your_name, localName),
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.55f),
+                        fontSize = 13.sp,
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier.padding(top = 14.dp)
+                    )
                     if (!allReady) {
                         GentleReadinessBanner(hasPermissions, onReadinessAction)
                     }
