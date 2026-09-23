@@ -1,12 +1,12 @@
 package com.calmotter.app.ui.screens
 
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -14,6 +14,9 @@ import androidx.compose.foundation.relocation.BringIntoViewRequester
 import androidx.compose.foundation.relocation.bringIntoViewRequester
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Check
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -41,11 +44,9 @@ import com.calmotter.app.R
 import com.calmotter.app.encode
 import com.calmotter.app.generateQrCodeBitmap
 import kotlin.random.Random
+import kotlinx.coroutines.delay
 import androidx.compose.ui.text.AnnotatedString
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalClipboardManager
-import androidx.compose.material3.TextButton
-import android.widget.Toast
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.ui.graphics.drawscope.Stroke
@@ -176,17 +177,18 @@ private fun GroupPauseQrShareScreen(
         startAtEpochMillis = recipe.startAtEpochMillis,
         onReady = { onReady(recipe) },
         onCancel = onCancel,
-        // La riga separata "Begins in X:XX · Duration: Y min" è già fusa
-        // dentro alla frase di [GroupPauseShareHeader] qui sotto — mostrarla
-        // di nuovo sarebbe la stessa informazione due volte.
-        showCountdownLine = false,
-        header = { minutes, seconds ->
-            GroupPauseShareHeader(
-                code = recipe.encode(),
-                minutes = minutes,
-                seconds = seconds,
-                durationMinutes = recipe.durationMinutes,
-            )
+        // Tornata alla riga di stato standard (puntino pulsante + "Parte tra
+        // X:XX · Durata: Y min") invece di restare fusa dentro la frase di
+        // [GroupPauseShareHeader] — segnalato: la frase unica (istruzione +
+        // countdown + durata) si leggeva come una sola cosa confusa, e i
+        // cifre del countdown la facevano "traballare" a ogni secondo. La
+        // frase sopra ora dice solo cosa fare; questa riga, separata e
+        // sotto tutto il resto (QR, codice, ritardo), dice solo quando/per
+        // quanto — stesso trattamento del percorso Bluetooth dal vivo
+        // (vedi GroupPauseBluetoothLobbyHostScreen.kt), non più un caso a
+        // parte.
+        header = { _, _ ->
+            GroupPauseShareHeader(code = recipe.encode())
             // 40.dp e non i soliti 20.dp di SetupLabel: più respiro fra "come
             // unirsi" (QR + codice, sopra) e "quando parte" (sotto) — su
             // richiesta, dopo che la pagina è stata segnalata "un po'
@@ -395,21 +397,43 @@ private fun CopyGlyph(modifier: Modifier = Modifier, tint: Color = MaterialTheme
 
 /**
  * QR + codice manuale da condividere — mostrato sopra al conto alla rovescia
- * condiviso. La frase in cima fonde l'invito ("fai scansionare...") con lo
- * stato live ("fra quanto/per quanto") in un solo testo, su richiesta
- * esplicita ("non si può unire la frase 'have this' e begins/duration sopra
- * il qrcode? così semplifichiamo?") — prima erano due elementi separati, il
- * secondo (la pillola/riga "Begins in...") sotto al selettore del ritardo,
- * lontano dal QR a cui si riferisce. [minutes]/[seconds]/[durationMinutes]
- * arrivano da [GroupPauseCountdownScreen] tramite lo slot `header`, che li
- * ricalcola ogni 200ms — questo testo quindi continua a ticchettare come
- * prima faceva la riga separata, solo dentro alla stessa frase.
+ * condiviso.
+ *
+ * **La frase in cima è tornata a dire solo cosa fare.** Per un periodo
+ * fondeva l'invito ("fai scansionare...") con lo stato live ("fra
+ * quanto/per quanto") in un solo testo, su richiesta esplicita di allora
+ * ("non si può unire la frase 'have this' e begins/duration sopra il
+ * qrcode? così semplifichiamo?"). Segnalato di nuovo più tardi ("la
+ * frase si legge confusa"): tre fatti in un'unica frase, con le cifre
+ * del countdown che la facevano traballare a ogni secondo, non si
+ * leggeva più come una semplificazione. Countdown e durata sono tornati
+ * nella riga di stato standard (puntino pulsante) di
+ * [GroupPauseCountdownScreen] — vedi `showCountdownLine`, oggi di nuovo
+ * al suo default — invece che rifusi qui: lo stesso trattamento del
+ * percorso Bluetooth dal vivo, non un'eccezione da mantenere a parte.
+ *
+ * **Il codice e "Copia" sono un'unica pillola tutta toccabile**, non più
+ * codice + bottone di testo affiancati — segnalato ("l'area codice/copia
+ * si può alleggerire"): tocca-per-copiare ovunque sulla pillola, bersaglio
+ * più grande, nessuna etichetta "Copia" ridondante accanto a un'icona che
+ * già la dice. L'icona stessa diventa un segno di spunta per
+ * [CopyFeedbackMillis] dopo il tocco, al posto del `Toast` di sistema che
+ * dava questa conferma prima — rimosso, non affiancato: le due cose
+ * dicevano la stessa cosa, e lo spunto è più vicino al punto toccato
+ * (oltre a non dipendere da un `Toast` che alcuni OEM sopprimono o
+ * ritardano). `onClickLabel` porta comunque l'azione, e la conferma, a
+ * chi usa TalkBack e non vede l'icona cambiare.
  */
 @Composable
-private fun GroupPauseShareHeader(code: String, minutes: Int, seconds: Int, durationMinutes: Int) {
+private fun GroupPauseShareHeader(code: String) {
     val clipboard = LocalClipboardManager.current
-    val context = LocalContext.current
-    val copiedText = stringResource(R.string.group_pause_code_copied)
+    var justCopied by remember { mutableStateOf(false) }
+    LaunchedEffect(justCopied) {
+        if (justCopied) {
+            delay(CopyFeedbackMillis)
+            justCopied = false
+        }
+    }
     // Il QR deve restare scuro-su-chiaro per essere leggibile (vedi
     // generateQrCodeBitmap), ma il "chiaro" non deve per forza essere un
     // quadrato bianco pieno, che sulle palette tenui dell'app stonava.
@@ -440,12 +464,7 @@ private fun GroupPauseShareHeader(code: String, minutes: Int, seconds: Int, dura
     }
 
     Text(
-        text = stringResource(
-            R.string.group_pause_share_hint_with_countdown,
-            minutes,
-            seconds,
-            durationMinutes,
-        ),
+        text = stringResource(R.string.group_pause_share_hint),
         color = MaterialTheme.colorScheme.onSurface,
         textAlign = TextAlign.Center,
         modifier = Modifier.padding(bottom = 16.dp)
@@ -480,17 +499,36 @@ private fun GroupPauseShareHeader(code: String, minutes: Int, seconds: Int, dura
                 .size(220.dp)
         )
     }
-    // Il codice e il bottone "Copia" in un'unica pillola — segnalato contro
-    // il mockup, che li tiene insieme in un solo contenitore invece di un
-    // testo nudo con un'azione appesa accanto.
+    // L'intera pillola è il bersaglio del tocco, non solo un bottone
+    // appeso accanto al codice — segnalato ("l'area codice/copia si può
+    // alleggerire"): bersaglio più grande, un solo elemento invece di due,
+    // nessuna etichetta "Copia" ridondante accanto a un'icona che già la
+    // dice. `onClickLabel` porta comunque l'azione a chi usa TalkBack, che
+    // non vede l'icona cambiare.
+    val copyLabel = stringResource(R.string.group_pause_code_copy)
+    val copiedLabel = stringResource(R.string.group_pause_code_copied)
     Surface(
         shape = RoundedCornerShape(50),
         color = MaterialTheme.colorScheme.primary.copy(alpha = 0.08f),
-        modifier = Modifier.padding(top = 16.dp),
+        // Questo overload di Surface non ha un proprio `onClickLabel` (solo
+        // quello con `onClick` come primo parametro posizionale ce l'ha, in
+        // questa versione di Material3, e vuole anche `selected`/`checked`
+        // a seconda della variante — nessuna delle due fa al caso di una
+        // pillola "tocca per copiare" semplice) — `Modifier.clickable`
+        // diretto, stesso pattern già usato per [CalmLinkRow].
+        modifier = Modifier
+            .padding(top = 16.dp)
+            .clickable(
+                onClickLabel = if (justCopied) copiedLabel else copyLabel,
+                onClick = {
+                    clipboard.setText(AnnotatedString(code))
+                    justCopied = true
+                },
+            ),
     ) {
         Row(
             verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.padding(start = 20.dp, end = 8.dp, top = 6.dp, bottom = 6.dp),
+            modifier = Modifier.padding(start = 20.dp, end = 16.dp, top = 10.dp, bottom = 10.dp),
         ) {
             Text(
                 text = code,
@@ -498,21 +536,22 @@ private fun GroupPauseShareHeader(code: String, minutes: Int, seconds: Int, dura
                 fontSize = 16.sp,
                 color = MaterialTheme.colorScheme.primary,
             )
-            TextButton(
-                onClick = {
-                    clipboard.setText(AnnotatedString(code))
-                    Toast.makeText(context, copiedText, Toast.LENGTH_SHORT).show()
-                },
-                contentPadding = PaddingValues(horizontal = 10.dp, vertical = 6.dp),
-                modifier = Modifier.padding(start = 4.dp),
-            ) {
-                CopyGlyph(modifier = Modifier.size(16.dp), tint = MaterialTheme.colorScheme.primary)
-                Spacer(modifier = Modifier.width(6.dp))
-                Text(
-                    text = stringResource(R.string.group_pause_code_copy),
-                    fontWeight = FontWeight.SemiBold,
+            Spacer(modifier = Modifier.width(10.dp))
+            // Spunta per CopyFeedbackMillis dopo il tocco — vedi il commento
+            // di classe.
+            if (justCopied) {
+                Icon(
+                    imageVector = Icons.Default.Check,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.size(16.dp),
                 )
+            } else {
+                CopyGlyph(modifier = Modifier.size(16.dp), tint = MaterialTheme.colorScheme.primary)
             }
         }
     }
 }
+
+/** Quanto resta lo spunto "copiato" prima di tornare all'icona di copia — vedi [GroupPauseShareHeader]. */
+private const val CopyFeedbackMillis = 1500L

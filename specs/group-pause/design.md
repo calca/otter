@@ -2117,3 +2117,43 @@ questo file per le funzioni Bluetooth/NFC dal vivo). Il fix nasce da
 un'analisi concreta della race condition nel codice (non da un
 tentativo alla cieca), verificata per analogia contro il pattern già
 stabile e mai segnalato del lato host. Full build/lint/test verde.
+
+## Refinement richiesto: frase intro più leggera, pillola codice tutta toccabile
+
+Segnalato direttamente: migliorare la frase "Have this QR scanned..." e
+suggerire un miglioramento per l'area codice/copia.
+
+**Frase intro**: per un periodo (vedi "The QR page, on its own report"
+sopra) fondeva istruzione + countdown + durata in un'unica frase, su
+richiesta esplicita di allora. Segnalata di nuovo come confusa — tre
+fatti in una frase sola, con le cifre del countdown a farla traballare
+ogni secondo. Tornata a dire solo l'istruzione
+(`group_pause_share_hint`, senza argomenti); countdown e durata sono
+tornati nella riga di stato standard con puntino pulsante
+(`showCountdownLine`, rimosso l'override a `false`) — lo stesso
+trattamento del percorso Bluetooth dal vivo, non più un caso a parte.
+`GroupPauseShareHeader` perde i parametri `minutes`/`seconds`/
+`durationMinutes`, non più necessari.
+
+**Pillola codice/copia**: proposte tre direzioni, scelta "solo
+alleggerire la UI, non toccare il codice stesso" (le altre due erano:
+generare codici con un alfabeto senza caratteri ambigui — 0/O, l/I/1 —
+più rischiosa da verificare senza toccare l'encoder/decoder; o lasciare
+la pillola invariata). L'intera pillola è ora il bersaglio del tocco
+(`Modifier.clickable`, non più un `TextButton` appeso accanto al
+codice) — bersaglio più grande, un solo elemento invece di due, nessuna
+etichetta "Copia" ridondante accanto a un'icona che già la dice.
+L'icona diventa uno spunto per 1500ms dopo il tocco, al posto del
+`Toast` di sistema che dava questa stessa conferma prima (rimosso, non
+affiancato: due conferme della stessa cosa). `onClickLabel` (via
+`Modifier.clickable`, non un parametro diretto di questo overload di
+`Surface` in questa versione di Material3 — primo tentativo fallito in
+compilazione, corretto) porta l'azione a chi usa TalkBack.
+
+Verificato sull'emulatore (Pixel 10 Pro AVD, flavor stable): la frase
+resta un'unica riga breve e ferma; "Begins in 1:58 · Duration: 60 min"
+compare sotto il selettore del ritardo, col puntino pulsante. Toccato
+il testo del codice (non un'icona separata): copiato negli appunti
+(confermato dal popup di sistema Android stesso, mostrato in aggiunta
+alla nostra conferma), icona sostituita da uno spunto. Full
+build/lint/test verde.
