@@ -2157,3 +2157,18 @@ il testo del codice (non un'icona separata): copiato negli appunti
 (confermato dal popup di sistema Android stesso, mostrato in aggiunta
 alla nostra conferma), icona sostituita da uno spunto. Full
 build/lint/test verde.
+
+### Follow-up: a capo forzato sulla virgola, non affidato al wrapping automatico
+
+Segnalato subito dopo il refinement sopra: la frase, tornata più corta,
+andava comunque a capo da sola su schermi stretti — ma nel punto
+sbagliato, lasciando "below"/"sotto" orfano da solo sulla seconda riga.
+`group_pause_share_hint` ora ha un `\n` esplicito dopo la virgola in
+entrambe le lingue ("Have this QR scanned,\nor share the code below" /
+"Fai scansionare questo QR,\no condividi il codice qui sotto"): due
+righe sempre, spezzate nel punto naturale della pausa, non lasciate al
+wrapping automatico che poteva tagliare altrove a seconda di larghezza
+schermo/scala del carattere.
+
+Verificato sull'emulatore: "Have this QR scanned," / "or share the code
+below" su due righe pulite. Full build/lint/test verde.
