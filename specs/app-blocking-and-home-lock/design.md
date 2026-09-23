@@ -1161,3 +1161,31 @@ respected via the same `safeDrawingPadding()` this container already
 applies to everything else), independent of the badge row above it —
 tapped it, entered the password, ended the pause successfully. Full
 build/lint/test pass.
+
+
+### Follow-up: il bottone Unlock sembra ancora toccabile mentre il dialog è aperto
+
+Segnalato subito dopo il fix precedente: "la CTA di unlock sembra
+cliccabile perché sale sopra al dialog". Non un problema di ordine —
+`PasswordVerifyDialog` usa un `AlertDialog` Material3 vero, finestra
+propria: intercetta comunque ogni tocco sotto di sé, il bottone non è
+mai davvero raggiungibile — ma di percezione. Il velo di oscuramento
+del dialog si applica in modo uniforme a tutto lo schermo, ma su un
+verde già scuro e saturo come `primary` (il colore del bottone) la
+differenza fra "dimmed" e "non dimmed" è quasi invisibile, mentre sui
+badge chiari (Phone/Calendar/Camera/Chrome) e sulla frase è evidente —
+il bottone resta l'unico elemento che sembra "acceso" a schermo,
+leggendosi come ancora toccabile anche se non lo è.
+
+Fix: `footer` nasconde il bottone quando `showUnlockDialog` è vero
+(`if (!showUnlockDialog) { Button(...) }`). Il bottone esiste solo per
+aprire questo stesso dialog, quindi mostrarlo mentre è già aperto era
+comunque ridondante, non solo fuorviante. `footerHeight` in
+`OtterAnchoredScreen` resta invariata (riserva sempre lo stesso spazio
+fisso, indipendentemente da cosa `footer` disegna in quel momento),
+quindi sparire/ricomparire non sposta nient'altro in pagina.
+
+Verificato sull'emulatore: aperto il dialog, il bottone in fondo
+scompare del tutto (nessun elemento acceso sopra il velo di
+oscuramento); annullato il dialog, il bottone ricompare esattamente
+dov'era, senza scatti di layout. Full build/lint/test verde.

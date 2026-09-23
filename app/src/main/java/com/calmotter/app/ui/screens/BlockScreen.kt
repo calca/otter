@@ -253,23 +253,39 @@ fun BlockScreen(
         // ChangePasswordScreen) — segnalato: prima stava semplicemente
         // sotto la row di badge nel flusso scorrevole, non ancorato come le
         // altre CTA a fondo pagina.
+        //
+        // **Nascosto mentre il dialog di sblocco è già aperto** — segnalato
+        // ("sembra cliccabile perché sale sopra al dialog"): non è un
+        // problema di ordine — il dialog (un `AlertDialog` reale, finestra
+        // propria) intercetta comunque ogni tocco sotto di sé — ma di
+        // percezione. Il velo di oscuramento del dialog si vede appena su
+        // un verde già scuro e saturo come `primary`, mentre sui badge
+        // chiari sopra è evidente: il bottone resta l'unico elemento a
+        // schermo che non sembra spegnersi, e per questo si legge come
+        // ancora toccabile. Il bottone serve solo ad aprire questo stesso
+        // dialog, quindi mostrarlo mentre è già aperto era comunque
+        // ridondante, non solo fuorviante — `footerHeight` resta invariata
+        // (riserva sempre lo stesso spazio, vedi sopra), quindi
+        // sparire/ricomparire non sposta nient'altro in pagina.
         footer = {
-            Button(
-                onClick = { showUnlockDialog = true },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = 12.dp, bottom = 24.dp)
-                    .height(48.dp),
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Lock,
-                    contentDescription = null,
-                    modifier = Modifier.size(18.dp),
-                )
-                Text(
-                    text = stringResource(R.string.unlock),
-                    modifier = Modifier.padding(start = 8.dp),
-                )
+            if (!showUnlockDialog) {
+                Button(
+                    onClick = { showUnlockDialog = true },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 12.dp, bottom = 24.dp)
+                        .height(48.dp),
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Lock,
+                        contentDescription = null,
+                        modifier = Modifier.size(18.dp),
+                    )
+                    Text(
+                        text = stringResource(R.string.unlock),
+                        modifier = Modifier.padding(start = 8.dp),
+                    )
+                }
             }
         },
     ) {
