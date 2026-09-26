@@ -414,3 +414,34 @@ reads doesn't remove the risk, it just makes the dead copy *currently*
 correct until the next rename drifts it again. One fewer place this
 project's own convention ("if you touch one palette, mirror the change in
 the other file") has to be remembered.
+
+
+## Sage dark-mode `primary`, `#9ED3A8`, too bright/saturated for a "calm" theme — dimmed to `#6B9E7C`
+
+Reported directly: the mint-green used as Sage's dark-mode primary read as
+an energetic brand accent, not something relaxing to look at at night —
+fair, at ~72% lightness it was closer to a highlighter than to real sage
+foliage. Replaced with a darker, more desaturated `#6B9E7C` across all four
+places this project keeps a copy of it (see "if you touch one palette,
+mirror the change in the other file" above, this palette needed the XML
+side *and* the Compose side touched in the same pass):
+
+- `values-night/colors.xml`: `sage_primary` and `sage_accent` (the popup-
+  menu/swatch copy, see that file's own header comment for why `accent`
+  duplicates `primary` here).
+- `values-night/themes.xml`: `colorPrimary`/`colorPrimaryVariant` in both
+  `Theme.CalmOtter.Sage` and `Theme.CalmOtter.Sage.WithActionBar`.
+- `CalmOtterTheme.kt`'s `SageDark`: `primary` and `secondary`.
+
+`colorOnPrimary`/`onPrimary` (`#02391A`) was left untouched — contrast
+against the new, darker primary computes to ~4.5:1 (WCAG AA for normal
+text), actually *better* than against the old, brighter primary it was
+originally paired with, so no follow-up needed there.
+
+Verified: `testStableDebugUnitTest`/`testBetaDebugUnitTest` (including the
+sync test that cross-checks this file against `CalmOtterTheme.kt`),
+`lintStableDebug`/`lintBetaDebug`, `assembleDebug` all green; installed on
+the emulator, forced dark mode (`adb shell cmd uimode night yes`),
+screenshotted Home in Sage — otter mark, "1h" chip, and the settings gear
+all render the new muted green with no readability loss, then switched
+back to light mode.

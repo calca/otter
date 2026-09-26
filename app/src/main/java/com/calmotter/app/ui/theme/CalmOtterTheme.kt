@@ -102,7 +102,10 @@ private val SageLight = run {
 
 private val SageDark = run {
     val surface = Color(0xFF151D17)
-    val primary = Color(0xFF9ED3A8)
+    // Era 0xFF9ED3A8: un menta troppo saturo/chiaro per il dark mode di
+    // un'app che dovrebbe rilassare, non un CTA acceso — segnalato
+    // direttamente. Sostituito con un sage più cupo e desaturato.
+    val primary = Color(0xFF6B9E7C)
     darkColorScheme(
         background = Color(0xFF0E1510),
         surface = surface,
@@ -113,7 +116,7 @@ private val SageDark = run {
         error = Color(0xFFE07A78),
         onError = OnError,
         surfaceContainerHigh = dialogContainerFor(primary, surface),
-        secondary = Color(0xFF9ED3A8),   // @color/*_accent
+        secondary = Color(0xFF6B9E7C),   // @color/*_accent
         tertiary = Color(0xFF2B3A30),     // @color/*_veil
         surfaceBright = Color(0xFF1B2620),
     )

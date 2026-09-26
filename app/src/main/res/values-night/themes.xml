@@ -46,8 +46,8 @@
         <item name="colorSurface">#151d17</item>
         <item name="android:textColorPrimary">#dde5dc</item>
         <item name="android:textColorSecondary">#94ac9c</item>
-        <item name="colorPrimary">#9ed3a8</item>
-        <item name="colorPrimaryVariant">#9ed3a8</item>
+        <item name="colorPrimary">#6b9e7c</item>
+        <item name="colorPrimaryVariant">#6b9e7c</item>
         <item name="colorOnPrimary">#02391a</item>
         <item name="colorError">#E07A78</item>
         <!-- Sfondo dei popup/overflow menu: senza questo, Widget.MaterialComponents.PopupMenu.Overflow
@@ -63,8 +63,8 @@
         <item name="colorSurface">#151d17</item>
         <item name="android:textColorPrimary">#dde5dc</item>
         <item name="android:textColorSecondary">#94ac9c</item>
-        <item name="colorPrimary">#9ed3a8</item>
-        <item name="colorPrimaryVariant">#9ed3a8</item>
+        <item name="colorPrimary">#6b9e7c</item>
+        <item name="colorPrimaryVariant">#6b9e7c</item>
         <item name="colorOnPrimary">#02391a</item>
         <item name="colorError">#E07A78</item>
         <!-- Popup dell'ActionBar (es. "⋮" di Cronologia): mostrato dentro un

@@ -14,7 +14,7 @@
          Stitch (#abcfb8), cioè il verde che quel sistema prevede già per
          fondo scuro — non una schiaritura inventata qui. -->
     <color name="deep_forest_primary">#abcfb8</color>
-    <color name="sage_primary">#9ed3a8</color>
+    <color name="sage_primary">#6b9e7c</color>
     <color name="dusk_sand_primary">#e3c39a</color>
     <color name="dawn_clay_primary">#f0b3a2</color>
 
@@ -24,7 +24,7 @@
          ("expected reference but got raw string"), serve passare da un
          @color/ nominato (vedi ThemeOverlay.CalmOtter.*.PopupMenu nello
          stesso file). -->
-    <color name="sage_accent">#9ed3a8</color>
+    <color name="sage_accent">#6b9e7c</color>
     <color name="sage_veil">#2b3a30</color>
     <color name="deep_forest_accent">#abcfb8</color>
     <color name="deep_forest_veil">#26332b</color>
