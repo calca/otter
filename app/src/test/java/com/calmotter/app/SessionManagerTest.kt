@@ -120,6 +120,52 @@ class SessionManagerTest {
     }
 
     /**
+     * Segnalato direttamente ("mi trovo in home page senza info della
+     * fine"): se la pausa scade mentre l'utente non c'è (qui simulato con la
+     * stessa rete di sicurezza del test sopra), la Home deve poter mostrare
+     * un riepilogo una tantum — consumePendingBackgroundSummary() deve
+     * restituirlo la prima volta, e null da lì in poi.
+     */
+    @Test
+    fun expiredSessionSelfCloseMarksPendingBackgroundSummary() {
+        val manager = SessionManager.getInstance(context)
+        manager.startSession(30)
+
+        val prefs = context.getSharedPreferences("calm_otter_session", Context.MODE_PRIVATE)
+        prefs.edit().putLong("session_end_time", System.currentTimeMillis() - 1_000L).apply()
+
+        assertFalse(manager.isSessionActive())
+
+        // effectiveMinutes qui è ~0, non plannedMinutes (30): il test avvia
+        // e chiude la sessione nello stesso istante, sposta solo
+        // KEY_END_TIME nel passato — vedi il commento sul test gemello sopra
+        // per perché è questo il modo giusto di simulare un allarme mancato.
+        // Quel che conta qui è solo che il riepilogo esista e si consumi
+        // una volta sola.
+        val summary = manager.consumePendingBackgroundSummary()
+        assertTrue(summary != null)
+        assertTrue(manager.consumePendingBackgroundSummary() == null)
+    }
+
+    /**
+     * Contrario del test sopra: se è BlockScreen (l'utente con lo schermo
+     * davanti) a chiudere per primo la sessione, senza passare da
+     * markBackgroundSummary, la guardia di idempotenza rende la successiva
+     * chiamata di SessionExpiryReceiver un no-op — il riepilogo non deve
+     * comparire, l'utente c'era già.
+     */
+    @Test
+    fun endSessionSeenLiveDoesNotMarkPendingBackgroundSummary() {
+        val manager = SessionManager.getInstance(context)
+        manager.startSession(60)
+
+        manager.endSession(completedNaturally = true)
+        manager.endSession(completedNaturally = true, markBackgroundSummary = true)
+
+        assertTrue(manager.consumePendingBackgroundSummary() == null)
+    }
+
+    /**
      * TODO.md "1.1": a scadenza naturale sia SessionExpiryReceiver (l'allarme
      * di sistema) sia il loop del conto alla rovescia di BlockScreen
      * chiamano endSession(), indipendentemente l'uno dall'altro — avere lo

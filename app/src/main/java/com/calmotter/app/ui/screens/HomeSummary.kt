@@ -11,18 +11,24 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.platform.LocalLocale
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.calmotter.app.R
+import com.calmotter.app.SessionManager
 import com.calmotter.app.SessionRecord
 import com.calmotter.app.ui.mascot.SprigMark
+import java.text.SimpleDateFormat
 import java.util.Calendar
+import java.util.Date
+import java.util.Locale
 
 /**
  * TODO.md "7": estratto da MainScreen.kt — la riga di riepilogo
@@ -48,11 +54,20 @@ import java.util.Calendar
  * se è di almeno un giorno, altrimenti il riepilogo della settimana. La
  * forma della settimana, quella sì, diventa un numero da leggere invece di
  * una sagoma da guardare: resta a un tap di distanza in Cronologia.
+ *
+ * [pendingBackgroundSummary] non nullo — la pausa è finita mentre il
+ * telefono era chiuso, senza che nessuno schermo di fine pausa fosse lì a
+ * raccontarlo dal vivo (vedi SessionManager.endSession()) — sostituisce per
+ * questa sola apertura il testo streak/settimana con l'orario e la durata
+ * di quella pausa: stessa riga, stesso tap verso Cronologia, nessun
+ * elemento nuovo aggiunto alla Home. Segnalato direttamente ("mi trovo in
+ * home page senza info della fine").
  */
 @Composable
 internal fun SessionsSummaryLink(
     streakDays: Int,
     weekSummary: WeekSummary,
+    pendingBackgroundSummary: SessionManager.PendingBackgroundSummary? = null,
     onHistory: () -> Unit,
 ) {
     // Il colore del link fa il lavoro che faceva il contenitore. Una riga
@@ -85,7 +100,9 @@ internal fun SessionsSummaryLink(
         SprigMark(markSize = 14.dp)
         Spacer(modifier = Modifier.width(6.dp))
         Text(
-            text = if (streakDays >= 1) {
+            text = if (pendingBackgroundSummary != null) {
+                pendingSummaryText(pendingBackgroundSummary)
+            } else if (streakDays >= 1) {
                 pluralStringResource(R.plurals.streak_days, streakDays, streakDays)
             } else {
                 weeklySummaryText(weekSummary)
@@ -170,4 +187,19 @@ private fun formatMinutes(minutes: Int): String {
         m == 0 -> "${h}h"
         else -> "${h}h ${m}m"
     }
+}
+
+/** Stesso pattern di rememberHistoryDateFormat() in HistoryScreen.kt (non
+ * condiviso: quella è privata a quel file), solo "HH:mm" — qui serve
+ * l'orario in cui la pausa è finita, non anche il giorno: è sempre "oggi",
+ * dato che il riepilogo si consuma alla prima apertura utile. */
+@Composable
+private fun pendingSummaryText(summary: SessionManager.PendingBackgroundSummary): String {
+    val locale = LocalLocale.current.platformLocale
+    val timeFormat = remember(locale) { SimpleDateFormat("HH:mm", locale) }
+    return stringResource(
+        R.string.home_pending_summary,
+        timeFormat.format(Date(summary.endTimeMs)),
+        formatMinutes(summary.effectiveMinutes),
+    )
 }

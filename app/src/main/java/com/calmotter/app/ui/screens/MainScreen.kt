@@ -202,6 +202,13 @@ fun MainScreen(
     var totalMillis by remember { mutableLongStateOf(0L) }
     var streakDays by remember { mutableIntStateOf(0) }
     var weekSummary by remember { mutableStateOf(WeekSummary(0, 0)) }
+    // Non azzerato a ogni refresh (a differenza degli altri campi qui
+    // sopra): consumePendingBackgroundSummary() è distruttivo, la seconda
+    // chiamata torna sempre null — se lo riassegnassimo sempre, un secondo
+    // resumeSignal nella stessa apertura (es. tornando dalle Impostazioni)
+    // farebbe sparire il riepilogo appena mostrato. `?: pendingSummary`
+    // mantiene l'ultimo valore letto finché non riparte una nuova pausa.
+    var pendingSummary by remember { mutableStateOf<SessionManager.PendingBackgroundSummary?>(null) }
 
     fun refreshDerivedState() {
         accessibilityOk = isAccessibilityServiceEnabled()
@@ -212,6 +219,7 @@ fun MainScreen(
         val history = sessionHistoryManager.getAll()
         streakDays = SessionStreak.currentStreakDays(history)
         weekSummary = weekSummaryOf(history)
+        pendingSummary = sessionManager.consumePendingBackgroundSummary() ?: pendingSummary
     }
 
     // Rieseguito a ogni onResume() dell'Activity (resumeSignal incrementato
@@ -321,6 +329,7 @@ fun MainScreen(
             SessionsSummaryLink(
                 streakDays = streakDays,
                 weekSummary = weekSummary,
+                pendingBackgroundSummary = pendingSummary,
                 onHistory = onHistory,
             )
 

@@ -91,6 +91,11 @@
     <string name="notification_channel_description">Mostra lo stato della sessione di pausa attiva</string>
 
     <string name="history_all_sessions">Tutte le sessioni</string>
+    <!-- Riga streak/settimana in Home, per una sola apertura: la pausa
+         precedente è finita mentre il telefono era chiuso, senza che nessuno
+         schermo di fine pausa fosse lì a raccontarlo dal vivo. %1$s è l'ora
+         (es. "14:32"), %2$s la durata effettiva (es. "1h 5m"). -->
+    <string name="home_pending_summary">Pausa finita alle %1$s (%2$s)</string>
     <string name="weekly_summary_none">Nessuna sessione questa settimana</string>
     <!-- quantity="one" ignora %1$d apposta: è sempre "1", quindi il numero
          non serve scriverlo. -->

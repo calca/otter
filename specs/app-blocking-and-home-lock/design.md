@@ -1189,3 +1189,74 @@ Verificato sull'emulatore: aperto il dialog, il bottone in fondo
 scompare del tutto (nessun elemento acceso sopra il velo di
 oscuramento); annullato il dialog, il bottone ricompare esattamente
 dov'era, senza scatti di layout. Full build/lint/test verde.
+
+
+## Bug: pausa finita a telefono chiuso, nessuna traccia in Home
+
+Segnalato direttamente: "quando finisce la sessione, e ho il telefono
+chiuso, alla riapertura del telefono mi trovo in home page senza info
+della fine/messaggio o altro". Confermato investigando il codice — quando
+l'allarme di sistema (`SessionExpiryReceiver`) o la rete di sicurezza di
+`SessionManager.isSessionActive()` (per un allarme *inexact* arrivato
+tardi, vedi `scheduleAutoExpiry`) chiudono la pausa senza che
+`BlockScreen` fosse a schermo a viverne il conto alla rovescia, non
+succedeva assolutamente nulla di visibile: `endSession()` ripristina DND,
+cancella l'allarme, ferma il `SessionForegroundService` (che tra l'altro
+*cancella* la notifica "pausa in corso" invece di trasformarla in un
+riepilogo) e aggiorna il widget — tutto silenzioso. Riaprendo il telefono
+si arriva dritti sulla `MainScreen` di sempre, senza nulla che distingua
+"la pausa è appena finita mentre non c'ero" da "non ho mai fatto una
+pausa oggi".
+
+`## The session toasts are gone` qui sopra aveva già stabilito che una
+notifica/toast per l'inizio/fine pausa è rumore quando la transizione di
+schermata racconta già la storia da sola — ma quel ragionamento vale solo
+se l'utente è davvero lì a vedere la transizione. Il caso "telefono
+chiuso" non era mai stato considerato: lì la transizione non la vede
+nessuno.
+
+Tra notifica push (richiede un nuovo canale + permesso `POST_NOTIFICATIONS`
+su Android 13+, frizione che l'app non ha mai chiesto finora) e un
+riepilogo "una tantum" letto da `SessionHistoryManager` (già scritto ad
+ogni fine sessione, mai consultato per questo), scelta la seconda: zero
+permessi nuovi, zero elementi aggiunti alla Home, coerente con lo stile
+già scelto sopra.
+
+**Implementazione**: `SessionManager.endSession()` guadagna un parametro
+`markBackgroundSummary: Boolean = false` — quando true (solo dalle due
+chiamate che *non* passano da un `BlockScreen` dal vivo:
+`SessionExpiryReceiver` e la rete di sicurezza in `isSessionActive()`)
+scrive `endTimeMs`/`effectiveMinutes` in due nuove chiavi delle
+`SharedPreferences` esistenti (`session_pending_summary_end`,
+`session_pending_summary_minutes`). Grazie alla guardia di idempotenza
+già esistente in `endSession()` (vedi la nota su TODO.md "1.1" più sopra
+nel file), se `BlockScreen` ha già chiuso la sessione lui stesso (l'utente
+c'era, ha visto l'animazione dell'anello) la seconda chiamata con
+`markBackgroundSummary = true` è un no-op e il segnale non viene mai
+scritto — nessun doppio annuncio per lo stesso evento.
+
+`SessionManager.consumePendingBackgroundSummary()` legge e cancella
+quelle due chiavi in un colpo solo: la Home (`MainScreen`'s
+`refreshDerivedState()`) la chiama a ogni `resumeSignal`, tiene il
+risultato in uno `remember` che *non* si azzera sui refresh successivi
+(`?: pendingSummary`, altrimenti un secondo resume nella stessa apertura
+— es. tornando dalle Impostazioni — avrebbe fatto sparire il riepilogo
+appena mostrato), e lo passa a `SessionsSummaryLink` (`HomeSummary.kt`).
+Lì, se non nullo, sostituisce per quella sola visualizzazione il testo
+streak/settimana con "Pausa finita alle HH:mm (durata)" — stessa riga,
+stesso tap verso Cronologia, nessun contenitore nuovo. Torna
+automaticamente al testo normale alla pausa successiva: `MainScreen`
+viene smontato quando parte una nuova sessione (sostituito da
+`BlockScreen`), quindi il suo `remember` si perde da solo — nessun reset
+manuale necessario.
+
+Verificato: `testStableDebugUnitTest`/`testBetaDebugUnitTest` (due nuovi
+test in `SessionManagerTest`, uno per il consumo una-tantum, uno per la
+non-marcatura quando `BlockScreen` ha già chiuso la sessione dal vivo),
+`lintStableDebug`/`lintBetaDebug`, `assembleDebug` tutti verdi. Sul
+Pixel 10 Pro AVD: avviata una pausa, spostato `session_end_time` nel
+passato via le `SharedPreferences` dirette (stessa tecnica di iniezione
+usata altrove in questo file) per simulare un allarme mancato a telefono
+chiuso, riaperta l'app — la riga streak mostra "Pausa finita alle 00:38
+(1h)" al posto di "1 giorno di fila"; chiusa e riaperta una seconda
+volta, torna correttamente al testo streak normale.

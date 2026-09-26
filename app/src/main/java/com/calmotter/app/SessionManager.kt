@@ -19,13 +19,19 @@ class SessionManager private constructor(private val context: Context) {
 
     /**
      * Vero se la sessione è attiva. Se il tempo impostato è già scaduto
-     * (rete di sicurezza nel caso l'allarme di sistema non sia scattato),
-     * la sessione viene chiusa automaticamente qui.
+     * (rete di sicurezza nel caso l'allarme di sistema non sia scattato,
+     * inevitabilmente inesatto — vedi [scheduleAutoExpiry]), la sessione
+     * viene chiusa automaticamente qui. `markBackgroundSummary = true`:
+     * chi chiama questo getter sta *chiedendo* se una pausa è attiva, non
+     * guardando dal vivo un conto alla rovescia arrivare a zero (quello è
+     * BlockScreen, che chiama endSession() direttamente, non passa di qui)
+     * — se è questa rete di sicurezza a scoprire la scadenza, per
+     * definizione l'utente non c'era. Vedi endSession().
      */
     fun isSessionActive(): Boolean {
         if (!prefs.getBoolean(KEY_ACTIVE, false)) return false
         if (System.currentTimeMillis() >= prefs.getLong(KEY_END_TIME, 0L)) {
-            endSession(completedNaturally = true)
+            endSession(completedNaturally = true, markBackgroundSummary = true)
             return false
         }
         return true
@@ -108,6 +114,15 @@ class SessionManager private constructor(private val context: Context) {
     /**
      * Termina la sessione e la registra nella cronologia.
      * @param completedNaturally true se scaduta per timer, false se sbloccata con password
+     * @param markBackgroundSummary true solo dalla chiamata di
+     * [SessionExpiryReceiver]: segna che è stato l'allarme di sistema a
+     * chiudere la pausa, non il conto alla rovescia di [ui.screens.BlockScreen]
+     * — l'unico caso in cui l'utente non ha visto nessuna schermata di fine
+     * pausa dal vivo. Grazie alla guardia di idempotenza qui sotto, se
+     * BlockScreen ha già chiuso la sessione (l'ha vista lui) questa seconda
+     * chiamata è un no-op e il segnale non viene mai scritto — la Home
+     * mostra il riepilogo una tantum solo quando serve davvero. Letto da
+     * [consumePendingBackgroundSummary].
      *
      * Idempotente: se la sessione è già chiusa, non fa nulla. Senza questa
      * guardia una pausa scaduta naturalmente veniva registrata due volte —
@@ -117,7 +132,7 @@ class SessionManager private constructor(private val context: Context) {
      * blocco aperto proprio quando scade è il caso comune, non un caso
      * limite. Segnalato in TODO.md ("1.1").
      */
-    fun endSession(completedNaturally: Boolean = false) {
+    fun endSession(completedNaturally: Boolean = false, markBackgroundSummary: Boolean = false) {
         if (!prefs.getBoolean(KEY_ACTIVE, false)) return
 
         val startTime = prefs.getLong(KEY_START_TIME, 0L)
@@ -138,7 +153,7 @@ class SessionManager private constructor(private val context: Context) {
             )
         }
 
-        prefs.edit()
+        val editor = prefs.edit()
             .putBoolean(KEY_ACTIVE, false)
             .remove(KEY_START_TIME)
             .remove(KEY_PLANNED_MINUTES)
@@ -146,11 +161,36 @@ class SessionManager private constructor(private val context: Context) {
             .remove(KEY_GROUP_TAG)
             .remove(KEY_IS_HOST)
             .remove(KEY_END_TIME)
-            .apply()
+        if (markBackgroundSummary) {
+            editor
+                .putLong(KEY_PENDING_SUMMARY_END, System.currentTimeMillis())
+                .putInt(KEY_PENDING_SUMMARY_MINUTES, effectiveMinutes)
+        }
+        editor.apply()
         restoreDnd()
         cancelAutoExpiry()
         SessionForegroundService.stop(context)
         PauseWidgetProvider.updateAllWidgets(context)
+    }
+
+    /** Dettagli del riepilogo "pausa finita mentre eri via" — vedi [endSession]. */
+    data class PendingBackgroundSummary(val endTimeMs: Long, val effectiveMinutes: Int)
+
+    /**
+     * Consuma (legge e cancella) il riepilogo in sospeso, se c'è: la Home lo
+     * chiama una volta per apertura e mostra il risultato al posto della
+     * riga streak/settimana finché non riparte una nuova pausa — la seconda
+     * chiamata torna sempre null, così il riepilogo si vede una sola volta.
+     */
+    fun consumePendingBackgroundSummary(): PendingBackgroundSummary? {
+        val endTimeMs = prefs.getLong(KEY_PENDING_SUMMARY_END, 0L)
+        if (endTimeMs == 0L) return null
+        val minutes = prefs.getInt(KEY_PENDING_SUMMARY_MINUTES, 0)
+        prefs.edit()
+            .remove(KEY_PENDING_SUMMARY_END)
+            .remove(KEY_PENDING_SUMMARY_MINUTES)
+            .apply()
+        return PendingBackgroundSummary(endTimeMs, minutes)
     }
 
     /**
@@ -326,6 +366,12 @@ class SessionManager private constructor(private val context: Context) {
         private const val KEY_END_TIME = "session_end_time"
         private const val KEY_PLANNED_MINUTES = "session_planned_minutes"
         private const val KEY_IS_GROUP = "session_is_group"
+        // Riepilogo "una tantum" per la Home — vedi endSession()/
+        // consumePendingBackgroundSummary(). Sopravvivono a endSession()
+        // apposta: quella li scrive, solo consumePendingBackgroundSummary()
+        // li cancella.
+        private const val KEY_PENDING_SUMMARY_END = "session_pending_summary_end"
+        private const val KEY_PENDING_SUMMARY_MINUTES = "session_pending_summary_minutes"
         // Policy DND dell'utente catturata da captureDndForRestore() prima
         // di applicare quella "silenziosa" della pausa — vedi restoreDnd().
         private const val KEY_PREV_DND_CAPTURED = "session_prev_dnd_captured"

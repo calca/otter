@@ -11,6 +11,11 @@ import android.content.Intent
  */
 class SessionExpiryReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
-        SessionManager.getInstance(context).endSession(completedNaturally = true)
+        // markBackgroundSummary = true: se BlockScreen ha già chiuso la
+        // sessione lui stesso (l'utente c'era), endSession() qui è un no-op
+        // per la guardia di idempotenza e il segnale non viene scritto — solo
+        // quando è davvero questo allarme a terminare la pausa la Home
+        // mostra il riepilogo una tantum. Vedi SessionManager.endSession().
+        SessionManager.getInstance(context).endSession(completedNaturally = true, markBackgroundSummary = true)
     }
 }
