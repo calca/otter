@@ -7,8 +7,8 @@
         <item name="colorSurface">#101711</item>
         <item name="android:textColorPrimary">#e0eae2</item>
         <item name="android:textColorSecondary">#94ac9c</item>
-        <item name="colorPrimary">#abcfb8</item>
-        <item name="colorPrimaryVariant">#abcfb8</item>
+        <item name="colorPrimary">#639786</item>
+        <item name="colorPrimaryVariant">#639786</item>
         <item name="colorOnPrimary">#00281a</item>
         <item name="colorError">#E07A78</item>
         <!-- Sfondo dei popup/overflow menu: senza questo, Widget.MaterialComponents.PopupMenu.Overflow
@@ -24,8 +24,8 @@
         <item name="colorSurface">#101711</item>
         <item name="android:textColorPrimary">#e0eae2</item>
         <item name="android:textColorSecondary">#94ac9c</item>
-        <item name="colorPrimary">#abcfb8</item>
-        <item name="colorPrimaryVariant">#abcfb8</item>
+        <item name="colorPrimary">#639786</item>
+        <item name="colorPrimaryVariant">#639786</item>
         <item name="colorOnPrimary">#00281a</item>
         <item name="colorError">#E07A78</item>
         <!-- Popup dell'ActionBar (es. "⋮" di Cronologia): mostrato dentro un
@@ -85,8 +85,8 @@
         <item name="colorSurface">#1c1711</item>
         <item name="android:textColorPrimary">#ece5da</item>
         <item name="android:textColorSecondary">#bda98d</item>
-        <item name="colorPrimary">#e3c39a</item>
-        <item name="colorPrimaryVariant">#e3c39a</item>
+        <item name="colorPrimary">#b59473</item>
+        <item name="colorPrimaryVariant">#b59473</item>
         <item name="colorOnPrimary">#3a2a16</item>
         <item name="colorError">#E07A78</item>
         <item name="popupMenuBackground">?attr/colorSurface</item>
@@ -98,8 +98,8 @@
         <item name="colorSurface">#1c1711</item>
         <item name="android:textColorPrimary">#ece5da</item>
         <item name="android:textColorSecondary">#bda98d</item>
-        <item name="colorPrimary">#e3c39a</item>
-        <item name="colorPrimaryVariant">#e3c39a</item>
+        <item name="colorPrimary">#b59473</item>
+        <item name="colorPrimaryVariant">#b59473</item>
         <item name="colorOnPrimary">#3a2a16</item>
         <item name="colorError">#E07A78</item>
         <item name="actionBarPopupTheme">@style/ThemeOverlay.CalmOtter.DuskSand.PopupMenu</item>
@@ -112,8 +112,8 @@
         <item name="colorSurface">#1e1512</item>
         <item name="android:textColorPrimary">#efe2dd</item>
         <item name="android:textColorSecondary">#c79b8d</item>
-        <item name="colorPrimary">#f0b3a2</item>
-        <item name="colorPrimaryVariant">#f0b3a2</item>
+        <item name="colorPrimary">#bf7969</item>
+        <item name="colorPrimaryVariant">#bf7969</item>
         <item name="colorOnPrimary">#3e1a12</item>
         <item name="colorError">#E07A78</item>
         <item name="popupMenuBackground">?attr/colorSurface</item>
@@ -125,8 +125,8 @@
         <item name="colorSurface">#1e1512</item>
         <item name="android:textColorPrimary">#efe2dd</item>
         <item name="android:textColorSecondary">#c79b8d</item>
-        <item name="colorPrimary">#f0b3a2</item>
-        <item name="colorPrimaryVariant">#f0b3a2</item>
+        <item name="colorPrimary">#bf7969</item>
+        <item name="colorPrimaryVariant">#bf7969</item>
         <item name="colorOnPrimary">#3e1a12</item>
         <item name="colorError">#E07A78</item>
         <item name="actionBarPopupTheme">@style/ThemeOverlay.CalmOtter.DawnClay.PopupMenu</item>

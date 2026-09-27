@@ -10,13 +10,22 @@
          values/colors.xml continua a valere anche in dark mode
          (values-night/themes.xml ha i propri valori scuri inline, non
          passa da colors.xml — vedi specs/multi-theme-system/design.md). -->
-    <!-- Deep Forest in scuro: primary = `inverse-primary` del design system
-         Stitch (#abcfb8), cioè il verde che quel sistema prevede già per
-         fondo scuro — non una schiaritura inventata qui. -->
-    <color name="deep_forest_primary">#abcfb8</color>
+    <!-- Deep Forest in scuro: partiva da `inverse-primary` del design system
+         Stitch (#abcfb8, il verde che quel sistema prevedeva per fondo
+         scuro) — smorzato come gli altri tre qui sotto, vedi commento
+         "CTA troppo brillanti" più in basso. -->
+    <color name="deep_forest_primary">#639786</color>
+    <!-- CTA troppo brillanti in dark mode, segnalato direttamente: tutti e
+         quattro questi primary erano pastelli a ~72-79% di luminosità (quasi
+         fluorescenti su sfondo scuro, non rilassanti). Smorzati mantenendo
+         la stessa famiglia di tonalità del primary chiaro corrispondente
+         (values/colors.xml), luminosità/saturazione abbassate con lo stesso
+         rapporto usato per Sage (il primo segnalato), contrasto contro il
+         colorOnPrimary esistente ricontrollato ≥4.5:1 su ognuno — vedi
+         specs/multi-theme-system/design.md. -->
     <color name="sage_primary">#6b9e7c</color>
-    <color name="dusk_sand_primary">#e3c39a</color>
-    <color name="dawn_clay_primary">#f0b3a2</color>
+    <color name="dusk_sand_primary">#b59473</color>
+    <color name="dawn_clay_primary">#bf7969</color>
 
     <!-- Stessi valori di colorSurface inline in values-night/themes.xml, come
          @color/ invece che #hex letterale: popupMenuBackground è un attr
@@ -26,7 +35,7 @@
          stesso file). -->
     <color name="sage_accent">#6b9e7c</color>
     <color name="sage_veil">#2b3a30</color>
-    <color name="deep_forest_accent">#abcfb8</color>
+    <color name="deep_forest_accent">#639786</color>
     <color name="deep_forest_veil">#26332b</color>
     <color name="dusk_sand_accent">#c9a880</color>
     <color name="dusk_sand_veil">#33291d</color>

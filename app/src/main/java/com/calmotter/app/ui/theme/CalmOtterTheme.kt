@@ -149,7 +149,11 @@ private val DuskSandLight = run {
 
 private val DuskSandDark = run {
     val surface = Color(0xFF1C1711)
-    val primary = Color(0xFFE3C39A)
+    // Era 0xFFE3C39A: stesso problema di SageDark qui sopra ("CTA troppo
+    // brillanti in dark mode", segnalato direttamente) — un biscotto/tan
+    // troppo chiaro e saturo. Stessa hue del primary chiaro (@color/
+    // dusk_sand_primary, #61462d), luminosità/saturazione smorzate.
+    val primary = Color(0xFFB59473)
     darkColorScheme(
         background = Color(0xFF15110B),
         surface = surface,
@@ -189,7 +193,11 @@ private val DawnClayLight = run {
 
 private val DawnClayDark = run {
     val surface = Color(0xFF1E1512)
-    val primary = Color(0xFFF0B3A2)
+    // Era 0xFFF0B3A2: stesso problema di SageDark qui sopra ("CTA troppo
+    // brillanti in dark mode", segnalato direttamente) — un salmone troppo
+    // chiaro e saturo. Stessa hue del primary chiaro (@color/
+    // dawn_clay_primary, #6e352b), luminosità/saturazione smorzate.
+    val primary = Color(0xFFBF7969)
     darkColorScheme(
         background = Color(0xFF170F0C),
         surface = surface,
@@ -227,7 +235,12 @@ private val DeepForestLight = run {
 
 private val DeepForestDark = run {
     val surface = Color(0xFF101711)
-    val primary = Color(0xFFABCFB8)
+    // Era 0xFFABCFB8: stesso problema di SageDark qui sopra ("CTA troppo
+    // brillanti in dark mode", segnalato direttamente) — un menta troppo
+    // chiaro e saturo (era l'inverse-primary originale del design system
+    // Stitch, pensato per un contesto diverso). Hue leggermente più fredda
+    // di Sage per restare distinguibile, luminosità/saturazione smorzate.
+    val primary = Color(0xFF639786)
     darkColorScheme(
         background = Color(0xFF0B110D),
         surface = surface,
@@ -238,7 +251,7 @@ private val DeepForestDark = run {
         error = Color(0xFFE07A78),
         onError = OnError,
         surfaceContainerHigh = dialogContainerFor(primary, surface),
-        secondary = Color(0xFFABCFB8),   // @color/*_accent
+        secondary = Color(0xFF639786),   // @color/*_accent
         tertiary = Color(0xFF26332B),     // @color/*_veil
         surfaceBright = Color(0xFF17211A),
     )

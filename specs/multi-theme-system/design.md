@@ -445,3 +445,74 @@ the emulator, forced dark mode (`adb shell cmd uimode night yes`),
 screenshotted Home in Sage — otter mark, "1h" chip, and the settings gear
 all render the new muted green with no readability loss, then switched
 back to light mode.
+
+
+### Follow-up: the other three dark-mode primaries had the exact same problem
+
+Reported directly right after the Sage fix above ("anche gli altri temi,
+in dark hanno problemi con il colore delle CTA"). Checked the other three
+dark-mode primaries and found the same pattern: `Deep Forest`'s `#ABCFB8`,
+`Dusk Sand`'s `#E3C39A`, and `Dawn Clay`'s `#F0B3A2` all sat at ~72–79%
+lightness — the same pastel-highlighter territory as Sage's original
+`#9ED3A8`, just in a different hue per palette. Deep Forest's value had
+extra history: it was never invented for this app, it's the literal
+`inverse-primary` token from the Stitch design system that seeded this
+palette (see that color's own comment in `values-night/colors.xml`) —
+correct for whatever context Stitch designed it for, not necessarily for
+this app's "calm at night" requirement.
+
+Fixed the same way as Sage, computed rather than eyeballed: took each
+palette's own *light-mode* primary hue (`values/colors.xml`:
+`deep_forest_primary` `#1B3B2B`, `dusk_sand_primary` `#61462D`,
+`dawn_clay_primary` `#6E352B`) as the hue anchor, then applied the same
+lightness/saturation reduction ratio Sage's fix used (roughly ×0.72 on L,
+×0.55 on S, derived by comparing Sage's own before/after HSL) to each
+palette's *old* bright dark-mode primary. Deep Forest's hue was nudged a
+few degrees cooler/bluer than Sage's new `#6B9E7C` specifically so the two
+greens stay visually distinct from each other, matching the "Deep Forest
+is cooler, Sage is warmer" relationship the light-mode primaries already
+have. Resulting values, each re-verified by computing WCAG contrast
+against that palette's existing (untouched) `colorOnPrimary`/`onPrimary`:
+
+| Palette    | Old (dark)  | New (dark)  | Contrast vs `onPrimary` |
+|------------|-------------|-------------|--------------------------|
+| Deep Forest| `#ABCFB8`   | `#639786`   | 4.78:1 vs `#00281A`      |
+| Dusk Sand  | `#E3C39A`   | `#B59473`   | 4.89:1 vs `#3A2A16`      |
+| Dawn Clay  | `#F0B3A2`   | `#BF7969`   | 4.52:1 vs `#3E1A12`      |
+
+All three clear WCAG AA for normal text (≥4.5:1) — Sage's own `#6B9E7C`
+computes to ~4.55:1 against `#02391A` for reference, so the whole set is
+now consistently at or above that bar (better than before the fix in
+every case, since the old bright primaries were paired with the same dark
+`onPrimary` values and never had contrast checked against them).
+
+Same four places touched per palette as Sage's fix, all three in the same
+pass:
+
+- `values-night/colors.xml`: `deep_forest_primary`, `dusk_sand_primary`,
+  `dawn_clay_primary`, plus `deep_forest_accent` (mirrors `primary` here
+  exactly like `sage_accent` does — `dusk_sand_accent`/`dawn_clay_accent`
+  were *not* touched, they already held a distinct, separately-muted
+  value in both colors.xml and `CalmOtterTheme.kt`'s `secondary`, unlike
+  Sage/Deep Forest where accent duplicates primary).
+- `values-night/themes.xml`: `colorPrimary`/`colorPrimaryVariant` in all
+  three palettes' `Base`/`.Block` and `.WithActionBar` styles (8 lines
+  total, replaced with `sed` across the three old hex values and diffed
+  afterward to confirm only those 8 lines changed).
+- `CalmOtterTheme.kt`: `primary` in `DeepForestDark`/`DuskSandDark`/
+  `DawnClayDark`, plus `secondary` in `DeepForestDark` (mirrors `primary`
+  like Sage's `secondary` does; `DuskSandDark`/`DawnClayDark`'s
+  `secondary` already held their own distinct accent value, left alone).
+
+Verified: full `testStableDebugUnitTest`/`testBetaDebugUnitTest`
+(including the XML/Compose sync test)/`lintStableDebug`/
+`lintBetaDebug`/`assembleDebug` green. On the emulator: forced dark mode,
+switched through all four palettes via direct `SharedPreferences`
+injection (`calm_otter_theme`/`selected_theme`, same technique as the
+session-state injection used elsewhere in this project's testing
+history), screenshotted each — Deep Forest reads as a cooler muted
+teal-green distinguishable from Sage's warmer muted green, Dusk Sand
+as a caramel/toffee tan instead of a pale biscuit, Dawn Clay as a muted
+terracotta instead of a bright salmon; none of the four reads as
+"neon"/highlighter-bright anymore, none lost text/icon legibility on top.
+Switched back to light mode afterward.
