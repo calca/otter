@@ -8,14 +8,13 @@ Restano due cose scelte di non fare ora, più un avviso di lint.
 Convenzioni: **Verificato** = letto o riprodotto; **Sospetto** = non eseguito.
 Sforzo: **S** (meno di un'ora), **M** (un pomeriggio).
 
-## 1. Rilascio degli altri allo sblocco anticipato, non provato su device — **S**
+## 1. ~~Rilascio degli altri allo sblocco anticipato~~ — fatto
 
-*Sospetto (nessun bug noto, solo non verificato).* Dopo `fbabbec` il passo
-di rilascio compare solo quando l'host sblocca con la password prima della
-fine. La scadenza naturale è stata verificata sull'emulatore, lo sblocco
-anticipato no (serve impostare una password). Da fare: provarlo e, se
-possibile, estrarre la condizione `canReleaseOthers` in una funzione pura
-testabile, come per `BlockPolicy`.
+La condizione e tutti i modi di finire la pausa sono ora in
+`BlockSessionController`, coperti da `BlockSessionControllerTest` (host con
+e senza compagni, ospite, token giusto e sbagliato, NFC assente, scadenza
+naturale, uscita lenta). Resta non provato solo il gesto fisico fra due
+telefoni, che l'emulatore non ha.
 
 ## 2. Screenshot test delle schermate principali — **M**
 

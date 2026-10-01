@@ -3,15 +3,13 @@ package com.calmotter.app.ui.screens
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.runtime.mutableFloatStateOf
-import com.calmotter.app.EndReason
+import com.calmotter.app.BlockSessionController
 import com.calmotter.app.SlowExitManager
 import com.calmotter.app.TogetherActivities
-import com.calmotter.app.isBreathingPause
 import com.calmotter.app.nfc.GroupPauseHceService
 import com.calmotter.app.bluetooth.groupPauseUnlockToken
 import androidx.compose.material3.TextButton
 import com.calmotter.app.nfc.GroupPauseNfcReader
-import com.calmotter.app.bluetooth.parseGroupPauseUnlockToken
 import androidx.compose.runtime.DisposableEffect
 import android.os.Looper
 import android.os.Handler
@@ -123,29 +121,37 @@ fun BlockScreen(
     val context = LocalContext.current
 
     var showUnlockDialog by remember { mutableStateOf(false) }
+    // Le decisioni (chi rilascia chi, come finisce la pausa, avanzamento,
+    // respiro) stanno in BlockSessionController, provato a parte; qui solo
+    // lo stato di ciò che si vede. Creato una volta: legge lo stato di gruppo
+    // finché la pausa è in corso, perché endSession() lo azzera.
+    val activity = context as? Activity
+    val controller = remember {
+        BlockSessionController(
+            session = sessionManager,
+            slowExit = SlowExitManager.getInstance(context),
+            nfcAvailable = activity != null && NfcAdapter.getDefaultAdapter(context) != null,
+        )
+    }
+    val mainHandler = remember { Handler(Looper.getMainLooper()) }
+
     // Uscita lenta (specs/slow-exit/): conferma, e scadenza dell'attesa in
     // corso (0 = nessuna). La scadenza vive in SessionManager, non qui: deve
     // sopravvivere all'uscita dalla schermata e al riavvio.
-    val slowExitManager = remember { SlowExitManager.getInstance(context) }
     var confirmingSlowExit by remember { mutableStateOf(false) }
-    var slowExitDeadline by remember { mutableLongStateOf(sessionManager.slowExitDeadline()) }
+    var slowExitDeadline by remember { mutableLongStateOf(controller.slowExitDeadline()) }
     var slowExitProgress by remember { mutableFloatStateOf(0f) }
     var remainingText by remember { mutableStateOf("") }
     // Millisecondi grezzi (non solo il testo già formattato) servono per
-    // l'anello di avanzamento condiviso con la Home — vedi [ProgressRing] in
-    // MainScreen.kt. totalMillis non cambia durante la sessione, letto una
-    // volta sola: questo Composable viene sempre ricomposto da capo quando si
-    // entra in questo stato (vedi MainActivity.enterBlockScreen()).
-    val totalMillis = remember { sessionManager.totalMillis() }
-    var remainingMillisState by remember { mutableLongStateOf(sessionManager.remainingMillis()) }
+    // l'anello di avanzamento condiviso con la Home — vedi [ProgressRing].
+    var remainingMillisState by remember { mutableLongStateOf(controller.remainingMillis()) }
 
     // Pausa respiro (≤ 10 minuti, specs/breathing-pause/): l'anello respira
     // al posto di quello di avanzamento e le parole del respiro prendono il
-    // posto della riga del tempo; la frase non c'è. Dipende dalla durata e non da un'impostazione, così
-    // respira anche una pausa breve partita dal widget o dal riquadro. Con le
-    // animazioni di sistema disattivate l'anello resta fermo e il testo
-    // invita solo a respirare lentamente.
-    val breathing = remember { isBreathingPause(totalMillis) }
+    // posto della riga del tempo; la frase non c'è. Con le animazioni di
+    // sistema disattivate l'anello resta fermo e il testo invita solo a
+    // respirare lentamente.
+    val breathing = controller.isBreathing
     val reduceMotion = remember { animationsDisabled(context) }
     val breathClock = if (breathing && !reduceMotion) rememberBreathClock() else null
     // derivedStateOf: il testo cambia due volte per ciclo, non a ogni scatto
@@ -154,39 +160,19 @@ fun BlockScreen(
         derivedStateOf { breathClock?.let { isInhaling(it.value) } }
     }
 
+    // Non null = mostra il passo di rilascio degli altri (vedi
+    // [ReleaseOthersStep]) invece della schermata di blocco; la lambda è
+    // l'uscita che era stata sospesa.
+    var releaseThenExit by remember { mutableStateOf<(() -> Unit)?>(null) }
+    fun exitAfterEarlyEnd(offerRelease: Boolean) {
+        if (offerRelease) releaseThenExit = onUnlocked else onUnlocked()
+    }
+
     // Chiusura dell'anello a scadenza naturale. Deliberatamente NON usata
     // allo sblocco con password né in `onExpiredImmediately` (sessione già
     // finita prima ancora che la schermata comparisse): nel primo caso
     // l'anello non è al 100% e "compierlo" racconterebbe una cosa non
     // avvenuta, nel secondo non c'è nulla che l'utente stesse guardando.
-    // Stato della pausa condivisa, letto una volta: serve sia per mostrare i
-    // nomi sia per decidere se il rilascio via NFC ha senso qui.
-    val sessionGroupTag = remember { sessionManager.groupTag() }
-    val activity = context as? Activity
-    val mainHandler = remember { Handler(Looper.getMainLooper()) }
-    val nfcReleaseEnabled = remember {
-        activity != null &&
-            sessionManager.isGroupSession() &&
-            !sessionManager.isGroupHost() &&
-            sessionGroupTag != 0 &&
-            NfcAdapter.getDefaultAdapter(context) != null
-    }
-
-    // Se questo dispositivo ha convocato la pausa condivisa e la sblocca prima
-    // della fine, può rilasciare chi è ancora in pausa — vedi
-    // [ReleaseOthersStep]. Va letto adesso: endSession() azzera tag e ruolo.
-    val canReleaseOthers = remember {
-        activity != null &&
-            sessionManager.isGroupSession() &&
-            sessionManager.isGroupHost() &&
-            sessionGroupTag != 0 &&
-            sessionManager.companions().isNotEmpty() &&
-            NfcAdapter.getDefaultAdapter(context) != null
-    }
-    // Non null = mostra il passo di rilascio invece della schermata di blocco;
-    // la lambda è l'uscita che era stata sospesa.
-    var releaseThenExit by remember { mutableStateOf<(() -> Unit)?>(null) }
-
     var releasingRing by remember { mutableStateOf(false) }
     val ringRelease = remember { Animatable(0f) }
 
@@ -199,9 +185,9 @@ fun BlockScreen(
     // rovescia, si chiude alla fine del loop (path 2) — il toast, se c'è, lo
     // decide il chiamante tramite onExpiredNaturally.
     LaunchedEffect(Unit) {
-        var remaining = sessionManager.remainingMillis()
+        var remaining = controller.remainingMillis()
         if (remaining <= 0) {
-            sessionManager.endSession(completedNaturally = true)
+            controller.finishNaturally()
             onExpiredImmediately()
             return@LaunchedEffect
         }
@@ -209,9 +195,9 @@ fun BlockScreen(
             remainingText = CalmCountdown.format(remaining, context)
             remainingMillisState = remaining
             delay(CalmCountdown.nextTickDelayMillis(remaining))
-            remaining = sessionManager.remainingMillis()
+            remaining = controller.remainingMillis()
         }
-        sessionManager.endSession(completedNaturally = true)
+        controller.finishNaturally()
         // La pausa è arrivata in fondo da sé: l'anello si compie e si
         // scioglie prima di lasciare la schermata (vedi [RingReleaseBurst]).
         // La sessione è già chiusa a questo punto — l'animazione ritarda solo
@@ -228,7 +214,7 @@ fun BlockScreen(
     // di aggiungersi altrove — è il momento esatto in cui serve, e non costa
     // spazio permanente da nessuna parte.
     releaseThenExit?.let { exit ->
-        ReleaseOthersStep(groupTag = sessionGroupTag, onDone = exit)
+        ReleaseOthersStep(groupTag = controller.groupTag, onDone = exit)
         return
     }
 
@@ -252,11 +238,7 @@ fun BlockScreen(
             // MainScreen.kt), al posto del vecchio badge statico
             // PausePawsMark — stesso linguaggio visivo ovunque una sessione
             // sia in corso, non solo qui.
-            val fraction = if (totalMillis > 0) {
-                (1f - remainingMillisState.toFloat() / totalMillis.toFloat()).coerceIn(0f, 1f)
-            } else {
-                0f
-            }
+            val fraction = controller.progress(remainingMillisState)
             if (releasingRing) {
                 // L'anello scompare e al suo posto parte la dissolvenza, dallo
                 // stesso raggio: i due non convivono, altrimenti si vedrebbero
@@ -311,7 +293,7 @@ fun BlockScreen(
             if (slowExitDeadline > 0L) {
                 OutlinedButton(
                     onClick = {
-                        sessionManager.cancelSlowExit()
+                        controller.cancelSlowExit()
                         slowExitDeadline = 0L
                         slowExitProgress = 0f
                     },
@@ -422,7 +404,7 @@ fun BlockScreen(
         // frase c'è l'attività (specs/together-activity/), anche con le frasi
         // spente e anche nella pausa respiro: è una proposta del gruppo, non
         // una frase motivazionale.
-        val groupActivity = remember { TogetherActivities.byId(sessionManager.groupActivityId()) }
+        val groupActivity = remember { TogetherActivities.byId(controller.groupActivityId) }
         val shownPhrase = groupActivity?.let { stringResource(it.text) } ?: phraseText.takeIf { !breathing }
         if (shownPhrase != null) {
             Text(
@@ -492,21 +474,17 @@ fun BlockScreen(
     // avvicinare il telefono di chi ha convocato la pausa e l'ha già chiusa —
     // soddisfano la stessa affordance, senza un selettore in mezzo. Vince
     // quella che accade prima.
-    //
-    // Solo in una pausa di gruppo e solo se questo dispositivo NON è l'host:
-    // l'host non ha nessuno da cui farsi rilasciare. Il confronto sul
-    // groupTag evita di liberare chi stava facendo un'altra pausa; è la
-    // vicinanza fisica a fare da autorizzazione, non il tag — vedi
-    // groupPauseUnlockToken.
-    if (showUnlockDialog && nfcReleaseEnabled) {
+
+    // Rilascio da parte dell'host (specs/group-pause/): il lettore NFC resta
+    // acceso finché il dialogo di sblocco è aperto, così avvicinare il
+    // telefono dell'host è un secondo modo di uscire. Le regole (solo chi si
+    // è unito, solo per questa pausa) sono in BlockSessionController.
+    if (showUnlockDialog && controller.canBeReleasedByNfc) {
         DisposableEffect(Unit) {
             val reader = GroupPauseNfcReader(activity!!)
             reader.start { payload ->
-                if (parseGroupPauseUnlockToken(payload) == sessionGroupTag) {
-                    mainHandler.post {
-                        sessionManager.endSession(reason = EndReason.NFC_RELEASE)
-                        onUnlocked()
-                    }
+                mainHandler.post {
+                    if (controller.releaseByNfc(payload)) onUnlocked()
                 }
             }
             onDispose { reader.stop() }
@@ -519,24 +497,23 @@ fun BlockScreen(
             title = stringResource(R.string.unlock),
             confirmLabel = stringResource(R.string.unlock),
             onDismiss = { showUnlockDialog = false },
-            onNoPassword = if (slowExitManager.isEnabled()) {
+            onNoPassword = if (controller.slowExitAvailable) {
                 { confirmingSlowExit = true }
             } else {
                 null
             },
             // Il secondo modo va detto, altrimenti resta scopribile solo per
             // caso: il lettore NFC è già attivo mentre questo dialogo è aperto.
-            message = if (nfcReleaseEnabled) stringResource(R.string.unlock_or_tap_hint) else null,
+            message = if (controller.canBeReleasedByNfc) stringResource(R.string.unlock_or_tap_hint) else null,
             onVerified = {
-                sessionManager.endSession()
                 showUnlockDialog = false
-                if (canReleaseOthers) releaseThenExit = onUnlocked else onUnlocked()
+                exitAfterEarlyEnd(controller.unlockWithPassword())
             },
         )
     }
 
     if (confirmingSlowExit) {
-        val wait = slowExitManager.waitMinutes()
+        val wait = controller.slowExitWaitMinutes
         AlertDialog(
             onDismissRequest = { confirmingSlowExit = false },
             title = { Text(stringResource(R.string.slow_exit_confirm_title)) },
@@ -544,8 +521,7 @@ fun BlockScreen(
             confirmButton = {
                 TextButton(onClick = {
                     confirmingSlowExit = false
-                    sessionManager.startSlowExit(wait)
-                    slowExitDeadline = sessionManager.slowExitDeadline()
+                    slowExitDeadline = controller.startSlowExit()
                 }) { Text(stringResource(R.string.slow_exit_confirm_start)) }
             },
             dismissButton = {
@@ -557,23 +533,18 @@ fun BlockScreen(
     }
 
     // L'attesa dell'uscita lenta: l'anello si riempie sull'attesa, e alla
-    // scadenza la pausa finisce come "senza password". L'allarme in
-    // SessionManager fa la stessa cosa se questa schermata non c'è;
-    // endSession() è idempotente, quindi arrivare per secondi non conta.
+    // scadenza la pausa finisce come "senza password". L'allarme fa la stessa
+    // cosa se questa schermata non c'è; endSession() è idempotente.
     LaunchedEffect(slowExitDeadline) {
         val deadline = slowExitDeadline
         if (deadline <= 0L) return@LaunchedEffect
-        val waitMillis = slowExitManager.waitMinutes() * 60_000L
         while (System.currentTimeMillis() < deadline) {
-            val left = deadline - System.currentTimeMillis()
-            slowExitProgress = (1f - left.toFloat() / waitMillis).coerceIn(0f, 1f)
-            delay(minOf(1_000L, left.coerceAtLeast(1L)))
+            slowExitProgress = controller.slowExitProgress(deadline)
+            delay(minOf(1_000L, (deadline - System.currentTimeMillis()).coerceAtLeast(1L)))
         }
-        sessionManager.endSession(reason = EndReason.SLOW_EXIT)
-        if (canReleaseOthers) releaseThenExit = onUnlocked else onUnlocked()
+        exitAfterEarlyEnd(controller.finishSlowExit())
     }
 }
-
 
 /**
  * Passo finale per l'host di una pausa condivisa: il telefono espone via NFC
