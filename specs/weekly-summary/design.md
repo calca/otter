@@ -20,12 +20,13 @@ from system settings independently of the session channel. If a session is
 active, the receiver sets a flag that `endSession()` checks, and the note
 is posted when the pause ends.
 
-The "week" is the same one the History week card uses, so the two numbers
-always agree. The numbers come from the same functions (`weeklyChartData`),
-not a parallel computation.
+The "week" is the same one the History week card uses, so the count
+always agrees with it: it comes from the same function (`weeklyChartData`),
+not a parallel computation. Only the number of pauses is shown, through a
+plural resource (`weekly_note_pauses`), never time.
 
-## Decisioni aperte
+## Decisioni prese
 
-1. **Attivo di default?** Raccomandato sì, perché arriva solo con almeno una
-   pausa ed è spegnibile in un tocco.
-2. **Giorno e ora:** domenica 20:00 (raccomandato).
+1. **Attivo di default**, spegnibile senza password.
+2. **Contenuto:** solo il numero di pause, niente ore e minuti.
+3. **Quando:** domenica alle 20:00.

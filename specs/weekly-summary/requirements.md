@@ -18,15 +18,17 @@ pauses, so I notice them without having to look.
 ### Acceptance Criteria
 
 1. WHEN Sunday at 20:00 arrives AND the week had at least one pause THEN
-   the system SHALL show one notification: "This week: 5 h 10 of calm in
-   7 pauses."
+   the system SHALL show one notification with the number of pauses only:
+   "This week: 7 pauses of calm." (singular "1 pause of calm"). No hours
+   or minutes: the note acknowledges the habit, it doesn't measure it.
 2. WHEN the week had no pauses THEN the system SHALL NOT send anything.
 3. The notification SHALL NOT mention streaks, goals missed, comparisons
    with other weeks or other people, and SHALL NOT use urgency.
 4. Tapping it SHALL open History.
 5. WHEN a pause is active at that time THEN the note SHALL wait until the
    pause ends.
-6. The user SHALL be able to turn it off in Settings, without password.
+6. The note SHALL be on by default; the user SHALL be able to turn it off
+   in Settings, without password.
 7. WHEN the notification permission is not granted THEN the system SHALL
    NOT ask for it for this feature alone; the toggle explains that
    notifications are off.
