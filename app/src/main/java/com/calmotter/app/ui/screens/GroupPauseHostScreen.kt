@@ -274,30 +274,7 @@ internal fun MinutePillRow(
         verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
         options.forEach { value ->
-            val isSelected = value == selected
-            // Scelta piena e non solo più tinta, come le pillole di durata
-            // della Home: stesso gesto, stessa forma, in tutte e due.
-            Surface(
-                onClick = { onSelect(value) },
-                shape = RoundedCornerShape(50),
-                color = if (isSelected) {
-                    MaterialTheme.colorScheme.primary
-                } else {
-                    MaterialTheme.colorScheme.primary.copy(alpha = 0.08f)
-                },
-            ) {
-                Text(
-                    text = labelFor(value),
-                    maxLines = 1,
-                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
-                    color = if (isSelected) {
-                        MaterialTheme.colorScheme.onPrimary
-                    } else {
-                        MaterialTheme.colorScheme.onSurface.copy(alpha = 0.65f)
-                    },
-                    fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Normal,
-                )
-            }
+            CalmPill(label = labelFor(value), selected = value == selected, onClick = { onSelect(value) })
         }
     }
 }
@@ -348,32 +325,12 @@ internal fun ScrollableMinutePillRow(
     ) {
         options.forEach { value ->
             val isSelected = value == selected
-            Surface(
+            CalmPill(
+                label = labelFor(value),
+                selected = isSelected,
                 onClick = { onSelect(value) },
-                shape = RoundedCornerShape(50),
-                color = if (isSelected) {
-                    MaterialTheme.colorScheme.primary
-                } else {
-                    MaterialTheme.colorScheme.tertiary.copy(alpha = 0.55f)
-                },
-                modifier = if (isSelected) {
-                    Modifier.bringIntoViewRequester(bringSelectedIntoView)
-                } else {
-                    Modifier
-                },
-            ) {
-                Text(
-                    text = labelFor(value),
-                    maxLines = 1,
-                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
-                    color = if (isSelected) {
-                        MaterialTheme.colorScheme.onPrimary
-                    } else {
-                        MaterialTheme.colorScheme.onSurface.copy(alpha = 0.65f)
-                    },
-                    fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Normal,
-                )
-            }
+                modifier = if (isSelected) Modifier.bringIntoViewRequester(bringSelectedIntoView) else Modifier,
+            )
         }
     }
 }

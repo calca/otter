@@ -37,8 +37,8 @@ import java.util.Calendar
 @Composable
 internal fun HistoryFilterRow(togetherOnly: Boolean, onChange: (Boolean) -> Unit, modifier: Modifier = Modifier) {
     Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = modifier) {
-        SmallPill(stringResource(R.string.history_filter_all), selected = !togetherOnly) { onChange(false) }
-        SmallPill(stringResource(R.string.history_filter_together), selected = togetherOnly) { onChange(true) }
+        CalmPill(size = CalmPillSize.Small, label = stringResource(R.string.history_filter_all), selected = !togetherOnly) { onChange(false) }
+        CalmPill(size = CalmPillSize.Small, label = stringResource(R.string.history_filter_together), selected = togetherOnly) { onChange(true) }
     }
 }
 
@@ -76,9 +76,10 @@ internal fun TogetherCard(sessions: List<SessionRecord>, modifier: Modifier = Mo
                     color = MaterialTheme.colorScheme.primary,
                     modifier = Modifier.weight(1f),
                 )
-                SmallPill(stringResource(R.string.together_period_month), selected = !allTime) { allTime = false }
-                SmallPill(
-                    stringResource(R.string.together_period_all),
+                CalmPill(size = CalmPillSize.Small, label = stringResource(R.string.together_period_month), selected = !allTime) { allTime = false }
+                CalmPill(
+                    size = CalmPillSize.Small,
+                    label = stringResource(R.string.together_period_all),
                     selected = allTime,
                     modifier = Modifier.padding(start = 6.dp),
                 ) { allTime = true }
@@ -122,23 +123,5 @@ internal fun TogetherCard(sessions: List<SessionRecord>, modifier: Modifier = Mo
                 }
             }
         }
-    }
-}
-
-@Composable
-private fun SmallPill(label: String, selected: Boolean, modifier: Modifier = Modifier, onClick: () -> Unit) {
-    Surface(
-        onClick = onClick,
-        shape = RoundedCornerShape(50),
-        color = if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.tertiary.copy(alpha = 0.55f),
-        modifier = modifier,
-    ) {
-        Text(
-            text = label,
-            fontSize = 13.sp,
-            color = if (selected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurface,
-            fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Normal,
-            modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
-        )
     }
 }

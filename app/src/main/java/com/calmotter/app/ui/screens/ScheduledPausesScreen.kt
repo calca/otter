@@ -167,7 +167,8 @@ private fun ScheduleEditorDialog(
                 FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
                     DayOfWeek.entries.forEach { day ->
                         val bit = 1 shl (day.value - 1)
-                        ChoicePill(
+                        CalmPill(
+                            size = CalmPillSize.Small,
                             label = day.getDisplayName(TextStyle.SHORT, locale),
                             selected = days and bit != 0,
                             onClick = { days = days xor bit },
@@ -181,14 +182,14 @@ private fun ScheduleEditorDialog(
                 SetupLabel(stringResource(R.string.schedule_duration_label), topPadding = 8.dp)
                 FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
                     SESSION_DURATION_OPTIONS.forEach { option ->
-                        ChoicePill(durationPillLabel(option), selected = option == duration) { duration = option }
+                        CalmPill(size = CalmPillSize.Small, label = durationPillLabel(option), selected = option == duration) { duration = option }
                     }
                 }
                 if (profiles.size > 1) {
                     SetupLabel(stringResource(R.string.schedule_profile_label), topPadding = 16.dp)
                     FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
                         profiles.forEach { profile ->
-                            ChoicePill(profile.name, selected = profile.id == profileId) { profileId = profile.id }
+                            CalmPill(size = CalmPillSize.Small, label = profile.name, selected = profile.id == profileId) { profileId = profile.id }
                         }
                     }
                 }
@@ -237,23 +238,6 @@ private fun ScheduleEditorDialog(
             dismissButton = {
                 TextButton(onClick = { pickingTime = false }) { Text(stringResource(android.R.string.cancel)) }
             },
-        )
-    }
-}
-
-@Composable
-private fun ChoicePill(label: String, selected: Boolean, onClick: () -> Unit) {
-    Surface(
-        onClick = onClick,
-        shape = RoundedCornerShape(50),
-        color = if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.primary.copy(alpha = 0.08f),
-    ) {
-        Text(
-            text = label,
-            fontSize = 14.sp,
-            color = if (selected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurface,
-            fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Normal,
-            modifier = Modifier.padding(horizontal = 12.dp, vertical = 7.dp),
         )
     }
 }

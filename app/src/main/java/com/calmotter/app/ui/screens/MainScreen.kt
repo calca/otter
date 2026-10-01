@@ -524,31 +524,14 @@ private fun DurationChipRow(selectedMinutes: Int, onSelect: (Int) -> Unit) {
         horizontalArrangement = Arrangement.spacedBy(8.dp),
     ) {
         SESSION_DURATION_OPTIONS.forEach { minutes ->
-            val selected = minutes == selectedMinutes
             // La durata scelta è l'unico elemento pieno della schermata
-            // (redesign): prima si distingueva solo per una tinta più
-            // scura, differenza debole su schermo piccolo. Non compete con
-            // l'otter, che è l'azione: questa è una scelta già fatta.
-            Surface(
+            // (redesign): non compete con l'otter, che è l'azione — questa è
+            // una scelta già fatta.
+            CalmPill(
+                label = durationPillLabel(minutes),
+                selected = minutes == selectedMinutes,
                 onClick = { onSelect(minutes) },
-                shape = RoundedCornerShape(50),
-                color = if (selected) {
-                    MaterialTheme.colorScheme.primary
-                } else {
-                    MaterialTheme.colorScheme.tertiary.copy(alpha = 0.55f)
-                },
-            ) {
-                Text(
-                    text = durationPillLabel(minutes),
-                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
-                    color = if (selected) {
-                        MaterialTheme.colorScheme.onPrimary
-                    } else {
-                        MaterialTheme.colorScheme.onSurface.copy(alpha = 0.65f)
-                    },
-                    fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Normal,
-                )
-            }
+            )
         }
     }
 }

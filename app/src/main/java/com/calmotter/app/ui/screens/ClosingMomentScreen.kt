@@ -72,7 +72,7 @@ fun ClosingMomentScreen(
                 Mood.ORDINARY to R.string.mood_ordinary,
                 Mood.HARD to R.string.mood_hard,
             ).forEach { (value, label) ->
-                MoodPill(
+                CalmPill(
                     label = stringResource(label),
                     selected = mood == value,
                     // Un secondo tocco sulla stessa toglie la scelta.
@@ -97,26 +97,5 @@ fun ClosingMomentScreen(
         ) {
             Text(stringResource(R.string.closing_done))
         }
-    }
-}
-
-@Composable
-private fun MoodPill(label: String, selected: Boolean, onClick: () -> Unit) {
-    // Stesso stile delle pillole di durata: piena quando scelta.
-    Surface(
-        onClick = onClick,
-        shape = RoundedCornerShape(50),
-        color = if (selected) {
-            MaterialTheme.colorScheme.primary
-        } else {
-            MaterialTheme.colorScheme.tertiary.copy(alpha = 0.55f)
-        },
-    ) {
-        Text(
-            text = label,
-            modifier = Modifier.padding(horizontal = 18.dp, vertical = 10.dp),
-            color = if (selected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurface,
-            fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Normal,
-        )
     }
 }

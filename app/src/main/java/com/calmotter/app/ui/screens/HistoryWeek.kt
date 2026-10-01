@@ -367,19 +367,7 @@ private fun <T> GoalChipRow(
         horizontalArrangement = Arrangement.spacedBy(8.dp),
     ) {
         items.forEach { (value, label) ->
-            val isSelected = value == selected
-            Surface(
-                onClick = { onSelect(value) },
-                shape = RoundedCornerShape(50),
-                color = MaterialTheme.colorScheme.primary.copy(alpha = if (isSelected) 0.22f else 0.08f),
-            ) {
-                Text(
-                    text = label,
-                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
-                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = if (isSelected) 1f else 0.65f),
-                    fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Normal,
-                )
-            }
+            CalmPill(label = label, selected = value == selected, onClick = { onSelect(value) })
         }
     }
 }

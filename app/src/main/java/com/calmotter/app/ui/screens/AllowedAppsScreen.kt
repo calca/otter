@@ -307,14 +307,14 @@ private fun ProfileBar(
             verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
             profiles.forEach { profile ->
-                ProfilePill(
+                CalmPill(
                     label = profile.name,
                     selected = profile.id == editing.id,
                     onClick = { onSelectProfile(profile.id) },
                 )
             }
             if (canCreateProfile) {
-                ProfilePill(
+                CalmPill(
                     label = stringResource(R.string.allowed_profile_new),
                     selected = false,
                     onClick = { naming = "" },
@@ -362,27 +362,6 @@ private fun ProfileBar(
                     Text(stringResource(android.R.string.cancel))
                 }
             },
-        )
-    }
-}
-
-@Composable
-private fun ProfilePill(label: String, selected: Boolean, onClick: () -> Unit) {
-    // Stesso stile delle pillole di durata della Home: pieno quando scelto.
-    Surface(
-        onClick = onClick,
-        shape = RoundedCornerShape(50),
-        color = if (selected) {
-            MaterialTheme.colorScheme.primary
-        } else {
-            MaterialTheme.colorScheme.tertiary.copy(alpha = 0.55f)
-        },
-    ) {
-        Text(
-            text = label,
-            modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
-            color = if (selected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurface,
-            fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Normal,
         )
     }
 }

@@ -37,6 +37,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.PathEffect
@@ -51,6 +52,7 @@ import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.delay
 import kotlin.math.pow
 
@@ -475,4 +477,46 @@ fun CalmTextField(
         ),
         modifier = modifier.semantics { contentDescription = label },
     )
+}
+
+/** Le due misure di [CalmPill]: normale (durate, scelte principali) e piccola (filtri, scelte dentro un dialogo). */
+enum class CalmPillSize(val horizontal: Dp, val vertical: Dp, val fontSize: TextUnit) {
+    Regular(16.dp, 8.dp, TextUnit.Unspecified),
+    Small(12.dp, 6.dp, 13.sp),
+}
+
+/**
+ * La pillola di scelta dell'app, una sola per tutte le schermate: prima ne
+ * esistevano sette copie quasi uguali (durate in Home e in lobby, minuti
+ * della pagina QR, obiettivo, profili, risposte del momento di chiusura,
+ * scelte delle pause programmate, filtri della Cronologia), con colori già
+ * leggermente diversi fra loro. Lo stile è quello della Home, il riferimento
+ * documentato: piena (`primary`) quando scelta, `tertiary` al 55% quando no.
+ * Disegnata a mano e non FilterChip di M3: i colori di stato di FilterChip
+ * derivano da ruoli non personalizzati per palette (vedi la nota su
+ * surfaceVariant in CLAUDE.md).
+ */
+@Composable
+fun CalmPill(
+    label: String,
+    selected: Boolean,
+    modifier: Modifier = Modifier,
+    size: CalmPillSize = CalmPillSize.Regular,
+    onClick: () -> Unit,
+) {
+    Surface(
+        onClick = onClick,
+        shape = RoundedCornerShape(50),
+        color = if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.tertiary.copy(alpha = 0.55f),
+        modifier = modifier,
+    ) {
+        Text(
+            text = label,
+            maxLines = 1,
+            fontSize = size.fontSize,
+            color = if (selected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.65f),
+            fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Normal,
+            modifier = Modifier.padding(horizontal = size.horizontal, vertical = size.vertical),
+        )
+    }
 }
