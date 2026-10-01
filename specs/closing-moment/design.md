@@ -27,9 +27,9 @@ completed pause replaces the previous unanswered one.
 
 Same visual language as the release step and the Home pond: otter at
 `OtterMarkSize`, the duration in the countdown style ("Un'ora di calma"),
-three choice chips (not emoji: the otter faces from `mascot-marks` if a
-calm/neutral/tired variant exists, otherwise text chips), a single-line
-`OutlinedTextField` and two actions: "Done" (filled CTA, enabled after a
+three text chips ("Calma", "Normale", "Faticosa" / "Calm", "Ordinary",
+"Hard"), a single-line `OutlinedTextField` capped at 30 characters (fits
+one History line without ellipsis) and two actions: "Done" (filled CTA, enabled after a
 chip or a note) and "Skip" (text button). No timer, no auto-dismiss.
 
 ## Shared migration
@@ -40,10 +40,8 @@ version bump and one migration (`MIGRATION_3_4`) instead of three. The app
 is not distributed, but the migration is still written and tested: it is
 cheap and keeps the history on the devices already in use.
 
-## Decisioni aperte
+## Decisioni prese
 
-1. **Le tre risposte:** parole ("Calma", "Normale", "Faticosa") o facce
-   dell'otter. Raccomandato parole, finché non esistono tre varianti
-   dell'otter coerenti.
-2. **Anche dopo una pausa di gruppo?** Raccomandato sì, uguale.
-3. **Nota:** 60 caratteri, una riga. Più lunga diventa un diario.
+1. **Le tre risposte:** parole (Calma / Normale / Faticosa).
+2. **Pause di gruppo:** sì, uguale.
+3. **Nota:** 30 caratteri, una riga in Cronologia senza troncamenti.

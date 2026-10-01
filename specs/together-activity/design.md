@@ -47,7 +47,7 @@ state.
 The column shares the version bump with `closing-moment` and `slow-exit`
 when built in the same round (see `specs/closing-moment/design.md`).
 
-## First catalog draft (to review)
+## Catalog (first version)
 
 | Fits | Categoria | Italiano | English |
 |---|---|---|---|
@@ -97,5 +97,6 @@ different (a walk after the balcony is not much of a change).
    (nessuna "o"); da rivedere ancora riga per riga se serve.
 2. **Frasi spente:** l'attività si mostra comunque.
 3. **Cambiare attività dopo la partenza:** no.
-4. **Cronologia:** l'icona della categoria (4 categorie), non una forma
-   breve per attività.
+4. **Cronologia:** l'icona della categoria, non una forma breve per
+   attività.
+5. **Categorie:** Fuori, A tavola, Giochi, Con calma.

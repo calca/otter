@@ -22,15 +22,16 @@ how it went, so the time feels like something I did, not something I lost.
 2. WHEN a pause completed while the app was not on screen THEN the Home
    summary ("Pause ended at 09:31") SHALL become tappable and open the same
    closing moment for that pause.
-3. The closing moment SHALL offer three answers — calm, ordinary, hard —
-   plus an optional one-line note ("What did you do?", up to 60
-   characters).
-4. The system SHALL let the user skip the closing moment with one tap,
+3. The closing moment SHALL offer three answers in words — calm,
+   ordinary, hard — plus an optional note ("What did you do?", up to 30
+   characters, so it always fits one line in History).
+4. The closing moment SHALL appear after shared pauses too, the same way.
+5. The system SHALL let the user skip the closing moment with one tap,
    and SHALL NOT ask again for that pause.
-5. WHEN a pause is ended early (password, NFC release, slow exit) THEN the
+6. WHEN a pause is ended early (password, NFC release, slow exit) THEN the
    system SHALL NOT show the closing moment: it is a reward for a pause
    kept, never a reproach for one cut short.
-6. The closing moment SHALL never show streaks, goals or comparisons.
+7. The closing moment SHALL never show streaks, goals or comparisons.
 
 ## User Story 2: Seeing it later
 
