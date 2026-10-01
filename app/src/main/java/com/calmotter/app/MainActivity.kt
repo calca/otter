@@ -92,6 +92,12 @@ class MainActivity : BaseActivity() {
     // mostrato è BlockScreen invece di MainScreen — vedi il commento di
     // classe sul perché questo ora vale per entrambi i punti d'ingresso.
     private var showBlockScreen by mutableStateOf(false)
+
+    // La durata scelta in Home, in minuti: l'ultima usata (vedi
+    // [LastDuration]). Campo dell'Activity e non stato locale della
+    // composizione, perché va riletta a ogni rientro: può essere cambiata
+    // altrove nel frattempo (una pausa di gruppo con un'altra durata).
+    private var selectedDurationMinutes by mutableIntStateOf(DEFAULT_SESSION_DURATION_MINUTES)
     private var blockPhraseText by mutableStateOf<String?>(null)
 
     // true solo quando l'istanza corrente è stata invocata come Home
@@ -177,11 +183,6 @@ class MainActivity : BaseActivity() {
                 // nodo solo che non esce mai di scena — vedi
                 // [PersistentOtter] per perché non è più un elemento
                 // condiviso.
-                // In minuti. Parte dall'ultima durata scelta (vedi
-                // [LastDuration]), così riaprendo l'app si ritrova quella.
-                var selectedDurationMinutes by remember {
-                    mutableIntStateOf(LastDuration.get(this@MainActivity))
-                }
                 var showPermissionDialog by remember { mutableStateOf(false) }
 
                 // Condivisa fra il tap sull'otter e il fallback "senza
@@ -430,6 +431,7 @@ class MainActivity : BaseActivity() {
             android.R.attr.colorPrimary,
             android.graphics.Color.BLACK,
         )
+        selectedDurationMinutes = LastDuration.get(this)
         resumeSignal++
 
         // Pausa di gruppo (GroupPauseHostActivity/GroupPauseJoinActivity,

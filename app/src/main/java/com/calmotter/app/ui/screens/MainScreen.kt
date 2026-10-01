@@ -12,6 +12,8 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.relocation.BringIntoViewRequester
+import androidx.compose.foundation.relocation.bringIntoViewRequester
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.RadioButton
@@ -518,6 +520,14 @@ private fun PermissionReasonRow(reason: String, actionLabel: String, onGrant: ()
 @Composable
 private fun DurationChipRow(selectedMinutes: Int, onSelect: (Int) -> Unit) {
     val scrollState = rememberScrollState()
+    // La durata scelta va in vista da sola: la riga riparte sempre
+    // dall'inizio quando la Home ricompare, e una durata ricordata in fondo
+    // (2 h 30, 3 h…) restava fuori schermo, come se nessuna fosse scelta —
+    // segnalato. Stessa correzione già fatta per la riga della lobby
+    // (ScrollableMinutePillRow). Anche a ogni cambio: una pillola toccata a
+    // metà sul bordo entra intera.
+    val bringSelectedIntoView = remember { BringIntoViewRequester() }
+    LaunchedEffect(selectedMinutes) { bringSelectedIntoView.bringIntoView() }
     Row(
         modifier = Modifier
             .horizontalScroll(scrollState)
@@ -529,10 +539,12 @@ private fun DurationChipRow(selectedMinutes: Int, onSelect: (Int) -> Unit) {
             // La durata scelta è l'unico elemento pieno della schermata
             // (redesign): non compete con l'otter, che è l'azione — questa è
             // una scelta già fatta.
+            val selected = minutes == selectedMinutes
             CalmPill(
                 label = durationPillLabel(minutes),
-                selected = minutes == selectedMinutes,
+                selected = selected,
                 onClick = { onSelect(minutes) },
+                modifier = if (selected) Modifier.bringIntoViewRequester(bringSelectedIntoView) else Modifier,
             )
         }
     }
