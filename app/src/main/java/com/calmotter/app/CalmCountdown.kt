@@ -19,6 +19,18 @@ import android.content.Context
  */
 object CalmCountdown {
 
+    /** Cadenza di aggiornamento del testo: circa una volta al minuto. */
+    const val TICK_MILLIS = 60_000L
+
+    /**
+     * Quanto aspettare prima del prossimo controllo: un minuto, ma mai oltre
+     * la scadenza. Con un'attesa fissa di un minuto la schermata si accorgeva
+     * della fine fino a 60 secondi dopo, lasciando il blocco a video a pausa
+     * già finita.
+     */
+    fun nextTickDelayMillis(remainingMillis: Long): Long =
+        remainingMillis.coerceIn(1L, TICK_MILLIS)
+
     fun format(remainingMillis: Long, context: Context): String {
         val totalMinutes = (remainingMillis / 60_000L).toInt()
 

@@ -162,7 +162,8 @@ fun BlockScreen(
 
     // Equivalente Compose del CountDownTimer(remainingMillis, 60_000) usato
     // dalla versione XML: aggiorna il tempo rimanente circa una volta al
-    // minuto di tempo reale (non sincronizzato con l'inizio della sessione).
+    // minuto di tempo reale (non sincronizzato con l'inizio della sessione),
+    // ma l'ultimo giro attende solo fino alla scadenza.
     // Se la sessione è già scaduta all'apertura dello schermo, nessun tick:
     // si chiude subito senza toast (path 1). Se scade durante il conto alla
     // rovescia, si chiude alla fine del loop (path 2) — il toast, se c'è, lo
@@ -177,7 +178,7 @@ fun BlockScreen(
         while (remaining > 0) {
             remainingText = CalmCountdown.format(remaining, context)
             remainingMillisState = remaining
-            delay(60_000)
+            delay(CalmCountdown.nextTickDelayMillis(remaining))
             remaining = sessionManager.remainingMillis()
         }
         sessionManager.endSession(completedNaturally = true)

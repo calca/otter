@@ -2,6 +2,7 @@ package com.calmotter.app
 
 import android.content.Context
 import androidx.test.core.app.ApplicationProvider
+import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -64,5 +65,21 @@ class CalmCountdownTest {
                 result.contains(expectedRounded.toString())
             )
         }
+    }
+
+    /**
+     * L'ultimo giro del ciclo di BlockScreen deve cadere sulla scadenza, non
+     * fino a un minuto dopo: era il difetto per cui il blocco restava a video
+     * a pausa già finita.
+     */
+    @Test
+    fun nextTickNeverWaitsPastTheExpiry() {
+        assertEquals(60_000L, CalmCountdown.nextTickDelayMillis(45 * 60_000L))
+        assertEquals(60_000L, CalmCountdown.nextTickDelayMillis(60_000L))
+        assertEquals(20_000L, CalmCountdown.nextTickDelayMillis(20_000L))
+        assertEquals(1L, CalmCountdown.nextTickDelayMillis(1L))
+        // Mai zero né negativo: delay(0) in un ciclo stretto sarebbe peggio.
+        assertEquals(1L, CalmCountdown.nextTickDelayMillis(0L))
+        assertEquals(1L, CalmCountdown.nextTickDelayMillis(-500L))
     }
 }
