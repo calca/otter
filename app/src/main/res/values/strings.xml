@@ -313,4 +313,8 @@ Quando sentirai il bisogno di una pausa, basterà aprire l\'app, scegliere quant
         <item>Stai scegliendo il presente invece dello schermo.</item>
     </string-array>
     <string name="phrase_format">“%1$s”</string>
+    <!-- Pausa respiro (specs/breathing-pause/): al posto della frase. -->
+    <string name="breathing_in">Inspira</string>
+    <string name="breathing_out">Espira</string>
+    <string name="breathing_slowly">Respira lentamente</string>
 </resources>

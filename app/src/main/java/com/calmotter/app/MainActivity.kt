@@ -25,7 +25,6 @@ import com.calmotter.app.ui.screens.rememberOtterFloatOffset
 import com.calmotter.app.ui.theme.CalmOtterTheme
 import com.google.android.material.color.MaterialColors
 import com.calmotter.app.ui.screens.otterCenterY
-import com.calmotter.app.ui.screens.DEFAULT_SESSION_DURATION_MINUTES
 import com.calmotter.app.ui.screens.OtterHaloSize
 import com.calmotter.app.ui.screens.PersistentOtter
 import androidx.compose.ui.res.stringResource
@@ -178,11 +177,10 @@ class MainActivity : BaseActivity() {
                 // nodo solo che non esce mai di scena — vedi
                 // [PersistentOtter] per perché non è più un elemento
                 // condiviso.
-                // /30: l'indice del selettore, non i minuti — vedi
-                // DEFAULT_SESSION_DURATION_MINUTES per il perché è 1h e non
-                // la prima opzione.
-                var selectedDurationIndex by remember {
-                    mutableIntStateOf(DEFAULT_SESSION_DURATION_MINUTES / 30)
+                // In minuti. Parte dall'ultima durata scelta (vedi
+                // [LastDuration]), così riaprendo l'app si ritrova quella.
+                var selectedDurationMinutes by remember {
+                    mutableIntStateOf(LastDuration.get(this@MainActivity))
                 }
                 var showPermissionDialog by remember { mutableStateOf(false) }
 
@@ -199,7 +197,7 @@ class MainActivity : BaseActivity() {
                             isDndAccessGranted(this@MainActivity)
                         )
                     if (ok) {
-                        sessionManager.startSession(selectedDurationIndex * 30)
+                        sessionManager.startSession(selectedDurationMinutes)
                         enterBlockScreen()
                     } else {
                         showPermissionDialog = true
@@ -250,8 +248,11 @@ class MainActivity : BaseActivity() {
                                 },
                                 drawOtter = false,
                                 otterFloatOffset = otterFloatOffset,
-                                selectedDurationIndex = selectedDurationIndex,
-                                onSelectDuration = { selectedDurationIndex = it },
+                                selectedDurationMinutes = selectedDurationMinutes,
+                                onSelectDuration = {
+                                    selectedDurationMinutes = it
+                                    LastDuration.save(this@MainActivity, it)
+                                },
                                 showPermissionDialog = showPermissionDialog,
                                 onDismissPermissionDialog = { showPermissionDialog = false },
                                 onOtterTap = startOrPromptPermissions,

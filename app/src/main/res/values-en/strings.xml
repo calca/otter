@@ -306,4 +306,8 @@ Whenever you feel the need for a break, just open the app, choose how long — &
         <item>You\'re choosing the present over the screen.</item>
     </string-array>
     <string name="phrase_format">“%1$s”</string>
+    <!-- Pausa respiro (specs/breathing-pause/): al posto della frase. -->
+    <string name="breathing_in">Breathe in</string>
+    <string name="breathing_out">Breathe out</string>
+    <string name="breathing_slowly">Breathe slowly</string>
 </resources>

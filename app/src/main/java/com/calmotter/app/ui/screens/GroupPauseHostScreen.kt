@@ -41,6 +41,7 @@ import androidx.compose.ui.unit.em
 import androidx.compose.ui.unit.sp
 import com.calmotter.app.GroupPauseRecipe
 import com.calmotter.app.R
+import com.calmotter.app.SESSION_DURATION_OPTIONS
 import com.calmotter.app.encode
 import com.calmotter.app.generateQrCodeBitmap
 import kotlin.random.Random
@@ -56,15 +57,13 @@ import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.foundation.Canvas
 
 /**
- * Opzioni di durata offerte sia dal selettore della lobby dal vivo
- * ([GroupPauseBluetoothLobbyHostScreen]) sia — indirettamente, tramite
- * [minutesLabel]/[MinutePillRow] — da nessun altro selettore proprio: stesso
- * elenco di `DURATION_LABELS` in `MainScreen.kt` (30 min → 4h a passi di 30)
- * e non un elenco indipendente, apposta perché il valore scelto in Home
- * (passato come durata iniziale della lobby) cada sempre su un'opzione
- * esistente qui invece di un valore "fuori lista" da normalizzare.
+ * Opzioni di durata del selettore della lobby dal vivo
+ * ([GroupPauseBluetoothLobbyHostScreen]): lo stesso elenco della Home
+ * ([SESSION_DURATION_OPTIONS]) e non uno indipendente, apposta perché il
+ * valore scelto in Home (passato come durata iniziale della lobby) cada
+ * sempre su un'opzione esistente qui.
  */
-internal val DURATION_OPTIONS = (1..8).map { it * 30 }
+internal val DURATION_OPTIONS = SESSION_DURATION_OPTIONS
 private val DELAY_OPTIONS = listOf(1, 2, 5)
 
 /** Ritardo di partenza preselezionato sulla pagina QR — vedi [GroupPauseQrShareScreen]. */
@@ -90,7 +89,7 @@ private sealed class HostFlowStep {
  * esplicitamente per velocizzare la creazione, dato che prima occorreva
  * confermare la durata su una schermata a sé prima ancora di iniziare ad
  * ascoltare i partecipanti. [initialDurationMinutes] arriva da Home
- * (l'ultima scelta lì, vedi `DurationChipRow`/`selectedDurationIndex` in
+ * (l'ultima scelta lì, vedi `DurationChipRow`/`selectedDurationMinutes` in
  * `MainScreen.kt`) ed è solo il punto di partenza: resta modificabile nella
  * lobby stessa in qualsiasi momento prima di "Iniziamo".
  *

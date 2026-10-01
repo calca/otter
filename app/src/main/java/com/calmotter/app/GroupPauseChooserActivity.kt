@@ -3,7 +3,6 @@ package com.calmotter.app
 import android.content.Intent
 import android.os.Bundle
 import androidx.activity.compose.setContent
-import com.calmotter.app.ui.screens.DEFAULT_SESSION_DURATION_MINUTES
 import com.calmotter.app.ui.screens.GroupPauseChooserScreen
 import com.calmotter.app.ui.theme.CalmOtterTheme
 

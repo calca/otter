@@ -1,5 +1,6 @@
 package com.calmotter.app.ui.screens
 
+import com.calmotter.app.isBreathingPause
 import com.calmotter.app.nfc.GroupPauseHceService
 import com.calmotter.app.bluetooth.groupPauseUnlockToken
 import androidx.compose.material3.TextButton
@@ -37,6 +38,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.State
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -123,6 +125,21 @@ fun BlockScreen(
     // entra in questo stato (vedi MainActivity.enterBlockScreen()).
     val totalMillis = remember { sessionManager.totalMillis() }
     var remainingMillisState by remember { mutableLongStateOf(sessionManager.remainingMillis()) }
+
+    // Pausa respiro (≤ 10 minuti, specs/breathing-pause/): l'anello respira
+    // al posto di quello di avanzamento e le parole del respiro prendono il
+    // posto della frase. Dipende dalla durata e non da un'impostazione, così
+    // respira anche una pausa breve partita dal widget o dal riquadro. Con le
+    // animazioni di sistema disattivate l'anello resta fermo e il testo
+    // invita solo a respirare lentamente.
+    val breathing = remember { isBreathingPause(totalMillis) }
+    val reduceMotion = remember { animationsDisabled(context) }
+    val breathClock = if (breathing && !reduceMotion) rememberBreathClock() else null
+    // derivedStateOf: il testo cambia due volte per ciclo, non a ogni scatto
+    // dell'orologio.
+    val inhaling by remember(breathClock) {
+        derivedStateOf { breathClock?.let { isInhaling(it.value) } }
+    }
 
     // Chiusura dell'anello a scadenza naturale. Deliberatamente NON usata
     // allo sblocco con password né in `onExpiredImmediately` (sessione già
@@ -232,6 +249,11 @@ fun BlockScreen(
                 // stesso raggio: i due non convivono, altrimenti si vedrebbero
                 // due cerchi concentrici invece di uno che si allenta.
                 RingReleaseBurst(progress = ringRelease.value, modifier = Modifier.size(176.dp))
+            } else if (breathing) {
+                BreathingRing(
+                    fullness = { breathClock?.let { breathFullness(it.value) } ?: 0.5f },
+                    modifier = Modifier.size(182.dp),
+                )
             } else {
                 ProgressRing(fraction = fraction, modifier = Modifier.size(182.dp))
             }
@@ -354,9 +376,18 @@ fun BlockScreen(
                 .padding(top = 4.dp, bottom = 28.dp)
         )
 
-        if (phraseText != null) {
+        val shownPhrase = if (breathing) {
+            when (inhaling) {
+                true -> stringResource(R.string.breathing_in)
+                false -> stringResource(R.string.breathing_out)
+                null -> stringResource(R.string.breathing_slowly)
+            }
+        } else {
+            phraseText
+        }
+        if (shownPhrase != null) {
             Text(
-                text = phraseText,
+                text = shownPhrase,
                 color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f),
                 fontSize = 16.sp,
                 fontStyle = FontStyle.Italic,

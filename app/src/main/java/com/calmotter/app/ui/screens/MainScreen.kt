@@ -46,9 +46,11 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.calmotter.app.BuildConfig
 import com.calmotter.app.R
+import com.calmotter.app.SESSION_DURATION_OPTIONS
 import com.calmotter.app.SessionHistoryManager
 import com.calmotter.app.SessionManager
 import com.calmotter.app.SessionStreak
+import com.calmotter.app.durationPillLabel
 import com.calmotter.app.ui.mascot.OtterZenMark
 import com.calmotter.app.ui.mascot.TogetherMark
 
@@ -66,22 +68,6 @@ import com.calmotter.app.ui.mascot.TogetherMark
  * baricentro della colonna sotto lo stagno.
  */
 private const val HOME_PILL_WIDTH_FRACTION = 0.72f
-
-private val DURATION_LABELS = arrayOf(
-    "30 min", "1 h", "1 h 30", "2 h", "2 h 30", "3 h", "3 h 30", "4 h"
-)
-
-/**
- * Durata proposta di default, in minuti — 1h e non la più breve (30 min):
- * segnalato esplicitamente. Unica fonte di verità: [MainActivity] la usa
- * per l'indice iniziale di [DURATION_LABELS] (`/ 30`, ricadendo sempre su
- * un'opzione esistente), e [GroupPauseHostActivity]/[GroupPauseChooserActivity]
- * la usano come ripiego se l'extra della durata manca del tutto — un caso
- * che non dovrebbe mai capitare (la passano sempre), ma se capitasse deve
- * ricadere sullo stesso default che vede chi apre l'app, non su un numero
- * indipendente da tenere allineato a mano.
- */
-internal const val DEFAULT_SESSION_DURATION_MINUTES = 60
 
 /**
  * Altezza della striscia che contiene l'intestazione della Home: padding
@@ -167,7 +153,7 @@ fun MainScreen(
     onGrantDnd: () -> Unit,
     onHistory: () -> Unit,
     onSettings: () -> Unit,
-    // Riceve la durata scelta qui in Home (vedi selectedDurationIndex sotto),
+    // Riceve la durata scelta qui in Home (vedi selectedDurationMinutes sotto),
     // in minuti: il flow di creazione la usa come valore iniziale del proprio
     // selettore, invece di ripartire sempre da un default indipendente — vedi
     // GroupPauseBluetoothLobbyHostScreen.
@@ -185,8 +171,8 @@ fun MainScreen(
     // anche all'otter persistente, che vive fuori di qui: la durata scelta è
     // ciò che il tocco avvia, il dialogo dei permessi è ciò che il tocco
     // mostra quando non può avviare nulla.
-    selectedDurationIndex: Int,
-    onSelectDuration: (Int) -> Unit,
+    selectedDurationMinutes: Int,
+    onSelectDuration: (minutes: Int) -> Unit,
     // Cosa fa il tocco sull'otter. Sta qui come parametro e non come corpo
     // perché l'otter ora vive fuori da questa schermata: quando è usata da
     // sola (`drawOtter = true`) il marchio dentro lo slot chiama comunque
@@ -322,7 +308,7 @@ fun MainScreen(
             )
             Spacer(modifier = Modifier.height(10.dp))
             DurationChipRow(
-                selectedIndex = selectedDurationIndex,
+                selectedMinutes = selectedDurationMinutes,
                 onSelect = onSelectDuration,
             )
 
@@ -366,7 +352,7 @@ fun MainScreen(
                 // tutte e due.
                 onClick = {
                     if (BuildConfig.DEBUG || (accessibilityOk && dndOk)) {
-                        onGroupPause(selectedDurationIndex * 30)
+                        onGroupPause(selectedDurationMinutes)
                     } else {
                         onOtterTap()
                     }
@@ -456,7 +442,7 @@ private fun PermissionReasonRow(reason: String, actionLabel: String, onGrant: ()
 
 /**
  * Riga di chip per scegliere la durata della pausa, scorrevole in
- * orizzontale (8 opzioni, troppe per stare tutte a schermo su telefoni
+ * orizzontale ([SESSION_DURATION_OPTIONS], troppe per stare tutte a schermo su telefoni
  * stretti). Sfondo disegnato a mano con "primary" a bassa opacità invece del
  * FilterChip di M3: i colori di stato di FilterChip derivano da ruoli non
  * personalizzati per palette (secondaryContainer ecc., vedi la nota su
@@ -465,7 +451,7 @@ private fun PermissionReasonRow(reason: String, actionLabel: String, onGrant: ()
  * sfondo segue la palette scelta.
  */
 @Composable
-private fun DurationChipRow(selectedIndex: Int, onSelect: (Int) -> Unit) {
+private fun DurationChipRow(selectedMinutes: Int, onSelect: (Int) -> Unit) {
     val scrollState = rememberScrollState()
     Row(
         modifier = Modifier
@@ -474,14 +460,14 @@ private fun DurationChipRow(selectedIndex: Int, onSelect: (Int) -> Unit) {
             .padding(horizontal = 8.dp),
         horizontalArrangement = Arrangement.spacedBy(8.dp),
     ) {
-        DURATION_LABELS.forEachIndexed { index, label ->
-            val selected = (index + 1) == selectedIndex
+        SESSION_DURATION_OPTIONS.forEach { minutes ->
+            val selected = minutes == selectedMinutes
             // La durata scelta è l'unico elemento pieno della schermata
             // (redesign): prima si distingueva solo per una tinta più
             // scura, differenza debole su schermo piccolo. Non compete con
             // l'otter, che è l'azione: questa è una scelta già fatta.
             Surface(
-                onClick = { onSelect(index + 1) },
+                onClick = { onSelect(minutes) },
                 shape = RoundedCornerShape(50),
                 color = if (selected) {
                     MaterialTheme.colorScheme.primary
@@ -490,7 +476,7 @@ private fun DurationChipRow(selectedIndex: Int, onSelect: (Int) -> Unit) {
                 },
             ) {
                 Text(
-                    text = label,
+                    text = durationPillLabel(minutes),
                     modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
                     color = if (selected) {
                         MaterialTheme.colorScheme.onPrimary

@@ -353,7 +353,7 @@ class PauseWidgetTapAction : ActionCallback {
         } else {
             // sessionManager.startSession() salva già l'ultima durata e aggiorna
             // il widget (vedi SessionManager.kt).
-            sessionManager.startSession(PauseWidgetProvider.getLastDuration(context))
+            sessionManager.startSession(LastDuration.get(context))
         }
     }
 }
@@ -363,16 +363,6 @@ class PauseWidgetProvider : GlanceAppWidgetReceiver() {
     override val glanceAppWidget: GlanceAppWidget = PauseGlanceWidget()
 
     companion object {
-        private const val PREFS_WIDGET = "calm_otter_widget"
-        private const val KEY_LAST_DURATION = "last_duration"
-        private const val DEFAULT_DURATION_MIN = 30
-
-        /**
-         * Aggiorna tutti i widget istanziati sulla home screen.
-         * Chiamato da SessionManager dopo startSession/endSession, e da
-         * SessionForegroundService ogni 60 secondi mentre una sessione è
-         * attiva (vedi la doc di [PauseGlanceWidget]).
-         */
         /**
          * Aggiorna tutti i widget istanziati sulla home screen.
          * Chiamato da SessionManager dopo startSession/endSession, e da
@@ -400,17 +390,6 @@ class PauseWidgetProvider : GlanceAppWidgetReceiver() {
             CoroutineScope(Dispatchers.Default).launch {
                 PauseGlanceWidget().updateAll(context)
             }
-        }
-
-        /** Salva la durata appena usata così il widget la riusa al prossimo tap. */
-        fun saveLastDuration(context: Context, minutes: Int) {
-            context.getSharedPreferences(PREFS_WIDGET, Context.MODE_PRIVATE)
-                .edit { putInt(KEY_LAST_DURATION, minutes) }
-        }
-
-        fun getLastDuration(context: Context): Int {
-            val prefs = context.getSharedPreferences(PREFS_WIDGET, Context.MODE_PRIVATE)
-            return prefs.getInt(KEY_LAST_DURATION, DEFAULT_DURATION_MIN)
         }
     }
 }

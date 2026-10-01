@@ -69,6 +69,10 @@ class SessionManager private constructor(private val context: Context) {
         // l'host può rilasciare, e solo chi era in *quella* pausa.
         groupTag: Int = 0,
         isHost: Boolean = false,
+        // false solo per le pause che nessuno ha scelto in quel momento (le
+        // pause programmate): non devono cambiare la durata che la Home
+        // propone — vedi [LastDuration].
+        rememberDuration: Boolean = true,
     ) {
         val now = System.currentTimeMillis()
         val endTime = now + durationMinutes * 60_000L
@@ -86,7 +90,7 @@ class SessionManager private constructor(private val context: Context) {
         applyPauseDnd()
         scheduleAutoExpiry(endTime)
         SessionForegroundService.start(context)
-        PauseWidgetProvider.saveLastDuration(context, durationMinutes)
+        if (rememberDuration) LastDuration.save(context, durationMinutes)
         PauseWidgetProvider.updateAllWidgets(context)
     }
 
