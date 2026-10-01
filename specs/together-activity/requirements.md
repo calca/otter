@@ -55,13 +55,15 @@ can look at it again.
    introduction: the text is already an invitation ("Let's take a walk").
 2. The system SHALL never ask whether the activity was done.
 3. WHEN the shared pause ends THEN History SHALL show the activity on that
-   pause's row ("with Marta · a walk").
+   pause's row in a short form ("with Marta · a long walk").
 
 ## Tone (applies to the catalog)
 
 - Written in the first person plural ("Facciamo due passi", "Let's take
   a walk"): the group proposing something to itself, never the app giving
   instructions ("Fate due passi").
+- One activity per entry: never "this or that". An alternative is its own
+  entry.
 - Invitations, never tasks. Always ignorable.
 - Suitable for a couple, a family or colleagues: nothing intimate, nothing
   requiring fitness, special equipment or spending money.
