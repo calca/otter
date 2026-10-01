@@ -423,4 +423,12 @@ Quando sentirai il bisogno di una pausa, basterà aprire l\'app, scegliere quant
         <item quantity="other">%1$d attive</item>
     </plurals>
     <string name="settings_schedule_none">Nessuna</string>
+    <!-- Nota della settimana (specs/weekly-summary/) -->
+    <string name="weekly_note_channel">Nota della settimana</string>
+    <plurals name="weekly_note_pauses">
+        <item quantity="one">Questa settimana: %1$d pausa di calma.</item>
+        <item quantity="other">Questa settimana: %1$d pause di calma.</item>
+    </plurals>
+    <string name="weekly_note_toggle_label">Nota della domenica sera</string>
+    <string name="weekly_note_notifications_off">Le notifiche di Calm Otter sono spente</string>
 </resources>

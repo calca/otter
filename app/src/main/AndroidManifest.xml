@@ -184,6 +184,11 @@
             android:name=".ScheduledPauseReceiver"
             android:exported="false" />
 
+        <!-- Nota della domenica sera (specs/weekly-summary/). -->
+        <receiver
+            android:name=".WeeklySummaryReceiver"
+            android:exported="false" />
+
         <receiver
             android:name=".BootReceiver"
             android:exported="false">

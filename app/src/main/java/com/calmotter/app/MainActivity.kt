@@ -401,6 +401,7 @@ class MainActivity : BaseActivity() {
         // primo piano (rifiutato in background, vedi
         // SessionForegroundService.start) lo ritrova qui.
         ScheduleAlarms.armAll(this)
+        WeeklySummary.arm(this)
         if (sessionManager.isSessionActive()) SessionForegroundService.start(this)
 
         currentTheme = ThemeManager.getTheme(this)

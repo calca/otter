@@ -416,4 +416,12 @@ Whenever you feel the need for a break, just open the app, choose how long — &
         <item quantity="other">%1$d on</item>
     </plurals>
     <string name="settings_schedule_none">None</string>
+    <!-- Nota della settimana (specs/weekly-summary/) -->
+    <string name="weekly_note_channel">Weekly note</string>
+    <plurals name="weekly_note_pauses">
+        <item quantity="one">This week: %1$d pause of calm.</item>
+        <item quantity="other">This week: %1$d pauses of calm.</item>
+    </plurals>
+    <string name="weekly_note_toggle_label">Sunday evening note</string>
+    <string name="weekly_note_notifications_off">Calm Otter\'s notifications are off</string>
 </resources>

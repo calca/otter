@@ -30,6 +30,7 @@ class BootReceiver : BroadcastReceiver() {
         // Gli allarmi non sopravvivono al riavvio: le pause programmate vanno
         // riarmate sempre, anche senza una pausa in corso.
         ScheduleAlarms.armAll(context)
+        WeeklySummary.arm(context)
 
         val sessionManager = SessionManager.getInstance(context)
         if (!sessionManager.isSessionActive()) return

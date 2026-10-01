@@ -218,6 +218,8 @@ class SessionManager private constructor(private val context: Context) {
         SessionForegroundService.stop(context)
         PauseWidgetProvider.updateAllWidgets(context)
         PauseTileService.requestRefresh(context)
+        // La nota della domenica, se era stata rimandata per questa pausa.
+        WeeklySummary.onSessionEnded(context)
     }
 
     /** Id della sessione completata ancora senza risposta al momento di chiusura; 0 = nessuna. */

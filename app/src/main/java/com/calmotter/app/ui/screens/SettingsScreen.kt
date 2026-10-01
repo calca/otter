@@ -30,6 +30,7 @@ import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.unit.em
 import com.calmotter.app.ScheduleManager
 import com.calmotter.app.SlowExitManager
+import com.calmotter.app.WeeklySummary
 import com.calmotter.app.ui.mascot.SprigMark
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.width
@@ -196,6 +197,48 @@ fun SettingsScreen(
             phrasesEnabled = checked
             phraseManager.setEnabled(checked)
         })
+        // La nota della domenica sera (specs/weekly-summary/): niente
+        // password, è solo una notifica. Se le notifiche dell'app sono
+        // spente lo dice, senza chiedere il permesso solo per questo.
+        var weeklyNote by remember { mutableStateOf(WeeklySummary.isEnabled(context)) }
+        val notificationsOn = remember(resumeSignal) { WeeklySummary.notificationsAllowed(context) }
+        Surface(
+            shape = RoundedCornerShape(20.dp),
+            color = MaterialTheme.colorScheme.primary.copy(alpha = 0.06f),
+            modifier = Modifier.fillMaxWidth().padding(top = 10.dp),
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 12.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                SettingsRowIcon {
+                    Icon(
+                        imageVector = Icons.Default.DateRange,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.size(16.dp),
+                    )
+                }
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(stringResource(R.string.weekly_note_toggle_label), color = MaterialTheme.colorScheme.onSurface)
+                    if (!notificationsOn) {
+                        Text(
+                            stringResource(R.string.weekly_note_notifications_off),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
+                        )
+                    }
+                }
+                Switch(
+                    checked = weeklyNote,
+                    onCheckedChange = {
+                        weeklyNote = it
+                        WeeklySummary.setEnabled(context, it)
+                    },
+                    colors = settingsSwitchColors(),
+                )
+            }
+        }
 
         SectionLabel(stringResource(R.string.settings_permissions_label))
         PermissionStatusCard(
