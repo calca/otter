@@ -57,7 +57,7 @@ object ScheduleAlarms {
             .setAction(action)
             .putExtra(ScheduledPauseReceiver.EXTRA_ID, id)
             .putExtra(ScheduledPauseReceiver.EXTRA_AT, at)
-        val code = 3000 + id * 2 + if (action == ScheduledPauseReceiver.ACTION_START) 1 else 0
+        val code = AlarmIds.schedule(id, start = action == ScheduledPauseReceiver.ACTION_START)
         return PendingIntent.getBroadcast(
             context, code, intent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
         )

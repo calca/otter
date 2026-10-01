@@ -39,7 +39,6 @@ object WeeklySummary {
     private const val KEY_PENDING = "pending"
     private const val CHANNEL_ID = "calm_otter_weekly_note"
     private const val NOTIFICATION_ID = 5000
-    private const val REQUEST_CODE = 5001
     private const val WINDOW_MILLIS = 30 * 60_000L
 
     fun isEnabled(context: Context): Boolean = prefs(context).getBoolean(KEY_ENABLED, true)
@@ -128,7 +127,7 @@ object WeeklySummary {
 
     private fun pendingIntent(context: Context): PendingIntent =
         PendingIntent.getBroadcast(
-            context, REQUEST_CODE, Intent(context, WeeklySummaryReceiver::class.java),
+            context, AlarmIds.WEEKLY_NOTE, Intent(context, WeeklySummaryReceiver::class.java),
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
         )
 

@@ -196,6 +196,12 @@
                 <action android:name="android.intent.action.BOOT_COMPLETED" />
                 <!-- Alcuni dispositivi Huawei/MIUI usano questo invece di BOOT_COMPLETED -->
                 <action android:name="android.intent.action.QUICKBOOT_POWERON" />
+                <!-- Cambio di ora o di fuso: gli allarmi a ora locale (pause
+                     programmate, nota della domenica) vanno ricalcolati. Due
+                     dei broadcast impliciti che un receiver nel manifest può
+                     ancora ricevere. -->
+                <action android:name="android.intent.action.TIME_SET" />
+                <action android:name="android.intent.action.TIMEZONE_CHANGED" />
             </intent-filter>
         </receiver>
 

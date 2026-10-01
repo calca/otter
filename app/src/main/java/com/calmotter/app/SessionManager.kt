@@ -268,7 +268,7 @@ class SessionManager private constructor(private val context: Context) {
             .setAction(SessionExpiryReceiver.ACTION_SLOW_EXIT)
         return PendingIntent.getBroadcast(
             context,
-            SLOW_EXIT_REQUEST_CODE,
+            AlarmIds.SLOW_EXIT,
             intent,
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
@@ -333,7 +333,7 @@ class SessionManager private constructor(private val context: Context) {
         val intent = Intent(context, SessionExpiryReceiver::class.java)
         return PendingIntent.getBroadcast(
             context,
-            EXPIRY_REQUEST_CODE,
+            AlarmIds.SESSION_EXPIRY,
             intent,
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
@@ -483,8 +483,6 @@ class SessionManager private constructor(private val context: Context) {
         private const val KEY_PREV_POLICY_CALL_SENDERS = "session_prev_dnd_call_senders"
         private const val KEY_PREV_POLICY_MESSAGE_SENDERS = "session_prev_dnd_message_senders"
         private const val KEY_PREV_POLICY_SUPPRESSED_EFFECTS = "session_prev_dnd_suppressed_effects"
-        private const val EXPIRY_REQUEST_CODE = 1001
-        private const val SLOW_EXIT_REQUEST_CODE = 1002
         private const val KEY_GROUP_ACTIVITY = "session_group_activity"
         private const val KEY_PROFILE_ID = "session_profile_id"
         private const val KEY_SLOW_EXIT_DEADLINE = "session_slow_exit_deadline"

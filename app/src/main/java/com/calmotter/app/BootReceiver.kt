@@ -23,20 +23,21 @@ import android.content.Intent
 class BootReceiver : BroadcastReceiver() {
 
     override fun onReceive(context: Context, intent: Intent) {
-        val action = intent.action ?: return
-        if (action != Intent.ACTION_BOOT_COMPLETED &&
-            action != "android.intent.action.QUICKBOOT_POWERON") return
+        when (intent.action) {
+            // Ora o fuso cambiati: gli allarmi a ora locale (pause programmate,
+            // nota della domenica) vanno ricalcolati. Nient'altro da fare.
+            Intent.ACTION_TIME_CHANGED, Intent.ACTION_TIMEZONE_CHANGED -> AppScheduler.reconcile(context)
+            Intent.ACTION_BOOT_COMPLETED, "android.intent.action.QUICKBOOT_POWERON" -> onBoot(context)
+        }
+    }
 
-        // Gli allarmi non sopravvivono al riavvio: le pause programmate vanno
-        // riarmate sempre, anche senza una pausa in corso.
-        ScheduleAlarms.armAll(context)
-        WeeklySummary.arm(context)
-
+    private fun onBoot(context: Context) {
         val sessionManager = SessionManager.getInstance(context)
+        // isSessionActive() chiude da sola una pausa scaduta durante il riavvio.
+        if (sessionManager.isSessionActive()) sessionManager.reapplyAfterBoot()
+        // Gli allarmi non sopravvivono al riavvio.
+        AppScheduler.reconcile(context)
         if (!sessionManager.isSessionActive()) return
-
-        // Ripristina DND e allarme di scadenza, azzerati dal riavvio
-        sessionManager.reapplyAfterBoot()
 
         val blockIntent = Intent(context, BlockOverlayActivity::class.java).apply {
             flags = Intent.FLAG_ACTIVITY_NEW_TASK or

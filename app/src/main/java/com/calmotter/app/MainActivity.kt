@@ -395,14 +395,10 @@ class MainActivity : BaseActivity() {
             return
         }
 
-        // Reti di sicurezza a ogni apertura, entrambe idempotenti: le pause
-        // programmate restano armate anche se il sistema ha perso gli
-        // allarmi, e una pausa partita da un allarme senza il servizio in
-        // primo piano (rifiutato in background, vedi
-        // SessionForegroundService.start) lo ritrova qui.
-        ScheduleAlarms.armAll(this)
-        WeeklySummary.arm(this)
-        if (sessionManager.isSessionActive()) SessionForegroundService.start(this)
+        // Rete di sicurezza a ogni apertura (idempotente): allarmi riarmati se
+        // il sistema li ha persi, e il servizio in primo piano di una pausa
+        // partita da un allarme che non ha potuto avviarlo.
+        AppScheduler.reconcile(this)
 
         currentTheme = ThemeManager.getTheme(this)
         // Il colore di sistema della barra di stato (impostato dal tema XML
