@@ -226,7 +226,7 @@
             android:foregroundServiceType="specialUse">
             <property
                 android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
-                android:value="Mantiene attivo il blocco sessione di pausa" />
+                android:value="Keeps a user-started focus pause running until it ends: the timer notification, Do Not Disturb and the app block stay active" />
         </service>
 
         <receiver

@@ -121,6 +121,7 @@ android {
             // lasciarli "up-to-date".
             all { test ->
                 test.systemProperty("screenshots.record", project.findProperty("screenshots.record") ?: "false")
+                test.systemProperty("store.graphics", project.findProperty("store.graphics") ?: "false")
                 test.inputs.files(project.fileTree("src/test/screenshots"))
                     .withPropertyName("screenshotGoldens")
                     .optional()

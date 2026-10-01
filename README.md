@@ -154,6 +154,13 @@ proves insufficient in practice.
   active session.
 - Remote unlock (would require a small backend) instead of only local.
 
+## Privacy
+
+Calm Otter has no `INTERNET` permission and collects nothing: see the
+[privacy policy](docs/privacy-policy.md). Material for publishing on Google
+Play (listing texts, graphics, declarations, checklist) is in
+[`docs/store/`](docs/store/README.md).
+
 ## License
 
 MIT — see [LICENSE](LICENSE).
