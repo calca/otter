@@ -64,8 +64,8 @@ internal fun WeekOverviewCard(
     weekSessions: Int,
     weekMinutes: Int,
     onEditGoal: () -> Unit,
-    now: Long = System.currentTimeMillis(),
     modifier: Modifier = Modifier,
+    now: Long = System.currentTimeMillis(),
 ) {
     Surface(
         shape = RoundedCornerShape(20.dp),
