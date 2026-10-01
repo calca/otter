@@ -6,10 +6,11 @@ holds the password can end it early. No sign-up, no backend, no tracking:
 just you, your phone, and a bit of quiet.
 
 <p align="center">
-  <img src="docs/screenshots/home.png" width="200" alt="Home screen with weekly streak" />
-  <img src="docs/screenshots/paused.png" width="200" alt="Active pause screen" />
-  <img src="docs/screenshots/history.png" width="200" alt="Session history" />
-  <img src="docs/screenshots/tempo_insieme.png" width="200" alt="Time together setup screen" />
+  <img src="docs/screenshots/home.png" width="160" alt="Home: tap the otter, pick a duration" />
+  <img src="docs/screenshots/paused.png" width="160" alt="A pause in progress" />
+  <img src="docs/screenshots/closing.png" width="160" alt="How was it? The closing moment after a pause" />
+  <img src="docs/screenshots/history.png" width="160" alt="History with the weekly chart and time spent together" />
+  <img src="docs/screenshots/tempo_insieme.png" width="160" alt="Time together: the host's lobby with a suggested activity" />
 </p>
 
 ## How it works
@@ -20,7 +21,11 @@ just you, your phone, and a bit of quiet.
    Android Keystore — the actual password is never stored anywhere.
 2. **Grant two permissions** — Accessibility and Do Not Disturb access.
    That's the whole setup, one time only.
-3. **Pick a duration and tap the otter.** Every app but Phone gets covered
+3. **Pick a duration and tap the otter** — from a 10-minute breather to
+   four hours; the app remembers the one you chose last. Or start it from
+   the home-screen widget or the "Calm Otter" Quick Settings tile, which
+   is there even when you're already deep in another app. Every app but
+   Phone gets covered
    by a calm full-screen countdown, notifications go quiet — calls, alarms
    and whatever you're listening to still get through — and the pause is
    backed by a system alarm, so it ends on time even if you never touch
@@ -35,8 +40,32 @@ just you, your phone, and a bit of quiet.
 
 Not everything needs to wait. Keep a short list of apps that stay
 reachable during a pause — maps, a family chat, whatever is
-non-negotiable. Only the password holder can change that list, so it
-stays a deliberate exception, not a loophole.
+non-negotiable. Different pauses can allow different things: a "Work"
+list with Maps and the team chat, an "Evening" one with nothing at all.
+Only the password holder can create or change these lists, so they stay
+a deliberate exception, not a loophole; picking which one to use for the
+next pause is a single tap on Home.
+
+## Scheduled Pauses
+
+The best moment to start a pause is the one you'd rather skip. Set it once
+— "weekdays at 21:00 for an hour", "Sunday morning, two hours" — and it
+starts by itself, with a quiet heads-up five minutes before. Adding a
+schedule or making it stricter is free; switching it off, shortening it,
+moving it later or skipping tonight needs the password. That's the pact.
+
+## Small Rituals
+
+- **A breathing pause.** Ten minutes, for the tense moments: the ring
+  slowly expands and contracts and the screen just says *Breathe in*,
+  *Breathe out* — no clock to watch.
+- **How was it?** When a pause runs its full course, one gentle question:
+  calm, ordinary or hard, plus a few words if you like ("walk by the
+  lake"). It ends up in History next to that pause. Never after a pause
+  cut short — it's a nod to time well spent, not a reproach.
+- **A Sunday evening note.** Once a week, "This week: 7 pauses of calm."
+  Only the count, never hours, streaks, goals or comparisons, and nothing
+  at all if there were no pauses. One switch in Settings turns it off.
 
 ## Home App
 
@@ -63,6 +92,14 @@ made for a couple, a family, or a team that wants to disconnect as one:
 
 Everyone in the pause sees who they're with ("Together with Marta") on
 the block screen, and the pause shows up with those names in History.
+
+**Something to do together.** A shared pause takes the phones away and can
+leave a silence: "so, what now?". The host gets a suggestion that fits the
+length — *Let's take a long walk, no destination*, *Let's play a game of
+cards*, or simply *Nothing: let's just be together* — and can ask for
+another one. Everyone sees the same suggestion, in their own language,
+during the pause. History then keeps a small icon of what kind of thing
+you did, and a "Together" card adds it up: *Marta · 6 h in 4 pauses*.
 
 **Ending it together.** If the person who started the shared pause
 unlocks it early, their phone offers to release the others: hold the
@@ -97,6 +134,13 @@ otherwise:
   launcher show its own "set as default" nag or restrict some features.
   This is an unavoidable side effect of how Android's `RoleManager` works
   and is left as-is rather than "fixed."
+- A scheduled pause starts on time and blocks as usual, but Android may
+  not let it show its ongoing notification until the app is next opened:
+  a background start is only allowed for exact alarms, which need a
+  permission Calm Otter doesn't ask for.
+- The slow exit (wait 10 minutes instead of typing the password) is a
+  deliberate, softer way out. It's on by default, said in onboarding, and
+  only the password holder can switch it off.
 
 For a genuinely hard block, the app would need Device Owner provisioning
 and Lock Task Mode with `DISALLOW_CONFIGURE_ACCESSIBILITY`,
@@ -147,6 +191,10 @@ flow) and `specs/README.md` for the index of feature specs.
 ./gradlew assembleDebug                                  # both flavors' debug APKs
 ./gradlew testStableDebugUnitTest testBetaDebugUnitTest  # unit tests (Robolectric)
 ./gradlew lintStableDebug lintBetaDebug                  # Android Lint (0 errors, CI-enforced)
+
+# Screenshot tests run with the unit tests; after an intentional visual
+# change, re-record the reference images and commit them:
+./gradlew testStableDebugUnitTest --tests "*ScreenshotTest*" -Pscreenshots.record=true
 ```
 
 Two flavors exist on a `channel` dimension so a beta build can sit
