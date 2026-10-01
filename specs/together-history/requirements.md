@@ -23,6 +23,12 @@ person, so the shared pauses feel like time together, not just time off.
 3. Names SHALL be grouped ignoring case and surrounding spaces; different
    spellings of the same person stay separate (no guessing).
 4. WHEN History contains no shared pause THEN the card SHALL NOT appear.
+5. Next to each companion the card SHALL show the icons of the activity
+   categories most often proposed in pauses with them (outside, at the
+   table, games, slow — see `specs/together-activity/`): up to three,
+   each category once, most frequent first. Pauses without an activity
+   don't count; a companion with none shows no icons.
+6. Early-ended pauses SHALL count with their effective time.
 
 ## User Story 2: Only the shared pauses
 
