@@ -69,10 +69,8 @@ dodge the pause.
 - **History**: `SessionRecord` gains nothing; whether a pause was
   scheduled is not interesting enough to store.
 
-## Decisioni aperte
+## Decisioni prese
 
-1. **Spostare l'orario richiede la password?** Raccomandato sì (vedi sopra).
-2. **Heads-up 5 minuti prima:** raccomandato sì, notifica silenziosa, nessuna
-   azione.
-3. **Se mancano i permessi all'ora prevista:** notifica una tantum
-   (raccomandato) o nulla.
+1. **Spostare l'orario:** richiede la password (è un allentamento).
+2. **Avviso 5 minuti prima:** sì, notifica silenziosa, nessuna azione.
+3. **Permessi mancanti all'ora prevista:** una notifica una tantum.
