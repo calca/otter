@@ -1,4 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <!-- Struttura dei temi: una BASE per tipo di schermata (senza o con
+         ActionBar nativa) e, sopra, un OVERLAY per palette che porta solo i
+         colori. ThemeManager.applyTheme() li applica in quest'ordine prima
+         di super.onCreate(). I colori non stanno qui: sono riferimenti a
+         values/colors.xml (e al suo gemello values-night/), che e' l'unica
+         fonte e la stessa che legge Compose — vedi lì. DayNight sceglie da
+         solo i valori chiari o scuri, quindi non esiste un themes.xml
+         notturno. -->
 
     <!-- Material 3 Structural Base (No ActionBar) -->
     <style name="Theme.CalmOtter.Base" parent="Theme.Material3.DayNight.NoActionBar">
@@ -8,7 +17,6 @@
         <item name="colorOnErrorContainer">@color/m3_on_error_container</item>
         <item name="colorOutline">@color/m3_outline</item>
         <item name="colorOutlineVariant">@color/m3_outline_variant</item>
-
         <item name="shapeAppearanceLargeComponent">@style/ShapeAppearance.CalmOtter.Large</item>
         <item name="shapeAppearanceMediumComponent">@style/ShapeAppearance.CalmOtter.Large</item>
         <item name="materialButtonStyle">@style/Widget.CalmOtter.Button</item>
@@ -22,185 +30,77 @@
         <item name="colorOnErrorContainer">@color/m3_on_error_container</item>
         <item name="colorOutline">@color/m3_outline</item>
         <item name="colorOutlineVariant">@color/m3_outline_variant</item>
-
         <item name="shapeAppearanceLargeComponent">@style/ShapeAppearance.CalmOtter.Large</item>
         <item name="shapeAppearanceMediumComponent">@style/ShapeAppearance.CalmOtter.Large</item>
         <item name="materialButtonStyle">@style/Widget.CalmOtter.Button</item>
     </style>
 
-    <!-- SAGE THEME -->
-    <style name="Theme.CalmOtter.Sage" parent="Theme.CalmOtter.Base">
+    <!-- Overlay di palette: solo colori. Nessun genitore, si applicano sopra
+         una delle due basi. L'ActionBar nativa legge questi valori (titolo,
+         icone), il resto delle schermate e' Compose. `colorOnSurface` punta
+         a on_background, il testo pieno: e' quello che colora il titolo
+         della ActionBar, e con on_surface (piu' smorzato in scuro) risultava
+         spento rispetto a prima. Niente tema del popup
+         dell'overflow: l'app non ne ha (le azioni di Cronologia sono sempre
+         visibili). -->
+    <style name="ThemeOverlay.CalmOtter.Sage" parent="">
         <item name="colorPrimary">@color/sage_primary</item>
         <item name="colorOnPrimary">@color/sage_on_primary</item>
-        <item name="colorPrimaryContainer">@color/sage_primary_container</item>
-        <item name="colorOnPrimaryContainer">@color/sage_on_primary_container</item>
-        <item name="colorSecondary">@color/sage_secondary</item>
-        <item name="colorOnSecondary">@color/sage_on_secondary</item>
-        <item name="colorSecondaryContainer">@color/sage_secondary_container</item>
-        <item name="colorOnSecondaryContainer">@color/sage_on_secondary_container</item>
         <item name="android:windowBackground">@color/sage_background</item>
+        <item name="android:colorBackground">@color/sage_background</item>
         <item name="colorSurface">@color/sage_surface</item>
-        <item name="colorOnSurface">@color/sage_on_surface</item>
-        <item name="colorSurfaceVariant">@color/sage_surface_variant</item>
-        <item name="colorOnSurfaceVariant">#404943</item>
+        <item name="colorOnSurface">@color/sage_on_background</item>
+        <item name="colorOnSurfaceVariant">@color/sage_on_surface</item>
     </style>
-    <style name="Theme.CalmOtter.Sage.Block" parent="Theme.CalmOtter.Sage" />
-    <style name="Theme.CalmOtter.Sage.WithActionBar" parent="Theme.CalmOtter.Base.WithActionBar">
+    <style name="ThemeOverlay.CalmOtter.StillWater" parent="">
+        <item name="colorPrimary">@color/still_water_primary</item>
+        <item name="colorOnPrimary">@color/still_water_on_primary</item>
+        <item name="android:windowBackground">@color/still_water_background</item>
+        <item name="android:colorBackground">@color/still_water_background</item>
+        <item name="colorSurface">@color/still_water_surface</item>
+        <item name="colorOnSurface">@color/still_water_on_background</item>
+        <item name="colorOnSurfaceVariant">@color/still_water_on_surface</item>
+    </style>
+    <style name="ThemeOverlay.CalmOtter.DuskSand" parent="">
+        <item name="colorPrimary">@color/dusk_sand_primary</item>
+        <item name="colorOnPrimary">@color/dusk_sand_on_primary</item>
+        <item name="android:windowBackground">@color/dusk_sand_background</item>
+        <item name="android:colorBackground">@color/dusk_sand_background</item>
+        <item name="colorSurface">@color/dusk_sand_surface</item>
+        <item name="colorOnSurface">@color/dusk_sand_on_background</item>
+        <item name="colorOnSurfaceVariant">@color/dusk_sand_on_surface</item>
+    </style>
+    <style name="ThemeOverlay.CalmOtter.DawnClay" parent="">
+        <item name="colorPrimary">@color/dawn_clay_primary</item>
+        <item name="colorOnPrimary">@color/dawn_clay_on_primary</item>
+        <item name="android:windowBackground">@color/dawn_clay_background</item>
+        <item name="android:colorBackground">@color/dawn_clay_background</item>
+        <item name="colorSurface">@color/dawn_clay_surface</item>
+        <item name="colorOnSurface">@color/dawn_clay_on_background</item>
+        <item name="colorOnSurfaceVariant">@color/dawn_clay_on_surface</item>
+    </style>
+
+    <!-- Temi di partenza dichiarati nel manifest: la finestra iniziale (prima
+         che BaseActivity applichi la palette scelta) e' sempre quella
+         predefinita, Sage. Stesse nove voci dell'overlay Sage, come
+         riferimenti: nessun valore duplicato. -->
+    <style name="Theme.CalmOtter" parent="Theme.CalmOtter.Base">
         <item name="colorPrimary">@color/sage_primary</item>
         <item name="colorOnPrimary">@color/sage_on_primary</item>
-        <item name="colorPrimaryContainer">@color/sage_primary_container</item>
-        <item name="colorOnPrimaryContainer">@color/sage_on_primary_container</item>
-        <item name="colorSecondary">@color/sage_secondary</item>
-        <item name="colorOnSecondary">@color/sage_on_secondary</item>
-        <item name="colorSecondaryContainer">@color/sage_secondary_container</item>
-        <item name="colorOnSecondaryContainer">@color/sage_on_secondary_container</item>
         <item name="android:windowBackground">@color/sage_background</item>
+        <item name="android:colorBackground">@color/sage_background</item>
         <item name="colorSurface">@color/sage_surface</item>
-        <item name="colorOnSurface">@color/sage_on_surface</item>
-        <item name="colorSurfaceVariant">@color/sage_surface_variant</item>
-        <item name="colorOnSurfaceVariant">#404943</item>
-        <!-- Il popup dell'ActionBar (es. il "⋮" di Cronologia) non eredita i
-             colori di questo tema direttamente: Material3 lo mostra dentro un
-             ThemeOverlay a parte (?attr/actionBarPopupTheme, di default
-             ThemeOverlay.Material3.Light nella libreria) con il proprio
-             colorSurface fisso — da cui il popup restava sempre lavanda a
-             prescindere dalla palette, segnalato direttamente ("colore
-             errato e non del tema"). Verificato empiricamente (misura pixel)
-             che sovrascrivere solo popupMenuBackground/colorSurface qui non
-             bastava proprio per questo: serve il proprio ThemeOverlay. -->
-        <item name="actionBarPopupTheme">@style/ThemeOverlay.CalmOtter.Sage.PopupMenu</item>
+        <item name="colorOnSurface">@color/sage_on_background</item>
+        <item name="colorOnSurfaceVariant">@color/sage_on_surface</item>
     </style>
-
-    <!-- DEEP FOREST THEME — vedi values/colors.xml per la provenienza dei
-         valori. Stessa struttura delle altre palette: base, variante Block e
-         variante con ActionBar, quest'ultima col proprio ThemeOverlay per il
-         popup dell'overflow (senza, resterebbe del colore della libreria). -->
-    <style name="Theme.CalmOtter.DeepForest" parent="Theme.CalmOtter.Base">
-        <item name="colorPrimary">@color/deep_forest_primary</item>
-        <item name="colorOnPrimary">@color/deep_forest_on_primary</item>
-        <item name="colorPrimaryContainer">@color/deep_forest_primary_container</item>
-        <item name="colorOnPrimaryContainer">@color/deep_forest_on_primary_container</item>
-        <item name="colorSecondary">@color/deep_forest_secondary</item>
-        <item name="colorOnSecondary">@color/deep_forest_on_secondary</item>
-        <item name="colorSecondaryContainer">@color/deep_forest_secondary_container</item>
-        <item name="colorOnSecondaryContainer">@color/deep_forest_on_secondary_container</item>
-        <item name="android:windowBackground">@color/deep_forest_background</item>
-        <item name="colorSurface">@color/deep_forest_surface</item>
-        <item name="colorOnSurface">@color/deep_forest_on_surface</item>
-        <item name="colorSurfaceVariant">@color/deep_forest_surface_variant</item>
-        <item name="colorOnSurfaceVariant">#424843</item>
-    </style>
-    <style name="Theme.CalmOtter.DeepForest.Block" parent="Theme.CalmOtter.DeepForest" />
-    <style name="Theme.CalmOtter.DeepForest.WithActionBar" parent="Theme.CalmOtter.Base.WithActionBar">
-        <item name="colorPrimary">@color/deep_forest_primary</item>
-        <item name="colorOnPrimary">@color/deep_forest_on_primary</item>
-        <item name="colorPrimaryContainer">@color/deep_forest_primary_container</item>
-        <item name="colorOnPrimaryContainer">@color/deep_forest_on_primary_container</item>
-        <item name="colorSecondary">@color/deep_forest_secondary</item>
-        <item name="colorOnSecondary">@color/deep_forest_on_secondary</item>
-        <item name="colorSecondaryContainer">@color/deep_forest_secondary_container</item>
-        <item name="colorOnSecondaryContainer">@color/deep_forest_on_secondary_container</item>
-        <item name="android:windowBackground">@color/deep_forest_background</item>
-        <item name="colorSurface">@color/deep_forest_surface</item>
-        <item name="colorOnSurface">@color/deep_forest_on_surface</item>
-        <item name="colorSurfaceVariant">@color/deep_forest_surface_variant</item>
-        <item name="colorOnSurfaceVariant">#424843</item>
-        <item name="actionBarPopupTheme">@style/ThemeOverlay.CalmOtter.DeepForest.PopupMenu</item>
-    </style>
-
-    <!-- DUSK SAND THEME -->
-    <style name="Theme.CalmOtter.DuskSand" parent="Theme.CalmOtter.Base">
-        <item name="colorPrimary">@color/dusk_sand_primary</item>
-        <item name="colorOnPrimary">@color/dusk_sand_on_primary</item>
-        <item name="colorPrimaryContainer">@color/dusk_sand_primary_container</item>
-        <item name="colorOnPrimaryContainer">@color/dusk_sand_on_primary_container</item>
-        <item name="colorSecondary">@color/dusk_sand_secondary</item>
-        <item name="colorOnSecondary">@color/dusk_sand_on_secondary</item>
-        <item name="colorSecondaryContainer">@color/dusk_sand_secondary_container</item>
-        <item name="colorOnSecondaryContainer">@color/dusk_sand_on_secondary_container</item>
-        <item name="android:windowBackground">@color/dusk_sand_background</item>
-        <item name="colorSurface">@color/dusk_sand_surface</item>
-        <item name="colorOnSurface">@color/dusk_sand_on_surface</item>
-        <item name="colorSurfaceVariant">@color/dusk_sand_surface_variant</item>
-        <item name="colorOnSurfaceVariant">#49454f</item>
-    </style>
-    <style name="Theme.CalmOtter.DuskSand.Block" parent="Theme.CalmOtter.DuskSand" />
-    <style name="Theme.CalmOtter.DuskSand.WithActionBar" parent="Theme.CalmOtter.Base.WithActionBar">
-        <item name="colorPrimary">@color/dusk_sand_primary</item>
-        <item name="colorOnPrimary">@color/dusk_sand_on_primary</item>
-        <item name="colorPrimaryContainer">@color/dusk_sand_primary_container</item>
-        <item name="colorOnPrimaryContainer">@color/dusk_sand_on_primary_container</item>
-        <item name="colorSecondary">@color/dusk_sand_secondary</item>
-        <item name="colorOnSecondary">@color/dusk_sand_on_secondary</item>
-        <item name="colorSecondaryContainer">@color/dusk_sand_secondary_container</item>
-        <item name="colorOnSecondaryContainer">@color/dusk_sand_on_secondary_container</item>
-        <item name="android:windowBackground">@color/dusk_sand_background</item>
-        <item name="colorSurface">@color/dusk_sand_surface</item>
-        <item name="colorOnSurface">@color/dusk_sand_on_surface</item>
-        <item name="colorSurfaceVariant">@color/dusk_sand_surface_variant</item>
-        <item name="colorOnSurfaceVariant">#49454f</item>
-        <item name="actionBarPopupTheme">@style/ThemeOverlay.CalmOtter.DuskSand.PopupMenu</item>
-    </style>
-
-    <!-- DAWN CLAY THEME -->
-    <style name="Theme.CalmOtter.DawnClay" parent="Theme.CalmOtter.Base">
-        <item name="colorPrimary">@color/dawn_clay_primary</item>
-        <item name="colorOnPrimary">@color/dawn_clay_on_primary</item>
-        <item name="colorPrimaryContainer">@color/dawn_clay_primary_container</item>
-        <item name="colorOnPrimaryContainer">@color/dawn_clay_on_primary_container</item>
-        <item name="colorSecondary">@color/dawn_clay_secondary</item>
-        <item name="colorOnSecondary">@color/dawn_clay_on_secondary</item>
-        <item name="colorSecondaryContainer">@color/dawn_clay_secondary_container</item>
-        <item name="colorOnSecondaryContainer">@color/dawn_clay_on_secondary_container</item>
-        <item name="android:windowBackground">@color/dawn_clay_background</item>
-        <item name="colorSurface">@color/dawn_clay_surface</item>
-        <item name="colorOnSurface">@color/dawn_clay_on_surface</item>
-        <item name="colorSurfaceVariant">@color/dawn_clay_surface_variant</item>
-        <item name="colorOnSurfaceVariant">#53433f</item>
-    </style>
-    <style name="Theme.CalmOtter.DawnClay.Block" parent="Theme.CalmOtter.DawnClay" />
-    <style name="Theme.CalmOtter.DawnClay.WithActionBar" parent="Theme.CalmOtter.Base.WithActionBar">
-        <item name="colorPrimary">@color/dawn_clay_primary</item>
-        <item name="colorOnPrimary">@color/dawn_clay_on_primary</item>
-        <item name="colorPrimaryContainer">@color/dawn_clay_primary_container</item>
-        <item name="colorOnPrimaryContainer">@color/dawn_clay_on_primary_container</item>
-        <item name="colorSecondary">@color/dawn_clay_secondary</item>
-        <item name="colorOnSecondary">@color/dawn_clay_on_secondary</item>
-        <item name="colorSecondaryContainer">@color/dawn_clay_secondary_container</item>
-        <item name="colorOnSecondaryContainer">@color/dawn_clay_on_secondary_container</item>
-        <item name="android:windowBackground">@color/dawn_clay_background</item>
-        <item name="colorSurface">@color/dawn_clay_surface</item>
-        <item name="colorOnSurface">@color/dawn_clay_on_surface</item>
-        <item name="colorSurfaceVariant">@color/dawn_clay_surface_variant</item>
-        <item name="colorOnSurfaceVariant">#53433f</item>
-        <item name="actionBarPopupTheme">@style/ThemeOverlay.CalmOtter.DawnClay.PopupMenu</item>
-    </style>
-
-    <!-- Overlay del popup dell'ActionBar per palette (vedi actionBarPopupTheme
-         sopra) — popupMenuBackground esplicito, non solo colorSurface: il
-         drawable di default (Widget.Material3.PopupMenu.Overflow) usa un
-         macro M3 (@macro/m3_comp_menu_container_color) che non è detto legga
-         colorSurface, quindi si sovrascrive direttamente l'attributo che il
-         widget style consulta davvero, eliminando l'ambiguità. -->
-    <style name="ThemeOverlay.CalmOtter.Sage.PopupMenu" parent="ThemeOverlay.Material3.Light">
+    <style name="Theme.CalmOtter.WithActionBar" parent="Theme.CalmOtter.Base.WithActionBar">
+        <item name="colorPrimary">@color/sage_primary</item>
+        <item name="colorOnPrimary">@color/sage_on_primary</item>
+        <item name="android:windowBackground">@color/sage_background</item>
+        <item name="android:colorBackground">@color/sage_background</item>
         <item name="colorSurface">@color/sage_surface</item>
-        <item name="colorOnSurface">@color/sage_on_surface</item>
-        <item name="popupMenuBackground">@color/sage_surface</item>
-    </style>
-    <style name="ThemeOverlay.CalmOtter.DeepForest.PopupMenu" parent="ThemeOverlay.Material3.Light">
-        <item name="colorSurface">@color/deep_forest_surface</item>
-        <item name="colorOnSurface">@color/deep_forest_on_surface</item>
-        <item name="popupMenuBackground">@color/deep_forest_surface</item>
-    </style>
-    <style name="ThemeOverlay.CalmOtter.DuskSand.PopupMenu" parent="ThemeOverlay.Material3.Light">
-        <item name="colorSurface">@color/dusk_sand_surface</item>
-        <item name="colorOnSurface">@color/dusk_sand_on_surface</item>
-        <item name="popupMenuBackground">@color/dusk_sand_surface</item>
-    </style>
-    <style name="ThemeOverlay.CalmOtter.DawnClay.PopupMenu" parent="ThemeOverlay.Material3.Light">
-        <item name="colorSurface">@color/dawn_clay_surface</item>
-        <item name="colorOnSurface">@color/dawn_clay_on_surface</item>
-        <item name="popupMenuBackground">@color/dawn_clay_surface</item>
+        <item name="colorOnSurface">@color/sage_on_background</item>
+        <item name="colorOnSurfaceVariant">@color/sage_on_surface</item>
     </style>
 
     <!-- Shared Styles -->
@@ -217,10 +117,4 @@
         <item name="cornerFamily">rounded</item>
         <item name="cornerSize">50%</item>
     </style>
-
-    <!-- Default Aliases -->
-    <style name="Theme.CalmOtter"          parent="Theme.CalmOtter.Sage" />
-    <style name="Theme.CalmOtter.Block"    parent="Theme.CalmOtter.Sage.Block" />
-    <style name="Theme.CalmOtter.WithActionBar" parent="Theme.CalmOtter.Sage.WithActionBar" />
-
 </resources>

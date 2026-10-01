@@ -1,121 +1,103 @@
 # Multi-Theme System — Design
 
+> **Stato attuale.** I colori hanno **una sola fonte**: le risorse
+> `<palette>_<ruolo>` di `values/colors.xml` (chiaro) e `values-night/colors.xml`
+> (scuro). Le sezioni da "Material 3 Expressive" in giù sono la storia di come
+> si è arrivati qui, scritta quando esistevano ancora due sistemi paralleli, la
+> palette Foresta profonda e i temi XML per palette: dove citano
+> `values-night/themes.xml`, i letterali di `CalmOtterTheme.kt`,
+> `CalmOtterThemeColorSyncTest` o Deep Forest, descrivono il passato. Il
+> comportamento vigente è quello di queste prime sezioni.
+
 ## Key files
 
 | File | Role |
 |---|---|
-| `ThemeManager.kt` | Reads/writes the chosen `AppTheme` (plain `SharedPreferences`); resolves the correct `@style` for an Activity+variant combination |
-| `BaseActivity.kt` | Calls `ThemeManager.applyTheme()` before `super.onCreate()` |
-| `res/values/themes.xml` (+ `values-night/themes.xml`) | 3 palettes × 3 variants of AppCompat/Material3 XML themes |
-| `res/values/colors.xml` | Color values referenced by `themes.xml` (`sage_*`, `dusk_sand_*`, `dawn_clay_*`, plus shared `m3_*` structural colors) |
-| `res/values-night/colors.xml` | Overrides only `sage_primary`/`dusk_sand_primary`/`dawn_clay_primary` with their dark-mode values — the one place any of `colors.xml` gets a night variant, added so the theme-list swatches (`ThemeListRow`, which reads these 3 names via `colorResource()`) show the right color in dark mode |
-| `ui/theme/CalmOtterTheme.kt` | Independent Compose `MaterialExpressiveTheme` color schemes, one per palette × light/dark |
+| `res/values/colors.xml` | **Unica fonte dei colori**: nove ruoli per palette (`sage_*`, `still_water_*`, `dusk_sand_*`, `dawn_clay_*`) più i `m3_*` strutturali, valori chiari |
+| `res/values-night/colors.xml` | Gli stessi nomi con i valori scuri (e `m3_error` scuro). Android sceglie da solo il file in base alla modalità |
+| `res/values/themes.xml` | Due basi strutturali (`Theme.CalmOtter.Base`, `.Base.WithActionBar`, entrambe `Theme.Material3.DayNight`) e **un overlay per palette** (`ThemeOverlay.CalmOtter.<Palette>`) che porta solo colori, come riferimenti a `colors.xml`. Non esiste più un `themes.xml` notturno |
+| `ThemeManager.kt` | Legge/scrive l'`AppTheme` scelto (`SharedPreferences`); `applyTheme()` applica base + overlay |
+| `BaseActivity.kt` | Chiama `ThemeManager.applyTheme()` prima di `super.onCreate()` |
+| `ui/theme/CalmOtterTheme.kt` | Compose: `PaletteColors` (id di risorsa per palette) e `CalmOtterTheme`, che costruisce lo `ColorScheme` con `colorResource` — nessun letterale di colore |
+| `test/.../CalmOtterPaletteTest.kt` | Ogni palette completa in chiaro e scuro, contrasto di testo e CTA, tonalità distinte |
 
-## Two parallel systems — this is intentional, keep them in sync manually
+## One source, two readers
 
-Every screen is Compose content (see CLAUDE.md), but each Activity is still
-an `AppCompatActivity` with a real Android window/status bar/splash that
-needs a theme applied *before* Compose ever renders — that's what
-`BaseActivity.onCreate()` → `ThemeManager.applyTheme()` → `setTheme(styleId)`
-does, using the XML `themes.xml`/`colors.xml` system. Once inside Compose,
-`CalmOtterTheme(appTheme = ...)` wraps content in a `MaterialTheme` built
-from **hardcoded** `Color(...)` literals in `CalmOtterTheme.kt` — it does
-**not** read `@color/*` resources.
+Ogni schermata è Compose, ma ogni Activity è ancora una `AppCompatActivity`
+con una finestra reale (sfondo, barra di stato, ActionBar nativa) che ha
+bisogno di un tema prima che Compose disegni. Prima c'erano due copie dei
+colori da tenere allineate a mano (`colors.xml`/`themes.xml` e i letterali
+`Color(...)` di `CalmOtterTheme.kt`), con un test che confrontava solo il
+chiaro; il deriva aveva già causato bug veri. Ora i colori stanno in un
+posto solo e i due lettori puntano allo stesso:
 
-**Consequence for future changes**: editing a palette color in
-`colors.xml`/`themes.xml` alone changes the window chrome but not the
-Compose content (or vice versa). Any palette color change must be mirrored
-in both places by hand — each `Color(...)` literal in `CalmOtterTheme.kt`
-carries a `// @color/xxx` comment naming the XML value it was copied from,
-specifically so this can be checked at a glance.
+- **Finestra XML:** gli overlay in `themes.xml` (`colorPrimary`,
+  `windowBackground`, `colorSurface`, ...) sono riferimenti a `@color/...`.
+- **Compose:** `CalmOtterTheme` legge le stesse risorse con `colorResource`,
+  quindi prende il valore scuro in dark mode senza `if` suoi.
 
-**Also non-obvious**: `values/themes.xml` (light) and `values-night/themes.xml`
-(dark) are not the same design language — only the light file was updated
-by the "Desing.md" M3 redesign; the night file still uses the pre-redesign
-MaterialComponents attributes (`colorPrimaryVariant`,
-`android:textColorPrimary/Secondary`) with hardcoded hex values, not
-`@color/*` references — `values-night/colors.xml` now exists (see "Key
-files" above and the theme-picker-dots fix below), but only as a narrow,
-separate override for 3 color names the dot drawables read; the dead
-`pause_*`-only version of this file that used to exist was removed earlier
-and `values-night/themes.xml` still doesn't reference it or any other
-`@color/*` name. Don't assume light and dark hex values for the same
-palette should look like tint/shade variants of each other; they were
-authored separately. `CalmOtterTheme.kt`'s light/dark schemes correctly
-mirror this split (`*Light` from `values/`, `*Dark` from `values-night/`).
+Cambiare un colore significa cambiare **una riga** (due per chiaro e scuro).
+`CalmOtterPaletteTest` difende ciò che resta: che una palette abbia tutti i
+ruoli in entrambe le modalità (una risorsa mancante in `values-night/`
+ricadrebbe in silenzio sul valore chiaro), che il contrasto di testo e CTA
+regga (>= 4.5:1), e che due palette non abbiano la stessa tonalità.
+
+I nove ruoli: `background`, `surface`, `surface_bright` (il disco centrale
+dello stagno), `on_background`, `on_surface`, `primary`, `on_primary`,
+`accent` (mascotte e controlli, `secondary` di Compose) e `veil` (anelli e
+riempimenti tenui, `tertiary` di Compose). Gli altri ruoli Material3
+(`surfaceVariant`, `primaryContainer`, ...) restano ai default della libreria,
+come prima.
+
+## Applying a palette
+
+`applyTheme()` fa due `setTheme()` in sequenza: la base (con o senza
+ActionBar) e poi l'overlay della palette, che sovrascrive i colori. Il
+tema di partenza del manifest (`Theme.CalmOtter`, `.WithActionBar`) è sempre
+Sage: è la finestra iniziale, prima che l'Activity applichi la scelta. Per
+un cambio palette al volo (vedi "Applying a new theme without `recreate()`")
+basta richiamare `applyTheme()`: l'overlay sovrascrive i valori precedenti.
+
+Nell'overlay `colorOnSurface` punta a `on_background` e non a `on_surface`:
+l'unico testo XML visibile è il titolo della ActionBar nativa, e in scuro
+`on_surface` è più smorzato del testo pieno (titolo spento, verificato).
+Compose non ne risente, ha i propri ruoli.
 
 ## `ThemeVariant`
 
-Three variants per palette, chosen per-Activity via
-`override val themeVariant`:
-- `BASE` — plain `NoActionBar` theme (most Compose screens draw their own top bar or none)
-- `WITH_ACTION_BAR` — settings-style screens (`HistoryActivity`,
-  `ChangePasswordActivity`, `AllowedAppsActivity`, `OnboardingActivity`) that
-  use the native `supportActionBar` for a title + Up button
-- `BLOCK` — the full-bleed block screen (`BlockOverlayActivity`); `MainActivity`
-  stays on `BASE` even when it shows this same block screen (Home button
-  pressed during an active session — see
-  `app-blocking-and-home-lock/design.md`'s "One Activity, two roles"),
-  since `BASE` and `BLOCK` resolve to identical XML styles anyway (the
-  `.Block` aliases below add nothing)
+Due varianti, scelte per Activity con `override val themeVariant`:
+- `BASE` — tema `NoActionBar` (la maggior parte delle schermate Compose
+  disegna la propria barra o nessuna), compresa la schermata di blocco
+  (`BlockOverlayActivity`, e `MainActivity` quando la mostra: vedi
+  `app-blocking-and-home-lock/design.md`, "One Activity, two roles").
+- `WITH_ACTION_BAR` — schermate stile impostazioni (`HistoryActivity`,
+  `ChangePasswordActivity`, `AllowedAppsActivity`, `OnboardingActivity`,
+  `SettingsActivity`) che usano la `supportActionBar` nativa per titolo e
+  freccia indietro.
 
-## `WITH_ACTION_BAR`'s overflow menu needs its own `ThemeOverlay`, not just `colorSurface`
+La variante `BLOCK` e gli alias `.Block` sono stati tolti: erano identici a
+`BASE`. Non c'è più nemmeno il tema del popup dell'overflow della
+ActionBar (`actionBarPopupTheme`): l'app non ha menu a comparsa, le azioni
+di Cronologia sono sempre visibili (`SHOW_AS_ACTION_ALWAYS`). Se un giorno
+ne comparisse uno, andrebbe aggiunto un overlay per il popup.
 
-`HistoryActivity`'s overflow menu ("Export history"/"Clear history") was
-reported directly as wrong-colored ("il menù di export ha il colore
-errato e non del tema") — a fixed Material3 lavender in light mode, a
-fixed neutral dark grey (`#121212`-ish) in dark mode, neither tracking
-Sage/Dusk Sand/Dawn Clay.
+## The four palettes
 
-**Why setting `colorSurface` (already correctly per-palette) and even
-`popupMenuBackground` directly on `Theme.CalmOtter.<Palette>.WithActionBar`
-does *not* fix this**, verified by measuring actual rendered pixel values
-(not just eyeballing a screenshot — a first attempt at this fix looked
-plausibly closer in a screenshot but measured as unchanged): the
-ActionBar's overflow popup is not rendered using the Activity's own theme
-directly. Both `Theme.Material3.DayNight` and `Theme.MaterialComponents.DayNight`
-(the light/dark parents here — see "Two parallel systems" above) set
-their own `actionBarPopupTheme` to a fixed library `ThemeOverlay`
-(`ThemeOverlay.Material3.Light` / `ThemeOverlay.MaterialComponents.Dark`),
-and the overflow popup is shown inside *that* overlay's `ContextThemeWrapper`,
-which defines its own `colorSurface` independent of whatever the
-Activity's outer theme says. Overriding `colorSurface`/`popupMenuBackground`
-on the outer theme never reaches it.
+Salvia (verde), **Acqua ferma** (blu-petrolio, l'unica palette fredda), Sabbia
+al tramonto (marrone caldo) e Argilla all'alba (terracotta). Acqua ferma ha
+preso il posto di Foresta profonda: era un secondo verde (primary chiaro
+`#1B3B2B` contro `#0F5238` di Salvia, stesso accento e stesso velo; in scuro
+`#639786` contro `#6B9E7C`, quasi indistinguibili), cioè due voci quasi
+identiche in una lista di quattro. La chiave salvata è `still_water`; non c'è
+retrocompatibilità con `deep_forest` né con le chiavi storiche `lavender`/
+`terracotta` (l'app non era pubblica): una chiave sconosciuta ricade su
+Salvia. Con la stessa modifica il testo sul CTA scuro di Salvia è passato da
+`#02391A` a `#002E17` (contrasto 4.25 → 4.85): il test di contrasto ha
+mostrato che era sotto la soglia di 4.5:1 dichiarata dalla storia qui sotto.
 
-**Fix**: define a `ThemeOverlay.CalmOtter.<Palette>.PopupMenu` per palette
-(extending the library's own default overlay for that theme family — the
-same distinction as light vs. dark below), and point `actionBarPopupTheme`
-at it from each `.WithActionBar` style:
-- `values/themes.xml` (light, Material3-based): `ThemeOverlay.CalmOtter.Sage.PopupMenu`
-  etc. extend `ThemeOverlay.Material3.Light`.
-- `values-night/themes.xml` (dark, still MaterialComponents-based — see
-  "Two parallel systems"): the same 3 overlays extend
-  `ThemeOverlay.MaterialComponents.Dark` instead, and use their own
-  `sage_dark_surface`/`dusk_sand_dark_surface`/`dawn_clay_dark_surface`
-  color names (new, in `values-night/colors.xml`, mirroring the palette's
-  existing inline hex `colorSurface`) rather than a `values/colors.xml`
-  name, consistent with this file's established pattern of not touching
-  `@color/*` names owned by the light redesign.
-
-Each overlay sets **both** `colorSurface` (for consistency/ripples/text)
-**and** `popupMenuBackground` directly (not relying on `colorSurface`
-alone): `Widget.Material3.PopupMenu.Overflow`'s actual background drawable
-resolves through an M3 "macro" token
-(`@macro/m3_comp_menu_container_color`), which isn't guaranteed to key off
-`colorSurface` specifically — setting `popupMenuBackground` directly on
-the overlay bypasses that ambiguity entirely and is what the widget style
-actually consults.
-
-**`popupMenuBackground` is `format="reference"` only** — a raw `#hex`
-literal fails AAPT2 linking ("expected reference but got raw string"); it
-must be a `@color/name`. This is why `values-night/colors.xml` gained 3
-new dark-surface color names instead of inlining hex directly in the
-`ThemeOverlay` (consistent with the "narrow, separate override" pattern
-already described above for the 3 `*_primary` names) — and why
-`values/colors.xml` needed matching (unused-in-practice, lint-required)
-fallback declarations for those same 3 names, since a `values-night`-only
-color resource without a base-`values` declaration is a lint error
-(`MissingDefaultResource`).
+Valori Acqua ferma — chiaro: primary `#1F5A6B`, sfondo `#F6F9FA`, accento
+`#8FA9B3`, velo `#D5E2E6`; scuro: primary `#5E94A6` (smorzato come gli altri,
+vedi "CTA troppo brillanti" più sotto), sfondo `#0C1417`, velo `#263339`.
 
 ## Material 3 Expressive
 

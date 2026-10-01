@@ -1,48 +1,53 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- Override dei soli 3 colori "primary" letti dallo swatch di ogni
-         riga del selettore tema (ThemeListCard/ThemeListRow via
-         colorResource(), vedi ui/screens/SettingsScreen.kt) — così ogni
-         pallino mostra il colorPrimary scuro realmente applicato in dark
-         mode (values-night/themes.xml), non quello chiaro di
-         values/colors.xml. Nessun altro colore qui: solo questi 3 nomi
-         sono letti con colorResource() nell'app, il resto di
-         values/colors.xml continua a valere anche in dark mode
-         (values-night/themes.xml ha i propri valori scuri inline, non
-         passa da colors.xml — vedi specs/multi-theme-system/design.md). -->
-    <!-- Deep Forest in scuro: partiva da `inverse-primary` del design system
-         Stitch (#abcfb8, il verde che quel sistema prevedeva per fondo
-         scuro) — smorzato come gli altri tre qui sotto, vedi commento
-         "CTA troppo brillanti" più in basso. -->
-    <color name="deep_forest_primary">#639786</color>
-    <!-- CTA troppo brillanti in dark mode, segnalato direttamente: tutti e
-         quattro questi primary erano pastelli a ~72-79% di luminosità (quasi
-         fluorescenti su sfondo scuro, non rilassanti). Smorzati mantenendo
-         la stessa famiglia di tonalità del primary chiaro corrispondente
-         (values/colors.xml), luminosità/saturazione abbassate con lo stesso
-         rapporto usato per Sage (il primo segnalato), contrasto contro il
-         colorOnPrimary esistente ricontrollato ≥4.5:1 su ognuno — vedi
-         specs/multi-theme-system/design.md. -->
-    <color name="sage_primary">#6b9e7c</color>
-    <color name="dusk_sand_primary">#b59473</color>
-    <color name="dawn_clay_primary">#bf7969</color>
+    <!-- Valori scuri delle stesse nove voci per palette di values/colors.xml
+         (vedi lì: e' l'unica fonte dei colori). Primari e accenti sono
+         pastelli smorzati di proposito: a piena luminosita' su fondo scuro
+         erano "CTA troppo brillanti", segnalato direttamente. Contrasto del
+         testo sul CTA >= 4.5:1, verificato da CalmOtterPaletteTest. -->
+    <color name="m3_error">#e07a78</color>
 
-    <!-- Stessi valori di colorSurface inline in values-night/themes.xml, come
-         @color/ invece che #hex letterale: popupMenuBackground è un attr
-         format="reference" puro — AAPT2 rifiuta un valore #hex diretto lì
-         ("expected reference but got raw string"), serve passare da un
-         @color/ nominato (vedi ThemeOverlay.CalmOtter.*.PopupMenu nello
-         stesso file). -->
+    <!-- SAGE — il verde predefinito -->
+    <color name="sage_background">#0e1510</color>
+    <color name="sage_surface">#151d17</color>
+    <color name="sage_surface_bright">#1b2620</color>
+    <color name="sage_on_background">#dde5dc</color>
+    <color name="sage_on_surface">#9ab3a3</color>
+    <color name="sage_primary">#6b9e7c</color>
+    <color name="sage_on_primary">#002e17</color>
     <color name="sage_accent">#6b9e7c</color>
     <color name="sage_veil">#2b3a30</color>
-    <color name="deep_forest_accent">#639786</color>
-    <color name="deep_forest_veil">#26332b</color>
+
+    <!-- STILL WATER — il blu-petrolio, unica palette fredda -->
+    <color name="still_water_background">#0c1417</color>
+    <color name="still_water_surface">#121c20</color>
+    <color name="still_water_surface_bright">#18262b</color>
+    <color name="still_water_on_background">#dce6ea</color>
+    <color name="still_water_on_surface">#94aab3</color>
+    <color name="still_water_primary">#5e94a6</color>
+    <color name="still_water_on_primary">#00252f</color>
+    <color name="still_water_accent">#5e94a6</color>
+    <color name="still_water_veil">#263339</color>
+
+    <!-- DUSK SAND -->
+    <color name="dusk_sand_background">#15110b</color>
+    <color name="dusk_sand_surface">#1c1711</color>
+    <color name="dusk_sand_surface_bright">#241d15</color>
+    <color name="dusk_sand_on_background">#ece5da</color>
+    <color name="dusk_sand_on_surface">#bda98d</color>
+    <color name="dusk_sand_primary">#b59473</color>
+    <color name="dusk_sand_on_primary">#3a2a16</color>
     <color name="dusk_sand_accent">#c9a880</color>
     <color name="dusk_sand_veil">#33291d</color>
+
+    <!-- DAWN CLAY -->
+    <color name="dawn_clay_background">#170f0c</color>
+    <color name="dawn_clay_surface">#1e1512</color>
+    <color name="dawn_clay_surface_bright">#271b17</color>
+    <color name="dawn_clay_on_background">#efe2dd</color>
+    <color name="dawn_clay_on_surface">#c79b8d</color>
+    <color name="dawn_clay_primary">#bf7969</color>
+    <color name="dawn_clay_on_primary">#3e1a12</color>
     <color name="dawn_clay_accent">#d79c8c</color>
     <color name="dawn_clay_veil">#36241f</color>
-    <color name="deep_forest_dark_surface">#101711</color>
-    <color name="sage_dark_surface">#151d17</color>
-    <color name="dusk_sand_dark_surface">#1c1711</color>
-    <color name="dawn_clay_dark_surface">#1e1512</color>
 </resources>

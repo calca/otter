@@ -4,31 +4,23 @@ import android.content.Context
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.edit
 
+/**
+ * Le quattro palette. I loro colori non stanno qui né in Kotlin: sono le
+ * risorse `<chiave>_*` di values/colors.xml (e values-night/), letta sia dal
+ * tema XML della finestra sia da Compose — vedi [com.calmotter.app.ui.theme.
+ * CalmOtterTheme] e specs/multi-theme-system/design.md. Una chiave sconosciuta
+ * ricade su [SAGE].
+ */
 enum class AppTheme(val key: String) {
     SAGE("sage"),
-    DUSK_SAND("dusk_sand"),
-    DAWN_CLAY("dawn_clay"),
 
-    /**
-     * Quarta palette, importata dal redesign (vedi
-     * specs/multi-theme-system/design.md). Aggiunta in coda e non come nuovo
-     * default: chi ha già l'app non deve vedersi cambiare i colori sotto le
-     * mani, e [fromKey] continua a ricadere su [SAGE].
-     */
-    DEEP_FOREST("deep_forest");
+    /** L'unica palette fredda: un blu-petrolio, per distinguersi dal verde di [SAGE]. */
+    STILL_WATER("still_water"),
+    DUSK_SAND("dusk_sand"),
+    DAWN_CLAY("dawn_clay");
 
     companion object {
-        /**
-         * Chiavi storiche delle palette sostituite dal redesign: chi aveva
-         * scelto Lavanda o Terracotta si ritrova sulla palette che ne ha
-         * preso il posto invece che riportato al default. La preferenza su
-         * disco resta la vecchia stringa finche' l'utente non ne sceglie
-         * un'altra — nessuna migrazione da scrivere, solo da leggere.
-         */
-        private val renamed = mapOf("lavender" to DUSK_SAND, "terracotta" to DAWN_CLAY)
-
-        fun fromKey(key: String) =
-            entries.firstOrNull { it.key == key } ?: renamed[key] ?: SAGE
+        fun fromKey(key: String) = entries.firstOrNull { it.key == key } ?: SAGE
     }
 }
 
@@ -48,32 +40,30 @@ object ThemeManager {
             .edit { putString(KEY, theme.key) }
     }
 
-    /** Applica il tema corretto — da chiamare PRIMA di super.onCreate(). */
+    /**
+     * Applica il tema corretto — da chiamare PRIMA di super.onCreate().
+     *
+     * Due strati: la base strutturale (con o senza ActionBar) e, sopra,
+     * l'overlay della palette scelta, che porta solo colori (vedi
+     * values/themes.xml). Richiamabile anche a Activity già creata, per un
+     * cambio palette al volo: l'overlay sovrascrive i valori precedenti.
+     */
     fun applyTheme(activity: AppCompatActivity, variant: ThemeVariant = ThemeVariant.BASE) {
-        val styleId = when (getTheme(activity)) {
-            AppTheme.SAGE        -> when (variant) {
-                ThemeVariant.BASE         -> R.style.Theme_CalmOtter_Sage
-                ThemeVariant.BLOCK        -> R.style.Theme_CalmOtter_Sage_Block
-                ThemeVariant.WITH_ACTION_BAR -> R.style.Theme_CalmOtter_Sage_WithActionBar
+        activity.setTheme(
+            when (variant) {
+                ThemeVariant.BASE -> R.style.Theme_CalmOtter_Base
+                ThemeVariant.WITH_ACTION_BAR -> R.style.Theme_CalmOtter_Base_WithActionBar
             }
-            AppTheme.DUSK_SAND    -> when (variant) {
-                ThemeVariant.BASE         -> R.style.Theme_CalmOtter_DuskSand
-                ThemeVariant.BLOCK        -> R.style.Theme_CalmOtter_DuskSand_Block
-                ThemeVariant.WITH_ACTION_BAR -> R.style.Theme_CalmOtter_DuskSand_WithActionBar
-            }
-            AppTheme.DAWN_CLAY  -> when (variant) {
-                ThemeVariant.BASE         -> R.style.Theme_CalmOtter_DawnClay
-                ThemeVariant.BLOCK        -> R.style.Theme_CalmOtter_DawnClay_Block
-                ThemeVariant.WITH_ACTION_BAR -> R.style.Theme_CalmOtter_DawnClay_WithActionBar
-            }
-            AppTheme.DEEP_FOREST -> when (variant) {
-                ThemeVariant.BASE         -> R.style.Theme_CalmOtter_DeepForest
-                ThemeVariant.BLOCK        -> R.style.Theme_CalmOtter_DeepForest_Block
-                ThemeVariant.WITH_ACTION_BAR -> R.style.Theme_CalmOtter_DeepForest_WithActionBar
-            }
-        }
-        activity.setTheme(styleId)
+        )
+        activity.setTheme(overlayFor(getTheme(activity)))
+    }
+
+    private fun overlayFor(theme: AppTheme): Int = when (theme) {
+        AppTheme.SAGE        -> R.style.ThemeOverlay_CalmOtter_Sage
+        AppTheme.STILL_WATER -> R.style.ThemeOverlay_CalmOtter_StillWater
+        AppTheme.DUSK_SAND   -> R.style.ThemeOverlay_CalmOtter_DuskSand
+        AppTheme.DAWN_CLAY   -> R.style.ThemeOverlay_CalmOtter_DawnClay
     }
 }
 
-enum class ThemeVariant { BASE, BLOCK, WITH_ACTION_BAR }
+enum class ThemeVariant { BASE, WITH_ACTION_BAR }

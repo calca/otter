@@ -59,10 +59,9 @@ import androidx.compose.foundation.layout.Box
  * `launchMode="singleTask"` in AndroidManifest.xml (vedi lì) evita che
  * pressioni ripetute del tasto Home impilino istanze duplicate — ogni nuovo
  * Intent su un'istanza già viva arriva a [onNewIntent], non a un nuovo
- * [onCreate]. `themeVariant` resta [ThemeVariant.BASE] sempre: BLOCK e BASE
- * risolvono agli stessi identici stili XML (vedi values/themes.xml, gli
- * alias `.Block` non aggiungono nulla), quindi non serve calcolarlo in modo
- * dinamico in base a come l'Activity è stata invocata.
+ * [onCreate]. `themeVariant` resta [ThemeVariant.BASE] sempre, quindi non
+ * serve calcolarlo in modo dinamico in base a come l'Activity è stata
+ * invocata.
  */
 class MainActivity : BaseActivity() {
 
@@ -402,12 +401,9 @@ class MainActivity : BaseActivity() {
         ThemeManager.applyTheme(this, themeVariant)
         // MaterialColors.getColor legge l'attributo "colorPrimary" già
         // risolto dal tema (appena riapplicato sopra) — tiene conto da solo
-        // sia della palette sia della modalità chiaro/scuro
-        // (values-night/themes.xml ha i suoi colorPrimary scuri distinti,
-        // non semplici varianti di colors.xml, vedi
-        // specs/multi-theme-system/design.md) — a differenza di un colore
-        // preso da colors.xml (che non ha varianti -night), che sarebbe
-        // risultato sbagliato in dark mode. Nessun effetto sotto Android
+        // sia della palette sia della modalità chiaro/scuro (l'overlay della
+        // palette punta a colors.xml, che ha il suo gemello values-night/).
+        // Nessun effetto sotto Android
         // 15+ (edge-to-edge imposto da targetSdk 37 rende la barra di stato
         // trasparente, vedi CLAUDE.md), ma resta visibile sulle versioni
         // precedenti.

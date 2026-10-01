@@ -1,59 +1,90 @@
 package com.calmotter.app.ui.theme
 
+import androidx.annotation.ColorRes
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.ColorScheme
 import androidx.compose.material3.MaterialExpressiveTheme
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
-import androidx.annotation.VisibleForTesting
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.compositeOver
+import androidx.compose.ui.res.colorResource
 import com.calmotter.app.AppTheme
+import com.calmotter.app.R
 
 /**
+ * I colori di una palette, come *riferimenti* alle risorse di
+ * values/colors.xml — che è l'unica fonte: i valori non sono ripetuti in
+ * Kotlin. Ogni risorsa ha il suo gemello in values-night/colors.xml, e
+ * `colorResource` prende da solo quello giusto per la modalità corrente;
+ * la finestra XML (overlay in values/themes.xml) punta alle stesse risorse.
+ * Non c'è quindi niente da tenere allineato a mano: CalmOtterPaletteTest
+ * controlla che ogni palette definisca tutti i ruoli, chiaro e scuro, e che
+ * il contrasto regga.
+ *
  * `secondary` e `tertiary` **sono impostati**, a differenza degli altri ruoli
  * lasciati ai default: nel design system del redesign non sono variazioni di
- * `primary` ma due colori con un compito preciso — `secondary` (#8fa693 nelle
- * palette verdi) è la mascotte e i controlli, `tertiary` (#d5e0d5) sono gli
- * anelli dello stagno e i riempimenti tenui. Impostato anche `surfaceBright`,
- * il disco centrale dello stagno: in chiaro è bianco pieno (nel mockup è più
- * chiaro dello sfondo, non uguale), in scuro è la superficie schiarita —
- * cioè esattamente ciò che quel ruolo M3 significa in entrambi i temi. Derivarli da `primary` con
- * l'opacità, come faceva questo file prima, dava grigi-verdi al posto dei
- * verdi del design (segnalato guardando la Home: "non sono i colori di
- * Stitch"). Vivono anche in values/colors.xml come `*_accent` / `*_veil`,
- * per i punti che leggono le risorse invece del tema Compose.
+ * `primary` ma due colori con un compito preciso — `secondary` (accent) è la
+ * mascotte e i controlli, `tertiary` (veil) sono gli anelli dello stagno e i
+ * riempimenti tenui. Impostato anche `surfaceBright`, il disco centrale dello
+ * stagno: in chiaro è bianco pieno (nel mockup è più chiaro dello sfondo, non
+ * uguale), in scuro è la superficie schiarita — cioè esattamente ciò che quel
+ * ruolo M3 significa in entrambi i temi. Derivarli da `primary` con
+ * l'opacità, come si faceva prima, dava grigi-verdi al posto dei verdi del
+ * design (segnalato guardando la Home: "non sono i colori di Stitch").
  *
- * Schemi colore Material3 per le 4 palette dell'app (Sage/DuskSand/DawnClay),
- * chiaro e scuro. Le due modalità NON condividono la stessa fonte XML, quindi
- * NON aspettarti che i valori chiaro/scuro siano una semplice variazione di
- * tonalità l'uno dell'altro:
- * - Chiaro: ricavato 1:1 da values/colors.xml + values/themes.xml (schema
- *   Material3 "Desing.md"/redesign).
- * - Scuro: ricavato 1:1 da values-night/themes.xml, che non è mai stato
- *   aggiornato dal redesign e resta sullo schema MaterialComponents
- *   precedente (colori hardcoded lì, non in un colors.xml notturno).
- * Se aggiorni una palette in un file XML, aggiorna anche qui a mano — nulla
- * lega automaticamente questi valori a quelli letti dal sistema di temi
- * XML/AppCompat (vedi CLAUDE.md e specs/multi-theme-system/design.md).
- * Solo i ruoli effettivamente usati dalle schermate Compose finora migrate
- * sono impostati esplicitamente (background/surface/onBackground/onSurface/
- * primary/onPrimary/error/onError, più `surfaceContainerHigh` per lo sfondo
- * di `AlertDialog` — vedi [dialogContainerFor]); gli altri ruoli Material3
+ * Solo i ruoli effettivamente usati dalle schermate Compose sono impostati
+ * esplicitamente (background/surface/onBackground/onSurface/primary/
+ * onPrimary/error/onError, più `surfaceContainerHigh` per lo sfondo di
+ * `AlertDialog` — vedi [dialogContainerFor]); gli altri ruoli Material3
  * (`surfaceVariant`, `primaryContainer`, ecc.) restano ai default della
  * libreria — se un componente nuovo legge uno di questi e sembra sbagliato
  * a prescindere dalla palette scelta, è probabilmente questo, non un bug nel
  * componente stesso.
- *
- * Il contenuto è avvolto in [MaterialExpressiveTheme] (non il semplice
- * MaterialTheme): applica Material 3 Expressive — motion scheme a molla,
- * forme e tipografia "expressive" — a ogni componente M3 dell'app senza
- * doverlo impostare schermata per schermata. Richiede material3 1.5.0-alpha
- * (compose-bom-alpha in app/build.gradle.kts): in material3 1.4.0 stabile
- * MaterialExpressiveTheme e MotionScheme.expressive()/standard() sono
- * `internal` in Kotlin, verificato decompilando il jar.
  */
+internal class PaletteColors(
+    @ColorRes val background: Int,
+    @ColorRes val surface: Int,
+    @ColorRes val surfaceBright: Int,
+    @ColorRes val onBackground: Int,
+    @ColorRes val onSurface: Int,
+    @ColorRes val primary: Int,
+    @ColorRes val onPrimary: Int,
+    @ColorRes val accent: Int,
+    @ColorRes val veil: Int,
+) {
+    /** Tutte le risorse della palette, per i controlli di CalmOtterPaletteTest. */
+    val all get() = listOf(background, surface, surfaceBright, onBackground, onSurface, primary, onPrimary, accent, veil)
+}
+
+private val SagePalette = PaletteColors(
+    R.color.sage_background, R.color.sage_surface, R.color.sage_surface_bright,
+    R.color.sage_on_background, R.color.sage_on_surface,
+    R.color.sage_primary, R.color.sage_on_primary, R.color.sage_accent, R.color.sage_veil,
+)
+private val StillWaterPalette = PaletteColors(
+    R.color.still_water_background, R.color.still_water_surface, R.color.still_water_surface_bright,
+    R.color.still_water_on_background, R.color.still_water_on_surface,
+    R.color.still_water_primary, R.color.still_water_on_primary, R.color.still_water_accent, R.color.still_water_veil,
+)
+private val DuskSandPalette = PaletteColors(
+    R.color.dusk_sand_background, R.color.dusk_sand_surface, R.color.dusk_sand_surface_bright,
+    R.color.dusk_sand_on_background, R.color.dusk_sand_on_surface,
+    R.color.dusk_sand_primary, R.color.dusk_sand_on_primary, R.color.dusk_sand_accent, R.color.dusk_sand_veil,
+)
+private val DawnClayPalette = PaletteColors(
+    R.color.dawn_clay_background, R.color.dawn_clay_surface, R.color.dawn_clay_surface_bright,
+    R.color.dawn_clay_on_background, R.color.dawn_clay_on_surface,
+    R.color.dawn_clay_primary, R.color.dawn_clay_on_primary, R.color.dawn_clay_accent, R.color.dawn_clay_veil,
+)
+
+internal fun paletteFor(appTheme: AppTheme): PaletteColors = when (appTheme) {
+    AppTheme.SAGE -> SagePalette
+    AppTheme.STILL_WATER -> StillWaterPalette
+    AppTheme.DUSK_SAND -> DuskSandPalette
+    AppTheme.DAWN_CLAY -> DawnClayPalette
+}
 
 // onError è bianco per tutte le palette/modalità: entrambe le tonalità di
 // errore (m3_error/#ba1a1a chiaro, #E07A78 scuro) sono rosse abbastanza
@@ -77,218 +108,61 @@ private val OnError = Color.White
 private fun dialogContainerFor(primary: Color, surface: Color): Color =
     primary.copy(alpha = 0.08f).compositeOver(surface)
 
-// Chiaro: sfondo e surface coincidono nella palette M3 attuale (nessun
-// android:colorOnBackground esplicito in values/themes.xml), quindi onBackground
-// riusa lo stesso valore di onSurface (@color/sage_on_surface) anziché un
-// default M3 indovinato.
-private val SageLight = run {
-    val surface = Color(0xFFF9FAF6)   // @color/sage_surface
-    val primary = Color(0xFF0F5238)   // @color/sage_primary
-    lightColorScheme(
-        background = surface,             // @color/sage_background
-        surface = surface,
-        onBackground = Color(0xFF191C1A), // @color/sage_on_surface
-        onSurface = Color(0xFF191C1A),    // @color/sage_on_surface
-        primary = primary,
-        onPrimary = Color(0xFFFFFFFF),    // @color/sage_on_primary
-        error = Color(0xFFBA1A1A),        // @color/m3_error
-        onError = OnError,
-        surfaceContainerHigh = dialogContainerFor(primary, surface),
-        secondary = Color(0xFF8FA693),   // @color/*_accent
-        tertiary = Color(0xFFD5E0D5),     // @color/*_veil
-        surfaceBright = Color(0xFFFFFFFF),
-    )
-}
-
-private val SageDark = run {
-    val surface = Color(0xFF151D17)
-    // Era 0xFF9ED3A8: un menta troppo saturo/chiaro per il dark mode di
-    // un'app che dovrebbe rilassare, non un CTA acceso — segnalato
-    // direttamente. Sostituito con un sage più cupo e desaturato.
-    val primary = Color(0xFF6B9E7C)
-    darkColorScheme(
-        background = Color(0xFF0E1510),
-        surface = surface,
-        onBackground = Color(0xFFDDE5DC),
-        onSurface = Color(0xFF9AB3A3),
-        primary = primary,
-        onPrimary = Color(0xFF02391A),
-        error = Color(0xFFE07A78),
-        onError = OnError,
-        surfaceContainerHigh = dialogContainerFor(primary, surface),
-        secondary = Color(0xFF6B9E7C),   // @color/*_accent
-        tertiary = Color(0xFF2B3A30),     // @color/*_veil
-        surfaceBright = Color(0xFF1B2620),
-    )
-}
-
-private val DuskSandLight = run {
-    // Il rename Lavanda → Dusk Sand (vedi ThemeManager.kt) aveva aggiornato
-    // secondary/tertiary qui sotto ma non questi tre — segnalato da
-    // CalmOtterThemeColorSyncTest (TODO.md "2.3"), che confronta questi
-    // valori con quelli veri in values/colors.xml: la palette Dusk Sand
-    // in Compose rendeva ancora nel viola di Lavanda invece del
-    // marrone/tan del redesign.
-    val surface = Color(0xFFFCF9F4)   // @color/dusk_sand_surface
-    val primary = Color(0xFF61462D)   // @color/dusk_sand_primary
-    lightColorScheme(
-        background = surface,             // @color/dusk_sand_background
-        surface = surface,
-        onBackground = Color(0xFF1C1C19), // @color/dusk_sand_on_surface
-        onSurface = Color(0xFF1C1C19),    // @color/dusk_sand_on_surface
-        primary = primary,
-        onPrimary = Color(0xFFFFFFFF),    // @color/dusk_sand_on_primary
-        error = Color(0xFFBA1A1A),        // @color/m3_error
-        onError = OnError,
-        surfaceContainerHigh = dialogContainerFor(primary, surface),
-        secondary = Color(0xFF8F7256),   // @color/*_accent
-        tertiary = Color(0xFFE6D2B8),     // @color/*_veil
-        surfaceBright = Color(0xFFFFFFFF),
-    )
-}
-
-private val DuskSandDark = run {
-    val surface = Color(0xFF1C1711)
-    // Era 0xFFE3C39A: stesso problema di SageDark qui sopra ("CTA troppo
-    // brillanti in dark mode", segnalato direttamente) — un biscotto/tan
-    // troppo chiaro e saturo. Stessa hue del primary chiaro (@color/
-    // dusk_sand_primary, #61462d), luminosità/saturazione smorzate.
-    val primary = Color(0xFFB59473)
-    darkColorScheme(
-        background = Color(0xFF15110B),
-        surface = surface,
-        onBackground = Color(0xFFECE5DA),
-        onSurface = Color(0xFFBDA98D),
-        primary = primary,
-        onPrimary = Color(0xFF3A2A16),
-        error = Color(0xFFE07A78),
-        onError = OnError,
-        surfaceContainerHigh = dialogContainerFor(primary, surface),
-        secondary = Color(0xFFC9A880),   // @color/*_accent
-        tertiary = Color(0xFF33291D),     // @color/*_veil
-        surfaceBright = Color(0xFF241D15),
-    )
-}
-
-private val DawnClayLight = run {
-    // Stessa correzione, stesso motivo di DuskSandLight qui sopra: il
-    // rename Terracotta → Dawn Clay non aveva toccato questi tre valori.
-    val surface = Color(0xFFFDF8F6)   // @color/dawn_clay_surface
-    val primary = Color(0xFF6E352B)   // @color/dawn_clay_primary
-    lightColorScheme(
-        background = surface,             // @color/dawn_clay_background
-        surface = surface,
-        onBackground = Color(0xFF1C1B1A), // @color/dawn_clay_on_surface
-        onSurface = Color(0xFF1C1B1A),    // @color/dawn_clay_on_surface
-        primary = primary,
-        onPrimary = Color(0xFFFFFFFF),    // @color/dawn_clay_on_primary
-        error = Color(0xFFBA1A1A),        // @color/m3_error
-        onError = OnError,
-        surfaceContainerHigh = dialogContainerFor(primary, surface),
-        secondary = Color(0xFF965A4F),   // @color/*_accent
-        tertiary = Color(0xFFE9C3B8),     // @color/*_veil
-        surfaceBright = Color(0xFFFFFFFF),
-    )
-}
-
-private val DawnClayDark = run {
-    val surface = Color(0xFF1E1512)
-    // Era 0xFFF0B3A2: stesso problema di SageDark qui sopra ("CTA troppo
-    // brillanti in dark mode", segnalato direttamente) — un salmone troppo
-    // chiaro e saturo. Stessa hue del primary chiaro (@color/
-    // dawn_clay_primary, #6e352b), luminosità/saturazione smorzate.
-    val primary = Color(0xFFBF7969)
-    darkColorScheme(
-        background = Color(0xFF170F0C),
-        surface = surface,
-        onBackground = Color(0xFFEFE2DD),
-        onSurface = Color(0xFFC79B8D),
-        primary = primary,
-        onPrimary = Color(0xFF3E1A12),
-        error = Color(0xFFE07A78),
-        onError = OnError,
-        surfaceContainerHigh = dialogContainerFor(primary, surface),
-        secondary = Color(0xFFD79C8C),   // @color/*_accent
-        tertiary = Color(0xFF36241F),     // @color/*_veil
-        surfaceBright = Color(0xFF271B17),
-    )
-}
-
-private val DeepForestLight = run {
-    val surface = Color(0xFFF8F9F5)   // @color/deep_forest_surface
-    val primary = Color(0xFF1B3B2B)   // @color/deep_forest_primary
-    lightColorScheme(
-        background = surface,             // @color/deep_forest_background
-        surface = surface,
-        onBackground = Color(0xFF1A1C1A), // @color/deep_forest_on_surface
-        onSurface = Color(0xFF1A1C1A),    // @color/deep_forest_on_surface
-        primary = primary,
-        onPrimary = Color(0xFFFFFFFF),    // @color/deep_forest_on_primary
-        error = Color(0xFFBA1A1A),        // @color/m3_error
-        onError = OnError,
-        surfaceContainerHigh = dialogContainerFor(primary, surface),
-        secondary = Color(0xFF8FA693),   // @color/*_accent
-        tertiary = Color(0xFFD5E0D5),     // @color/*_veil
-        surfaceBright = Color(0xFFFFFFFF),
-    )
-}
-
-private val DeepForestDark = run {
-    val surface = Color(0xFF101711)
-    // Era 0xFFABCFB8: stesso problema di SageDark qui sopra ("CTA troppo
-    // brillanti in dark mode", segnalato direttamente) — un menta troppo
-    // chiaro e saturo (era l'inverse-primary originale del design system
-    // Stitch, pensato per un contesto diverso). Hue leggermente più fredda
-    // di Sage per restare distinguibile, luminosità/saturazione smorzate.
-    val primary = Color(0xFF639786)
-    darkColorScheme(
-        background = Color(0xFF0B110D),
-        surface = surface,
-        onBackground = Color(0xFFE0EAE2),
-        onSurface = Color(0xFF94AC9C),
-        primary = primary,
-        onPrimary = Color(0xFF00281A),
-        error = Color(0xFFE07A78),
-        onError = OnError,
-        surfaceContainerHigh = dialogContainerFor(primary, surface),
-        secondary = Color(0xFF639786),   // @color/*_accent
-        tertiary = Color(0xFF26332B),     // @color/*_veil
-        surfaceBright = Color(0xFF17211A),
-    )
-}
-
-// `internal`, non `private`: CalmOtterThemeColorSyncTest (TODO.md "2.3")
-// la esercita direttamente per confrontare questi valori con quelli letti
-// da values/colors.xml, invece di fidarsi che i commenti "// @color/..."
-// qui sopra restino veri a ogni modifica — stesso genere di correzione già
-// fatta per CalmOtterDatabase.MIGRATION_1_2/MIGRATION_2_3 (TODO.md "1.4").
-@VisibleForTesting
-internal fun lightSchemeFor(appTheme: AppTheme): ColorScheme = when (appTheme) {
-    AppTheme.SAGE -> SageLight
-    AppTheme.DUSK_SAND -> DuskSandLight
-    AppTheme.DAWN_CLAY -> DawnClayLight
-    AppTheme.DEEP_FOREST -> DeepForestLight
-}
-
-private fun darkSchemeFor(appTheme: AppTheme): ColorScheme = when (appTheme) {
-    AppTheme.SAGE -> SageDark
-    AppTheme.DUSK_SAND -> DuskSandDark
-    AppTheme.DAWN_CLAY -> DawnClayDark
-    AppTheme.DEEP_FOREST -> DeepForestDark
-}
-
 /**
- * Applica lo schema colore Material3 corrispondente alla palette scelta
- * dall'utente ([appTheme], da [com.calmotter.app.ThemeManager]), chiaro o
- * scuro a seconda dell'impostazione di sistema — coerente con il
- * comportamento del tema XML esistente, che segue anch'esso il sistema
- * tramite le risorse values-night/.
+ * Applica lo schema colore Material3 della palette scelta dall'utente
+ * ([appTheme], da [com.calmotter.app.ThemeManager]), chiaro o scuro a seconda
+ * dell'impostazione di sistema — gli stessi valori che l'overlay XML dà alla
+ * finestra, perché sono le stesse risorse (vedi [PaletteColors]).
+ *
+ * Il contenuto è avvolto in [MaterialExpressiveTheme] (non il semplice
+ * MaterialTheme): applica Material 3 Expressive — motion scheme a molla,
+ * forme e tipografia "expressive" — a ogni componente M3 dell'app senza
+ * doverlo impostare schermata per schermata. Richiede material3 1.5.0-alpha
+ * (compose-bom-alpha in app/build.gradle.kts): in material3 1.4.0 stabile
+ * MaterialExpressiveTheme e MotionScheme.expressive()/standard() sono
+ * `internal` in Kotlin, verificato decompilando il jar.
  */
 @Composable
 fun CalmOtterTheme(
     appTheme: AppTheme,
     content: @Composable () -> Unit
 ) {
-    val colorScheme = if (isSystemInDarkTheme()) darkSchemeFor(appTheme) else lightSchemeFor(appTheme)
+    val palette = paletteFor(appTheme)
+    val surface = colorResource(palette.surface)
+    val primary = colorResource(palette.primary)
+    // onError è bianco per tutte le palette/modalità: entrambe le tonalità di
+    // errore (m3_error chiaro/scuro) sono rosse abbastanza scure da garantire
+    // contrasto sufficiente con testo bianco.
+    val colorScheme: ColorScheme = if (isSystemInDarkTheme()) {
+        darkColorScheme(
+            background = colorResource(palette.background),
+            surface = surface,
+            onBackground = colorResource(palette.onBackground),
+            onSurface = colorResource(palette.onSurface),
+            primary = primary,
+            onPrimary = colorResource(palette.onPrimary),
+            error = colorResource(R.color.m3_error),
+            onError = OnError,
+            surfaceContainerHigh = dialogContainerFor(primary, surface),
+            secondary = colorResource(palette.accent),
+            tertiary = colorResource(palette.veil),
+            surfaceBright = colorResource(palette.surfaceBright),
+        )
+    } else {
+        lightColorScheme(
+            background = colorResource(palette.background),
+            surface = surface,
+            onBackground = colorResource(palette.onBackground),
+            onSurface = colorResource(palette.onSurface),
+            primary = primary,
+            onPrimary = colorResource(palette.onPrimary),
+            error = colorResource(R.color.m3_error),
+            onError = OnError,
+            surfaceContainerHigh = dialogContainerFor(primary, surface),
+            secondary = colorResource(palette.accent),
+            tertiary = colorResource(palette.veil),
+            surfaceBright = colorResource(palette.surfaceBright),
+        )
+    }
     MaterialExpressiveTheme(colorScheme = colorScheme, typography = CalmOtterTypography, content = content)
 }

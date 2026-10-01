@@ -41,6 +41,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.calmotter.app.AppTheme
 import com.calmotter.app.R
+import com.calmotter.app.ui.theme.paletteFor
 
 // Le carte più grandi delle Impostazioni: permessi, app Home e tema.
 // Spostate qui da SettingsScreen.kt (spacchettato come già MainScreen.kt):
@@ -228,11 +229,10 @@ internal fun HomeCard(homeOk: Boolean, onSetHome: () -> Unit) {
  * palette invece dei 3 pallini fianco a fianco di prima (theme_dot_*.xml,
  * rimossi — vedi git history). Ogni riga mostra il colore VERO di quella
  * palette (non "primary" del tema attivo, che varierebbe riga per riga
- * senza senso) tramite colorResource() sulle stesse risorse
- * @color/{sage,lavender,terracotta}_primary di prima — colorResource segue
- * da sola chiaro/scuro grazie a values-night/colors.xml (vedi
- * specs/multi-theme-system/design.md), quindi ogni pallino resta corretto
- * anche in dark mode.
+ * senza senso) tramite colorResource() sul `primary` della palette stessa
+ * ([paletteFor]) — colorResource segue da sola chiaro/scuro grazie a
+ * values-night/colors.xml (vedi specs/multi-theme-system/design.md), quindi
+ * ogni pallino resta corretto anche in dark mode.
  */
 @Composable
 internal fun ThemeListCard(currentTheme: AppTheme, onPickTheme: (AppTheme) -> Unit) {
@@ -243,10 +243,10 @@ internal fun ThemeListCard(currentTheme: AppTheme, onPickTheme: (AppTheme) -> Un
     // scroll verticale è la traduzione sbagliata dello stesso layout (stesso
     // motivo per cui l'elenco sessioni in Cronologia non è una LazyColumn).
     val entries = listOf(
-        Triple(AppTheme.SAGE, R.string.theme_sage, R.color.sage_primary),
-        Triple(AppTheme.DEEP_FOREST, R.string.theme_deep_forest, R.color.deep_forest_primary),
-        Triple(AppTheme.DUSK_SAND, R.string.theme_dusk_sand, R.color.dusk_sand_primary),
-        Triple(AppTheme.DAWN_CLAY, R.string.theme_dawn_clay, R.color.dawn_clay_primary),
+        AppTheme.SAGE to R.string.theme_sage,
+        AppTheme.STILL_WATER to R.string.theme_still_water,
+        AppTheme.DUSK_SAND to R.string.theme_dusk_sand,
+        AppTheme.DAWN_CLAY to R.string.theme_dawn_clay,
     )
     Column(
         modifier = Modifier.fillMaxWidth(),
@@ -261,7 +261,7 @@ internal fun ThemeListCard(currentTheme: AppTheme, onPickTheme: (AppTheme) -> Un
             // no, e senza questo le due celle risultavano di altezza
             // diversa nella stessa riga, col bordo della cella selezionata
             // che finiva più in alto o più in basso del vicino. La riga
-            // sopra ("Salvia" / "Foresta profonda") capita a stare su una
+            // sopra ("Salvia" / "Acqua ferma") capita a stare su una
             // riga sola in entrambe le lingue, motivo per cui il problema
             // si vedeva solo in fondo alla griglia — ma la correzione non
             // dipende da quale etichetta è più lunga in quale lingua, regge
@@ -270,10 +270,10 @@ internal fun ThemeListCard(currentTheme: AppTheme, onPickTheme: (AppTheme) -> Un
                 horizontalArrangement = Arrangement.spacedBy(12.dp),
                 modifier = Modifier.height(IntrinsicSize.Max),
             ) {
-                row.forEach { (theme, labelRes, colorRes) ->
+                row.forEach { (theme, labelRes) ->
                     ThemeGridCell(
                         label = stringResource(labelRes),
-                        swatchColor = colorResource(colorRes),
+                        swatchColor = colorResource(paletteFor(theme).primary),
                         selected = currentTheme == theme,
                         onClick = { onPickTheme(theme) },
                         modifier = Modifier.weight(1f).fillMaxHeight(),

@@ -103,7 +103,7 @@ See the toolchain paragraph above for why that requires an alpha Compose
 BOM, and `specs/multi-theme-system/design.md` for which `MaterialTheme`
 color roles are actually customized per palette — `surfaceVariant` and
 `primaryContainer` are **not** (they silently fall back to M3's stock
-default, ignoring Sage/Lavender/Terracotta entirely); this has already
+default, ignoring the palette entirely); this has already
 caused one real bug, see `specs/mascot-marks/design.md`.
 
 **Every screen's root layout applies `Modifier.safeDrawingPadding()`.**
@@ -151,15 +151,21 @@ session is active): active session → same `BlockScreen` Composable as
 `BlockOverlayActivity`; no session → immediate forward-and-finish. `BootReceiver`
 re-applies DND/alarm/service after reboot if a session was in progress.
 
-**Theming** has two parallel systems that must be kept in sync manually:
-`values/colors.xml` + `values/themes.xml` define three XML palettes (Sage,
-Lavender, Terracotta) × three variants (Base/Block/WithActionBar), applied by
+**Theming has one source of truth for colors.** Each of the four palettes
+(Sage, Still Water, Dusk Sand, Dawn Clay) is nine color roles named
+`<palette>_<role>` in `values/colors.xml`, with the dark values under the same
+names in `values-night/colors.xml`. Two things read them and nothing else
+holds a copy: the XML window theme (`ThemeOverlay.CalmOtter.<Palette>` in
+`values/themes.xml`, applied on top of a structural base by
 `ThemeManager.applyTheme()` in `BaseActivity.onCreate()` *before*
-`super.onCreate()` (needed for correct window chrome/status bar before
-Compose ever renders); `ui/theme/CalmOtterTheme.kt` independently hardcodes
-matching Material3 `ColorScheme`s for Compose content and does not read
-`@color/*` resources. If you touch one palette, mirror the change in the
-other file's `Color(...)` literals.
+`super.onCreate()`, needed for correct window chrome/ActionBar before Compose
+renders), and `ui/theme/CalmOtterTheme.kt`, which builds the Compose
+`ColorScheme` with `colorResource`. To change a color, edit it in
+`colors.xml` (and `values-night/colors.xml`); there is nothing to mirror.
+`CalmOtterPaletteTest` checks every palette is complete in both modes, that
+text/CTA contrast is >= 4.5:1, and that no two palettes share a hue. A new
+palette means: nine colors in each of the two files, an overlay in
+`themes.xml`, an `AppTheme` entry, a `PaletteColors` entry, and a string.
 
 ## Specs
 

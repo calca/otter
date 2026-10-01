@@ -138,8 +138,8 @@ app/src/main/
     ├── values/strings.xml                # 🇮🇹 Italian (base locale)
     ├── values-en/strings.xml             # 🇬🇧 English
     ├── values-XX/strings.xml             # your language here
-    ├── values/colors.xml                 # day palette (sage green)
-    └── values-night/colors.xml           # night palette (slate blue)
+    ├── values/colors.xml                 # the four palettes, light values (single source)
+    └── values-night/colors.xml           # the same colors, dark values
 ```
 
 ---

@@ -80,7 +80,7 @@
     <string name="theme_sage">Sage</string>
     <string name="theme_dusk_sand">Dusk Sand</string>
     <string name="theme_dawn_clay">Dawn Clay</string>
-    <string name="theme_deep_forest">Deep Forest</string>
+    <string name="theme_still_water">Still Water</string>
 
     <string name="notification_channel_name">Session in progress</string>
     <string name="notification_channel_description">Shows the status of the active pause session</string>

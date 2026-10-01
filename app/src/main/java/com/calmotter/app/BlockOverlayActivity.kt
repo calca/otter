@@ -17,7 +17,6 @@ import com.calmotter.app.ui.theme.CalmOtterTheme
  * di `MainActivity`.
  */
 class BlockOverlayActivity : BaseActivity() {
-    override val themeVariant = ThemeVariant.BLOCK
 
     override fun onResume() {
         super.onResume()
