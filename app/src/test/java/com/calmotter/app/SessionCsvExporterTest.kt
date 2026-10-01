@@ -7,7 +7,7 @@ import org.junit.Test
 
 class SessionCsvExporterTest {
 
-    private val header = "Data,Ora,Minuti pianificati,Minuti effettivi,Esito"
+    private val header = "Data,Ora,Minuti pianificati,Minuti effettivi,Esito,Con chi,Attività,Com'è andata,Nota"
 
     private fun ms(year: Int, month: Int, day: Int, hour: Int, minute: Int): Long =
         Calendar.getInstance().apply {
@@ -60,5 +60,25 @@ class SessionCsvExporterTest {
         assertTrue(earlyRow.contains("2024-06-16"))
         assertTrue(earlyRow.contains("18:45"))
         assertTrue(earlyRow.contains(",60,20,anticipata"))
+    }
+
+    @Test
+    fun togetherAndReflectionColumnsAreExported() {
+        val record = SessionRecord(
+            startTimeMs = ms(2024, Calendar.JUNE, 15, 9, 5), plannedMinutes = 60, effectiveMinutes = 60,
+            completedNaturally = true, isGroupSession = true, companions = "Marta\nLuca",
+            activityId = 16, mood = Mood.CALM, note = "lago, sole",
+        )
+        val row = lines(SessionCsvExporter.toCsv(listOf(record)))[1]
+        assertTrue(row.endsWith(",naturale,\"Marta, Luca\",long_walk,calma,\"lago, sole\""))
+    }
+
+    @Test
+    fun aSlowExitIsExportedAsSuch() {
+        val record = SessionRecord(
+            startTimeMs = ms(2024, Calendar.JUNE, 15, 9, 5), plannedMinutes = 60, effectiveMinutes = 20,
+            completedNaturally = false, endReason = EndReason.SLOW_EXIT,
+        )
+        assertTrue(lines(SessionCsvExporter.toCsv(listOf(record)))[1].contains(",60,20,senza password,"))
     }
 }

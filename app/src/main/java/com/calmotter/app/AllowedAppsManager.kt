@@ -1,5 +1,6 @@
 package com.calmotter.app
 
+import android.annotation.SuppressLint
 import android.content.Context
 import androidx.annotation.VisibleForTesting
 import androidx.core.content.edit
@@ -123,6 +124,7 @@ class AllowedAppsManager private constructor(private val context: Context) {
         private const val KEY_PROFILE_IDS = "profile_ids"
         private const val KEY_SELECTED = "selected_profile"
 
+        @SuppressLint("StaticFieldLeak") // tiene applicationContext, vedi getInstance()
         @Volatile private var instance: AllowedAppsManager? = null
 
         fun getInstance(context: Context): AllowedAppsManager =

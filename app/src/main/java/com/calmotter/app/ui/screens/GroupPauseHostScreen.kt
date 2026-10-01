@@ -71,7 +71,7 @@ private const val DEFAULT_QR_DELAY_MINUTES = 2
 
 private sealed class HostFlowStep {
     data class BluetoothLobby(val durationMinutes: Int) : HostFlowStep()
-    data class QrShare(val durationMinutes: Int) : HostFlowStep()
+    data class QrShare(val durationMinutes: Int, val activityId: Int) : HostFlowStep()
     // I nomi raccolti nella lobby viaggiano fin qui per poter finire nella
     // sessione: il percorso QR non ne ha (lista vuota), ed è il motivo per cui
     // lì l'indicazione resta generica.
@@ -105,7 +105,7 @@ private sealed class HostFlowStep {
 @Composable
 fun GroupPauseHostScreen(
     initialDurationMinutes: Int,
-    onStarted: (durationMinutes: Int, companions: List<String>, groupTag: Int) -> Unit,
+    onStarted: (durationMinutes: Int, companions: List<String>, groupTag: Int, activityId: Int) -> Unit,
     onCancel: () -> Unit,
 ) {
     var step by remember {
@@ -118,19 +118,28 @@ fun GroupPauseHostScreen(
             onRecipeReady = { recipe, companions ->
                 step = HostFlowStep.Countdown(recipe, companions = companions)
             },
-            onWantCodeInstead = { durationMinutes -> step = HostFlowStep.QrShare(durationMinutes) },
+            onWantCodeInstead = { durationMinutes, activityId -> step = HostFlowStep.QrShare(durationMinutes, activityId) },
             onCancel = onCancel,
         )
         is HostFlowStep.QrShare -> GroupPauseQrShareScreen(
             durationMinutes = current.durationMinutes,
-            onReady = { recipe -> onStarted(recipe.durationMinutes, emptyList(), recipe.groupTag) },
+            initialActivityId = current.activityId,
+            onReady = { recipe -> onStarted(recipe.durationMinutes, emptyList(), recipe.groupTag, recipe.activityId) },
             onCancel = onCancel,
         )
         is HostFlowStep.Countdown -> GroupPauseCountdownScreen(
             durationMinutes = current.recipe.durationMinutes,
             startAtEpochMillis = current.recipe.startAtEpochMillis,
-            onReady = { onStarted(current.recipe.durationMinutes, current.companions, current.recipe.groupTag) },
+            onReady = {
+                onStarted(
+                    current.recipe.durationMinutes,
+                    current.companions,
+                    current.recipe.groupTag,
+                    current.recipe.activityId,
+                )
+            },
             onCancel = onCancel,
+            header = { _, _ -> TogetherActivityCard(activityId = current.recipe.activityId) },
         )
     }
 }
@@ -158,16 +167,22 @@ fun GroupPauseHostScreen(
 @Composable
 private fun GroupPauseQrShareScreen(
     durationMinutes: Int,
+    initialActivityId: Int,
     onReady: (GroupPauseRecipe) -> Unit,
     onCancel: () -> Unit,
 ) {
     var delayMinutes by remember { mutableIntStateOf(DEFAULT_QR_DELAY_MINUTES) }
     val groupTag = remember { Random.nextInt(0, 65536) }
-    val recipe = remember(durationMinutes, delayMinutes, groupTag) {
+    // Cambiare attività rigenera il codice, come cambiare il ritardo: stesso
+    // compromesso (chi ha già scansionato quello vecchio vede la proposta
+    // precedente), accettato per lo stesso motivo.
+    val suggestion = rememberActivitySuggestion(durationMinutes, initialActivityId)
+    val recipe = remember(durationMinutes, delayMinutes, groupTag, suggestion.activityId) {
         GroupPauseRecipe(
             durationMinutes = durationMinutes,
             startAtEpochMillis = System.currentTimeMillis() + delayMinutes * 60_000L,
             groupTag = groupTag,
+            activityId = suggestion.activityId,
         )
     }
 
@@ -199,6 +214,10 @@ private fun GroupPauseQrShareScreen(
                 selected = delayMinutes,
                 onSelect = { delayMinutes = it },
                 labelFor = { minutesLabel(it) },
+            )
+            TogetherActivityCard(
+                activityId = suggestion.activityId,
+                onAnother = { suggestion.another(durationMinutes) },
             )
         },
     )

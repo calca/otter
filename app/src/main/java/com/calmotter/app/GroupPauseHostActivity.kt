@@ -45,13 +45,14 @@ class GroupPauseHostActivity : BaseActivity() {
             CalmOtterTheme(appTheme = ThemeManager.getTheme(this)) {
                 GroupPauseHostScreen(
                     initialDurationMinutes = initialDurationMinutes,
-                    onStarted = { durationMinutes, companions, groupTag ->
+                    onStarted = { durationMinutes, companions, groupTag, activityId ->
                         sessionManager.startSession(
                             durationMinutes,
                             isGroupSession = true,
                             companions = companions,
                             groupTag = groupTag,
                             isHost = true,
+                            activityId = activityId,
                         )
                         finish()
                     },

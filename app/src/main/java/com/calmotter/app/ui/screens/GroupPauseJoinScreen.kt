@@ -90,7 +90,7 @@ private sealed class JoinFlowStep {
  */
 @Composable
 fun GroupPauseJoinScreen(
-    onJoined: (durationMinutes: Int, companions: List<String>, groupTag: Int) -> Unit,
+    onJoined: (durationMinutes: Int, companions: List<String>, groupTag: Int, activityId: Int) -> Unit,
     onCancel: () -> Unit,
 ) {
     var step by remember { mutableStateOf<JoinFlowStep>(JoinFlowStep.Live) }
@@ -114,8 +114,16 @@ fun GroupPauseJoinScreen(
         is JoinFlowStep.Countdown -> GroupPauseCountdownScreen(
             durationMinutes = current.recipe.durationMinutes,
             startAtEpochMillis = current.recipe.startAtEpochMillis,
-            onReady = { onJoined(current.recipe.durationMinutes, listOfNotNull(current.hostName), current.recipe.groupTag) },
+            onReady = {
+                onJoined(
+                    current.recipe.durationMinutes,
+                    listOfNotNull(current.hostName),
+                    current.recipe.groupTag,
+                    current.recipe.activityId,
+                )
+            },
             onCancel = onCancel,
+            header = { _, _ -> TogetherActivityCard(activityId = current.recipe.activityId) },
         )
     }
 }

@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Categoria "Giochi" delle attività insieme: un dado. I punti sono buchi
+     (evenOdd): non si sovrappongono fra loro né al bordo, quindi qui evenOdd
+     non ha il problema descritto in ic_launcher_monochrome.xml. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp" android:height="24dp"
+    android:viewportWidth="24" android:viewportHeight="24">
+    <path android:fillColor="#FFFFFF" android:fillType="evenOdd"
+        android:pathData="M6,3h12a3,3 0 0,1 3,3v12a3,3 0 0,1 -3,3h-12a3,3 0 0,1 -3,-3v-12a3,3 0 0,1 3,-3z
+            M8.25,6.5a1.75,1.75 0 1,0 0,3.5a1.75,1.75 0 1,0 0,-3.5z
+            M12,10.25a1.75,1.75 0 1,0 0,3.5a1.75,1.75 0 1,0 0,-3.5z
+            M15.75,14a1.75,1.75 0 1,0 0,3.5a1.75,1.75 0 1,0 0,-3.5z" />
+</vector>

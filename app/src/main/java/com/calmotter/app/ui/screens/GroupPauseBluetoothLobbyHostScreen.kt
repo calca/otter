@@ -100,11 +100,14 @@ import kotlin.random.Random
 fun GroupPauseBluetoothLobbyHostScreen(
     initialDurationMinutes: Int,
     onRecipeReady: (GroupPauseRecipe, companions: List<String>) -> Unit,
-    onWantCodeInstead: (durationMinutes: Int) -> Unit,
+    onWantCodeInstead: (durationMinutes: Int, activityId: Int) -> Unit,
     onCancel: () -> Unit,
 ) {
     val context = LocalContext.current
     var durationMinutes by remember { mutableIntStateOf(initialDurationMinutes) }
+    // La proposta di attività (specs/together-activity/): cambia da sola se
+    // la durata scelta non le si adatta più.
+    val suggestion = rememberActivitySuggestion(durationMinutes)
     var hasPermissions by remember { mutableStateOf(hasGroupPauseBluetoothPermissions(context)) }
     val permissionLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.RequestMultiplePermissions()
@@ -144,7 +147,9 @@ fun GroupPauseBluetoothLobbyHostScreen(
     // Propaga ogni cambio del selettore all'host già in ascolto (se lo è
     // già — altrimenti è un no-op ininfluente, perché start() qui sotto
     // legge comunque durationMinutes al momento in cui gira davvero).
-    LaunchedEffect(durationMinutes) { host.updateDuration(durationMinutes) }
+    LaunchedEffect(durationMinutes, suggestion.activityId) {
+        host.updateLobby(durationMinutes, suggestion.activityId)
+    }
 
     // Non appena permessi+Bluetooth sono pronti: chiede la visibilità una
     // sola volta (discoverableRequested) e avvia davvero la lobby — nessuna
@@ -158,7 +163,7 @@ fun GroupPauseBluetoothLobbyHostScreen(
                     .putExtra(BluetoothAdapter.EXTRA_DISCOVERABLE_DURATION, 300)
                 discoverableLauncher.launch(intent)
             }
-            host.start(markerName, hostName, durationMinutes)
+            host.start(markerName, hostName, durationMinutes, suggestion.activityId)
             if (nfcAvailable) {
                 GroupPauseHceService.pendingMarker = markerName
                 // Senza questo, un tap NFC apriva il selettore di sistema
@@ -212,6 +217,7 @@ fun GroupPauseBluetoothLobbyHostScreen(
             durationMinutes = durationMinutes,
             startAtEpochMillis = System.currentTimeMillis() + 5_000L,
             groupTag = groupTag,
+            activityId = suggestion.activityId,
         )
         // Copiati prima di broadcastRecipeAndClose(), che chiude
         // le connessioni: participantNames è la lista viva della
@@ -293,6 +299,10 @@ fun GroupPauseBluetoothLobbyHostScreen(
                 onSelect = { durationMinutes = it },
                 labelFor = { minutesLabel(it) },
             )
+            TogetherActivityCard(
+                activityId = suggestion.activityId,
+                onAnother = { suggestion.another(durationMinutes) },
+            )
 
             // Riprovato in stile link nudo (come SessionsSummaryLink in
             // HomeSummary.kt) su segnalazione — il contenitore tinto
@@ -304,7 +314,7 @@ fun GroupPauseBluetoothLobbyHostScreen(
             // serve anche alla lobby join.
             CalmLinkRow(
                 text = stringResource(R.string.group_pause_prefer_code_link),
-                onClick = { onWantCodeInstead(durationMinutes) },
+                onClick = { onWantCodeInstead(durationMinutes, suggestion.activityId) },
                 modifier = Modifier.padding(top = 20.dp),
             )
         }

@@ -132,4 +132,17 @@ class GroupPauseBluetoothProtocolTest {
         assertNull(parseGroupPauseUnlockToken("UNLOCK:abc"))
         assertNull(parseGroupPauseUnlockToken(""))
     }
+
+    @Test
+    fun lobbyInfoCarriesTheProposedActivity() {
+        val parsed = parseGroupPauseBtMessage(formatLobbyInfo("Marta", 60, 16)) as GroupPauseBtMessage.LobbyInfo
+        assertEquals("Marta", parsed.hostName)
+        assertEquals(60, parsed.durationMinutes)
+        assertEquals(16, parsed.activityId)
+    }
+
+    @Test
+    fun lobbyInfoInTheOldTwoFieldFormatIsIgnored() {
+        assertEquals(null, parseGroupPauseBtMessage("LOBBY:Marta|60"))
+    }
 }

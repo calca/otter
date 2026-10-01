@@ -93,7 +93,7 @@ class GroupPauseBluetoothJoin(private val context: Context) {
         device: BluetoothDevice,
         localDisplayName: String,
         onConnected: () -> Unit = {},
-        onLobbyInfo: (hostName: String, durationMinutes: Int) -> Unit = { _, _ -> },
+        onLobbyInfo: (hostName: String, durationMinutes: Int, activityId: Int) -> Unit = { _, _, _ -> },
         onRecipe: (String) -> Unit,
         onError: () -> Unit,
     ) {
@@ -116,7 +116,7 @@ class GroupPauseBluetoothJoin(private val context: Context) {
                         // per quanto. Non interrompe il ciclo — si continua ad
                         // aspettare la ricetta vera, che arriva solo all'avvio.
                         is GroupPauseBtMessage.LobbyInfo ->
-                            onLobbyInfo(message.hostName, message.durationMinutes)
+                            onLobbyInfo(message.hostName, message.durationMinutes, message.activityId)
                         // Righe sconosciute (o un HELLO di ritorno, che non ci
                         // si aspetta qui) vengono ignorate, non chiudono nulla.
                         else -> Unit

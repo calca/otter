@@ -324,4 +324,37 @@ Whenever you feel the need for a break, just open the app, choose how long — &
     <string name="allowed_profile_save">Save</string>
     <string name="home_profile_line">Allowed: %1$s</string>
     <string name="home_profile_dialog_title">Apps allowed in this pause</string>
+    <!-- Attività da fare insieme (specs/together-activity/): prima persona plurale, una sola attività per voce -->
+    <string name="together_activity_together">Nothing: let\'s just be together</string>
+    <string name="together_activity_tea">Let\'s make tea and drink it slowly</string>
+    <string name="together_activity_coffee">Let\'s have a coffee together, no rush</string>
+    <string name="together_activity_best_of_week">Let\'s tell each other the best thing of our week</string>
+    <string name="together_activity_balcony">Let\'s step out onto the balcony and look around</string>
+    <string name="together_activity_album">Let\'s listen to an album from start to finish</string>
+    <string name="together_activity_short_walk">Let\'s take a short walk around the block</string>
+    <string name="together_activity_cook_simple">Let\'s cook something simple together</string>
+    <string name="together_activity_read">Let\'s read, each our own book, in the same room</string>
+    <string name="together_activity_cards">Let\'s play a game of cards</string>
+    <string name="together_activity_board_game">Let\'s play a board game</string>
+    <string name="together_activity_tidy">Let\'s tidy up a corner of the house together</string>
+    <string name="together_activity_draw">Let\'s draw something, then show each other</string>
+    <string name="together_activity_write">Let\'s write something, then read it to each other</string>
+    <string name="together_activity_places">Let\'s make a list of places we\'d like to go</string>
+    <string name="together_activity_long_walk">Let\'s take a long walk, no destination</string>
+    <string name="together_activity_slow_dinner">Let\'s cook a slow dinner</string>
+    <string name="together_activity_park">Let\'s go to a park and sit for a while</string>
+    <string name="together_activity_photos">Let\'s look through an old photo album together</string>
+    <string name="together_activity_board_afternoon">Let\'s spend an afternoon playing board games</string>
+    <string name="together_activity_somewhere_new">Let\'s go somewhere nearby we\'ve never been</string>
+    <string name="together_category_outside">Outside</string>
+    <string name="together_category_table">At the table</string>
+    <string name="together_category_games">Games</string>
+    <string name="together_category_slow">Slow</string>
+    <string name="together_activity_label">What shall we do?</string>
+    <string name="together_activity_another">Another one</string>
+    <!-- Cronologia: uscita lenta e momento di chiusura -->
+    <string name="history_item_slow_exit">Ended without password</string>
+    <string name="mood_calm">Calm</string>
+    <string name="mood_ordinary">Ordinary</string>
+    <string name="mood_hard">Hard</string>
 </resources>

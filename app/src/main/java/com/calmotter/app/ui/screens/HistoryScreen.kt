@@ -20,6 +20,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Icon
 import androidx.compose.material3.VerticalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -32,17 +33,22 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalLocale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringArrayResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.calmotter.app.EndReason
+import com.calmotter.app.Mood
 import com.calmotter.app.R
 import com.calmotter.app.SessionRecord
 import com.calmotter.app.SessionStreak
+import com.calmotter.app.TogetherActivities
 import com.calmotter.app.WeeklyGoal
 import com.calmotter.app.ui.mascot.OtterZenMark
 import com.calmotter.app.ui.mascot.SprigMark
@@ -277,10 +283,11 @@ private fun SessionRow(session: SessionRecord) {
                     color = MaterialTheme.colorScheme.onBackground
                 )
                 Text(
-                    text = if (session.completedNaturally)
-                        stringResource(R.string.history_item_natural)
-                    else
-                        stringResource(R.string.history_item_early, session.plannedMinutes),
+                    text = when {
+                        session.completedNaturally -> stringResource(R.string.history_item_natural)
+                        session.endReason == EndReason.SLOW_EXIT -> stringResource(R.string.history_item_slow_exit)
+                        else -> stringResource(R.string.history_item_early, session.plannedMinutes)
+                    },
                     fontSize = 13.sp,
                     color = MaterialTheme.colorScheme.onSurface,
                     modifier = Modifier.padding(top = 2.dp)
@@ -290,14 +297,55 @@ private fun SessionRow(session: SessionRecord) {
                 // cosa che si vuole ritrovare. Vuoto per le pause di gruppo
                 // nate da QR/codice, che non hanno nomi da registrare.
                 val companions = session.companions.split("\n").filter { it.isNotBlank() }
-                if (companions.isNotEmpty()) {
+                // L'attività proposta, come icona della sua categoria
+                // (specs/together-activity/): la frase intera non starebbe in
+                // una riga. TalkBack legge il nome della categoria.
+                val category = TogetherActivities.byId(session.activityId)?.category
+                if (companions.isNotEmpty() || category != null) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.padding(top = 2.dp),
+                    ) {
+                        if (companions.isNotEmpty()) {
+                            Text(
+                                text = stringResource(
+                                    R.string.history_with_companions,
+                                    companions.joinToString(", "),
+                                ),
+                                fontSize = 13.sp,
+                                color = MaterialTheme.colorScheme.primary,
+                            )
+                        }
+                        if (category != null) {
+                            Icon(
+                                painter = painterResource(category.icon),
+                                contentDescription = stringResource(category.label),
+                                tint = MaterialTheme.colorScheme.primary,
+                                modifier = Modifier
+                                    .padding(start = if (companions.isNotEmpty()) 6.dp else 0.dp)
+                                    .size(14.dp),
+                            )
+                        }
+                    }
+                }
+                // Il momento di chiusura (specs/closing-moment/): la risposta e
+                // la nota, se ci sono. Senza nessuna delle due la riga resta
+                // com'era.
+                val moodLabel = when (session.mood) {
+                    Mood.CALM -> stringResource(R.string.mood_calm)
+                    Mood.ORDINARY -> stringResource(R.string.mood_ordinary)
+                    Mood.HARD -> stringResource(R.string.mood_hard)
+                    else -> null
+                }
+                val reflection = listOfNotNull(moodLabel, session.note.takeIf { it.isNotBlank() })
+                if (reflection.isNotEmpty()) {
                     Text(
-                        text = stringResource(
-                            R.string.history_with_companions,
-                            companions.joinToString(", "),
-                        ),
+                        text = reflection.joinToString(" · "),
                         fontSize = 13.sp,
-                        color = MaterialTheme.colorScheme.primary,
+                        fontStyle = FontStyle.Italic,
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
                         modifier = Modifier.padding(top = 2.dp)
                     )
                 }

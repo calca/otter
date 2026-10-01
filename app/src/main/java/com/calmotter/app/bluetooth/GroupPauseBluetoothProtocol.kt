@@ -54,15 +54,20 @@ sealed class GroupPauseBtMessage {
      * l'host compare come "CalmOtter-<tag>", perché è così che si rinomina
      * l'adattatore (vedi [groupPauseLobbyNameMarker]).
      */
-    data class LobbyInfo(val hostName: String, val durationMinutes: Int) : GroupPauseBtMessage()
+    data class LobbyInfo(
+        val hostName: String,
+        val durationMinutes: Int,
+        // Attività proposta dall'host (TogetherActivities), 0 = nessuna.
+        val activityId: Int = 0,
+    ) : GroupPauseBtMessage()
 }
 
 fun formatHello(displayName: String): String = HELLO_PREFIX + sanitizeDisplayName(displayName)
 
 fun formatRecipe(code: String): String = RECIPE_PREFIX + code
 
-fun formatLobbyInfo(hostName: String, durationMinutes: Int): String =
-    LOBBY_PREFIX + sanitizeDisplayName(hostName) + LOBBY_SEPARATOR + durationMinutes
+fun formatLobbyInfo(hostName: String, durationMinutes: Int, activityId: Int = 0): String =
+    LOBBY_PREFIX + sanitizeDisplayName(hostName) + LOBBY_SEPARATOR + durationMinutes + LOBBY_SEPARATOR + activityId
 
 /**
  * Ritorna `null` per una riga che non corrisponde a nessun messaggio noto —
@@ -74,13 +79,15 @@ fun parseGroupPauseBtMessage(line: String): GroupPauseBtMessage? = when {
     line.startsWith(HELLO_PREFIX) -> GroupPauseBtMessage.Hello(line.removePrefix(HELLO_PREFIX))
     line.startsWith(RECIPE_PREFIX) -> GroupPauseBtMessage.Recipe(line.removePrefix(RECIPE_PREFIX))
     line.startsWith(LOBBY_PREFIX) -> {
-        val payload = line.removePrefix(LOBBY_PREFIX)
-        val separator = payload.lastIndexOf(LOBBY_SEPARATOR)
-        val minutes = if (separator >= 0) payload.substring(separator + 1).toIntOrNull() else null
+        // "nome|minuti|attività": il nome non contiene mai il separatore
+        // (sanitizeDisplayName), quindi bastano tre parti esatte.
+        val parts = line.removePrefix(LOBBY_PREFIX).split(LOBBY_SEPARATOR)
+        val minutes = parts.getOrNull(1)?.toIntOrNull()
+        val activityId = parts.getOrNull(2)?.toIntOrNull()
         // Una durata mancante o non numerica rende il messaggio inutile:
         // meglio ignorarlo del tutto che mostrare "0 minuti" al joiner.
-        if (minutes != null && minutes > 0) {
-            GroupPauseBtMessage.LobbyInfo(payload.substring(0, separator), minutes)
+        if (parts.size == 3 && minutes != null && minutes > 0 && activityId != null && activityId >= 0) {
+            GroupPauseBtMessage.LobbyInfo(parts[0], minutes, activityId)
         } else {
             null
         }

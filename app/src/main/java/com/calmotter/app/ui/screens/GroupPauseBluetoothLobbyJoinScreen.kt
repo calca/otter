@@ -31,6 +31,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -126,6 +127,9 @@ fun GroupPauseBluetoothLobbyJoinScreen(
     // ricade sul vecchio "in attesa dell'host", senza rompersi.
     var hostName by remember { mutableStateOf<String?>(null) }
     var hostDurationMinutes by remember { mutableStateOf<Int?>(null) }
+    // Attività proposta dall'host (specs/together-activity/), aggiornata se
+    // la cambia mentre si aspetta.
+    var hostActivityId by remember { mutableIntStateOf(0) }
     val invalidCodeText = stringResource(R.string.group_pause_invalid_code)
     val connectionLostText = stringResource(R.string.group_pause_join_error)
 
@@ -161,10 +165,11 @@ fun GroupPauseBluetoothLobbyJoinScreen(
             device = device,
             localDisplayName = localName,
             onConnected = { mainHandler.post { state = JoinLobbyState.WaitingForHost } },
-            onLobbyInfo = { name, minutes ->
+            onLobbyInfo = { name, minutes, activityId ->
                 mainHandler.post {
                     hostName = name
                     hostDurationMinutes = minutes
+                    hostActivityId = activityId
                 }
             },
             onRecipe = { code -> mainHandler.post { onRecipeCode(code) } },
@@ -365,6 +370,7 @@ fun GroupPauseBluetoothLobbyJoinScreen(
                             modifier = Modifier.padding(top = 4.dp)
                         )
                     }
+                    TogetherActivityCard(activityId = hostActivityId)
                     Text(
                         text = stringResource(R.string.group_pause_join_waiting_host),
                         color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),

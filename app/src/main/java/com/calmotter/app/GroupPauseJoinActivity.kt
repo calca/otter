@@ -22,13 +22,14 @@ class GroupPauseJoinActivity : BaseActivity() {
         setContent {
             CalmOtterTheme(appTheme = ThemeManager.getTheme(this)) {
                 GroupPauseJoinScreen(
-                    onJoined = { durationMinutes, companions, groupTag ->
+                    onJoined = { durationMinutes, companions, groupTag, activityId ->
                         sessionManager.startSession(
                             durationMinutes,
                             isGroupSession = true,
                             companions = companions,
                             groupTag = groupTag,
                             isHost = false,
+                            activityId = activityId,
                         )
                         finish()
                     },

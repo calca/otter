@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Categoria "A tavola" delle attività insieme: una tazza. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp" android:height="24dp"
+    android:viewportWidth="24" android:viewportHeight="24">
+    <path android:fillColor="#FFFFFF"
+        android:pathData="M3.5,8h12.5v5a5,5 0 0,1 -5,5h-2.5a5,5 0 0,1 -5,-5z
+            M16,9h1.5a2.75,2.75 0 0,1 0,5.5h-1.6v-1.8h1.6a0.95,0.95 0 0,0 0,-1.9h-1.5z
+            M3,19.5h13v1.8h-13z" />
+</vector>

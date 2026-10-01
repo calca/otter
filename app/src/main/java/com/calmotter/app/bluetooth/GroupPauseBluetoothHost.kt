@@ -38,6 +38,7 @@ class GroupPauseBluetoothHost(private val context: Context) {
 
     private var lobbyHostName: String = ""
     private var lobbyDurationMinutes: Int = 0
+    private var lobbyActivityId: Int = 0
 
     /**
      * Aggiorna la durata annunciata ai partecipanti che si collegano da qui
@@ -51,15 +52,35 @@ class GroupPauseBluetoothHost(private val context: Context) {
      * l'anteprima mostrata a chi deve ancora decidere se unirsi.
      */
     fun updateDuration(durationMinutes: Int) {
+        updateLobby(durationMinutes, lobbyActivityId)
+    }
+
+    /**
+     * Aggiorna durata e attività proposta (specs/together-activity/) e le
+     * rimanda subito a chi è già collegato, così chi aspetta in lobby vede
+     * la proposta cambiare insieme all'host. Un invio fallito su un singolo
+     * socket non conta: la ricetta finale, a "Iniziamo", è comunque quella
+     * che decide.
+     */
+    fun updateLobby(durationMinutes: Int, activityId: Int) {
         lobbyDurationMinutes = durationMinutes
+        lobbyActivityId = activityId
+        if (lobbyHostName.isEmpty()) return
+        val line = formatLobbyInfo(lobbyHostName, durationMinutes, activityId)
+        val connected = synchronized(sockets) { sockets.toList() }
+        if (connected.isEmpty()) return
+        scope.launch {
+            for (socket in connected) runCatching { writeLine(socket.outputStream, line) }
+        }
     }
 
     @SuppressLint("MissingPermission")
-    fun start(lobbyMarkerName: String, hostName: String, durationMinutes: Int) {
+    fun start(lobbyMarkerName: String, hostName: String, durationMinutes: Int, activityId: Int = 0) {
         // Memorizzati perché acceptSocket() gira per ogni partecipante, molto
         // dopo questa chiamata, e deve poterli rispedire a ciascuno.
         lobbyHostName = hostName
         lobbyDurationMinutes = durationMinutes
+        lobbyActivityId = activityId
         val adapter = bluetoothAdapterOrNull(context) ?: return
         originalAdapterName = adapter.name
         adapter.name = lobbyMarkerName
@@ -100,7 +121,7 @@ class GroupPauseBluetoothHost(private val context: Context) {
                 // tentata lo stesso a "Avvia", e un errore qui non è una buona
                 // ragione per rifiutare qualcuno che si è già collegato.
                 runCatching {
-                    writeLine(socket.outputStream, formatLobbyInfo(lobbyHostName, lobbyDurationMinutes))
+                    writeLine(socket.outputStream, formatLobbyInfo(lobbyHostName, lobbyDurationMinutes, lobbyActivityId))
                 }
             } catch (e: IOException) {
                 // Connessione caduta prima dell'HELLO — nessun partecipante aggiunto.

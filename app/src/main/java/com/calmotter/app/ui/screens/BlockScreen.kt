@@ -1,5 +1,6 @@
 package com.calmotter.app.ui.screens
 
+import com.calmotter.app.TogetherActivities
 import com.calmotter.app.isBreathingPause
 import com.calmotter.app.nfc.GroupPauseHceService
 import com.calmotter.app.bluetooth.groupPauseUnlockToken
@@ -389,9 +390,15 @@ fun BlockScreen(
                 .padding(top = 4.dp, bottom = 28.dp)
         )
 
-        if (!breathing && phraseText != null) {
+        // In una pausa di gruppo con un'attività proposta, al posto della
+        // frase c'è l'attività (specs/together-activity/), anche con le frasi
+        // spente e anche nella pausa respiro: è una proposta del gruppo, non
+        // una frase motivazionale.
+        val groupActivity = remember { TogetherActivities.byId(sessionManager.groupActivityId()) }
+        val shownPhrase = groupActivity?.let { stringResource(it.text) } ?: phraseText.takeIf { !breathing }
+        if (shownPhrase != null) {
             Text(
-                text = phraseText,
+                text = shownPhrase,
                 color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f),
                 fontSize = 16.sp,
                 fontStyle = FontStyle.Italic,

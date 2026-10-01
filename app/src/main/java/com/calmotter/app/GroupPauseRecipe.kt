@@ -21,15 +21,21 @@ data class GroupPauseRecipe(
     val durationMinutes: Int,
     val startAtEpochMillis: Long,
     val groupTag: Int,
+    // Attività proposta dall'host (TogetherActivities), 0 = nessuna — vedi
+    // specs/together-activity/.
+    val activityId: Int = 0,
 )
 
 /**
- * Codifica: 8 byte grezzi (4 = orario di inizio in secondi epoch, 1 =
+ * Codifica: 9 byte grezzi (4 = orario di inizio in secondi epoch, 1 =
  * minuti di durata, 2 = tag di gruppo casuale — puramente cosmetico, non
- * ha alcun ruolo di sicurezza — 1 = checksum XOR dei 7 byte precedenti, per
- * segnalare un errore di battitura nell'inserimento manuale invece di
- * accettare silenziosamente una ricetta corrotta) in Base64 URL-safe senza
- * padding: una stringa di circa 11 caratteri, abbastanza corta da poter
+ * ha alcun ruolo di sicurezza — 1 = attività proposta, 1 = checksum XOR
+ * degli 8 byte precedenti, per segnalare un errore di battitura
+ * nell'inserimento manuale invece di accettare silenziosamente una ricetta
+ * corrotta) in Base64 URL-safe senza padding: una stringa di 12 caratteri.
+ * Un codice del formato precedente (8 byte, senza attività) ha la lunghezza
+ * sbagliata e viene rifiutato come qualunque codice non valido: l'app non è
+ * distribuita, niente strato di compatibilità. Resta abbastanza corta da poter
  * essere anche digitata a mano come fallback quando la fotocamera non è
  * disponibile o comoda. Stesso identico valore usato sia come contenuto
  * del QR sia come codice manuale — un solo formato, non due.
@@ -39,7 +45,8 @@ data class GroupPauseRecipe(
  * funziona anche nei test JVM puri (`testDebugUnitTest`) senza bisogno di
  * Robolectric, coerente con "logica pura, nessun Context" di questo file.
  */
-private const val PAYLOAD_SIZE = 8
+private const val PAYLOAD_SIZE = 9
+private const val CHECKSUM_INDEX = PAYLOAD_SIZE - 1
 private val URL_ENCODER = Base64.getUrlEncoder().withoutPadding()
 private val URL_DECODER = Base64.getUrlDecoder()
 
@@ -51,13 +58,15 @@ private const val MAX_FUTURE_START_MILLIS = 30 * 60_000L
 
 fun GroupPauseRecipe.encode(): String {
     require(durationMinutes in 1..255) { "durationMinutes must fit in one byte" }
+    require(activityId in 0..255) { "activityId must fit in one byte" }
     val startAtEpochSec = (startAtEpochMillis / 1000L).toInt()
     val buffer = ByteBuffer.allocate(PAYLOAD_SIZE)
         .putInt(startAtEpochSec)
         .put(durationMinutes.toByte())
         .putShort(groupTag.toShort())
+        .put(activityId.toByte())
     val bytes = buffer.array()
-    bytes[7] = checksumOf(bytes)
+    bytes[CHECKSUM_INDEX] = checksumOf(bytes)
     return URL_ENCODER.encodeToString(bytes)
 }
 
@@ -76,23 +85,27 @@ fun decodeGroupPauseRecipe(code: String, now: Long = System.currentTimeMillis())
         return null
     }
     if (bytes.size != PAYLOAD_SIZE) return null
-    if (bytes[7] != checksumOf(bytes)) return null
+    if (bytes[CHECKSUM_INDEX] != checksumOf(bytes)) return null
 
     val buffer = ByteBuffer.wrap(bytes)
     val startAtEpochSec = buffer.int
     val durationMinutes = buffer.get().toInt() and 0xFF
     val groupTag = buffer.short.toInt()
+    val activityId = buffer.get().toInt() and 0xFF
     val startAtEpochMillis = startAtEpochSec * 1000L
 
     if (durationMinutes <= 0) return null
     if (startAtEpochMillis <= now) return null
     if (startAtEpochMillis - now > MAX_FUTURE_START_MILLIS) return null
+    // Un'attività che questo telefono non conosce non può essere mostrata:
+    // il codice viene rifiutato come qualunque altro non valido.
+    if (activityId != TogetherActivities.NONE && TogetherActivities.byId(activityId) == null) return null
 
-    return GroupPauseRecipe(durationMinutes, startAtEpochMillis, groupTag)
+    return GroupPauseRecipe(durationMinutes, startAtEpochMillis, groupTag, activityId)
 }
 
 private fun checksumOf(bytes: ByteArray): Byte {
     var xor = 0
-    for (i in 0 until 7) xor = xor xor bytes[i].toInt()
+    for (i in 0 until CHECKSUM_INDEX) xor = xor xor bytes[i].toInt()
     return xor.toByte()
 }
