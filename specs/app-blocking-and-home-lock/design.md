@@ -579,8 +579,8 @@ never offered a way to launch one.
   `CalmOtterTheme.kt`), so an unselected row was visually indistinguishable
   from the page itself. Same tinted-card ingredient Settings' grouped
   sections already use. The row's control is a `Switch` (with its own
-  `calmSwitchColors()`, duplicated from `SettingsScreen.kt` since that
-  one's private to its file) — a `Checkbox` was tried first but replaced on
+  `calmSwitchColors()`, duplicated from `SettingsScreen.kt`'s
+  `settingsSwitchColors()` since that one is internal to the Settings files) — a `Checkbox` was tried first but replaced on
   request to match the `Switch` used everywhere else a boolean is toggled
   in this app (`PhrasesCard` in `SettingsScreen.kt`). Both the Card and the
   Switch/Checkbox read only roles `CalmOtterTheme.kt` actually customizes

@@ -11,8 +11,9 @@
 | `SessionStreak.kt` | Pure streak calculation, no Context |
 | `WeeklyGoalManager.kt` | Plain-`SharedPreferences` optional goal (`GoalType.SESSIONS` \| `MINUTES` + target) |
 | `SessionCsvExporter.kt` | Pure CSV serialization, RFC 4180 quoting |
-| `HistoryActivity.kt` | ActionBar chrome + `showGoalDialog`/`showClearConfirmDialog` state; the dialogs themselves live in `HistoryScreen.kt` |
-| `ui/screens/HistoryScreen.kt` | Stats bar, streak, weekly chart, goal progress, session list, empty state, `WeeklyGoalDialog`/`ClearHistoryConfirmDialog` |
+| `HistoryActivity.kt` | ActionBar chrome + `showGoalDialog`/`showClearConfirmDialog` state; the dialogs themselves live in `HistoryScreen.kt`/`HistoryWeek.kt` |
+| `ui/screens/HistoryScreen.kt` | Stats bar, session list, empty state, `ClearHistoryConfirmDialog` |
+| `ui/screens/HistoryWeek.kt` | The weekly part, split out of `HistoryScreen.kt`: `WeekOverviewCard` (streak + chart + summary), `WeeklyGoalSection`, `WeeklyGoalDialog` |
 | `ui/screens/WeeklyChart.kt` | The weekly bar chart Composable |
 
 ## Streak algorithm (`SessionStreak.currentStreakDays`)
@@ -60,7 +61,7 @@ this native-dialogs note entirely). The other two ("uniforma" — make it
 consistent) were converted the same way right after, closing out the
 group rather than leaving a two-native-one-Compose split:
 
-- **`WeeklyGoalDialog`** (`HistoryScreen.kt`) — the `RadioGroup` (goal
+- **`WeeklyGoalDialog`** (`HistoryWeek.kt`) — the `RadioGroup` (goal
   type: sessions/minutes) first became two Material3 `RadioButton`s, then
   was replaced again by a pill-chip row (see "Preset target chips" below —
   both the type and the target ended up as chip rows, one shared idiom).

@@ -5,7 +5,7 @@
 | File | Role |
 |---|---|
 | `MainActivity.kt` / `ui/screens/MainScreen.kt` | Home: session state, streak, tap-to-explain permission dialog, navigation to History and Settings |
-| `SettingsActivity.kt` / `ui/screens/SettingsScreen.kt` | Permission/Home-app status card, theme picker, change-password launch, password-gated allowed-apps launch, phrases toggle |
+| `SettingsActivity.kt` / `ui/screens/SettingsScreen.kt` / `SettingsCards.kt` | Permission/Home-app status card, theme picker, change-password launch, password-gated allowed-apps launch, phrases toggle |
 | `PermissionChecks.kt` | Two top-level functions (`isAccessibilityServiceEnabled`, `isDndAccessGranted`) shared by `MainActivity` and `SettingsActivity` — previously identical private copies in each, plus a third copy in `OnboardingActivity` that was deleted outright (not switched to the shared function) when the permissions step left the onboarding wizard, see `onboarding-and-password/requirements.md`'s "3-step wizard" |
 | `ui/screens/CalmBackground.kt` | `Modifier.calmBackground()`, a `primary`-tinted vertical-gradient background applied to Home's and Onboarding's root `Column`s only — see "Tinted background" below |
 
@@ -292,7 +292,7 @@ with two separate, more targeted pieces of UI.
   History, the block screen). Requires `buildFeatures.buildConfig = true`
   in `app/build.gradle.kts` (off by default on modern AGP) to generate the
   `BuildConfig` class at all.
-- **`PermissionStatusCard`** (private composable, `SettingsScreen.kt`) — a
+- **`PermissionStatusCard`** (internal composable, `SettingsCards.kt`) — a
   `Surface` (same `primary.copy(alpha = 0.06f)` tint as `SessionsChartCard`
   on Home, for visual consistency between the app's two card-shaped
   containers) wrapping three `PermissionStatusRow`s (accessibility, DND,
@@ -430,7 +430,7 @@ and plain checkbox with the same list-row/toggle idioms already used by
   a plain `Checkbox` + label row into the same card-with-`Switch` shape as
   `HomeCard`, for visual consistency; behavior (`phraseManager.isEnabled()`/
   `setEnabled()`) unchanged.
-- **`calmSwitchColors()`** (private, `SettingsScreen.kt`) — a shared
+- **`settingsSwitchColors()`** (internal, `SettingsScreen.kt`, formerly `calmSwitchColors()`) — a shared
   `SwitchDefaults.colors(...)` restricted to the same eight palette-safe
   roles as everywhere else in this app (`primary`/`onPrimary`/`onSurface`
   only, see the `surfaceVariant` trap note in CLAUDE.md), used by both
