@@ -11,6 +11,18 @@
 | `BlockScreen.kt` | When `totalMillis <= 10 min`: breathing ring and text instead of `ProgressRing` + phrase |
 | `ui/screens/BreathingRing.kt` (new) | The animated ring; reads `Settings.Global.ANIMATOR_DURATION_SCALE` for reduced motion |
 
+## One remembered duration
+
+`PauseWidgetProvider.saveLastDuration()`/`getLastDuration()` already exist
+and are written by `startSession()`; the widget reads them. They become the
+app's single "last duration": moved to a small `LastDurationStore` (or kept
+where they are, renamed), written also when a Home pill is tapped, read by
+`MainActivity` for the initial pill, by the widget and by the Quick Settings
+tile. `startSession()` gains a `rememberDuration: Boolean = true` parameter
+that scheduled pauses pass as `false`. The default for a fresh install moves
+from the widget's 30 min to `DEFAULT_SESSION_DURATION_MINUTES` (1 h), so
+Home and widget agree from the first launch.
+
 ## Notes
 
 - **Why "≤ 10 min" and not a flag:** the breathing look follows the length,
@@ -22,8 +34,9 @@
   frame (see `specs/group-pause/design.md`, "The pulse was implemented wrong
   the first time").
 
-## Decisioni aperte
+## Decisioni prese
 
-1. **10 o 15 minuti:** raccomandato 10.
-2. **Il respiro solo per la pausa breve** (raccomandato) o un'opzione per
-   tutte.
+1. **Durata:** 10 minuti.
+2. **Respiro:** solo per la pausa breve.
+3. **Durata ricordata:** un solo valore per Home, widget e riquadro, salvato
+   al tocco della pillola; le pause programmate non lo cambiano.

@@ -39,5 +39,6 @@ an extra that starts the pause from the foreground.
 
 ## Decisioni prese
 
-1. **Durata:** l'ultima usata, come il widget.
+1. **Durata:** l'ultima usata, cioè il valore unico condiviso con Home e
+   widget (vedi `specs/breathing-pause/`, User Story 2).
 2. **Nome:** il nome dell'app, con il sottotitolo che dice l'azione.
