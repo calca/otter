@@ -38,4 +38,31 @@ data class SessionRecord(
     val completedNaturally: Boolean,
     val isGroupSession: Boolean = false,
     val companions: String = "",
+    // Attività proposta in una pausa di gruppo (TogetherActivities), 0 =
+    // nessuna — vedi specs/together-activity/.
+    val activityId: Int = 0,
+    // Risposta al momento di chiusura (Mood), null = nessuna risposta —
+    // vedi specs/closing-moment/.
+    val mood: Int? = null,
+    // Nota del momento di chiusura, al massimo 30 caratteri; "" = nessuna.
+    val note: String = "",
+    // Come è finita la pausa (EndReason). completedNaturally resta perché
+    // serie e obiettivi lo leggono — vedi specs/slow-exit/.
+    val endReason: String = EndReason.UNKNOWN,
 )
+
+/** Come è finita una pausa — colonna `endReason` di [SessionRecord]. */
+object EndReason {
+    const val NATURAL = "natural"
+    const val PASSWORD = "password"
+    const val NFC_RELEASE = "nfc_release"
+    const val SLOW_EXIT = "slow_exit"
+    const val UNKNOWN = "unknown"
+}
+
+/** Risposte del momento di chiusura (specs/closing-moment/). */
+object Mood {
+    const val CALM = 0
+    const val ORDINARY = 1
+    const val HARD = 2
+}

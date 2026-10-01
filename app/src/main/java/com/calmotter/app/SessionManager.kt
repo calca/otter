@@ -31,8 +31,16 @@ class SessionManager private constructor(private val context: Context) {
      */
     fun isSessionActive(): Boolean {
         if (!prefs.getBoolean(KEY_ACTIVE, false)) return false
-        if (System.currentTimeMillis() >= prefs.getLong(KEY_END_TIME, 0L)) {
+        val now = System.currentTimeMillis()
+        if (now >= prefs.getLong(KEY_END_TIME, 0L)) {
             endSession(completedNaturally = true, markBackgroundSummary = true)
+            return false
+        }
+        // Stessa rete di sicurezza per l'uscita lenta: se l'allarme non è
+        // scattato, la scadenza dell'attesa si scopre qui.
+        val slowExit = prefs.getLong(KEY_SLOW_EXIT_DEADLINE, 0L)
+        if (slowExit in 1..now) {
+            endSession(reason = EndReason.SLOW_EXIT)
             return false
         }
         return true
@@ -73,6 +81,12 @@ class SessionManager private constructor(private val context: Context) {
         // pause programmate): non devono cambiare la durata che la Home
         // propone — vedi [LastDuration].
         rememberDuration: Boolean = true,
+        // Attività proposta dall'host di una pausa di gruppo (vedi
+        // TogetherActivities); 0 = nessuna.
+        activityId: Int = 0,
+        // Profilo di app consentite per questa pausa (vedi
+        // AllowedAppsManager); null = quello selezionato al momento.
+        profileId: Int? = null,
     ) {
         val now = System.currentTimeMillis()
         val endTime = now + durationMinutes * 60_000L
@@ -85,6 +99,9 @@ class SessionManager private constructor(private val context: Context) {
             putString(KEY_COMPANIONS, companions.filter { it.isNotBlank() }.joinToString("\n"))
             putInt(KEY_GROUP_TAG, groupTag)
             putBoolean(KEY_IS_HOST, isHost)
+            putInt(KEY_GROUP_ACTIVITY, activityId)
+            putInt(KEY_PROFILE_ID, profileId ?: AllowedAppsManager.getInstance(context).selectedProfileId())
+            remove(KEY_SLOW_EXIT_DEADLINE)
         }
         captureDndForRestore()
         applyPauseDnd()
@@ -103,6 +120,12 @@ class SessionManager private constructor(private val context: Context) {
 
     /** true se è questo dispositivo ad aver convocato la pausa condivisa. */
     fun isGroupHost(): Boolean = prefs.getBoolean(KEY_IS_HOST, false)
+
+    /** Attività proposta per la pausa di gruppo in corso; 0 = nessuna. */
+    fun groupActivityId(): Int = prefs.getInt(KEY_GROUP_ACTIVITY, 0)
+
+    /** Profilo di app consentite della pausa in corso (vedi AllowedAppsManager). */
+    fun sessionProfileId(): Int = prefs.getInt(KEY_PROFILE_ID, AllowedAppsManager.DEFAULT_PROFILE_ID)
 
     /** Nomi di chi condivide la pausa in corso; vuoto se non se ne conoscono. */
     fun companions(): List<String> =
@@ -138,7 +161,13 @@ class SessionManager private constructor(private val context: Context) {
      * blocco aperto proprio quando scade è il caso comune, non un caso
      * limite. Segnalato in TODO.md ("1.1").
      */
-    fun endSession(completedNaturally: Boolean = false, markBackgroundSummary: Boolean = false) {
+    fun endSession(
+        completedNaturally: Boolean = false,
+        markBackgroundSummary: Boolean = false,
+        // Come è finita (EndReason): se non indicato, si ricava da
+        // completedNaturally — da sé o con la password.
+        reason: String = if (completedNaturally) EndReason.NATURAL else EndReason.PASSWORD,
+    ) {
         if (!prefs.getBoolean(KEY_ACTIVE, false)) return
 
         val startTime = prefs.getLong(KEY_START_TIME, 0L)
@@ -146,8 +175,9 @@ class SessionManager private constructor(private val context: Context) {
         val effectiveMinutes = ((System.currentTimeMillis() - startTime) / 60_000L)
             .toInt().coerceAtLeast(0)
 
+        var recordId = 0L
         if (startTime > 0 && plannedMinutes > 0) {
-            SessionHistoryManager.getInstance(context).add(
+            recordId = SessionHistoryManager.getInstance(context).add(
                 SessionRecord(
                     startTimeMs        = startTime,
                     plannedMinutes     = plannedMinutes,
@@ -155,9 +185,12 @@ class SessionManager private constructor(private val context: Context) {
                     completedNaturally = completedNaturally,
                     isGroupSession     = prefs.getBoolean(KEY_IS_GROUP, false),
                     companions         = prefs.getString(KEY_COMPANIONS, "").orEmpty(),
+                    activityId         = prefs.getInt(KEY_GROUP_ACTIVITY, 0),
+                    endReason          = reason,
                 )
             )
         }
+        val hadSlowExit = prefs.getLong(KEY_SLOW_EXIT_DEADLINE, 0L) != 0L
 
         prefs.edit {
             putBoolean(KEY_ACTIVE, false)
@@ -167,6 +200,13 @@ class SessionManager private constructor(private val context: Context) {
             remove(KEY_GROUP_TAG)
             remove(KEY_IS_HOST)
             remove(KEY_END_TIME)
+            remove(KEY_GROUP_ACTIVITY)
+            remove(KEY_PROFILE_ID)
+            remove(KEY_SLOW_EXIT_DEADLINE)
+            // Solo una pausa arrivata in fondo merita il momento di chiusura
+            // (specs/closing-moment/): mai dopo un'uscita anticipata. Una
+            // nuova pausa completata sostituisce quella non ancora risposta.
+            if (completedNaturally && recordId > 0) putLong(KEY_PENDING_REFLECTION_ID, recordId)
             if (markBackgroundSummary) {
                 putLong(KEY_PENDING_SUMMARY_END, System.currentTimeMillis())
                 putInt(KEY_PENDING_SUMMARY_MINUTES, effectiveMinutes)
@@ -174,9 +214,62 @@ class SessionManager private constructor(private val context: Context) {
         }
         restoreDnd()
         cancelAutoExpiry()
+        if (hadSlowExit) cancelSlowExitAlarm()
         SessionForegroundService.stop(context)
         PauseWidgetProvider.updateAllWidgets(context)
         PauseTileService.requestRefresh(context)
+    }
+
+    /** Id della sessione completata ancora senza risposta al momento di chiusura; 0 = nessuna. */
+    fun pendingReflectionId(): Long = prefs.getLong(KEY_PENDING_REFLECTION_ID, 0L)
+
+    /** Il momento di chiusura è stato risposto o saltato: non va più chiesto. */
+    fun clearPendingReflection() {
+        prefs.edit { remove(KEY_PENDING_REFLECTION_ID) }
+    }
+
+    // --- Uscita lenta (specs/slow-exit/) -------------------------------------
+
+    /** Fine dell'attesa dell'uscita lenta in corso (epoch ms); 0 = nessuna attesa. */
+    fun slowExitDeadline(): Long = prefs.getLong(KEY_SLOW_EXIT_DEADLINE, 0L)
+
+    /**
+     * Avvia l'attesa: allo scadere la pausa finisce come "senza password".
+     * Persistita e affidata a un allarme come la fine naturale, così continua
+     * anche se si esce dalla schermata, il telefono dorme o si riavvia.
+     */
+    fun startSlowExit(waitMinutes: Int) {
+        if (!prefs.getBoolean(KEY_ACTIVE, false)) return
+        val deadline = System.currentTimeMillis() + waitMinutes * 60_000L
+        prefs.edit { putLong(KEY_SLOW_EXIT_DEADLINE, deadline) }
+        scheduleSlowExit(deadline)
+    }
+
+    /** Annulla l'attesa: la pausa continua invariata; una nuova attesa riparte da zero. */
+    fun cancelSlowExit() {
+        prefs.edit { remove(KEY_SLOW_EXIT_DEADLINE) }
+        cancelSlowExitAlarm()
+    }
+
+    private fun scheduleSlowExit(deadline: Long) {
+        val am = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
+        am.setAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, deadline, slowExitPendingIntent())
+    }
+
+    private fun cancelSlowExitAlarm() {
+        val am = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
+        am.cancel(slowExitPendingIntent())
+    }
+
+    private fun slowExitPendingIntent(): PendingIntent {
+        val intent = Intent(context, SessionExpiryReceiver::class.java)
+            .setAction(SessionExpiryReceiver.ACTION_SLOW_EXIT)
+        return PendingIntent.getBroadcast(
+            context,
+            SLOW_EXIT_REQUEST_CODE,
+            intent,
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        )
     }
 
     /** Dettagli del riepilogo "pausa finita mentre eri via" — vedi [endSession]. */
@@ -212,6 +305,8 @@ class SessionManager private constructor(private val context: Context) {
         val endTime = prefs.getLong(KEY_END_TIME, 0L)
         applyPauseDnd()
         scheduleAutoExpiry(endTime)
+        val slowExit = prefs.getLong(KEY_SLOW_EXIT_DEADLINE, 0L)
+        if (slowExit > 0) scheduleSlowExit(slowExit)
         SessionForegroundService.start(context)
     }
 
@@ -387,6 +482,13 @@ class SessionManager private constructor(private val context: Context) {
         private const val KEY_PREV_POLICY_MESSAGE_SENDERS = "session_prev_dnd_message_senders"
         private const val KEY_PREV_POLICY_SUPPRESSED_EFFECTS = "session_prev_dnd_suppressed_effects"
         private const val EXPIRY_REQUEST_CODE = 1001
+        private const val SLOW_EXIT_REQUEST_CODE = 1002
+        private const val KEY_GROUP_ACTIVITY = "session_group_activity"
+        private const val KEY_PROFILE_ID = "session_profile_id"
+        private const val KEY_SLOW_EXIT_DEADLINE = "session_slow_exit_deadline"
+        // Sopravvive a endSession() come il riepilogo una tantum: la pausa è
+        // finita, la domanda "com'è andata?" resta in sospeso.
+        private const val KEY_PENDING_REFLECTION_ID = "session_pending_reflection_id"
 
         @Volatile private var instance: SessionManager? = null
 

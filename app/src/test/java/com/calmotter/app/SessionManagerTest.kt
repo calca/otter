@@ -26,6 +26,8 @@ class SessionManagerTest {
         SessionManager.resetInstanceForTests()
         SessionHistoryManager.resetInstanceForTests()
         CalmOtterDatabase.resetInstanceForTests()
+        // startSession() salva il profilo di app consentite scelto.
+        AllowedAppsManager.resetInstanceForTests()
         context = ApplicationProvider.getApplicationContext()
     }
 
@@ -222,5 +224,82 @@ class SessionManagerTest {
         assertEquals(usersOwnPolicy.priorityCallSenders, restored.priorityCallSenders)
         assertEquals(usersOwnPolicy.priorityMessageSenders, restored.priorityMessageSenders)
         assertEquals(usersOwnPolicy.suppressedVisualEffects, restored.suppressedVisualEffects)
+    }
+
+    // --- specs/closing-moment, specs/slow-exit, specs/together-activity ----
+
+    private fun lastRecord(): SessionRecord =
+        SessionHistoryManager.getInstance(context).getAll().first()
+
+    @Test
+    fun aNaturallyCompletedPauseLeavesAPendingReflection() {
+        val manager = SessionManager.getInstance(context)
+        manager.startSession(30)
+        manager.endSession(completedNaturally = true)
+
+        val record = lastRecord()
+        assertEquals(EndReason.NATURAL, record.endReason)
+        assertEquals(record.id, manager.pendingReflectionId())
+
+        manager.clearPendingReflection()
+        assertEquals(0L, manager.pendingReflectionId())
+    }
+
+    @Test
+    fun anEarlyEndNeverAsksHowItWent() {
+        val manager = SessionManager.getInstance(context)
+        manager.clearPendingReflection()
+        manager.startSession(30)
+        manager.endSession()
+
+        assertEquals(EndReason.PASSWORD, lastRecord().endReason)
+        assertEquals(0L, manager.pendingReflectionId())
+    }
+
+    @Test
+    fun theNfcReleaseIsRecordedAsSuch() {
+        val manager = SessionManager.getInstance(context)
+        manager.startSession(30, isGroupSession = true, groupTag = 7)
+        manager.endSession(reason = EndReason.NFC_RELEASE)
+        assertEquals(EndReason.NFC_RELEASE, lastRecord().endReason)
+    }
+
+    @Test
+    fun theSlowExitEndsThePauseWithoutPasswordOnceTheWaitIsOver() {
+        val manager = SessionManager.getInstance(context)
+        manager.startSession(60)
+        manager.startSlowExit(waitMinutes = 10)
+        assertTrue(manager.slowExitDeadline() > System.currentTimeMillis())
+        assertTrue(manager.isSessionActive())
+
+        // L'attesa è finita (l'allarme è inesatto: la rete di sicurezza è isSessionActive()).
+        context.getSharedPreferences("calm_otter_session", Context.MODE_PRIVATE).edit()
+            .putLong("session_slow_exit_deadline", System.currentTimeMillis() - 1).commit()
+
+        assertFalse(manager.isSessionActive())
+        val record = lastRecord()
+        assertEquals(EndReason.SLOW_EXIT, record.endReason)
+        assertFalse(record.completedNaturally)
+        assertEquals(0L, manager.slowExitDeadline())
+    }
+
+    @Test
+    fun cancellingTheSlowExitKeepsThePauseGoing() {
+        val manager = SessionManager.getInstance(context)
+        manager.startSession(60)
+        manager.startSlowExit(waitMinutes = 10)
+        manager.cancelSlowExit()
+        assertEquals(0L, manager.slowExitDeadline())
+        assertTrue(manager.isSessionActive())
+    }
+
+    @Test
+    fun theTogetherActivityEndsUpInHistory() {
+        val manager = SessionManager.getInstance(context)
+        manager.startSession(60, isGroupSession = true, activityId = 7)
+        assertEquals(7, manager.groupActivityId())
+        manager.endSession(completedNaturally = true)
+        assertEquals(7, lastRecord().activityId)
+        assertEquals(0, manager.groupActivityId())
     }
 }

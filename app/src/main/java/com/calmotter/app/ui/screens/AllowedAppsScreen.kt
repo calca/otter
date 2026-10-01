@@ -2,8 +2,11 @@ package com.calmotter.app.ui.screens
 
 import android.graphics.Bitmap
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
@@ -17,16 +20,19 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchColors
 import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -37,10 +43,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.calmotter.app.AllowedAppsManager
+import com.calmotter.app.AllowedAppsProfile
 import com.calmotter.app.R
 
 /**
@@ -92,6 +101,15 @@ fun AllowedAppsScreen(
     apps: List<AppItem>,
     onToggle: (AppItem) -> Unit,
     onRefresh: () -> Unit,
+    // Profili (specs/allowed-app-profiles/): quale si sta modificando e le
+    // azioni su di essi. Tutta la schermata è già dietro la password.
+    profiles: List<AllowedAppsProfile> = emptyList(),
+    editingProfileId: Int = AllowedAppsManager.DEFAULT_PROFILE_ID,
+    canCreateProfile: Boolean = false,
+    onSelectProfile: (Int) -> Unit = {},
+    onCreateProfile: (String) -> Unit = {},
+    onRenameProfile: (String) -> Unit = {},
+    onDeleteProfile: () -> Unit = {},
 ) {
     var searchQuery by remember { mutableStateOf("") }
 
@@ -101,6 +119,17 @@ fun AllowedAppsScreen(
     }
 
     Column(modifier = Modifier.fillMaxSize().safeDrawingPadding()) {
+        if (profiles.isNotEmpty()) {
+            ProfileBar(
+                profiles = profiles,
+                editingProfileId = editingProfileId,
+                canCreateProfile = canCreateProfile,
+                onSelectProfile = onSelectProfile,
+                onCreateProfile = onCreateProfile,
+                onRenameProfile = onRenameProfile,
+                onDeleteProfile = onDeleteProfile,
+            )
+        }
         CalmTextField(
             value = searchQuery,
             onValueChange = { searchQuery = it },
@@ -248,3 +277,136 @@ private fun calmSwitchColors(): SwitchColors = SwitchDefaults.colors(
     uncheckedTrackColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.12f),
     uncheckedBorderColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f),
 )
+
+/** Lunghezza massima del nome di un profilo: deve stare in una pillola. */
+private const val PROFILE_NAME_MAX = 20
+
+/**
+ * Le pillole dei profili in cima alla schermata, più "Nuovo" finché c'è
+ * posto; sotto, per un profilo non predefinito, "Rinomina" ed "Elimina".
+ */
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+private fun ProfileBar(
+    profiles: List<AllowedAppsProfile>,
+    editingProfileId: Int,
+    canCreateProfile: Boolean,
+    onSelectProfile: (Int) -> Unit,
+    onCreateProfile: (String) -> Unit,
+    onRenameProfile: (String) -> Unit,
+    onDeleteProfile: () -> Unit,
+) {
+    var naming by remember { mutableStateOf<String?>(null) } // null = nessun dialogo; "" = nuovo
+    var renaming by remember { mutableStateOf(false) }
+    var confirmingDelete by remember { mutableStateOf(false) }
+    val editing = profiles.firstOrNull { it.id == editingProfileId } ?: profiles.first()
+
+    Column(modifier = Modifier.fillMaxWidth().padding(start = 16.dp, end = 16.dp, top = 16.dp)) {
+        FlowRow(
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            profiles.forEach { profile ->
+                ProfilePill(
+                    label = profile.name,
+                    selected = profile.id == editing.id,
+                    onClick = { onSelectProfile(profile.id) },
+                )
+            }
+            if (canCreateProfile) {
+                ProfilePill(
+                    label = stringResource(R.string.allowed_profile_new),
+                    selected = false,
+                    onClick = { naming = "" },
+                )
+            }
+        }
+        if (!editing.isDefault) {
+            Row {
+                TextButton(onClick = { renaming = true }) {
+                    Text(stringResource(R.string.allowed_profile_rename))
+                }
+                TextButton(onClick = { confirmingDelete = true }) {
+                    Text(stringResource(R.string.allowed_profile_delete))
+                }
+            }
+        }
+    }
+
+    naming?.let { initial ->
+        ProfileNameDialog(
+            initial = initial,
+            onDismiss = { naming = null },
+            onConfirm = { onCreateProfile(it); naming = null },
+        )
+    }
+    if (renaming) {
+        ProfileNameDialog(
+            initial = editing.name,
+            onDismiss = { renaming = false },
+            onConfirm = { onRenameProfile(it); renaming = false },
+        )
+    }
+    if (confirmingDelete) {
+        AlertDialog(
+            onDismissRequest = { confirmingDelete = false },
+            title = { Text(stringResource(R.string.allowed_profile_delete_title, editing.name)) },
+            text = { Text(stringResource(R.string.allowed_profile_delete_body)) },
+            confirmButton = {
+                TextButton(onClick = { onDeleteProfile(); confirmingDelete = false }) {
+                    Text(stringResource(R.string.allowed_profile_delete))
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { confirmingDelete = false }) {
+                    Text(stringResource(android.R.string.cancel))
+                }
+            },
+        )
+    }
+}
+
+@Composable
+private fun ProfilePill(label: String, selected: Boolean, onClick: () -> Unit) {
+    // Stesso stile delle pillole di durata della Home: pieno quando scelto.
+    Surface(
+        onClick = onClick,
+        shape = RoundedCornerShape(50),
+        color = if (selected) {
+            MaterialTheme.colorScheme.primary
+        } else {
+            MaterialTheme.colorScheme.tertiary.copy(alpha = 0.55f)
+        },
+    ) {
+        Text(
+            text = label,
+            modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+            color = if (selected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurface,
+            fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Normal,
+        )
+    }
+}
+
+@Composable
+private fun ProfileNameDialog(initial: String, onDismiss: () -> Unit, onConfirm: (String) -> Unit) {
+    var name by remember { mutableStateOf(initial) }
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(stringResource(R.string.allowed_profile_name_title)) },
+        text = {
+            CalmTextField(
+                value = name,
+                onValueChange = { name = it.take(PROFILE_NAME_MAX) },
+                label = stringResource(R.string.allowed_profile_name_hint),
+            )
+        },
+        confirmButton = {
+            TextButton(onClick = { onConfirm(name.trim()) }, enabled = name.isNotBlank()) {
+                Text(stringResource(R.string.allowed_profile_save))
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) { Text(stringResource(android.R.string.cancel)) }
+        },
+    )
+}

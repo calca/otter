@@ -341,7 +341,8 @@ class AppBlockerAccessibilityService : AccessibilityService() {
             defaultDialer = telecomManager?.defaultDialerPackage, // app Telefono di default del dispositivo
             ownPackage = packageName,                            // questa stessa app, per mostrare il blocco
             keyboards = keyboardPackages(),
-            userAllowed = AllowedAppsManager.getInstance(applicationContext).getAllowedPackages(),
+            userAllowed = AllowedAppsManager.getInstance(applicationContext)
+                .packagesFor(SessionManager.getInstance(applicationContext).sessionProfileId()),
         )
     }
 

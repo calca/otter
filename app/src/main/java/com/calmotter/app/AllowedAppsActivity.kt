@@ -7,6 +7,7 @@ import android.view.MenuItem
 import android.widget.Toast
 import androidx.activity.compose.setContent
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.core.graphics.drawable.toBitmap
@@ -44,6 +45,8 @@ class AllowedAppsActivity : BaseActivity() {
     private lateinit var allowedAppsManager: AllowedAppsManager
 
     private var isLoading by mutableStateOf(true)
+    private var profiles by mutableStateOf<List<AllowedAppsProfile>>(emptyList())
+    private var editingProfileId by mutableIntStateOf(AllowedAppsManager.DEFAULT_PROFILE_ID)
     private var allApps by mutableStateOf<List<AppItem>>(emptyList())
     private var loadJob: Job? = null
 
@@ -56,6 +59,7 @@ class AllowedAppsActivity : BaseActivity() {
         }
 
         allowedAppsManager = AllowedAppsManager.getInstance(applicationContext)
+        profiles = allowedAppsManager.profiles()
 
         setContent {
             CalmOtterTheme(appTheme = ThemeManager.getTheme(this)) {
@@ -64,6 +68,25 @@ class AllowedAppsActivity : BaseActivity() {
                     apps = allApps,
                     onToggle = ::toggleApp,
                     onRefresh = { refreshApps(showConfirmation = true) },
+                    profiles = profiles,
+                    editingProfileId = editingProfileId,
+                    canCreateProfile = allowedAppsManager.canCreateProfile(),
+                    onSelectProfile = ::editProfile,
+                    onCreateProfile = { name ->
+                        allowedAppsManager.createProfile(name)?.let { created ->
+                            profiles = allowedAppsManager.profiles()
+                            editProfile(created.id)
+                        }
+                    },
+                    onRenameProfile = { name ->
+                        allowedAppsManager.renameProfile(editingProfileId, name)
+                        profiles = allowedAppsManager.profiles()
+                    },
+                    onDeleteProfile = {
+                        allowedAppsManager.deleteProfile(editingProfileId)
+                        profiles = allowedAppsManager.profiles()
+                        editProfile(AllowedAppsManager.DEFAULT_PROFILE_ID)
+                    },
                 )
             }
         }
@@ -88,7 +111,7 @@ class AllowedAppsActivity : BaseActivity() {
         loadJob?.cancel()
         isLoading = true
         loadJob = lifecycleScope.launch {
-            val allowed = allowedAppsManager.getAllowedPackages()
+            val allowed = allowedAppsManager.packagesFor(editingProfileId)
             val apps = withContext(Dispatchers.IO) { loadApps(allowed) }
 
             allApps = apps
@@ -112,7 +135,7 @@ class AllowedAppsActivity : BaseActivity() {
     private fun toggleApp(item: AppItem) {
         val newIsAllowed = !item.isAllowed
 
-        val current = allowedAppsManager.getAllowedPackages().toMutableSet()
+        val current = allowedAppsManager.packagesFor(editingProfileId).toMutableSet()
         if (newIsAllowed) {
             if (current.size >= AllowedAppsManager.MAX_ALLOWED_APPS) {
                 Toast.makeText(
@@ -130,11 +153,18 @@ class AllowedAppsActivity : BaseActivity() {
         } else {
             current.remove(item.packageName)
         }
-        allowedAppsManager.setAllowedPackages(current)
+        allowedAppsManager.setPackages(editingProfileId, current)
 
         allApps = allApps.map {
             if (it.packageName == item.packageName) it.copy(isAllowed = newIsAllowed) else it
         }
+    }
+
+    /** Passa a modificare un altro profilo: stesse app, spunte di quel profilo. */
+    private fun editProfile(id: Int) {
+        editingProfileId = id
+        val allowed = allowedAppsManager.packagesFor(id)
+        allApps = allApps.map { it.copy(isAllowed = it.packageName in allowed) }
     }
 
     // ── Caricamento app ───────────────────────────────────────────────────

@@ -19,7 +19,7 @@ import androidx.sqlite.db.SupportSQLiteDatabase
 // snapshot — non sono mai state esportate quando questa opzione era ancora
 // `false`, e non sono ricostruibili a ritroso da qui: quello che si può
 // verificare ora in avanti a ogni nuova versione parte da questa.
-@Database(entities = [SessionRecord::class], version = 3, exportSchema = true)
+@Database(entities = [SessionRecord::class], version = 4, exportSchema = true)
 abstract class CalmOtterDatabase : RoomDatabase() {
     abstract fun sessionRecordDao(): SessionRecordDao
 
@@ -53,6 +53,31 @@ abstract class CalmOtterDatabase : RoomDatabase() {
             }
         }
 
+        // v3 → v4: quattro colonne in una migrazione sola, perché nate insieme
+        // (specs/closing-moment/design.md, "Shared migration"):
+        // - activityId: l'attività proposta in una pausa di gruppo, 0 = nessuna;
+        // - mood/note: il momento di chiusura, null/"" = nessuna risposta;
+        // - endReason: come è finita la pausa. Le righe precedenti sanno solo
+        //   se è finita da sé o no, quindi diventano "natural" o "password":
+        //   l'unico altro modo di uscire prima (il rilascio NFC) era raro e
+        //   non distinguibile a posteriori.
+        @VisibleForTesting
+        internal val MIGRATION_3_4 = object : Migration(3, 4) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("ALTER TABLE sessions ADD COLUMN activityId INTEGER NOT NULL DEFAULT 0")
+                db.execSQL("ALTER TABLE sessions ADD COLUMN mood INTEGER")
+                db.execSQL("ALTER TABLE sessions ADD COLUMN note TEXT NOT NULL DEFAULT ''")
+                db.execSQL("ALTER TABLE sessions ADD COLUMN endReason TEXT NOT NULL DEFAULT 'unknown'")
+                db.execSQL(
+                    "UPDATE sessions SET endReason = " +
+                        "CASE WHEN completedNaturally = 1 THEN 'natural' ELSE 'password' END"
+                )
+            }
+        }
+
+        @VisibleForTesting
+        internal val ALL_MIGRATIONS = arrayOf(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4)
+
         @Volatile private var instance: CalmOtterDatabase? = null
 
         fun getInstance(context: Context): CalmOtterDatabase =
@@ -66,7 +91,7 @@ abstract class CalmOtterDatabase : RoomDatabase() {
                     // in modo sincrono da BroadcastReceiver senza coroutine scope:
                     // query sul main thread accettabili qui.
                     .allowMainThreadQueries()
-                    .addMigrations(MIGRATION_1_2, MIGRATION_2_3)
+                    .addMigrations(*ALL_MIGRATIONS)
                     .build()
                     .also { instance = it }
             }

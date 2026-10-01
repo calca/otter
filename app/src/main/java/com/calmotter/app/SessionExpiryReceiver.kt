@@ -5,17 +5,23 @@ import android.content.Context
 import android.content.Intent
 
 /**
- * Ricevuto quando l'allarme programmato da SessionManager scade: termina
- * la sessione (disattiva il blocco e il Non disturbare) anche se l'utente
- * non sta interagendo con il telefono in quel momento.
+ * Riceve i due allarmi di fine pausa: la scadenza naturale e la fine
+ * dell'attesa dell'uscita lenta ([ACTION_SLOW_EXIT], specs/slow-exit/).
  */
 class SessionExpiryReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
-        // markBackgroundSummary = true: se BlockScreen ha già chiuso la
-        // sessione lui stesso (l'utente c'era), endSession() qui è un no-op
-        // per la guardia di idempotenza e il segnale non viene scritto — solo
-        // quando è davvero questo allarme a terminare la pausa la Home
-        // mostra il riepilogo una tantum. Vedi SessionManager.endSession().
-        SessionManager.getInstance(context).endSession(completedNaturally = true, markBackgroundSummary = true)
+        val sessionManager = SessionManager.getInstance(context)
+        if (intent.action == ACTION_SLOW_EXIT) {
+            // Se nel frattempo l'attesa è stata annullata non c'è più una
+            // scadenza: l'allarme arrivato in ritardo non deve chiudere nulla.
+            if (sessionManager.slowExitDeadline() == 0L) return
+            sessionManager.endSession(reason = EndReason.SLOW_EXIT)
+        } else {
+            sessionManager.endSession(completedNaturally = true, markBackgroundSummary = true)
+        }
+    }
+
+    companion object {
+        const val ACTION_SLOW_EXIT = "com.calmotter.app.action.SLOW_EXIT"
     }
 }

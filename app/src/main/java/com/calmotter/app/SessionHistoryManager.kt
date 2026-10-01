@@ -13,7 +13,13 @@ class SessionHistoryManager private constructor(context: Context) {
 
     fun getAll(): List<SessionRecord> = dao.getAll()
 
-    fun add(record: SessionRecord) = dao.insert(record)
+    /** Inserisce la sessione e ne restituisce l'id. */
+    fun add(record: SessionRecord): Long = dao.insert(record)
+
+    fun byId(id: Long): SessionRecord? = dao.byId(id)
+
+    /** Salva la risposta del momento di chiusura (specs/closing-moment/). */
+    fun saveReflection(id: Long, mood: Int?, note: String) = dao.updateReflection(id, mood, note)
 
     fun clear() = dao.clear()
 

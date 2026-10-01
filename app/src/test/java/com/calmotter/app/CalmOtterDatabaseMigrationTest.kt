@@ -79,7 +79,7 @@ class CalmOtterDatabaseMigrationTest {
 
         val db = Room.databaseBuilder(context, CalmOtterDatabase::class.java, dbName)
             .allowMainThreadQueries()
-            .addMigrations(CalmOtterDatabase.MIGRATION_1_2, CalmOtterDatabase.MIGRATION_2_3)
+            .addMigrations(*CalmOtterDatabase.ALL_MIGRATIONS)
             .build()
 
         try {
@@ -119,7 +119,7 @@ class CalmOtterDatabaseMigrationTest {
 
         val db = Room.databaseBuilder(context, CalmOtterDatabase::class.java, dbName)
             .allowMainThreadQueries()
-            .addMigrations(CalmOtterDatabase.MIGRATION_1_2, CalmOtterDatabase.MIGRATION_2_3)
+            .addMigrations(*CalmOtterDatabase.ALL_MIGRATIONS)
             .build()
 
         try {
@@ -137,6 +137,50 @@ class CalmOtterDatabaseMigrationTest {
             val rows = db.sessionRecordDao().getAll()
             assertEquals(2, rows.size)
             assertTrue(rows.any { it.isGroupSession && it.companions == "Alex\nSam" })
+        } finally {
+            db.close()
+        }
+    }
+
+    @Test
+    fun migratingToVersion4DerivesTheEndReasonAndLeavesTheNewFieldsEmpty() {
+        val dbFile = context.getDatabasePath(dbName)
+        val raw = SQLiteDatabase.openOrCreateDatabase(dbFile, null)
+        raw.execSQL(
+            "CREATE TABLE sessions (" +
+                "id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, " +
+                "startTimeMs INTEGER NOT NULL, " +
+                "plannedMinutes INTEGER NOT NULL, " +
+                "effectiveMinutes INTEGER NOT NULL, " +
+                "completedNaturally INTEGER NOT NULL, " +
+                "isGroupSession INTEGER NOT NULL DEFAULT 0, " +
+                "companions TEXT NOT NULL DEFAULT '')"
+        )
+        raw.execSQL(
+            "INSERT INTO sessions (startTimeMs, plannedMinutes, effectiveMinutes, completedNaturally) " +
+                "VALUES (1700000000000, 60, 60, 1), (1700010000000, 60, 12, 0)"
+        )
+        raw.version = 3
+        raw.close()
+
+        val db = Room.databaseBuilder(context, CalmOtterDatabase::class.java, dbName)
+            .allowMainThreadQueries()
+            .addMigrations(*CalmOtterDatabase.ALL_MIGRATIONS)
+            .build()
+        try {
+            val rows = db.sessionRecordDao().getAll().sortedBy { it.startTimeMs }
+            assertEquals(EndReason.NATURAL, rows[0].endReason)
+            assertEquals(EndReason.PASSWORD, rows[1].endReason)
+            rows.forEach {
+                assertEquals(0, it.activityId)
+                assertEquals(null, it.mood)
+                assertEquals("", it.note)
+            }
+            // E la riflessione si scrive sulla riga giusta.
+            db.sessionRecordDao().updateReflection(rows[0].id, Mood.CALM, "letto")
+            val updated = db.sessionRecordDao().byId(rows[0].id)!!
+            assertEquals(Mood.CALM, updated.mood)
+            assertEquals("letto", updated.note)
         } finally {
             db.close()
         }

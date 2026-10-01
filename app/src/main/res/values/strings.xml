@@ -319,4 +319,16 @@ Quando sentirai il bisogno di una pausa, basterà aprire l\'app, scegliere quant
     <string name="breathing_slowly">Respira lentamente</string>
     <!-- Sottotitolo del riquadro nelle Impostazioni rapide, senza pausa in corso: %1$s = "1 h" -->
     <string name="tile_idle_subtitle">Tocca per una pausa · %1$s</string>
+    <!-- Profili di app consentite (specs/allowed-app-profiles/) -->
+    <string name="allowed_profile_default_name">Standard</string>
+    <string name="allowed_profile_new">+ Nuovo</string>
+    <string name="allowed_profile_rename">Rinomina</string>
+    <string name="allowed_profile_delete">Elimina</string>
+    <string name="allowed_profile_delete_title">Eliminare «%1$s»?</string>
+    <string name="allowed_profile_delete_body">Le pause useranno di nuovo il profilo Standard.</string>
+    <string name="allowed_profile_name_title">Nome del profilo</string>
+    <string name="allowed_profile_name_hint">Es. Sera, Lavoro</string>
+    <string name="allowed_profile_save">Salva</string>
+    <string name="home_profile_line">Consentite: %1$s</string>
+    <string name="home_profile_dialog_title">App consentite in questa pausa</string>
 </resources>

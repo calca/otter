@@ -1,5 +1,6 @@
 package com.calmotter.app.ui.screens
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -13,6 +14,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.RadioButton
 import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Brush
@@ -39,11 +41,13 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.calmotter.app.AllowedAppsManager
 import com.calmotter.app.BuildConfig
 import com.calmotter.app.R
 import com.calmotter.app.SESSION_DURATION_OPTIONS
@@ -195,6 +199,13 @@ fun MainScreen(
     // farebbe sparire il riepilogo appena mostrato. `?: pendingSummary`
     // mantiene l'ultimo valore letto finché non riparte una nuova pausa.
     var pendingSummary by remember { mutableStateOf<SessionManager.PendingBackgroundSummary?>(null) }
+    // Profili di app consentite (specs/allowed-app-profiles/): riletti a ogni
+    // ritorno in Home, perché si modificano in un'altra schermata.
+    val context = LocalContext.current
+    val allowedAppsManager = remember { AllowedAppsManager.getInstance(context) }
+    var profiles by remember { mutableStateOf(allowedAppsManager.profiles()) }
+    var selectedProfileId by remember { mutableIntStateOf(allowedAppsManager.selectedProfileId()) }
+    var pickingProfile by remember { mutableStateOf(false) }
 
     fun refreshDerivedState() {
         accessibilityOk = isAccessibilityServiceEnabled()
@@ -206,6 +217,8 @@ fun MainScreen(
         streakDays = SessionStreak.currentStreakDays(history)
         weekSummary = weekSummaryOf(history)
         pendingSummary = sessionManager.consumePendingBackgroundSummary() ?: pendingSummary
+        profiles = allowedAppsManager.profiles()
+        selectedProfileId = allowedAppsManager.selectedProfileId()
     }
 
     // Rieseguito a ogni onResume() dell'Activity (resumeSignal incrementato
@@ -311,6 +324,19 @@ fun MainScreen(
                 selectedMinutes = selectedDurationMinutes,
                 onSelect = onSelectDuration,
             )
+            // Solo con più di un profilo: con il solo Standard la Home resta
+            // com'era. Scegliere non chiede la password, perché ogni profilo
+            // è già stato approvato da chi la tiene.
+            if (profiles.size > 1) {
+                val selectedName = profiles.firstOrNull { it.id == selectedProfileId }?.name.orEmpty()
+                TextButton(onClick = { pickingProfile = true }) {
+                    Text(
+                        text = stringResource(R.string.home_profile_line, selectedName) + " ›",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.primary,
+                    )
+                }
+            }
 
             SessionsSummaryLink(
                 streakDays = streakDays,
@@ -363,6 +389,37 @@ fun MainScreen(
                 modifier = Modifier.padding(top = 20.dp).fillMaxWidth(HOME_PILL_WIDTH_FRACTION),
             )
         }
+    }
+
+    if (pickingProfile) {
+        AlertDialog(
+            onDismissRequest = { pickingProfile = false },
+            title = { Text(stringResource(R.string.home_profile_dialog_title)) },
+            text = {
+                Column {
+                    profiles.forEach { profile ->
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clickable {
+                                    allowedAppsManager.selectProfile(profile.id)
+                                    selectedProfileId = profile.id
+                                    pickingProfile = false
+                                }
+                                .padding(vertical = 4.dp),
+                        ) {
+                            RadioButton(selected = profile.id == selectedProfileId, onClick = null)
+                            Spacer(modifier = Modifier.width(12.dp))
+                            Text(profile.name)
+                        }
+                    }
+                }
+            },
+            confirmButton = {
+                TextButton(onClick = { pickingProfile = false }) { Text(stringResource(android.R.string.cancel)) }
+            },
+        )
     }
 
     if (showPermissionDialog) {

@@ -27,7 +27,9 @@ import com.calmotter.app.ui.screens.AllowedAppLaunchItem
  */
 fun loadAllowedAppLaunchItems(context: Context): List<AllowedAppLaunchItem> {
     val phoneItem = resolveAppLaunchItem(context, dialerPackageName(context))
-    val allowed = AllowedAppsManager.getInstance(context).getAllowedPackages()
+    // Le app del profilo della pausa in corso (specs/allowed-app-profiles/).
+    val allowed = AllowedAppsManager.getInstance(context)
+        .packagesFor(SessionManager.getInstance(context).sessionProfileId())
     val allowedItems = allowed
         .mapNotNull { resolveAppLaunchItem(context, it) }
         .sortedBy { it.label.lowercase() }
