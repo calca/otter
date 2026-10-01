@@ -267,8 +267,10 @@ phones, rather than everyone typing a password they don't know.
 
 ### Acceptance Criteria
 
-1. WHEN a device hosted a shared pause AND that pause has ended THEN it
-   SHALL be able to offer release to the people who were in it, over NFC.
+1. WHEN a device hosted a shared pause AND its host unlocks it before the
+   pause has run out THEN it SHALL be able to offer release to the people
+   still in it, over NFC. WHEN the pause runs out on its own THEN it SHALL
+   NOT offer release, the others' pauses ending by themselves.
 2. WHEN a device joined a shared pause THEN its unlock screen SHALL accept
    either the password or that release, without an extra step choosing
    between them, and SHALL say that the second route exists.

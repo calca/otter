@@ -142,9 +142,9 @@ fun BlockScreen(
             NfcAdapter.getDefaultAdapter(context) != null
     }
 
-    // Se questo dispositivo ha convocato la pausa condivisa, alla sua fine
-    // può rilasciare chi c'era — vedi [ReleaseOthersStep]. Va letto adesso:
-    // endSession() azzera tag e ruolo.
+    // Se questo dispositivo ha convocato la pausa condivisa e la sblocca prima
+    // della fine, può rilasciare chi è ancora in pausa — vedi
+    // [ReleaseOthersStep]. Va letto adesso: endSession() azzera tag e ruolo.
     val canReleaseOthers = remember {
         activity != null &&
             sessionManager.isGroupSession() &&
@@ -187,11 +187,13 @@ fun BlockScreen(
         // l'uscita dalla schermata, non la fine del blocco.
         releasingRing = true
         ringRelease.animateTo(1f, animationSpec = tween(700, easing = FastOutSlowInEasing))
-        if (canReleaseOthers) releaseThenExit = onExpiredNaturally else onExpiredNaturally()
+        // Scadenza naturale: gli altri telefoni hanno lo stesso conto alla
+        // rovescia e finiscono da soli, non c'è nessuno da rilasciare.
+        onExpiredNaturally()
     }
 
-    // La pausa di questo dispositivo è finita, ma era lui a convocarla: prima
-    // di uscire offre il rilascio a chi c'era. Sostituisce la schermata invece
+    // L'host ha sbloccato prima della fine: prima di uscire offre il rilascio
+    // a chi è ancora in pausa. Sostituisce la schermata invece
     // di aggiungersi altrove — è il momento esatto in cui serve, e non costa
     // spazio permanente da nessuna parte.
     releaseThenExit?.let { exit ->

@@ -239,8 +239,8 @@ Whenever you feel the need for a break, just open the app, choose how long — &
     <string name="group_pause_manual_code_join_button">Join</string>
     <string name="group_pause_invalid_code">Invalid or expired code</string>
 
-    <string name="release_others_title">Release whoever was with you</string>
-    <string name="release_others_body">Hold the phones together: their pause ends like yours did.</string>
+    <string name="release_others_title">The others are still paused</string>
+    <string name="release_others_body">Hold the phones together to unlock them with you.</string>
     <string name="release_others_done">Done</string>
     <string name="unlock_or_tap_hint">…or hold up the phone of whoever called the pause, once they\'ve ended theirs</string>
     <string name="block_group_with_one">Together with %1$s</string>

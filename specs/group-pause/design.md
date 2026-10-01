@@ -1256,9 +1256,11 @@ Scope, kept narrow on purpose:
   and is not the authorisation. It only prevents releasing someone who was
   in a different pause.
 - **The offer is bounded by a screen, not by time or a background
-  service**: after the host's own pause ends (either exit path), the block
+  service**: when the host unlocks *before* the pause is over, the block
   screen is replaced by a release step that advertises the token over HCE
-  only while it is on screen. Dismissing it stops advertising.
+  only while it is on screen. Dismissing it stops advertising. On natural
+  expiry there is no release step: the others share the same countdown and
+  end on their own, so there is nobody left to release.
 
 **No chooser.** The unlock dialog already existed; it now also runs NFC
 reader mode while open, and says so in its message line. Typing the
