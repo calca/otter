@@ -428,13 +428,15 @@ fun MainScreen(
         )
     }
 
+    // Prima delle impostazioni di sistema, l'informativa sull'accessibilità.
+    val grantAccessibility = rememberAccessibilityDisclosure(onGrantAccessibility)
     if (showPermissionDialog) {
         PermissionExplainerDialog(
             accessibilityOk = accessibilityOk,
             dndOk = dndOk,
             onGrantAccessibility = {
                 onDismissPermissionDialog()
-                onGrantAccessibility()
+                grantAccessibility()
             },
             onGrantDnd = {
                 onDismissPermissionDialog()

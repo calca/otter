@@ -430,4 +430,11 @@ Whenever you feel the need for a break, just open the app, choose how long — &
     <!-- Pausa di gruppo: versioni diverse dell'app -->
     <string name="group_pause_other_version">This code comes from a different version of Calm Otter: update the app on both phones.</string>
     <string name="group_pause_other_version_lobby">The other phone has a different version of Calm Otter: update the app on both.</string>
+    <!-- Informativa sull'accessibilità prima delle impostazioni di sistema (richiesta da Google Play) -->
+    <string name="a11y_disclosure_title">How Calm Otter uses Accessibility</string>
+    <string name="a11y_disclosure_what">During a pause, Calm Otter uses Android\'s Accessibility service only to know which app is being opened, so it can cover it with the pause screen.</string>
+    <string name="a11y_disclosure_not">It doesn\'t read what\'s on the screen or what you type. It doesn\'t collect, store or send this information anywhere: the app doesn\'t use the internet.</string>
+    <string name="a11y_disclosure_off">You can turn it off at any time in Accessibility settings.</string>
+    <string name="a11y_disclosure_accept">Agree and continue</string>
+    <string name="a11y_disclosure_decline">Not now</string>
 </resources>

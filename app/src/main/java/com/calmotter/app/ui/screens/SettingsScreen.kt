@@ -241,10 +241,12 @@ fun SettingsScreen(
         }
 
         SectionLabel(stringResource(R.string.settings_permissions_label))
+        // Prima delle impostazioni di sistema, l'informativa sull'accessibilità.
+        val grantAccessibility = rememberAccessibilityDisclosure(onGrantAccessibility)
         PermissionStatusCard(
             accessibilityOk = accessibilityOk,
             dndOk = dndOk,
-            onGrantAccessibility = onGrantAccessibility,
+            onGrantAccessibility = grantAccessibility,
             onGrantDnd = onGrantDnd,
         )
 
