@@ -1,8 +1,8 @@
 # Weekly Summary — Design
 
-> **Status: Proposed — not implemented.**
+> **Status: Implemented** (2026-10-01).
 
-## Key files (planned)
+## Key files
 
 | File | Role |
 |---|---|

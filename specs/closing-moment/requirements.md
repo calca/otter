@@ -1,6 +1,6 @@
 # Closing Moment — Requirements
 
-> **Status: Proposed — not implemented.**
+> **Status: Implemented** (2026-10-01).
 
 ## Context
 

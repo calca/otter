@@ -115,7 +115,8 @@ composable needs this modifier on its root too.
 
 **No DI framework.** State-holding classes (`SessionManager`,
 `PasswordManager`, `SessionHistoryManager`, `AllowedAppsManager`,
-`LauncherManager`, `PhraseManager`, `WeeklyGoalManager`) are thread-safe
+`LauncherManager`, `PhraseManager`, `WeeklyGoalManager`, `ScheduleManager`,
+`SlowExitManager`) are thread-safe
 singletons obtained via `ClassName.getInstance(context.applicationContext)`
 (double-checked locking, `@Volatile` instance). Each one also exposes an
 internal `resetInstanceForTests()` (`@VisibleForTesting`) — **Robolectric

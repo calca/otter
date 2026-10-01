@@ -21,6 +21,14 @@ everything described is live in `main` today.
 - [`group-pause/`](group-pause/requirements.md) — synchronized multi-device pause: QR/manual code (Phase 1) plus a live Bluetooth lobby with NFC tap-to-connect (Phase 2)
 - [`quick-settings-tile/`](quick-settings-tile/requirements.md) — the "Calm Otter" tile in the notification shade
 - [`breathing-pause/`](breathing-pause/requirements.md) — the 10-minute pause with a breathing ring, and the single remembered duration
+- [`together-activity/`](together-activity/requirements.md) — the host proposes something to do together; it travels with the pause
+- [`closing-moment/`](closing-moment/requirements.md) — "How was it?" after a completed pause, saved in History
+- [`slow-exit/`](slow-exit/requirements.md) — on by default: end a pause without the password after a 10-minute wait
+- [`together-history/`](together-history/requirements.md) — time spent with each companion, and a "Together" filter
+- [`scheduled-pauses/`](scheduled-pauses/requirements.md) — recurring pauses that start by themselves; loosening needs the password
+- [`allowed-app-profiles/`](allowed-app-profiles/requirements.md) — named allowed-apps lists, chosen per pause
+- [`weekly-summary/`](weekly-summary/requirements.md) — one quiet note on Sunday evening
+- [`history-by-month/`](history-by-month/requirements.md) — History grouped by month, older months on request
 
 Each feature has:
 - `requirements.md` — user stories with EARS-style acceptance criteria (WHEN/THE SYSTEM SHALL), matching current behavior
@@ -28,31 +36,10 @@ Each feature has:
 
 ## Proposed (not built yet)
 
-Written before the code and marked **Status: Proposed** at the top of each
-file. Each `design.md` ends with "Decisioni aperte": the choices to settle
-before building. When a feature ships, its pair is rewritten as-built and
-moves to the list above.
-
-- [`together-activity/`](together-activity/requirements.md) — the host proposes something to do together; it travels with the pause
-- [`closing-moment/`](closing-moment/requirements.md) — "How was it?" after a completed pause, saved in History
-- [`together-history/`](together-history/requirements.md) — time spent with each companion, and a "Together" filter
-- [`scheduled-pauses/`](scheduled-pauses/requirements.md) — recurring pauses that start by themselves; loosening needs the password
-- [`allowed-app-profiles/`](allowed-app-profiles/requirements.md) — named allowed-apps lists, chosen per pause
-- [`slow-exit/`](slow-exit/requirements.md) — on by default: end a pause without the password after a 10-minute wait
-- [`weekly-summary/`](weekly-summary/requirements.md) — one quiet note on Sunday evening
-
-**Suggested order**, smallest and least risky first, grouping the ones that
-share work:
-
-1. ~~`quick-settings-tile`, `breathing-pause`~~ — done.
-2. `together-activity`, `closing-moment`, `slow-exit` — all three add a
-   column to `SessionRecord`: built in the same round, they share one
-   database version bump and one migration.
-3. `together-history` — reads what step 2 stores.
-4. `scheduled-pauses` — after a spike on starting the foreground service
-   from an inexact alarm (see its design).
-5. `allowed-app-profiles` — scheduled pauses then gain a profile.
-6. `weekly-summary`.
+Nothing open right now. New proposals are written before the code and
+marked **Status: Proposed** at the top of each file, with "Decisioni
+aperte" at the end of `design.md`; when a feature ships its pair is marked
+**Implemented** and moves to the list above.
 
 ## Convention for new features
 

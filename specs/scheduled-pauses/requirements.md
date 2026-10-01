@@ -1,7 +1,6 @@
 # Scheduled Pauses — Requirements
 
-> **Status: Implemented** (2026-10-01). The ongoing notification may only appear once the app is opened: see design.md. Written before the code, to be
-> reviewed. Turns into an as-built spec when the feature ships.
+> **Status: Implemented** (2026-10-01). The ongoing notification may only appear once the app is opened: see design.md.
 
 ## Context
 
