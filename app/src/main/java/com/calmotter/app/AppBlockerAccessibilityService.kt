@@ -98,7 +98,11 @@ class AppBlockerAccessibilityService : AccessibilityService() {
 
         val packageName = event.packageName?.toString() ?: return
         val sessionManager = SessionManager.getInstance(applicationContext)
-        if (!sessionManager.isSessionActive()) return
+        // Il resto della decisione sta in [BlockPolicy.shouldBlock], valutata
+        // più sotto; qui si esce subito perché fuori sessione (il caso
+        // comune) non serve raccogliere nient'altro.
+        val sessionActive = sessionManager.isSessionActive()
+        if (!sessionActive) return
 
         // **Solo finestre a schermo intero.** Una finestra che si apre
         // *sopra* la schermata corrente non significa che l'utente sia
@@ -120,12 +124,14 @@ class AppBlockerAccessibilityService : AccessibilityService() {
         // una classe intera di blocchi a sproposito, che è il modo peggiore
         // in cui questa funzione possa sbagliare: coprire lo schermo mentre
         // stai usando qualcosa che ti è permesso.
+        // Uscita anticipata, prima di interrogare tastiere e dialer: i popup
+        // sono frequenti. È la stessa regola di [BlockPolicy.shouldBlock],
+        // che la ripete per restare provabile da sola.
         if (!event.isFullScreen) return
-
         // La tastiera resta necessaria a parte: la sua finestra si dichiara
         // `isFullScreen = true` (verificato su S22), quindi il filtro qui
         // sopra da solo non la coprirebbe.
-        if (packageName in allowedPackages()) return
+        if (!BlockPolicy.shouldBlock(sessionActive, event.isFullScreen, packageName, allowedPackages())) return
 
         // Copre subito lo schermo dell'app non consentita, PRIMA di provare ad
         // avviare BlockOverlayActivity: su alcuni dispositivi (osservato su
@@ -330,13 +336,12 @@ class AppBlockerAccessibilityService : AccessibilityService() {
 
     private fun allowedPackages(): Set<String> {
         val telecomManager = getSystemService(Context.TELECOM_SERVICE) as? TelecomManager
-        val extraAllowed = AllowedAppsManager.getInstance(applicationContext).getAllowedPackages()
-        return setOfNotNull(
-            telecomManager?.defaultDialerPackage, // app Telefono di default del dispositivo
-            "com.android.systemui",               // status bar, tendina notifiche, schermata di blocco
-            "android",                             // dialog di sistema
-            packageName                            // questa stessa app, per mostrare il blocco
-        ) + keyboardPackages() + extraAllowed
+        return BlockPolicy.allowedPackages(
+            defaultDialer = telecomManager?.defaultDialerPackage, // app Telefono di default del dispositivo
+            ownPackage = packageName,                            // questa stessa app, per mostrare il blocco
+            keyboards = keyboardPackages(),
+            userAllowed = AllowedAppsManager.getInstance(applicationContext).getAllowedPackages(),
+        )
     }
 
     /**
