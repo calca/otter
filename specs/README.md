@@ -14,11 +14,13 @@ everything described is live in `main` today.
 - [`pause-session-core/`](pause-session-core/requirements.md) — session lifecycle, DND, alarm-based expiry, foreground notification, boot restore
 - [`app-blocking-and-home-lock/`](app-blocking-and-home-lock/requirements.md) — accessibility-service blocking, allowed-apps whitelist, Home-button interception
 - [`session-history-and-stats/`](session-history-and-stats/requirements.md) — Room-backed history, streaks, weekly goal, CSV export
-- [`multi-theme-system/`](multi-theme-system/requirements.md) — three-palette theming across XML window chrome and Compose content
+- [`multi-theme-system/`](multi-theme-system/requirements.md) — four-palette theming, one color source read by the XML window theme and Compose
 - [`home-screen-widget/`](home-screen-widget/requirements.md) — the Glance 1×1 widget
 - [`mascot-marks/`](mascot-marks/requirements.md) — the app icon and the two in-app otter illustrations
 - [`home-and-settings/`](home-and-settings/requirements.md) — the calm-Home / Settings split
 - [`group-pause/`](group-pause/requirements.md) — synchronized multi-device pause: QR/manual code (Phase 1) plus a live Bluetooth lobby with NFC tap-to-connect (Phase 2)
+- [`quick-settings-tile/`](quick-settings-tile/requirements.md) — the "Calm Otter" tile in the notification shade
+- [`breathing-pause/`](breathing-pause/requirements.md) — the 10-minute pause with a breathing ring, and the single remembered duration
 
 Each feature has:
 - `requirements.md` — user stories with EARS-style acceptance criteria (WHEN/THE SYSTEM SHALL), matching current behavior
@@ -31,8 +33,6 @@ file. Each `design.md` ends with "Decisioni aperte": the choices to settle
 before building. When a feature ships, its pair is rewritten as-built and
 moves to the list above.
 
-- [`quick-settings-tile/`](quick-settings-tile/requirements.md) — start a pause from the notification shade
-- [`breathing-pause/`](breathing-pause/requirements.md) — a 10-minute pause with a breathing ring
 - [`together-activity/`](together-activity/requirements.md) — the host proposes something to do together; it travels with the pause
 - [`closing-moment/`](closing-moment/requirements.md) — "How was it?" after a completed pause, saved in History
 - [`together-history/`](together-history/requirements.md) — time spent with each companion, and a "Together" filter
@@ -44,9 +44,7 @@ moves to the list above.
 **Suggested order**, smallest and least risky first, grouping the ones that
 share work:
 
-1. `quick-settings-tile`, `breathing-pause` — small, no schema change. The
-   tile also tests starting a session from a non-Activity context, which
-   `scheduled-pauses` needs.
+1. ~~`quick-settings-tile`, `breathing-pause`~~ — done.
 2. `together-activity`, `closing-moment`, `slow-exit` — all three add a
    column to `SessionRecord`: built in the same round, they share one
    database version bump and one migration.

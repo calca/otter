@@ -1,8 +1,8 @@
 # Quick Settings Tile — Design
 
-> **Status: Proposed — not implemented.**
+> **Status: Implemented** (2026-10-01).
 
-## Key files (planned)
+## Key files
 
 | File | Role |
 |---|---|
@@ -29,13 +29,20 @@ duration; active → `CalmCountdown.format(remaining)`. The tile is not
 updated every minute (that would need `ACTIVE_TILE` and a ticking service),
 it is recomputed whenever the shade opens, which is when anyone looks at it.
 
-## Risk to verify first
+## Starting the foreground service from the tile: verified
 
 Like the widget, the tile starts the foreground service from a non-Activity
-context. A tile click counts as user interaction and should be exempt from
-background-start restrictions, but this must be checked on API 34+ before
-anything else. Fallback: `startActivityAndCollapse` to `MainActivity` with
-an extra that starts the pause from the foreground.
+context. Verified on the API 37 emulator with the app force-stopped: the
+tap started the pause and the service went foreground, with the system
+reporting `tempAllowListReason: tile onclick` — a tile click grants a
+temporary exemption from background-start restrictions. No fallback
+needed.
+
+After starting, the tile opens the block screen with
+`startActivityAndCollapse`: it confirms the pause started and is the only
+API that closes the shade. Below API 34 the `Intent` overload is the only
+one available; lint flags it as deprecated even behind the version check,
+so it is isolated in `openAndCollapseBeforeApi34()` with the suppression.
 
 ## Decisioni prese
 

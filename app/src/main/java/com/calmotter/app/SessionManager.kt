@@ -92,6 +92,7 @@ class SessionManager private constructor(private val context: Context) {
         SessionForegroundService.start(context)
         if (rememberDuration) LastDuration.save(context, durationMinutes)
         PauseWidgetProvider.updateAllWidgets(context)
+        PauseTileService.requestRefresh(context)
     }
 
     /** Vero se la sessione attiva (o appena terminata) era una pausa di gruppo. */
@@ -175,6 +176,7 @@ class SessionManager private constructor(private val context: Context) {
         cancelAutoExpiry()
         SessionForegroundService.stop(context)
         PauseWidgetProvider.updateAllWidgets(context)
+        PauseTileService.requestRefresh(context)
     }
 
     /** Dettagli del riepilogo "pausa finita mentre eri via" — vedi [endSession]. */

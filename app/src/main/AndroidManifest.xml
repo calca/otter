@@ -176,6 +176,20 @@
             </intent-filter>
         </receiver>
 
+        <!-- Riquadro nelle Impostazioni rapide (specs/quick-settings-tile/).
+             Nome = app_name, così nella build beta è "Calm Otter Beta" e i
+             due riquadri restano distinguibili come le due icone. -->
+        <service
+            android:name=".PauseTileService"
+            android:exported="true"
+            android:icon="@drawable/ic_tile_otter"
+            android:label="@string/app_name"
+            android:permission="android.permission.BIND_QUICK_SETTINGS_TILE">
+            <intent-filter>
+                <action android:name="android.service.quicksettings.action.QS_TILE" />
+            </intent-filter>
+        </service>
+
         <service
             android:name=".SessionForegroundService"
             android:exported="false"

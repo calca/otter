@@ -310,4 +310,6 @@ Whenever you feel the need for a break, just open the app, choose how long — &
     <string name="breathing_in">Breathe in</string>
     <string name="breathing_out">Breathe out</string>
     <string name="breathing_slowly">Breathe slowly</string>
+    <!-- Sottotitolo del riquadro nelle Impostazioni rapide, senza pausa in corso: %1$s = "1 h" -->
+    <string name="tile_idle_subtitle">Tap for a pause · %1$s</string>
 </resources>

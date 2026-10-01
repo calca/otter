@@ -317,4 +317,6 @@ Quando sentirai il bisogno di una pausa, basterà aprire l\'app, scegliere quant
     <string name="breathing_in">Inspira</string>
     <string name="breathing_out">Espira</string>
     <string name="breathing_slowly">Respira lentamente</string>
+    <!-- Sottotitolo del riquadro nelle Impostazioni rapide, senza pausa in corso: %1$s = "1 h" -->
+    <string name="tile_idle_subtitle">Tocca per una pausa · %1$s</string>
 </resources>
