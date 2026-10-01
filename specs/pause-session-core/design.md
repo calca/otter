@@ -5,6 +5,8 @@
 | File | Role |
 |---|---|
 | `SessionManager.kt` | Single source of truth for session state (SharedPreferences: `calm_otter_session`); orchestrates DND, alarm, foreground service, widget refresh, history write |
+| `PauseDnd.kt` | Do Not Disturb for a pause: captures the user's policy, applies the pause's, restores it (same prefs file and keys as before the split) |
+| `SessionAlarms.kt` | The two alarms of a pause: natural expiry and the slow-exit deadline (codes in `AlarmIds`) |
 | `SessionExpiryReceiver.kt` | `BroadcastReceiver` fired by the `AlarmManager` alarm; just calls `endSession(completedNaturally = true)` |
 | `SessionForegroundService.kt` | Persistent notification while a session is active; self-stops if it notices the session is no longer active |
 | `BootReceiver.kt` | Re-arms DND/alarm/service and re-shows the block screen after reboot |

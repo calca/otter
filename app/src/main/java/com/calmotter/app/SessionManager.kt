@@ -1,11 +1,7 @@
 package com.calmotter.app
 
-import android.app.AlarmManager
-import android.app.NotificationManager
-import android.app.PendingIntent
+import android.annotation.SuppressLint
 import android.content.Context
-import android.content.Intent
-import android.os.Build
 import androidx.annotation.VisibleForTesting
 import androidx.core.content.edit
 
@@ -17,11 +13,15 @@ import androidx.core.content.edit
 class SessionManager private constructor(private val context: Context) {
 
     private val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+    // I due pezzi che non sono "stato della pausa": Non disturbare e gli
+    // allarmi di fine. SessionManager li coordina, non li implementa.
+    private val dnd = PauseDnd(context, prefs)
+    private val alarms = SessionAlarms(context)
 
     /**
      * Vero se la sessione è attiva. Se il tempo impostato è già scaduto
      * (rete di sicurezza nel caso l'allarme di sistema non sia scattato,
-     * inevitabilmente inesatto — vedi [scheduleAutoExpiry]), la sessione
+     * inevitabilmente inesatto — vedi [SessionAlarms.scheduleExpiry]), la sessione
      * viene chiusa automaticamente qui. `markBackgroundSummary = true`:
      * chi chiama questo getter sta *chiedendo* se una pausa è attiva, non
      * guardando dal vivo un conto alla rovescia arrivare a zero (quello è
@@ -103,9 +103,9 @@ class SessionManager private constructor(private val context: Context) {
             putInt(KEY_PROFILE_ID, profileId ?: AllowedAppsManager.getInstance(context).selectedProfileId())
             remove(KEY_SLOW_EXIT_DEADLINE)
         }
-        captureDndForRestore()
-        applyPauseDnd()
-        scheduleAutoExpiry(endTime)
+        dnd.capture()
+        dnd.apply()
+        alarms.scheduleExpiry(endTime)
         SessionForegroundService.start(context)
         if (rememberDuration) LastDuration.save(context, durationMinutes)
         PauseWidgetProvider.updateAllWidgets(context)
@@ -212,9 +212,9 @@ class SessionManager private constructor(private val context: Context) {
                 putInt(KEY_PENDING_SUMMARY_MINUTES, effectiveMinutes)
             }
         }
-        restoreDnd()
-        cancelAutoExpiry()
-        if (hadSlowExit) cancelSlowExitAlarm()
+        dnd.restore()
+        alarms.cancelExpiry()
+        if (hadSlowExit) alarms.cancelSlowExit()
         SessionForegroundService.stop(context)
         PauseWidgetProvider.updateAllWidgets(context)
         PauseTileService.requestRefresh(context)
@@ -244,34 +244,13 @@ class SessionManager private constructor(private val context: Context) {
         if (!prefs.getBoolean(KEY_ACTIVE, false)) return
         val deadline = System.currentTimeMillis() + waitMinutes * 60_000L
         prefs.edit { putLong(KEY_SLOW_EXIT_DEADLINE, deadline) }
-        scheduleSlowExit(deadline)
+        alarms.scheduleSlowExit(deadline)
     }
 
     /** Annulla l'attesa: la pausa continua invariata; una nuova attesa riparte da zero. */
     fun cancelSlowExit() {
         prefs.edit { remove(KEY_SLOW_EXIT_DEADLINE) }
-        cancelSlowExitAlarm()
-    }
-
-    private fun scheduleSlowExit(deadline: Long) {
-        val am = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
-        am.setAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, deadline, slowExitPendingIntent())
-    }
-
-    private fun cancelSlowExitAlarm() {
-        val am = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
-        am.cancel(slowExitPendingIntent())
-    }
-
-    private fun slowExitPendingIntent(): PendingIntent {
-        val intent = Intent(context, SessionExpiryReceiver::class.java)
-            .setAction(SessionExpiryReceiver.ACTION_SLOW_EXIT)
-        return PendingIntent.getBroadcast(
-            context,
-            AlarmIds.SLOW_EXIT,
-            intent,
-            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
-        )
+        alarms.cancelSlowExit()
     }
 
     /** Dettagli del riepilogo "pausa finita mentre eri via" — vedi [endSession]. */
@@ -297,7 +276,7 @@ class SessionManager private constructor(private val context: Context) {
     /**
      * Riapplica DND, allarme e service dopo un riavvio.
      *
-     * Non richiama [captureDndForRestore]: la policy "di prima" è già stata
+     * Non richiama [PauseDnd.capture]: la policy "di prima" è già stata
      * catturata da [startSession] quando la pausa è iniziata, prima del
      * riavvio. Catturarla di nuovo qui sovrascriverebbe quel valore con la
      * policy "silenziosa" impostata dalla pausa stessa — quella da
@@ -305,158 +284,11 @@ class SessionManager private constructor(private val context: Context) {
      */
     fun reapplyAfterBoot() {
         val endTime = prefs.getLong(KEY_END_TIME, 0L)
-        applyPauseDnd()
-        scheduleAutoExpiry(endTime)
+        dnd.apply()
+        alarms.scheduleExpiry(endTime)
         val slowExit = prefs.getLong(KEY_SLOW_EXIT_DEADLINE, 0L)
-        if (slowExit > 0) scheduleSlowExit(slowExit)
+        if (slowExit > 0) alarms.scheduleSlowExit(slowExit)
         SessionForegroundService.start(context)
-    }
-
-    /**
-     * Programma una scadenza automatica via AlarmManager: alla fine del tempo
-     * scelto, la sessione termina (DND disattivato) anche se l'utente non
-     * sta interagendo con l'app in quel momento. Usiamo un allarme "inesatto"
-     * (nessun permesso aggiuntivo richiesto): può avere qualche minuto di
-     * scarto in Doze, accettabile per questo caso d'uso.
-     */
-    private fun scheduleAutoExpiry(endTime: Long) {
-        val am = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
-        am.setAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, endTime, expiryPendingIntent())
-    }
-
-    private fun cancelAutoExpiry() {
-        val am = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
-        am.cancel(expiryPendingIntent())
-    }
-
-    private fun expiryPendingIntent(): PendingIntent {
-        val intent = Intent(context, SessionExpiryReceiver::class.java)
-        return PendingIntent.getBroadcast(
-            context,
-            AlarmIds.SESSION_EXPIRY,
-            intent,
-            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
-        )
-    }
-
-    /**
-     * Salva la policy DND dell'utente *prima* che la pausa la sovrascriva,
-     * così [restoreDnd] può restituirla invece di forzare sempre "tutte le
-     * notifiche" a fine pausa — chi aveva già il DND acceso prima di
-     * avviare la pausa se lo ritrovava spento alla fine. Segnalato in
-     * TODO.md ("1.2").
-     *
-     * Chiamata solo da [startSession], non da [reapplyAfterBoot]: dopo un
-     * riavvio la policy "di prima" è già salvata da quando la pausa è
-     * iniziata — catturarla di nuovo salverebbe la policy silenziosa della
-     * pausa stessa al posto di quella originale dell'utente.
-     */
-    private fun captureDndForRestore() {
-        val nm = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-        if (!nm.isNotificationPolicyAccessGranted) {
-            prefs.edit { putBoolean(KEY_PREV_DND_CAPTURED, false) }
-            return
-        }
-        val policy = nm.notificationPolicy
-        prefs.edit {
-            putBoolean(KEY_PREV_DND_CAPTURED, true)
-            putInt(KEY_PREV_FILTER, nm.currentInterruptionFilter)
-            putInt(KEY_PREV_POLICY_CATEGORIES, policy.priorityCategories)
-            putInt(KEY_PREV_POLICY_CALL_SENDERS, policy.priorityCallSenders)
-            putInt(KEY_PREV_POLICY_MESSAGE_SENDERS, policy.priorityMessageSenders)
-            putInt(KEY_PREV_POLICY_SUPPRESSED_EFFECTS, policy.suppressedVisualEffects)
-        }
-    }
-
-    /**
-     * Silenzia le notifiche, non il telefono: passano le chiamate (da
-     * qualunque numero), le sveglie e l'audio dei media.
-     *
-     * Sveglie e media non sono distrazioni in arrivo, che è ciò che questa
-     * pausa esiste per togliere: sono rispettivamente un impegno già preso e
-     * qualcosa che stai già ascoltando. Una pausa può durare 4 ore, e
-     * zittire una sveglia — o troncare la musica a metà canzone nell'istante
-     * esatto in cui si tocca l'otter — sono danni che stanno fuori dal
-     * patto. Entrambi segnalati.
-     *
-     * Vanno concesse esplicitamente solo da Android 9 (API 28): è lì che
-     * sono comparse PRIORITY_CATEGORY_ALARMS/_MEDIA, insieme alla
-     * possibilità stessa per DND di silenziare quei due canali. Sotto quella
-     * versione il filtro "solo priorità" non li toccava, quindi non c'è
-     * nulla da aggiungere (e le costanti non esisterebbero).
-     *
-     * Nota: questo riguarda solo l'audio. *Aprire* Spotify durante una
-     * pausa resta una decisione separata, che si prende dalla whitelist
-     * (vedi AllowedAppsManager) — qui si evita solo che l'app consentita
-     * suoni a vuoto.
-     *
-     * Da API 28 nasconde anche i pallini (dots), la tendina (pull-down) e
-     * la barra di stato (status bar).
-     */
-    private fun applyPauseDnd() {
-        val nm = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-        if (!nm.isNotificationPolicyAccessGranted) return // permesso non concesso: si ignora silenziosamente
-
-        val priorityCategories: Int
-        val suppressedEffects: Int
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-            priorityCategories = NotificationManager.Policy.PRIORITY_CATEGORY_CALLS or
-                    NotificationManager.Policy.PRIORITY_CATEGORY_ALARMS or
-                    NotificationManager.Policy.PRIORITY_CATEGORY_MEDIA
-            suppressedEffects = NotificationManager.Policy.SUPPRESSED_EFFECT_BADGE or
-                    NotificationManager.Policy.SUPPRESSED_EFFECT_NOTIFICATION_LIST or
-                    NotificationManager.Policy.SUPPRESSED_EFFECT_STATUS_BAR
-        } else {
-            priorityCategories = NotificationManager.Policy.PRIORITY_CATEGORY_CALLS
-            suppressedEffects = 0
-        }
-
-        nm.setNotificationPolicy(
-            NotificationManager.Policy(
-                priorityCategories,
-                NotificationManager.Policy.PRIORITY_SENDERS_ANY,
-                0,
-                suppressedEffects
-            )
-        )
-        nm.setInterruptionFilter(NotificationManager.INTERRUPTION_FILTER_PRIORITY)
-    }
-
-    /**
-     * Ripristina la policy DND catturata da [captureDndForRestore]. Se non
-     * ce n'è una (permesso non concesso quando la pausa è iniziata, o dati
-     * di una versione precedente a questa correzione senza nulla di
-     * salvato), ricade sul comportamento precedente — tutte le notifiche —
-     * che resta comunque più sicuro di lasciare attivo il filtro
-     * "solo priorità" della pausa indefinitamente.
-     */
-    private fun restoreDnd() {
-        val nm = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-        if (!nm.isNotificationPolicyAccessGranted) return
-
-        if (!prefs.getBoolean(KEY_PREV_DND_CAPTURED, false)) {
-            nm.setInterruptionFilter(NotificationManager.INTERRUPTION_FILTER_ALL)
-            return
-        }
-
-        nm.setNotificationPolicy(
-            NotificationManager.Policy(
-                prefs.getInt(KEY_PREV_POLICY_CATEGORIES, 0),
-                prefs.getInt(KEY_PREV_POLICY_CALL_SENDERS, NotificationManager.Policy.PRIORITY_SENDERS_ANY),
-                prefs.getInt(KEY_PREV_POLICY_MESSAGE_SENDERS, NotificationManager.Policy.PRIORITY_SENDERS_ANY),
-                prefs.getInt(KEY_PREV_POLICY_SUPPRESSED_EFFECTS, 0),
-            )
-        )
-        nm.setInterruptionFilter(prefs.getInt(KEY_PREV_FILTER, NotificationManager.INTERRUPTION_FILTER_ALL))
-
-        prefs.edit {
-            remove(KEY_PREV_DND_CAPTURED)
-            remove(KEY_PREV_FILTER)
-            remove(KEY_PREV_POLICY_CATEGORIES)
-            remove(KEY_PREV_POLICY_CALL_SENDERS)
-            remove(KEY_PREV_POLICY_MESSAGE_SENDERS)
-            remove(KEY_PREV_POLICY_SUPPRESSED_EFFECTS)
-        }
     }
 
     companion object {
@@ -475,14 +307,6 @@ class SessionManager private constructor(private val context: Context) {
         // li cancella.
         private const val KEY_PENDING_SUMMARY_END = "session_pending_summary_end"
         private const val KEY_PENDING_SUMMARY_MINUTES = "session_pending_summary_minutes"
-        // Policy DND dell'utente catturata da captureDndForRestore() prima
-        // di applicare quella "silenziosa" della pausa — vedi restoreDnd().
-        private const val KEY_PREV_DND_CAPTURED = "session_prev_dnd_captured"
-        private const val KEY_PREV_FILTER = "session_prev_dnd_filter"
-        private const val KEY_PREV_POLICY_CATEGORIES = "session_prev_dnd_categories"
-        private const val KEY_PREV_POLICY_CALL_SENDERS = "session_prev_dnd_call_senders"
-        private const val KEY_PREV_POLICY_MESSAGE_SENDERS = "session_prev_dnd_message_senders"
-        private const val KEY_PREV_POLICY_SUPPRESSED_EFFECTS = "session_prev_dnd_suppressed_effects"
         private const val KEY_GROUP_ACTIVITY = "session_group_activity"
         private const val KEY_PROFILE_ID = "session_profile_id"
         private const val KEY_SLOW_EXIT_DEADLINE = "session_slow_exit_deadline"
@@ -490,6 +314,7 @@ class SessionManager private constructor(private val context: Context) {
         // finita, la domanda "com'è andata?" resta in sospeso.
         private const val KEY_PENDING_REFLECTION_ID = "session_pending_reflection_id"
 
+        @SuppressLint("StaticFieldLeak") // tiene applicationContext, vedi getInstance()
         @Volatile private var instance: SessionManager? = null
 
         fun getInstance(context: Context): SessionManager =
