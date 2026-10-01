@@ -71,6 +71,7 @@ class TopLevelScreenSafeDrawingPaddingTest {
         // Stesso caso di BlockScreen qui sopra, stesso motivo.
         TopLevelScreen("MainScreen", listOf("OtterAnchoredScreen.kt")),
         TopLevelScreen("SettingsScreen", listOf("SettingsScreen.kt")),
+        TopLevelScreen("ScheduledPausesScreen", listOf("ScheduledPausesScreen.kt")),
     )
 
     private val screensDir = File("src/main/java/com/calmotter/app/ui/screens")

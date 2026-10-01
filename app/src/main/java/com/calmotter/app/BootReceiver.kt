@@ -27,6 +27,10 @@ class BootReceiver : BroadcastReceiver() {
         if (action != Intent.ACTION_BOOT_COMPLETED &&
             action != "android.intent.action.QUICKBOOT_POWERON") return
 
+        // Gli allarmi non sopravvivono al riavvio: le pause programmate vanno
+        // riarmate sempre, anche senza una pausa in corso.
+        ScheduleAlarms.armAll(context)
+
         val sessionManager = SessionManager.getInstance(context)
         if (!sessionManager.isSessionActive()) return
 

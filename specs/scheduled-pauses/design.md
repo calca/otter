@@ -1,17 +1,15 @@
 # Scheduled Pauses — Design
 
-> **Status: Proposed — not implemented.**
+> **Status: Implemented** (2026-10-01).
 
-## Key files (planned)
+## Key files
 
 | File | Role |
 |---|---|
-| `ScheduleManager.kt` (new) | Singleton like `WeeklyGoalManager`: CRUD of `ScheduledPause`, plain `SharedPreferences`, `resetInstanceForTests()` |
-| `ScheduledPause` (new data class) | `id`, `daysOfWeek` (7-bit mask, Monday = bit 0), `startMinuteOfDay`, `durationMinutes`, `enabled`, `skipNextUntil` (epoch ms or 0) |
-| `ScheduleAlarms.kt` (new) | Pure `nextOccurrence(schedule, now, zone)` + arming/cancelling via `AlarmManager` |
-| `ScheduledPauseReceiver.kt` (new) | Fires at start time (and 5 min before for the heads-up); starts the pause; re-arms the next occurrence |
+| `ScheduledPauses.kt` (`ScheduleManager`, `ScheduledPause`, `nextOccurrence`) | Singleton like `WeeklyGoalManager`: CRUD of `ScheduledPause`, plain `SharedPreferences`, `resetInstanceForTests()` |
+| `ScheduledPauseReceiver.kt` (`ScheduleAlarms`) | Arming/cancelling via `AlarmManager`; the receiver for heads-up and start |
 | `BootReceiver.kt` | Also re-arms all enabled schedules |
-| `SettingsScreen.kt` / new `ScheduleCard` | "Scheduled pauses" section: list, add, edit |
+| `ScheduledPausesActivity.kt` / `ui/screens/ScheduledPausesScreen.kt` | List with on/off switches, editor (days, time picker, duration, profile), password for loosening changes; Settings has a "Scheduled pauses" row |
 
 ## Storage
 
@@ -34,24 +32,28 @@ schedule), computed by `nextOccurrence()`, which handles DST and the
 `skipNextUntil` marker. That function is pure and gets unit tests (day
 wrap, Sunday→Monday, DST change, all days off).
 
-## Risk to verify first: starting the foreground service from an alarm
+## Starting the foreground service from an alarm: verified, and handled
 
-`startSession()` starts `SessionForegroundService`. Since Android 12,
-starting a foreground service from the background throws
-`ForegroundServiceStartNotAllowedException` unless an exemption applies.
-Exact alarms are an exemption, inexact ones are not documented as one. The
-widget gets away with it because a widget tap is a user interaction.
+`startSession()` starts `SessionForegroundService`. Verified on the API 37
+emulator with the app process killed: the inexact alarm fired, the pause
+started, and Android **refused** the foreground service
+(`ForegroundServiceStartNotAllowedException`, `code:DENIED`, no
+temp-allowlist reason) — an inexact alarm grants no exemption, unlike a
+widget or tile tap.
 
-**Before building the UI**, a spike: arm an inexact alarm on API 34+ that
-calls `startSession()` with the app swiped away, and check whether the
-service starts. If it does not, the options in order of preference:
+Handled with option 1 below, no extra permission: `SessionForegroundService.start()`
+catches the refusal and logs it. The pause is fully in force without the
+service — Do Not Disturb, the expiry alarm and the Accessibility block do
+not depend on it; the service only keeps the process and the ongoing
+notification alive. `MainActivity.onResume()` starts it again whenever a
+pause is active, so the notification appears the first time the app is
+opened (verified). Not verified: whether a device with the Accessibility
+service actually enabled (the emulator runs the debug bypass) gets an
+exemption that lets the service start immediately.
 
-1. Start the pause without the foreground service and let the service
-   start on the next foreground moment. DND, the expiry alarm and the
-   Accessibility block do not need the service; it only keeps the process
-   and the notification alive.
-2. Ask for `SCHEDULE_EXACT_ALARM` only when the user creates the first
-   schedule, explaining why.
+If the missing notification turns out to matter, the remaining option is
+asking for `SCHEDULE_EXACT_ALARM` when the first schedule is created, with
+an explanation: exact alarms are exempt.
 
 ## Password rules
 

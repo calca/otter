@@ -7,6 +7,7 @@ import android.app.PendingIntent
 import android.app.Service
 import android.content.Context
 import android.content.Intent
+import android.util.Log
 import android.os.Handler
 import android.os.IBinder
 import android.os.Looper
@@ -125,7 +126,16 @@ class SessionForegroundService : Service() {
         private const val UPDATE_INTERVAL_MS = 60_000L
 
         fun start(context: Context) {
-            context.startForegroundService(Intent(context, SessionForegroundService::class.java))
+            // Da un allarme inesatto (pausa programmata) Android 12+ può
+            // rifiutare l'avvio in background. La pausa resta comunque valida
+            // (DND, allarme di fine e blocco non dipendono dal servizio, che
+            // tiene solo vivo il processo e la notifica): MainActivity lo
+            // riavvia alla prima apertura. Vedi specs/scheduled-pauses/.
+            try {
+                context.startForegroundService(Intent(context, SessionForegroundService::class.java))
+            } catch (e: IllegalStateException) {
+                Log.w("SessionForegroundService", "Avvio in primo piano rifiutato, riprovo all'apertura", e)
+            }
         }
 
         fun stop(context: Context) {

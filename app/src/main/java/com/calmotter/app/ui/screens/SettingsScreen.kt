@@ -15,6 +15,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material.icons.filled.Home
@@ -25,7 +26,9 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.unit.em
+import com.calmotter.app.ScheduleManager
 import com.calmotter.app.SlowExitManager
 import com.calmotter.app.ui.mascot.SprigMark
 import androidx.compose.foundation.layout.Spacer
@@ -93,6 +96,7 @@ fun SettingsScreen(
     onSetHome: () -> Unit,
     onPickTheme: (AppTheme) -> Unit,
     onManageAppsVerified: () -> Unit,
+    onScheduledPauses: () -> Unit = {},
     onChangePassword: () -> Unit,
     onOpenGitHub: () -> Unit,
     onOpenLicense: () -> Unit,
@@ -153,6 +157,36 @@ fun SettingsScreen(
             },
             onSlowExit = { showSlowExitPassword = true },
         )
+
+        SectionLabel(stringResource(R.string.settings_schedule_label))
+        val activeSchedules = remember(resumeSignal) {
+            ScheduleManager.getInstance(context).all().count { it.enabled }
+        }
+        Surface(
+            shape = RoundedCornerShape(20.dp),
+            color = MaterialTheme.colorScheme.primary.copy(alpha = 0.06f),
+            modifier = Modifier.fillMaxWidth(),
+        ) {
+            Column(modifier = Modifier.padding(horizontal = 16.dp)) {
+                SettingsActionRow(
+                    label = stringResource(R.string.settings_schedule_label),
+                    value = if (activeSchedules == 0) {
+                        stringResource(R.string.settings_schedule_none)
+                    } else {
+                        pluralStringResource(R.plurals.settings_schedule_count, activeSchedules, activeSchedules)
+                    },
+                    onClick = onScheduledPauses,
+                    icon = {
+                        Icon(
+                            imageVector = Icons.Default.DateRange,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.size(18.dp),
+                        )
+                    },
+                )
+            }
+        }
 
         SectionLabel(stringResource(R.string.settings_home_label))
         HomeCard(homeOk = homeOk, onSetHome = onSetHome)

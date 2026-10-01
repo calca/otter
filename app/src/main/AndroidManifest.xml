@@ -122,6 +122,12 @@
             android:excludeFromRecents="true"
             android:theme="@style/Theme.CalmOtter" />
 
+        <!-- Pause programmate (specs/scheduled-pauses/). -->
+        <activity
+            android:name=".ScheduledPausesActivity"
+            android:exported="false"
+            android:theme="@style/Theme.CalmOtter.WithActionBar" />
+
         <activity
             android:name=".BlockOverlayActivity"
             android:exported="false"
@@ -172,6 +178,11 @@
                 android:name="android.appwidget.provider"
                 android:resource="@xml/widget_pause_info" />
         </receiver>
+
+        <!-- Pause programmate: avviso e partenza (specs/scheduled-pauses/). -->
+        <receiver
+            android:name=".ScheduledPauseReceiver"
+            android:exported="false" />
 
         <receiver
             android:name=".BootReceiver"
