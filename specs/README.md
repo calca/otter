@@ -38,7 +38,7 @@ moves to the list above.
 - [`together-history/`](together-history/requirements.md) — time spent with each companion, and a "Together" filter
 - [`scheduled-pauses/`](scheduled-pauses/requirements.md) — recurring pauses that start by themselves; loosening needs the password
 - [`allowed-app-profiles/`](allowed-app-profiles/requirements.md) — named allowed-apps lists, chosen per pause
-- [`slow-exit/`](slow-exit/requirements.md) — opt-in: end a pause without the password after a wait
+- [`slow-exit/`](slow-exit/requirements.md) — on by default: end a pause without the password after a 10-minute wait
 - [`weekly-summary/`](weekly-summary/requirements.md) — one quiet note on Sunday evening
 
 **Suggested order**, smallest and least risky first, grouping the ones that

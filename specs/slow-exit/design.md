@@ -13,6 +13,7 @@
 | `BlockScreen.kt` | Wait state: ring = wait progress, "Stay in the pause" action |
 | `SessionRecord.kt` | New column `endReason` (see below) |
 | `SettingsScreen.kt` | Password-gated toggle and wait length |
+| `OnboardingScreen.kt` | One line in the password step: the slow exit exists, and where to switch it off |
 
 ## Ending reasons
 
@@ -34,15 +35,19 @@ shows the right progress.
 
 ## Honesty in the copy
 
-The Settings toggle says plainly what it does: "Lets the pause end without
-the password after a wait. Weaker than the password: choose it together."
+On by default: the app's stance is a soft pact, not a trap. Because nobody
+chose it explicitly, the onboarding password step says in one line that it
+exists and can be switched off (`OnboardingScreen.kt`, new string), and the
+Settings toggle says plainly what it does: "Lets the pause end without the
+password after a wait. Weaker than the password: choose it together."
 Consistent with the README "Known Limits" stance: no pretending the lock is
-stronger than it is.
+stronger than it is. The README gains a line about it under "How it
+works".
 
-## Decisioni aperte
+## Decisioni prese
 
-1. **Durata dell'attesa:** 5/10/15 minuti, default 10 (raccomandato).
-2. **Disponibile anche in una pausa di gruppo?** Raccomandato sì: è una
-   scelta di chi tiene la password su quel telefono.
-3. **Testo in Cronologia:** "Finita senza password" (raccomandato) oppure
-   "Uscita lenta".
+1. **Attivazione:** accesa di default (più morbida); si spegne solo con la
+   password. L'onboarding lo dice.
+2. **Attesa:** 10 minuti di default, scelta tra 5, 10 e 15.
+3. **Pause di gruppo:** disponibile anche lì.
+4. **Testo in Cronologia:** "Finita senza password".

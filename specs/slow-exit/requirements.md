@@ -18,25 +18,29 @@ impulsive.
 
 ### Acceptance Criteria
 
-1. The slow exit SHALL be **off by default** and SHALL be switched on or
-   off only by the password holder (password-gated toggle in Settings),
-   together with the wait length (5, 10 or 15 minutes; default 10).
-2. WHEN the slow exit is on THEN the unlock dialog on the block screen
+1. The slow exit SHALL be **on by default**, with a 10-minute wait. Only
+   the password holder SHALL be able to switch it off or change the wait
+   (5, 10 or 15 minutes), through a password-gated setting.
+2. WHEN the password is set during onboarding THEN the system SHALL say in
+   one line that the slow exit exists and can be switched off in Settings,
+   so the person holding the password knows the pact has this way out.
+3. WHEN the slow exit is on THEN the unlock dialog on the block screen
    SHALL offer a secondary action "I don't have the password".
-3. WHEN the user chooses it THEN the system SHALL explain what will
+4. WHEN the user chooses it THEN the system SHALL explain what will
    happen ("The pause will end in 10 minutes. It will show in History as
    ended without password.") and ask for confirmation.
-4. WHEN confirmed THEN the system SHALL start the wait: the block screen
+5. WHEN confirmed THEN the system SHALL start the wait: the block screen
    shows the otter and a ring filling over the wait, with a "Stay in the
    pause" action that cancels it.
-5. The wait SHALL continue if the user leaves the block screen or the
+6. The wait SHALL continue if the user leaves the block screen or the
    phone sleeps; every other app stays blocked until it ends.
-6. WHEN the wait ends THEN the system SHALL end the pause and record it in
+7. WHEN the wait ends THEN the system SHALL end the pause and record it in
    History as "Ended without password".
-7. WHEN the user cancels the wait THEN the pause SHALL continue unchanged,
+8. WHEN the user cancels the wait THEN the pause SHALL continue unchanged,
    and starting a new wait SHALL start from zero.
-8. WHEN the pause would end naturally before the wait finishes THEN the
+9. WHEN the pause would end naturally before the wait finishes THEN the
    pause SHALL simply end naturally.
+10. The slow exit SHALL be available in shared pauses too.
 
 ## Out of scope
 
