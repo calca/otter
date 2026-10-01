@@ -21,7 +21,8 @@ with an idea instead of a silence.
    system SHALL show a suggested activity that fits the chosen duration.
 2. The host SHALL be able to ask for another suggestion ("Another one")
    as many times as they like; suggestions SHALL not repeat until the
-   fitting ones run out.
+   fitting ones run out, and SHALL prefer a different category from the
+   one just shown.
 3. WHEN the host changes the duration THEN the suggestion SHALL change if
    it no longer fits.
 4. The catalog SHALL always include a "nothing" entry ("Nothing: just be
@@ -55,7 +56,8 @@ can look at it again.
    introduction: the text is already an invitation ("Let's take a walk").
 2. The system SHALL never ask whether the activity was done.
 3. WHEN the shared pause ends THEN History SHALL show the activity on that
-   pause's row in a short form ("with Marta · a long walk").
+   pause's row as its category icon (outside, at the table, games, slow),
+   read aloud by TalkBack as the category name.
 
 ## Tone (applies to the catalog)
 
