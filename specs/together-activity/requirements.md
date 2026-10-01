@@ -51,14 +51,17 @@ can look at it again.
 ### Acceptance Criteria
 
 1. WHEN a shared pause has an activity THEN the block screen SHALL show it
-   in place of the phrase, introduced as an invitation ("How about…"),
-   regardless of the phrases setting.
+   in place of the phrase, regardless of the phrases setting. It needs no
+   introduction: the text is already an invitation ("Let's take a walk").
 2. The system SHALL never ask whether the activity was done.
 3. WHEN the shared pause ends THEN History SHALL show the activity on that
    pause's row ("with Marta · a walk").
 
 ## Tone (applies to the catalog)
 
+- Written in the first person plural ("Facciamo due passi", "Let's take
+  a walk"): the group proposing something to itself, never the app giving
+  instructions ("Fate due passi").
 - Invitations, never tasks. Always ignorable.
 - Suitable for a couple, a family or colleagues: nothing intimate, nothing
   requiring fitness, special equipment or spending money.

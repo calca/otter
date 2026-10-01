@@ -49,24 +49,28 @@ when built in the same round (see `specs/closing-moment/design.md`).
 
 | Fits | Italiano | English |
 |---|---|---|
-| any | Niente: state insieme e basta | Nothing: just be together |
-| 10–30 | Preparate un tè o un caffè e bevetelo con calma | Make tea or coffee and drink it slowly |
-| 10–30 | Raccontatevi la cosa migliore della settimana | Tell each other the best thing of your week |
-| 10–60 | Uscite sul balcone o alla finestra e guardate fuori | Step onto the balcony or to a window and look outside |
-| 10–60 | Ascoltate un disco dall'inizio alla fine | Listen to an album from start to finish |
-| 30–90 | Fate due passi nel quartiere | Take a short walk around the block |
-| 30–90 | Cucinate qualcosa di semplice insieme | Cook something simple together |
-| 30–120 | Leggete, ognuno il suo libro, nella stessa stanza | Read, each your own book, in the same room |
-| 30–120 | Un gioco di carte o da tavolo | A card or board game |
-| 30–90 | Riordinate insieme un angolo di casa | Tidy up a corner of the house together |
-| 30–120 | Disegnate o scrivete qualcosa, poi mostratelo | Draw or write something, then show each other |
-| 30–90 | Fate una lista di posti dove vorreste andare | Make a list of places you'd like to go |
-| 60–240 | Una passeggiata lunga, senza meta | A long walk, no destination |
-| 60–240 | Cucinate una cena con calma | Cook a slow dinner |
-| 60–240 | Andate in un parco e sedetevi un po' | Go to a park and sit for a while |
-| 60–240 | Sistemate insieme le foto stampate o un vecchio album | Look through printed photos or an old album |
-| 90–240 | Un pomeriggio di giochi da tavolo | An afternoon of board games |
-| 90–240 | Andate in un posto vicino dove non siete mai stati | Go somewhere nearby you've never been |
+| any | Niente: stiamo assieme | Nothing: let's just be together |
+| 10–30 | Prepariamo un tè o un caffè e beviamolo con calma | Let's make tea or coffee and drink it slowly |
+| 10–30 | Raccontiamoci la cosa più bella della settimana | Let's tell each other the best thing of our week |
+| 10–60 | Usciamo sul balcone o andiamo alla finestra a guardare fuori | Let's step onto the balcony or look out of the window |
+| 10–60 | Ascoltiamo un disco dall'inizio alla fine | Let's listen to an album from start to finish |
+| 30–90 | Facciamo due passi nel quartiere | Let's take a short walk around the block |
+| 30–90 | Cuciniamo qualcosa di semplice insieme | Let's cook something simple together |
+| 30–120 | Leggiamo, ognuno il suo libro, nella stessa stanza | Let's read, each our own book, in the same room |
+| 30–120 | Facciamo una partita a carte o a un gioco da tavolo | Let's play cards or a board game |
+| 30–90 | Riordiniamo insieme un angolo di casa | Let's tidy up a corner of the house together |
+| 30–120 | Disegniamo o scriviamo qualcosa, poi ce lo mostriamo | Let's draw or write something, then show each other |
+| 30–90 | Facciamo una lista di posti dove vorremmo andare | Let's make a list of places we'd like to go |
+| 60–240 | Facciamo una passeggiata lunga, senza meta | Let's take a long walk, no destination |
+| 60–240 | Prepariamo una cena con calma | Let's cook a slow dinner |
+| 60–240 | Andiamo in un parco e sediamoci un po' | Let's go to a park and sit for a while |
+| 60–240 | Guardiamo insieme foto stampate o un vecchio album | Let's look through printed photos or an old album |
+| 90–240 | Passiamo un pomeriggio di giochi da tavolo | Let's spend an afternoon playing board games |
+| 90–240 | Andiamo in un posto vicino dove non siamo mai stati | Let's go somewhere nearby we've never been |
+
+Every entry is written in the first person plural ("Facciamo…",
+"Let's…"): the people in the pause are proposing it to each other, not
+being told what to do by the app.
 
 ## Decisioni aperte
 
