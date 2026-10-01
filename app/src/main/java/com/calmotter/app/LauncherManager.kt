@@ -1,6 +1,5 @@
 package com.calmotter.app
 
-import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
@@ -28,7 +27,7 @@ import androidx.core.content.edit
  * (il default davvero attivo in questo momento, affidabile quando chiamata
  * prima che CalmOtter diventi Home — vedi sotto) a `queryIntentActivities`.
  */
-class LauncherManager private constructor(private val context: Context) {
+class LauncherManager internal constructor(private val context: Context) {
 
     private val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
 
@@ -88,12 +87,7 @@ class LauncherManager private constructor(private val context: Context) {
         // ricerca fresca quando non può fidarsi del valore salvato.
         val EXCLUDED_PACKAGES = setOf("com.android.settings")
 
-        @SuppressLint("StaticFieldLeak") // tiene applicationContext, vedi getInstance()
-        @Volatile private var instance: LauncherManager? = null
-
-        fun getInstance(context: Context): LauncherManager =
-            instance ?: synchronized(this) {
-                instance ?: LauncherManager(context.applicationContext).also { instance = it }
-            }
+        /** L'istanza dell'app: vive in [AppGraph], una per Application (vedi CalmOtterApplication). */
+        fun getInstance(context: Context): LauncherManager = context.appGraph.launcherManager
     }
 }

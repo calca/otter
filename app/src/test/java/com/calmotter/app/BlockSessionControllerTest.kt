@@ -24,11 +24,6 @@ class BlockSessionControllerTest {
 
     @Before
     fun setUp() {
-        SessionManager.resetInstanceForTests()
-        SessionHistoryManager.resetInstanceForTests()
-        CalmOtterDatabase.resetInstanceForTests()
-        AllowedAppsManager.resetInstanceForTests()
-        SlowExitManager.resetInstanceForTests()
         context.getSharedPreferences("calm_otter_slow_exit", Context.MODE_PRIVATE).edit().clear().commit()
         session = SessionManager.getInstance(context)
         session.endSession()

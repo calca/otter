@@ -113,18 +113,26 @@ under the status bar/notch/nav bar on real hardware, though this is
 invisible on any emulator running Android ≤14. Any new top-level screen
 composable needs this modifier on its root too.
 
-**No DI framework.** State-holding classes (`SessionManager`,
-`PasswordManager`, `SessionHistoryManager`, `AllowedAppsManager`,
-`LauncherManager`, `PhraseManager`, `WeeklyGoalManager`, `ScheduleManager`,
-`SlowExitManager`) are thread-safe
-singletons obtained via `ClassName.getInstance(context.applicationContext)`
-(double-checked locking, `@Volatile` instance). Each one also exposes an
-internal `resetInstanceForTests()` (`@VisibleForTesting`) — **Robolectric
-tests must call it in `@Before` for every singleton the test path touches**,
-including transitively (e.g. testing `SessionManager` also requires
-resetting `SessionHistoryManager` and `CalmOtterDatabase`, since
-`endSession()` writes through to Room). Forgetting this leaks state between
-tests via the singleton instance.
+**No DI framework, one hand-written container.** State-holding classes
+(`SessionManager`, `PasswordManager`, `SessionHistoryManager`,
+`AllowedAppsManager`, `LauncherManager`, `PhraseManager`,
+`WeeklyGoalManager`, `ScheduleManager`, `SlowExitManager`, and the Room
+`CalmOtterDatabase`) have one instance per app, created lazily in
+`AppGraph` (`AppGraph.kt`), which lives in `CalmOtterApplication`. Callers
+keep using `ClassName.getInstance(context)`, which reads
+`context.appGraph`. There are no static instances and no
+`resetInstanceForTests()`: Robolectric creates a new Application for every
+test, so every test starts clean on its own (`AppGraphIsolationTest`
+checks it). To simulate "the app restarted" inside a test, construct a new
+instance directly (`PasswordManager(context)`); constructors are
+`internal`. A new state-holding class goes into `AppGraph` the same way.
+
+**Pause logic lives outside the composables.** `BlockSessionController`
+decides who can release whom and how a pause ends (password, NFC, natural
+expiry, slow exit); `SessionManager` coordinates `PauseDnd` (Do Not
+Disturb) and `SessionAlarms`; `AppScheduler.reconcile()` re-arms every
+alarm and is called on app open, boot, and time/time-zone change; alarm
+request codes live in `AlarmIds`. Choice pills use the shared `CalmPill`.
 
 **Persistence is split by sensitivity:**
 - `PasswordManager` — password hash only (PBKDF2-HMAC-SHA256, 120k

@@ -78,28 +78,20 @@ abstract class CalmOtterDatabase : RoomDatabase() {
         @VisibleForTesting
         internal val ALL_MIGRATIONS = arrayOf(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4)
 
-        @Volatile private var instance: CalmOtterDatabase? = null
+        /** L'istanza dell'app: vive in [AppGraph], una per Application (vedi CalmOtterApplication). */
+        fun getInstance(context: Context): CalmOtterDatabase = context.appGraph.database
 
-        fun getInstance(context: Context): CalmOtterDatabase =
-            instance ?: synchronized(this) {
-                instance ?: Room.databaseBuilder(
-                    context.applicationContext,
-                    CalmOtterDatabase::class.java,
-                    "calm_otter.db"
-                )
-                    // Dataset locale piccolo (poche sessioni al giorno) e chiamato
-                    // in modo sincrono da BroadcastReceiver senza coroutine scope:
-                    // query sul main thread accettabili qui.
-                    .allowMainThreadQueries()
-                    .addMigrations(*ALL_MIGRATIONS)
-                    .build()
-                    .also { instance = it }
-            }
-
-        @VisibleForTesting
-        internal fun resetInstanceForTests() {
-            instance?.close()
-            instance = null
-        }
+        internal fun create(context: Context): CalmOtterDatabase =
+            Room.databaseBuilder(
+                context.applicationContext,
+                CalmOtterDatabase::class.java,
+                "calm_otter.db"
+            )
+                // Dataset locale piccolo (poche sessioni al giorno) e chiamato
+                // in modo sincrono da BroadcastReceiver senza coroutine scope:
+                // query sul main thread accettabili qui.
+                .allowMainThreadQueries()
+                .addMigrations(*ALL_MIGRATIONS)
+                .build()
     }
 }

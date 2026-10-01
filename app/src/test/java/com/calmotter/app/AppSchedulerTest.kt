@@ -19,11 +19,6 @@ class AppSchedulerTest {
 
     @Before
     fun setUp() {
-        SessionManager.resetInstanceForTests()
-        SessionHistoryManager.resetInstanceForTests()
-        CalmOtterDatabase.resetInstanceForTests()
-        AllowedAppsManager.resetInstanceForTests()
-        ScheduleManager.resetInstanceForTests()
         context.getSharedPreferences("calm_otter_schedules", Context.MODE_PRIVATE).edit().clear().commit()
     }
 

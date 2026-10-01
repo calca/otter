@@ -23,11 +23,7 @@ class SessionManagerTest {
         // endSession() passa attraverso SessionHistoryManager -> Room, quindi
         // senza reset erediterebbero un'istanza legata al contesto (e allo
         // storage) di un test precedente.
-        SessionManager.resetInstanceForTests()
-        SessionHistoryManager.resetInstanceForTests()
-        CalmOtterDatabase.resetInstanceForTests()
         // startSession() salva il profilo di app consentite scelto.
-        AllowedAppsManager.resetInstanceForTests()
         context = ApplicationProvider.getApplicationContext()
     }
 

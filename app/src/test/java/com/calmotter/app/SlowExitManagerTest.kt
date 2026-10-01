@@ -19,7 +19,6 @@ class SlowExitManagerTest {
     @Before
     fun setUp() {
         context.getSharedPreferences("calm_otter_slow_exit", Context.MODE_PRIVATE).edit().clear().commit()
-        SlowExitManager.resetInstanceForTests()
     }
 
     @Test

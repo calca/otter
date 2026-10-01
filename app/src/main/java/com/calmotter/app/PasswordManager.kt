@@ -2,7 +2,6 @@ package com.calmotter.app
 
 import android.content.Context
 import android.util.Base64
-import androidx.annotation.VisibleForTesting
 import androidx.core.content.edit
 import androidx.security.crypto.EncryptedSharedPreferences
 import androidx.security.crypto.MasterKey
@@ -22,7 +21,7 @@ import javax.crypto.spec.PBEKeySpec
  * lockout) è delegato a [LockoutPolicy], logica pura testabile senza
  * Keystore.
  */
-class PasswordManager private constructor(context: Context) {
+class PasswordManager internal constructor(context: Context) {
 
     private val prefs = run {
         val masterKey = MasterKey.Builder(context)
@@ -155,16 +154,7 @@ class PasswordManager private constructor(context: Context) {
         private const val ITERATIONS = 120_000
         private const val KEY_LENGTH_BITS = 256
 
-        @Volatile private var instance: PasswordManager? = null
-
-        fun getInstance(context: Context): PasswordManager =
-            instance ?: synchronized(this) {
-                instance ?: PasswordManager(context.applicationContext).also { instance = it }
-            }
-
-        @VisibleForTesting
-        internal fun resetInstanceForTests() {
-            instance = null
-        }
+        /** L'istanza dell'app: vive in [AppGraph], una per Application (vedi CalmOtterApplication). */
+        fun getInstance(context: Context): PasswordManager = context.appGraph.passwordManager
     }
 }

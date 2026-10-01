@@ -70,7 +70,6 @@ class ScheduledPausesTest {
     fun schedulesAreSavedAndReadBack() {
         val context: Context = ApplicationProvider.getApplicationContext()
         context.getSharedPreferences("calm_otter_schedules", Context.MODE_PRIVATE).edit().clear().commit()
-        ScheduleManager.resetInstanceForTests()
         val manager = ScheduleManager.getInstance(context)
 
         val saved = manager.save(evening.copy(id = 0))

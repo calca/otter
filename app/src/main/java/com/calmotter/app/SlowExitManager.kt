@@ -1,7 +1,6 @@
 package com.calmotter.app
 
 import android.content.Context
-import androidx.annotation.VisibleForTesting
 import androidx.core.content.edit
 
 /**
@@ -12,7 +11,7 @@ import androidx.core.content.edit
  * Impostazioni, dietro la password. Dato non sensibile, SharedPreferences
  * semplici.
  */
-class SlowExitManager private constructor(context: Context) {
+class SlowExitManager internal constructor(context: Context) {
 
     private val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
 
@@ -37,16 +36,7 @@ class SlowExitManager private constructor(context: Context) {
         private const val KEY_ENABLED = "enabled"
         private const val KEY_WAIT = "wait_minutes"
 
-        @Volatile private var instance: SlowExitManager? = null
-
-        fun getInstance(context: Context): SlowExitManager =
-            instance ?: synchronized(this) {
-                instance ?: SlowExitManager(context.applicationContext).also { instance = it }
-            }
-
-        @VisibleForTesting
-        internal fun resetInstanceForTests() {
-            instance = null
-        }
+        /** L'istanza dell'app: vive in [AppGraph], una per Application (vedi CalmOtterApplication). */
+        fun getInstance(context: Context): SlowExitManager = context.appGraph.slowExitManager
     }
 }

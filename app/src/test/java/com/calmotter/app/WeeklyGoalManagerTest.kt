@@ -17,7 +17,6 @@ class WeeklyGoalManagerTest {
 
     @Before
     fun setUp() {
-        WeeklyGoalManager.resetInstanceForTests()
         context = ApplicationProvider.getApplicationContext()
     }
 

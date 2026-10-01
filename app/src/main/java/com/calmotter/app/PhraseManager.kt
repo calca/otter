@@ -1,8 +1,6 @@
 package com.calmotter.app
 
-import android.annotation.SuppressLint
 import android.content.Context
-import androidx.annotation.VisibleForTesting
 import androidx.core.content.edit
 
 /**
@@ -11,7 +9,7 @@ import androidx.core.content.edit
  * salvata in SharedPreferences semplici (non sensibile), modificabile
  * dall'utente stesso senza password dalla MainActivity.
  */
-class PhraseManager private constructor(private val context: Context) {
+class PhraseManager internal constructor(private val context: Context) {
 
     private val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
 
@@ -33,17 +31,7 @@ class PhraseManager private constructor(private val context: Context) {
         private const val PREFS_NAME = "calm_otter_phrases"
         private const val KEY_ENABLED = "phrases_enabled"
 
-        @SuppressLint("StaticFieldLeak") // tiene applicationContext, vedi getInstance()
-        @Volatile private var instance: PhraseManager? = null
-
-        fun getInstance(context: Context): PhraseManager =
-            instance ?: synchronized(this) {
-                instance ?: PhraseManager(context.applicationContext).also { instance = it }
-            }
-
-        @VisibleForTesting
-        internal fun resetInstanceForTests() {
-            instance = null
-        }
+        /** L'istanza dell'app: vive in [AppGraph], una per Application (vedi CalmOtterApplication). */
+        fun getInstance(context: Context): PhraseManager = context.appGraph.phraseManager
     }
 }

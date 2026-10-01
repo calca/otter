@@ -1,13 +1,12 @@
 package com.calmotter.app
 
 import android.content.Context
-import androidx.annotation.VisibleForTesting
 
 /**
  * Persiste la cronologia delle sessioni tramite Room (tabella "sessions").
  * Le sessioni sono ordinate dalla più recente.
  */
-class SessionHistoryManager private constructor(context: Context) {
+class SessionHistoryManager internal constructor(context: Context) {
 
     private val dao = CalmOtterDatabase.getInstance(context).sessionRecordDao()
 
@@ -25,16 +24,7 @@ class SessionHistoryManager private constructor(context: Context) {
 
 
     companion object {
-        @Volatile private var instance: SessionHistoryManager? = null
-
-        fun getInstance(context: Context): SessionHistoryManager =
-            instance ?: synchronized(this) {
-                instance ?: SessionHistoryManager(context.applicationContext).also { instance = it }
-            }
-
-        @VisibleForTesting
-        internal fun resetInstanceForTests() {
-            instance = null
-        }
+        /** L'istanza dell'app: vive in [AppGraph], una per Application (vedi CalmOtterApplication). */
+        fun getInstance(context: Context): SessionHistoryManager = context.appGraph.sessionHistoryManager
     }
 }

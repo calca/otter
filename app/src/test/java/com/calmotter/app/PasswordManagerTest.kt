@@ -31,7 +31,6 @@ class PasswordManagerTest {
     @Before
     fun setUp() {
         installFakeAndroidKeyStore()
-        PasswordManager.resetInstanceForTests()
         context = ApplicationProvider.getApplicationContext()
     }
 
@@ -112,9 +111,8 @@ class PasswordManagerTest {
         // Nuova istanza sullo stesso file (non un reset dello storage):
         // il lockout è uno stato persistito, non solo in memoria — deve
         // sopravvivere alla ricreazione del singleton (es. dopo un
-        // riavvio del processo).
-        PasswordManager.resetInstanceForTests()
-        val recreated = PasswordManager.getInstance(context)
+        // riavvio del processo). Un'istanza nuova, non quella dell'app.
+        val recreated = PasswordManager(context)
 
         assertTrue(recreated.isLockedOut())
         assertFalse(recreated.verify("s3cret!"))
@@ -133,7 +131,6 @@ class PasswordManagerTest {
         manager.setPassword("s3cret!", partnerName = "Alex")
         assertTrue(manager.isPasswordSet())
 
-        PasswordManager.resetInstanceForTests()
         context.getSharedPreferences(prefsFileName, Context.MODE_PRIVATE)
             .edit()
             .putString("__androidx_security_crypto_encrypted_prefs_key_keyset__", "not a real keyset")
@@ -141,7 +138,8 @@ class PasswordManagerTest {
             .apply()
 
         // Prima della correzione: AEADBadTagException qui, non catturata.
-        val recovered = PasswordManager.getInstance(context)
+        // Un'istanza nuova, come all'avvio successivo dell'app.
+        val recovered = PasswordManager(context)
 
         // Il file corrotto viene azzerato, non recuperato: non c'è nulla da
         // recuperare da un keyset che non decifra più (vedi il commento in

@@ -1,8 +1,6 @@
 package com.calmotter.app
 
-import android.annotation.SuppressLint
 import android.content.Context
-import androidx.annotation.VisibleForTesting
 import androidx.core.content.edit
 
 /** Una lista con nome di app che restano raggiungibili durante una pausa. */
@@ -21,7 +19,7 @@ data class AllowedAppsProfile(val id: Int, val name: String, val packages: Set<S
  * lato UI; scegliere quale usare per la prossima pausa no, perché tutti i
  * profili sono già stati approvati da chi tiene la password.
  */
-class AllowedAppsManager private constructor(private val context: Context) {
+class AllowedAppsManager internal constructor(private val context: Context) {
 
     private val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
 
@@ -124,17 +122,7 @@ class AllowedAppsManager private constructor(private val context: Context) {
         private const val KEY_PROFILE_IDS = "profile_ids"
         private const val KEY_SELECTED = "selected_profile"
 
-        @SuppressLint("StaticFieldLeak") // tiene applicationContext, vedi getInstance()
-        @Volatile private var instance: AllowedAppsManager? = null
-
-        fun getInstance(context: Context): AllowedAppsManager =
-            instance ?: synchronized(this) {
-                instance ?: AllowedAppsManager(context.applicationContext).also { instance = it }
-            }
-
-        @VisibleForTesting
-        internal fun resetInstanceForTests() {
-            instance = null
-        }
+        /** L'istanza dell'app: vive in [AppGraph], una per Application (vedi CalmOtterApplication). */
+        fun getInstance(context: Context): AllowedAppsManager = context.appGraph.allowedAppsManager
     }
 }

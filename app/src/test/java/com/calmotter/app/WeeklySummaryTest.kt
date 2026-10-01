@@ -45,9 +45,6 @@ class WeeklySummaryTest {
         val context = androidx.test.core.app.ApplicationProvider.getApplicationContext<android.content.Context>()
         org.robolectric.Shadows.shadowOf(context as android.app.Application)
             .grantPermissions(android.Manifest.permission.POST_NOTIFICATIONS)
-        SessionManager.resetInstanceForTests()
-        SessionHistoryManager.resetInstanceForTests()
-        CalmOtterDatabase.resetInstanceForTests()
         SessionHistoryManager.getInstance(context).clear()
         val now = System.currentTimeMillis()
         repeat(3) {

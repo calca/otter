@@ -21,7 +21,6 @@ class AllowedAppsManagerTest {
     @Before
     fun setUp() {
         context.getSharedPreferences("calm_otter_allowed_apps", Context.MODE_PRIVATE).edit().clear().commit()
-        AllowedAppsManager.resetInstanceForTests()
         manager = AllowedAppsManager.getInstance(context)
     }
 

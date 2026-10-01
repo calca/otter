@@ -1,8 +1,6 @@
 package com.calmotter.app
 
-import android.annotation.SuppressLint
 import android.content.Context
-import androidx.annotation.VisibleForTesting
 import androidx.core.content.edit
 
 /**
@@ -10,7 +8,7 @@ import androidx.core.content.edit
  * in parallelo, attiva/disattiva la modalità Non disturbare lasciando
  * passare solo le chiamate.
  */
-class SessionManager private constructor(private val context: Context) {
+class SessionManager internal constructor(private val context: Context) {
 
     private val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
     // I due pezzi che non sono "stato della pausa": Non disturbare e gli
@@ -314,17 +312,7 @@ class SessionManager private constructor(private val context: Context) {
         // finita, la domanda "com'è andata?" resta in sospeso.
         private const val KEY_PENDING_REFLECTION_ID = "session_pending_reflection_id"
 
-        @SuppressLint("StaticFieldLeak") // tiene applicationContext, vedi getInstance()
-        @Volatile private var instance: SessionManager? = null
-
-        fun getInstance(context: Context): SessionManager =
-            instance ?: synchronized(this) {
-                instance ?: SessionManager(context.applicationContext).also { instance = it }
-            }
-
-        @VisibleForTesting
-        internal fun resetInstanceForTests() {
-            instance = null
-        }
+        /** L'istanza dell'app: vive in [AppGraph], una per Application (vedi CalmOtterApplication). */
+        fun getInstance(context: Context): SessionManager = context.appGraph.sessionManager
     }
 }

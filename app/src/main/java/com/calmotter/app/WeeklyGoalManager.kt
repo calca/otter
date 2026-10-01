@@ -1,7 +1,6 @@
 package com.calmotter.app
 
 import android.content.Context
-import androidx.annotation.VisibleForTesting
 import androidx.core.content.edit
 
 enum class GoalType { MINUTES, SESSIONS }
@@ -15,7 +14,7 @@ data class WeeklyGoal(val type: GoalType, val target: Int)
  *
  * Nessun obiettivo impostato di default: la funzionalità è opt-in.
  */
-class WeeklyGoalManager private constructor(context: Context) {
+class WeeklyGoalManager internal constructor(context: Context) {
 
     private val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
 
@@ -40,16 +39,7 @@ class WeeklyGoalManager private constructor(context: Context) {
         private const val KEY_TYPE = "goal_type"
         private const val KEY_TARGET = "goal_target"
 
-        @Volatile private var instance: WeeklyGoalManager? = null
-
-        fun getInstance(context: Context): WeeklyGoalManager =
-            instance ?: synchronized(this) {
-                instance ?: WeeklyGoalManager(context.applicationContext).also { instance = it }
-            }
-
-        @VisibleForTesting
-        internal fun resetInstanceForTests() {
-            instance = null
-        }
+        /** L'istanza dell'app: vive in [AppGraph], una per Application (vedi CalmOtterApplication). */
+        fun getInstance(context: Context): WeeklyGoalManager = context.appGraph.weeklyGoalManager
     }
 }

@@ -67,7 +67,6 @@ class CtaButtonInvariantsTest {
     @Before
     fun setUp() {
         installFakeAndroidKeyStore()
-        PasswordManager.resetInstanceForTests()
     }
 
     @Test

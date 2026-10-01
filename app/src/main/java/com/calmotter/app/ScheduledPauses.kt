@@ -1,7 +1,6 @@
 package com.calmotter.app
 
 import android.content.Context
-import androidx.annotation.VisibleForTesting
 import androidx.core.content.edit
 import java.time.Instant
 import java.time.LocalTime
@@ -63,7 +62,7 @@ fun nextOccurrence(schedule: ScheduledPause, now: Long, zone: ZoneId = ZoneId.sy
 }
 
 /** Le pause programmate, in SharedPreferences: poche righe, mai interrogate, niente Room. */
-class ScheduleManager private constructor(context: Context) {
+class ScheduleManager internal constructor(context: Context) {
 
     private val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
 
@@ -106,16 +105,7 @@ class ScheduleManager private constructor(context: Context) {
         private const val PREFS_NAME = "calm_otter_schedules"
         private const val KEY = "schedules"
 
-        @Volatile private var instance: ScheduleManager? = null
-
-        fun getInstance(context: Context): ScheduleManager =
-            instance ?: synchronized(this) {
-                instance ?: ScheduleManager(context.applicationContext).also { instance = it }
-            }
-
-        @VisibleForTesting
-        internal fun resetInstanceForTests() {
-            instance = null
-        }
+        /** L'istanza dell'app: vive in [AppGraph], una per Application (vedi CalmOtterApplication). */
+        fun getInstance(context: Context): ScheduleManager = context.appGraph.scheduleManager
     }
 }

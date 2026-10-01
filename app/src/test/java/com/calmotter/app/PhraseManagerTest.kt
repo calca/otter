@@ -18,7 +18,6 @@ class PhraseManagerTest {
 
     @Before
     fun setUp() {
-        PhraseManager.resetInstanceForTests()
         context = ApplicationProvider.getApplicationContext()
     }
 
