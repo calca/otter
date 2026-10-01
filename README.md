@@ -26,7 +26,10 @@ just you, your phone, and a bit of quiet.
    backed by a system alarm, so it ends on time even if you never touch
    the phone again.
 4. **The pause ends itself** when time's up, or earlier if the right
-   password is entered on the block screen.
+   password is entered on the block screen. If the password can't be
+   reached, there's also a slower way out: wait 10 minutes and the pause
+   ends, marked in History as ended without password. It's on by default
+   and only the password holder can switch it off.
 
 ## Extra Allowed Apps
 

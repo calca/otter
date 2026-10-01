@@ -58,6 +58,10 @@ fun PasswordVerifyDialog(
     onDismiss: () -> Unit,
     onVerified: () -> Unit,
     message: String? = null,
+    // Uscita lenta (specs/slow-exit/): se non null, sotto il campo compare
+    // "Non ho la password". Solo sullo sblocco della pausa, mai sugli altri
+    // usi di questo dialogo.
+    onNoPassword: (() -> Unit)? = null,
 ) {
     var password by remember { mutableStateOf("") }
     var statusText by remember { mutableStateOf("") }
@@ -107,6 +111,14 @@ fun PasswordVerifyDialog(
                     enabled = !busy,
                     modifier = Modifier.fillMaxWidth()
                 )
+                if (onNoPassword != null) {
+                    TextButton(
+                        onClick = { onDismiss(); onNoPassword() },
+                        modifier = Modifier.padding(top = 4.dp),
+                    ) {
+                        Text(stringResource(R.string.slow_exit_action))
+                    }
+                }
                 if (displayStatusText.isNotBlank()) {
                     Text(
                         text = displayStatusText,

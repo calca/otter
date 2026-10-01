@@ -15,11 +15,18 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.List
+import androidx.compose.material3.RadioButton
+import androidx.compose.material3.TextButton
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.em
+import com.calmotter.app.SlowExitManager
 import com.calmotter.app.ui.mascot.SprigMark
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.width
@@ -108,6 +115,14 @@ fun SettingsScreen(
     // BlockScreen per sbloccare una sessione — vedi la sua stessa doc.
     var showManageAppsDialog by remember { mutableStateOf(false) }
 
+    // Uscita lenta: prima la password, poi la scelta (Spenta / 5 / 10 / 15).
+    val context = LocalContext.current
+    val slowExitManager = remember { SlowExitManager.getInstance(context) }
+    var slowExitEnabled by remember { mutableStateOf(slowExitManager.isEnabled()) }
+    var slowExitWait by remember { mutableIntStateOf(slowExitManager.waitMinutes()) }
+    var showSlowExitPassword by remember { mutableStateOf(false) }
+    var showSlowExitChoice by remember { mutableStateOf(false) }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -131,6 +146,12 @@ fun SettingsScreen(
             partnerName = partnerName,
             onChangePassword = onChangePassword,
             onManageApps = { showManageAppsDialog = true },
+            slowExitValue = if (slowExitEnabled) {
+                stringResource(R.string.settings_slow_exit_value, slowExitWait)
+            } else {
+                stringResource(R.string.settings_slow_exit_off)
+            },
+            onSlowExit = { showSlowExitPassword = true },
         )
 
         SectionLabel(stringResource(R.string.settings_home_label))
@@ -175,6 +196,62 @@ fun SettingsScreen(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(top = 28.dp)
+        )
+    }
+
+    if (showSlowExitPassword) {
+        PasswordVerifyDialog(
+            passwordManager = passwordManager,
+            title = stringResource(R.string.settings_slow_exit_label),
+            confirmLabel = stringResource(R.string.confirm),
+            onDismiss = { showSlowExitPassword = false },
+            onVerified = { showSlowExitChoice = true },
+        )
+    }
+    if (showSlowExitChoice) {
+        // null = spenta; altrimenti i minuti di attesa.
+        val options = listOf<Int?>(null) + SlowExitManager.WAIT_OPTIONS
+        val current: Int? = if (slowExitEnabled) slowExitWait else null
+        AlertDialog(
+            onDismissRequest = { showSlowExitChoice = false },
+            title = { Text(stringResource(R.string.settings_slow_exit_label)) },
+            text = {
+                Column {
+                    Text(
+                        text = stringResource(R.string.settings_slow_exit_dialog_body),
+                        modifier = Modifier.padding(bottom = 12.dp),
+                    )
+                    options.forEach { option ->
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clickable {
+                                    slowExitEnabled = option != null
+                                    if (option != null) slowExitWait = option
+                                    slowExitManager.update(enabled = option != null, waitMinutes = option ?: slowExitWait)
+                                    showSlowExitChoice = false
+                                }
+                                .padding(vertical = 6.dp),
+                        ) {
+                            RadioButton(selected = option == current, onClick = null)
+                            Text(
+                                text = if (option == null) {
+                                    stringResource(R.string.settings_slow_exit_off)
+                                } else {
+                                    stringResource(R.string.settings_slow_exit_value, option)
+                                },
+                                modifier = Modifier.padding(start = 12.dp),
+                            )
+                        }
+                    }
+                }
+            },
+            confirmButton = {
+                TextButton(onClick = { showSlowExitChoice = false }) {
+                    Text(stringResource(android.R.string.cancel))
+                }
+            },
         )
     }
 
@@ -249,6 +326,8 @@ private fun PasswordCard(
     partnerName: String?,
     onChangePassword: () -> Unit,
     onManageApps: () -> Unit,
+    slowExitValue: String,
+    onSlowExit: () -> Unit,
 ) {
     Surface(
         shape = RoundedCornerShape(20.dp),
@@ -294,13 +373,35 @@ private fun PasswordCard(
                     )
                 },
             )
+            HorizontalDivider(color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.08f))
+            // Uscita lenta (specs/slow-exit/): sta qui perché fa parte del
+            // patto della password, e come le altre righe si cambia solo
+            // dopo averla inserita.
+            SettingsActionRow(
+                label = stringResource(R.string.settings_slow_exit_label),
+                value = slowExitValue,
+                onClick = onSlowExit,
+                icon = {
+                    Icon(
+                        painter = painterResource(R.drawable.ic_hourglass),
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.size(18.dp),
+                    )
+                },
+            )
         }
     }
 }
 
 /** Riga d'azione interna all'app (non un link esterno, vedi [InfoLinkRow]): stesso layout, freccia semplice invece della freccia diagonale. */
 @Composable
-private fun SettingsActionRow(label: String, onClick: () -> Unit, icon: @Composable () -> Unit) {
+private fun SettingsActionRow(
+    label: String,
+    onClick: () -> Unit,
+    value: String? = null,
+    icon: @Composable () -> Unit,
+) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -315,6 +416,13 @@ private fun SettingsActionRow(label: String, onClick: () -> Unit, icon: @Composa
             color = MaterialTheme.colorScheme.onSurface,
             modifier = Modifier.weight(1f),
         )
+        if (value != null) {
+            Text(
+                text = value,
+                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
+                modifier = Modifier.padding(end = 10.dp),
+            )
+        }
         Text(
             text = "→",
             color = MaterialTheme.colorScheme.primary,

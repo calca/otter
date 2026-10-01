@@ -1,5 +1,10 @@
 package com.calmotter.app.ui.screens
 
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.runtime.mutableFloatStateOf
+import com.calmotter.app.EndReason
+import com.calmotter.app.SlowExitManager
 import com.calmotter.app.TogetherActivities
 import com.calmotter.app.isBreathingPause
 import com.calmotter.app.nfc.GroupPauseHceService
@@ -118,6 +123,13 @@ fun BlockScreen(
     val context = LocalContext.current
 
     var showUnlockDialog by remember { mutableStateOf(false) }
+    // Uscita lenta (specs/slow-exit/): conferma, e scadenza dell'attesa in
+    // corso (0 = nessuna). La scadenza vive in SessionManager, non qui: deve
+    // sopravvivere all'uscita dalla schermata e al riavvio.
+    val slowExitManager = remember { SlowExitManager.getInstance(context) }
+    var confirmingSlowExit by remember { mutableStateOf(false) }
+    var slowExitDeadline by remember { mutableLongStateOf(sessionManager.slowExitDeadline()) }
+    var slowExitProgress by remember { mutableFloatStateOf(0f) }
     var remainingText by remember { mutableStateOf("") }
     // Millisecondi grezzi (non solo il testo già formattato) servono per
     // l'anello di avanzamento condiviso con la Home — vedi [ProgressRing] in
@@ -250,6 +262,8 @@ fun BlockScreen(
                 // stesso raggio: i due non convivono, altrimenti si vedrebbero
                 // due cerchi concentrici invece di uno che si allenta.
                 RingReleaseBurst(progress = ringRelease.value, modifier = Modifier.size(176.dp))
+            } else if (slowExitDeadline > 0L) {
+                ProgressRing(fraction = slowExitProgress, modifier = Modifier.size(182.dp))
             } else if (breathing) {
                 BreathingRing(
                     fullness = { breathClock?.let { breathFullness(it.value) } ?: 0.5f },
@@ -294,7 +308,21 @@ fun BlockScreen(
         // (riserva sempre lo stesso spazio, vedi sopra), quindi
         // sparire/ricomparire non sposta nient'altro in pagina.
         footer = {
-            if (!showUnlockDialog) {
+            if (slowExitDeadline > 0L) {
+                OutlinedButton(
+                    onClick = {
+                        sessionManager.cancelSlowExit()
+                        slowExitDeadline = 0L
+                        slowExitProgress = 0f
+                    },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 12.dp, bottom = 24.dp)
+                        .height(48.dp),
+                ) {
+                    Text(stringResource(R.string.slow_exit_stay))
+                }
+            } else if (!showUnlockDialog) {
                 Button(
                     onClick = { showUnlockDialog = true },
                     modifier = Modifier
@@ -379,7 +407,7 @@ fun BlockScreen(
         // (arrotondato per difetto ai 5 minuti) diceva "5 minuti" appena
         // iniziata. Al suo posto, con lo stesso stile, le parole del respiro.
         Text(
-            text = breathingText ?: remainingText,
+            text = if (slowExitDeadline > 0L) stringResource(R.string.slow_exit_waiting) else breathingText ?: remainingText,
             color = MaterialTheme.colorScheme.primary,
             fontSize = 18.sp,
             fontWeight = FontWeight.SemiBold,
@@ -476,7 +504,7 @@ fun BlockScreen(
             reader.start { payload ->
                 if (parseGroupPauseUnlockToken(payload) == sessionGroupTag) {
                     mainHandler.post {
-                        sessionManager.endSession()
+                        sessionManager.endSession(reason = EndReason.NFC_RELEASE)
                         onUnlocked()
                     }
                 }
@@ -491,6 +519,11 @@ fun BlockScreen(
             title = stringResource(R.string.unlock),
             confirmLabel = stringResource(R.string.unlock),
             onDismiss = { showUnlockDialog = false },
+            onNoPassword = if (slowExitManager.isEnabled()) {
+                { confirmingSlowExit = true }
+            } else {
+                null
+            },
             // Il secondo modo va detto, altrimenti resta scopribile solo per
             // caso: il lettore NFC è già attivo mentre questo dialogo è aperto.
             message = if (nfcReleaseEnabled) stringResource(R.string.unlock_or_tap_hint) else null,
@@ -501,7 +534,46 @@ fun BlockScreen(
             },
         )
     }
+
+    if (confirmingSlowExit) {
+        val wait = slowExitManager.waitMinutes()
+        AlertDialog(
+            onDismissRequest = { confirmingSlowExit = false },
+            title = { Text(stringResource(R.string.slow_exit_confirm_title)) },
+            text = { Text(pluralStringResource(R.plurals.slow_exit_confirm_body, wait, wait)) },
+            confirmButton = {
+                TextButton(onClick = {
+                    confirmingSlowExit = false
+                    sessionManager.startSlowExit(wait)
+                    slowExitDeadline = sessionManager.slowExitDeadline()
+                }) { Text(stringResource(R.string.slow_exit_confirm_start)) }
+            },
+            dismissButton = {
+                TextButton(onClick = { confirmingSlowExit = false }) {
+                    Text(stringResource(R.string.slow_exit_stay))
+                }
+            },
+        )
+    }
+
+    // L'attesa dell'uscita lenta: l'anello si riempie sull'attesa, e alla
+    // scadenza la pausa finisce come "senza password". L'allarme in
+    // SessionManager fa la stessa cosa se questa schermata non c'è;
+    // endSession() è idempotente, quindi arrivare per secondi non conta.
+    LaunchedEffect(slowExitDeadline) {
+        val deadline = slowExitDeadline
+        if (deadline <= 0L) return@LaunchedEffect
+        val waitMillis = slowExitManager.waitMinutes() * 60_000L
+        while (System.currentTimeMillis() < deadline) {
+            val left = deadline - System.currentTimeMillis()
+            slowExitProgress = (1f - left.toFloat() / waitMillis).coerceIn(0f, 1f)
+            delay(minOf(1_000L, left.coerceAtLeast(1L)))
+        }
+        sessionManager.endSession(reason = EndReason.SLOW_EXIT)
+        if (canReleaseOthers) releaseThenExit = onUnlocked else onUnlocked()
+    }
 }
+
 
 /**
  * Passo finale per l'host di una pausa condivisa: il telefono espone via NFC

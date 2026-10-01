@@ -171,7 +171,16 @@ fun OnboardingScreen(
                                 modifier = Modifier.size(18.dp),
                             )
                         },
-                        modifier = Modifier.padding(bottom = 16.dp),
+                        modifier = Modifier.padding(bottom = 8.dp),
+                    )
+                    // L'uscita lenta è accesa di default (specs/slow-exit/):
+                    // chi tiene la password deve saperlo qui, non scoprirlo
+                    // dopo. Una riga, non una scelta in più da fare adesso.
+                    Text(
+                        text = stringResource(R.string.onboarding_slow_exit_note),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.65f),
+                        modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp),
                     )
 
                     CalmTextField(

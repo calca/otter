@@ -198,7 +198,7 @@
     <string name="onb1_body">Calm Otter helps you take real breaks from your phone: choose how long, and for that time everything pauses with you — only &lt;b&gt;the phone and a few apps you choose&lt;/b&gt; stay reachable.</string>
     <string name="onb1_note">The pause ends on its own when time\'s up, or earlier if a trusted person enters the password: &lt;b&gt;a pact between you and someone who cares about you&lt;/b&gt;.</string>
     <string name="onb4_title">Choose the password together</string>
-    <string name="onb4_body">Hand the phone to your trusted person: they\'ll choose the password and keep it to themselves — the only one able to end a pause early.</string>
+    <string name="onb4_body">Hand the phone to your trusted person: they\'ll choose the password and keep it to themselves — they\'ll be the one who can end a pause early.</string>
     <string name="onb4_note">You don\'t need to know it: that\'s exactly what makes the pact &lt;b&gt;an act of trust&lt;/b&gt;.</string>
     <string name="onb5_title">All set</string>
     <string name="onb5_body">Calm Otter is ready.
@@ -363,4 +363,20 @@ Whenever you feel the need for a break, just open the app, choose how long — &
     <string name="closing_note_hint">What did you do? (optional)</string>
     <string name="closing_done">Done</string>
     <string name="closing_skip">Skip</string>
+    <!-- Uscita lenta (specs/slow-exit/) -->
+    <string name="slow_exit_action">I don\'t have the password</string>
+    <string name="slow_exit_confirm_title">Leave without the password?</string>
+    <string name="slow_exit_confirm_start">Start the wait</string>
+    <string name="slow_exit_stay">Stay in the pause</string>
+    <string name="slow_exit_waiting">The pause is ending, without password</string>
+    <string name="settings_slow_exit_label">Leave without password</string>
+    <string name="settings_slow_exit_off">Off</string>
+    <string name="settings_slow_exit_value">After %1$d min</string>
+    <string name="settings_slow_exit_dialog_body">Lets the pause end without the password after a wait. Weaker than the password: choose it together.</string>
+    <string name="onboarding_slow_exit_note">If the password can\'t be reached, the pause can also be ended by waiting 10 minutes. You can switch this off in Settings.</string>
+    <!-- Uscita lenta: conferma -->
+    <plurals name="slow_exit_confirm_body">
+        <item quantity="one">The pause will end in %1$d minute. It will show in History as ended without password.</item>
+        <item quantity="other">The pause will end in %1$d minutes. It will show in History as ended without password.</item>
+    </plurals>
 </resources>
