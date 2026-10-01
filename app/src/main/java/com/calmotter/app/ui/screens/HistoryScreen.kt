@@ -28,11 +28,13 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalLocale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.pluralStringResource
@@ -51,10 +53,12 @@ import com.calmotter.app.SessionRecord
 import com.calmotter.app.SessionStreak
 import com.calmotter.app.TogetherActivities
 import com.calmotter.app.WeeklyGoal
+import com.calmotter.app.historyMonths
 import com.calmotter.app.ui.mascot.OtterZenMark
 import com.calmotter.app.ui.mascot.SprigMark
 import com.calmotter.app.ui.mascot.OtterHistoryIcon
 import java.text.SimpleDateFormat
+import java.time.format.DateTimeFormatter
 import java.util.Date
 import java.util.Locale
 
@@ -186,8 +190,41 @@ fun HistoryScreen(
                 .padding(start = 16.dp, top = 20.dp, end = 16.dp, bottom = 4.dp)
         )
 
-        shown.forEach { session ->
-            SessionRow(session)
+        // Per mese (specs/history-by-month/): all'apertura il mese corrente e
+        // il precedente, poi un mese in più a ogni tocco. Con una pausa al
+        // giorno la lista intera diventava lunga e lenta da comporre; le
+        // statistiche qui sopra contano comunque tutto.
+        var extraMonths by remember(togetherOnly) { mutableIntStateOf(0) }
+        val view = remember(shown, extraMonths) { historyMonths(shown, System.currentTimeMillis(), extraMonths) }
+        val locale = LocalConfiguration.current.locales[0]
+        val monthFormat = remember(locale) { DateTimeFormatter.ofPattern("LLLL yyyy", locale) }
+        view.months.forEach { group ->
+            Text(
+                text = group.month.format(monthFormat).replaceFirstChar { it.uppercase(locale) },
+                fontSize = 13.sp,
+                fontWeight = FontWeight.SemiBold,
+                color = MaterialTheme.colorScheme.primary,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(start = 16.dp, top = 14.dp, end = 16.dp, bottom = 4.dp),
+            )
+            if (group.sessions.isEmpty()) {
+                Text(
+                    text = stringResource(R.string.history_month_empty),
+                    fontSize = 13.sp,
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
+                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
+                )
+            }
+            group.sessions.forEach { session -> SessionRow(session) }
+        }
+        if (view.hasEarlier) {
+            TextButton(
+                onClick = { extraMonths++ },
+                modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
+            ) {
+                Text(stringResource(R.string.history_show_earlier))
+            }
         }
 
         ClosingPhraseCard(modifier = Modifier.padding(horizontal = 16.dp, vertical = 20.dp))

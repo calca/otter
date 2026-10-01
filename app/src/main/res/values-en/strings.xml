@@ -424,4 +424,7 @@ Whenever you feel the need for a break, just open the app, choose how long — &
     </plurals>
     <string name="weekly_note_toggle_label">Sunday evening note</string>
     <string name="weekly_note_notifications_off">Calm Otter\'s notifications are off</string>
+    <!-- Cronologia per mese (specs/history-by-month/) -->
+    <string name="history_month_empty">No pauses this month.</string>
+    <string name="history_show_earlier">Show earlier months</string>
 </resources>

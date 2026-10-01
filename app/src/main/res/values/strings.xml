@@ -431,4 +431,7 @@ Quando sentirai il bisogno di una pausa, basterà aprire l\'app, scegliere quant
     </plurals>
     <string name="weekly_note_toggle_label">Nota della domenica sera</string>
     <string name="weekly_note_notifications_off">Le notifiche di Calm Otter sono spente</string>
+    <!-- Cronologia per mese (specs/history-by-month/) -->
+    <string name="history_month_empty">Nessuna pausa in questo mese.</string>
+    <string name="history_show_earlier">Mostra mesi precedenti</string>
 </resources>
