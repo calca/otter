@@ -26,10 +26,9 @@ distributed, but existing test devices keep their list for free).
 parameter. Only the service's `allowedPackages()` changes source, so the
 existing `BlockPolicyTest` keeps covering the rules.
 
-## Decisioni aperte
+## Decisioni prese
 
-1. **Numero di profili:** default + 4 (raccomandato). Di più diventa una
-   gestione, non una scelta.
-2. **Nome del default:** "Standard" (raccomandato) o "Sempre".
-3. **Profilo nella pausa di gruppo:** ognuno usa il proprio (raccomandato);
-   non viaggia nella ricetta.
+1. **Numero di profili:** predefinito + 4.
+2. **Nome del predefinito:** "Standard".
+3. **Pause di gruppo:** ognuno usa il proprio profilo; non viaggia nella
+   ricetta.
