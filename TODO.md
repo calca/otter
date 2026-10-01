@@ -27,8 +27,7 @@ scuro, con un diff in CI. Vincolo da verificare: Robolectric è fissato a SDK
 35 per Java 17 (vedi CLAUDE.md) e il rendering nativo deve funzionare con
 quella combinazione.
 
-## 3. Lint: aggiornamento di Gradle — **S**
+## 3. ~~Lint: aggiornamento di Gradle~~ — fatto
 
-*Verificato:* l'unico avviso rimasto è `AndroidGradlePluginVersion`, cioè
-Gradle 9.8.0 disponibile (il wrapper è alla 9.7.1; CLAUDE.md dice 9.7.0, da
-allineare). Va aggiornato con il wrapper, non a mano, e riprovato con CI.
+Wrapper a Gradle 9.8.0 (`./gradlew wrapper --gradle-version 9.8.0`); lint
+ora senza alcun avviso.

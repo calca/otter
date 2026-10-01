@@ -69,7 +69,7 @@ Local builds have no such variable and always come out as `0.1.1 (1)`, so a
 local APK will not install over a CI one — pass the variable by hand
 (`OTTER_BUILD_NUMBER=999 ./gradlew assembleBetaDebug`) when you need it to.
 
-Toolchain: Kotlin 2.4.20, AGP 9.4.0, Gradle 9.7.0, compileSdk/targetSdk 37
+Toolchain: Kotlin 2.4.20, AGP 9.4.0, Gradle 9.8.0, compileSdk/targetSdk 37
 (`compileSdkMinor = 1`, i.e. platform 37.1), KSP 2.3.12 (its versioning is
 decoupled from Kotlin's as of the 2.3.x line — no exact-match requirement
 like older KSP). The Compose Compiler is configured via the
