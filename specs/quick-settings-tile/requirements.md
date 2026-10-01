@@ -16,18 +16,21 @@ can stop from wherever I am.
 
 ### Acceptance Criteria
 
-1. The app SHALL provide a Quick Settings tile labelled "Pause" with the
-   otter icon, which the user can add from the system tile editor.
-2. WHEN no pause is active AND permissions are granted AND the tile is
+1. The app SHALL provide a Quick Settings tile labelled with the app name
+   ("Calm Otter", "Calm Otter Beta" in the beta build) and the otter icon,
+   which the user can add from the system tile editor.
+2. WHEN no pause is active THEN the tile's subtitle (Android 10+) SHALL say
+   what a tap does and for how long ("Tap for a pause · 1 h").
+3. WHEN no pause is active AND permissions are granted AND the tile is
    tapped THEN the system SHALL start a pause with the last used duration
    (the same value the widget uses) and collapse the shade.
-3. WHEN no pause is active AND a required permission is missing THEN
+4. WHEN no pause is active AND a required permission is missing THEN
    tapping the tile SHALL open the app on the screen that asks for it,
    instead of starting a pause that would not block anything.
-4. WHEN a pause is active THEN the tile SHALL show as active with the
+5. WHEN a pause is active THEN the tile SHALL show as active with the
    remaining time as subtitle in the same calm wording as the block screen
    (no exact countdown), and tapping it SHALL open the block screen.
-5. WHEN a pause starts or ends from anywhere THEN the tile state SHALL
+6. WHEN a pause starts or ends from anywhere THEN the tile state SHALL
    update the next time the shade is shown.
 
 ## Out of scope

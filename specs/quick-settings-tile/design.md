@@ -20,7 +20,12 @@ Activity from a tile uses `startActivityAndCollapse(PendingIntent)` on API
 34+ (the `Intent` overload is deprecated there) and the `Intent` overload
 below.
 
-Subtitle (API 29+): `CalmCountdown.format(remaining)`; the tile is not
+Label: `@string/app_name`, so the beta flavor's override ("Calm Otter
+Beta") applies by itself and the two tiles stay distinguishable, like the
+two launcher icons.
+
+Subtitle (API 29+): idle → "Tap for a pause · 1 h" with the last used
+duration; active → `CalmCountdown.format(remaining)`. The tile is not
 updated every minute (that would need `ACTIVE_TILE` and a ticking service),
 it is recomputed whenever the shade opens, which is when anyone looks at it.
 
@@ -32,8 +37,7 @@ background-start restrictions, but this must be checked on API 34+ before
 anything else. Fallback: `startActivityAndCollapse` to `MainActivity` with
 an extra that starts the pause from the foreground.
 
-## Decisioni aperte
+## Decisioni prese
 
-1. **Durata:** l'ultima usata (raccomandato, coerente con il widget) o
-   sempre 1 h.
-2. **Nome del riquadro:** "Pausa" (raccomandato) o "Calm Otter".
+1. **Durata:** l'ultima usata, come il widget.
+2. **Nome:** il nome dell'app, con il sottotitolo che dice l'azione.
