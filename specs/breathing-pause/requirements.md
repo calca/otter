@@ -20,7 +20,10 @@ I can step away even when I don't have half an hour.
    pills.
 2. WHEN a 10-minute pause is active THEN the block screen SHALL show the
    ring slowly expanding and contracting (about 4 s in, 6 s out) and the
-   words "Breathe in" / "Breathe out" in place of the phrase.
+   words "Breathe in" / "Breathe out" in place of the remaining-time line,
+   with no phrase and no time shown: counting minutes is what the breath is
+   meant to replace (the calm countdown, rounded down to 5 minutes, also
+   read "5 minutes left" right at the start of a 10-minute pause).
 3. WHEN the system "remove animations" setting is on THEN the ring SHALL
    stay still and the text SHALL read "Breathe slowly".
 4. A breathing pause SHALL otherwise behave like any pause: DND, blocking,

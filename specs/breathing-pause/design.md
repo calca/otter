@@ -38,5 +38,7 @@ Home and widget agree from the first launch.
 
 1. **Durata:** 10 minuti.
 2. **Respiro:** solo per la pausa breve.
-3. **Durata ricordata:** un solo valore per Home, widget e riquadro, salvato
+3. **Niente riga del tempo** nella pausa respiro: le parole del respiro
+   prendono il suo posto e il suo stile, la frase non c'è.
+4. **Durata ricordata:** un solo valore per Home, widget e riquadro, salvato
    al tocco della pillola; le pause programmate non lo cambiano.

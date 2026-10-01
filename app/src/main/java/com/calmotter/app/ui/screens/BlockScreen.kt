@@ -128,7 +128,7 @@ fun BlockScreen(
 
     // Pausa respiro (≤ 10 minuti, specs/breathing-pause/): l'anello respira
     // al posto di quello di avanzamento e le parole del respiro prendono il
-    // posto della frase. Dipende dalla durata e non da un'impostazione, così
+    // posto della riga del tempo; la frase non c'è. Dipende dalla durata e non da un'impostazione, così
     // respira anche una pausa breve partita dal widget o dal riquadro. Con le
     // animazioni di sistema disattivate l'anello resta fermo e il testo
     // invita solo a respirare lentamente.
@@ -364,8 +364,21 @@ fun BlockScreen(
             )
         }
 
+        val breathingText = if (breathing) {
+            when (inhaling) {
+                true -> stringResource(R.string.breathing_in)
+                false -> stringResource(R.string.breathing_out)
+                null -> stringResource(R.string.breathing_slowly)
+            }
+        } else {
+            null
+        }
+        // Nella pausa respiro la riga del tempo non c'è: in 10 minuti contare
+        // il tempo è ciò che il respiro vuole evitare, e il conto tranquillo
+        // (arrotondato per difetto ai 5 minuti) diceva "5 minuti" appena
+        // iniziata. Al suo posto, con lo stesso stile, le parole del respiro.
         Text(
-            text = remainingText,
+            text = breathingText ?: remainingText,
             color = MaterialTheme.colorScheme.primary,
             fontSize = 18.sp,
             fontWeight = FontWeight.SemiBold,
@@ -376,18 +389,9 @@ fun BlockScreen(
                 .padding(top = 4.dp, bottom = 28.dp)
         )
 
-        val shownPhrase = if (breathing) {
-            when (inhaling) {
-                true -> stringResource(R.string.breathing_in)
-                false -> stringResource(R.string.breathing_out)
-                null -> stringResource(R.string.breathing_slowly)
-            }
-        } else {
-            phraseText
-        }
-        if (shownPhrase != null) {
+        if (!breathing && phraseText != null) {
             Text(
-                text = shownPhrase,
+                text = phraseText,
                 color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f),
                 fontSize = 16.sp,
                 fontStyle = FontStyle.Italic,
