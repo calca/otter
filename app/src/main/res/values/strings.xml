@@ -386,4 +386,15 @@ Quando sentirai il bisogno di una pausa, basterà aprire l\'app, scegliere quant
         <item quantity="one">La pausa finirà tra %1$d minuto. In Cronologia risulterà finita senza password.</item>
         <item quantity="other">La pausa finirà tra %1$d minuti. In Cronologia risulterà finita senza password.</item>
     </plurals>
+    <!-- Time together in Cronologia (specs/together-history/) -->
+    <string name="history_filter_all">Tutte</string>
+    <string name="history_filter_together">Insieme</string>
+    <string name="together_card_title">Insieme</string>
+    <string name="together_period_month">Questo mese</string>
+    <string name="together_period_all">Sempre</string>
+    <string name="together_none_month">Nessuna pausa insieme questo mese.</string>
+    <plurals name="together_companion_line">
+        <item quantity="one">%1$s in %2$d pausa</item>
+        <item quantity="other">%1$s in %2$d pause</item>
+    </plurals>
 </resources>

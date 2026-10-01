@@ -379,4 +379,15 @@ Whenever you feel the need for a break, just open the app, choose how long — &
         <item quantity="one">The pause will end in %1$d minute. It will show in History as ended without password.</item>
         <item quantity="other">The pause will end in %1$d minutes. It will show in History as ended without password.</item>
     </plurals>
+    <!-- Time together in Cronologia (specs/together-history/) -->
+    <string name="history_filter_all">All</string>
+    <string name="history_filter_together">Together</string>
+    <string name="together_card_title">Together</string>
+    <string name="together_period_month">This month</string>
+    <string name="together_period_all">All time</string>
+    <string name="together_none_month">No pauses together this month.</string>
+    <plurals name="together_companion_line">
+        <item quantity="one">%1$s in %2$d pause</item>
+        <item quantity="other">%1$s in %2$d pauses</item>
+    </plurals>
 </resources>

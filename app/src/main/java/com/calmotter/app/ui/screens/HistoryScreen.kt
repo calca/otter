@@ -28,6 +28,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -121,8 +122,15 @@ fun HistoryScreen(
         return
     }
 
-    val streak = SessionStreak.currentStreakDays(sessions)
-    val (minutesByDay, weekSessions, weekMinutes) = weeklyChartData(sessions)
+    // "Insieme" (specs/together-history/): con il filtro acceso statistiche,
+    // settimana ed elenco guardano solo le pause di gruppo. Filtro e scheda
+    // compaiono solo se ce n'è almeno una.
+    val hasTogether = remember(sessions) { sessions.any { it.isGroupSession } }
+    var togetherOnly by remember { mutableStateOf(false) }
+    val shown = if (togetherOnly && hasTogether) sessions.filter { it.isGroupSession } else sessions
+
+    val streak = SessionStreak.currentStreakDays(shown)
+    val (minutesByDay, weekSessions, weekMinutes) = weeklyChartData(shown)
 
     val summaryText = if (weekSessions == 0) {
         stringResource(R.string.weekly_summary_none)
@@ -136,8 +144,15 @@ fun HistoryScreen(
             .safeDrawingPadding()
             .verticalScroll(rememberScrollState())
     ) {
+        if (hasTogether) {
+            HistoryFilterRow(
+                togetherOnly = togetherOnly,
+                onChange = { togetherOnly = it },
+                modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 12.dp),
+            )
+        }
         StatsBar(
-            sessions = sessions,
+            sessions = shown,
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = 16.dp, vertical = 12.dp)
@@ -154,6 +169,13 @@ fun HistoryScreen(
             modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp)
         )
 
+        if (hasTogether) {
+            TogetherCard(
+                sessions = sessions,
+                modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+            )
+        }
+
         Text(
             text = stringResource(R.string.history_all_sessions),
             fontSize = 13.sp,
@@ -164,7 +186,7 @@ fun HistoryScreen(
                 .padding(start = 16.dp, top = 20.dp, end = 16.dp, bottom = 4.dp)
         )
 
-        sessions.forEach { session ->
+        shown.forEach { session ->
             SessionRow(session)
         }
 
