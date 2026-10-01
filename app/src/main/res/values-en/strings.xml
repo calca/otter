@@ -357,4 +357,10 @@ Whenever you feel the need for a break, just open the app, choose how long — &
     <string name="mood_calm">Calm</string>
     <string name="mood_ordinary">Ordinary</string>
     <string name="mood_hard">Hard</string>
+    <!-- Momento di chiusura (specs/closing-moment/) -->
+    <string name="closing_title">%1$s of calm.</string>
+    <string name="closing_question">How was it?</string>
+    <string name="closing_note_hint">What did you do? (optional)</string>
+    <string name="closing_done">Done</string>
+    <string name="closing_skip">Skip</string>
 </resources>

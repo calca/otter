@@ -115,6 +115,13 @@
             android:exported="false"
             android:theme="@style/Theme.CalmOtter" />
 
+        <!-- Momento di chiusura dopo una pausa completata (specs/closing-moment/). -->
+        <activity
+            android:name=".ClosingMomentActivity"
+            android:exported="false"
+            android:excludeFromRecents="true"
+            android:theme="@style/Theme.CalmOtter" />
+
         <activity
             android:name=".BlockOverlayActivity"
             android:exported="false"

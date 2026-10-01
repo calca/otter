@@ -49,6 +49,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.calmotter.app.AllowedAppsManager
 import com.calmotter.app.BuildConfig
+import com.calmotter.app.ClosingMomentActivity
 import com.calmotter.app.R
 import com.calmotter.app.SESSION_DURATION_OPTIONS
 import com.calmotter.app.SessionHistoryManager
@@ -342,7 +343,12 @@ fun MainScreen(
                 streakDays = streakDays,
                 weekSummary = weekSummary,
                 pendingBackgroundSummary = pendingSummary,
-                onHistory = onHistory,
+                // "Pausa finita alle…" apre il momento di chiusura se quella
+                // pausa non ha ancora una risposta (specs/closing-moment/);
+                // altrimenti, come sempre, la Cronologia.
+                onHistory = {
+                    if (pendingSummary == null || !ClosingMomentActivity.startIfPending(context)) onHistory()
+                },
             )
 
             // Non compete con il tap sull'otter, che resta l'azione

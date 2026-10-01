@@ -51,6 +51,8 @@ class TopLevelScreenSafeDrawingPaddingTest {
         // animato in un unico setContent{}).
         TopLevelScreen("BlockScreen", listOf("OtterAnchoredScreen.kt")),
         TopLevelScreen("ChangePasswordScreen", listOf("ChangePasswordScreen.kt")),
+        // Delega a CalmScreenColumn, che applica safeDrawingPadding() lei.
+        TopLevelScreen("ClosingMomentScreen", listOf("CalmBackground.kt")),
         // Puro router (`when` su HostFlowStep): nessuna radice propria,
         // delega a GroupPauseBluetoothLobbyHostScreen o, tramite la
         // GroupPauseQrShareScreen privata nello stesso file, a

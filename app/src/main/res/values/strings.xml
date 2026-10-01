@@ -364,4 +364,10 @@ Quando sentirai il bisogno di una pausa, basterà aprire l\'app, scegliere quant
     <string name="mood_calm">Calma</string>
     <string name="mood_ordinary">Normale</string>
     <string name="mood_hard">Faticosa</string>
+    <!-- Momento di chiusura (specs/closing-moment/) -->
+    <string name="closing_title">%1$s di calma.</string>
+    <string name="closing_question">Com\'è andata?</string>
+    <string name="closing_note_hint">Cosa hai fatto? (facoltativo)</string>
+    <string name="closing_done">Fatto</string>
+    <string name="closing_skip">Salta</string>
 </resources>

@@ -222,7 +222,12 @@ class MainActivity : BaseActivity() {
                                 passwordManager = passwordManager,
                                 phraseText = blockPhraseText,
                                 onExpiredImmediately = { onBlockScreenExit() },
-                                onExpiredNaturally = { onBlockScreenExit() },
+                                onExpiredNaturally = {
+                                    onBlockScreenExit()
+                                    // Pausa arrivata in fondo: "com'è andata?"
+                                    // (specs/closing-moment/), sopra la Home.
+                                    ClosingMomentActivity.startIfPending(this@MainActivity)
+                                },
                                 onUnlocked = { onBlockScreenExit() },
                                 allowedApps = loadAllowedAppLaunchItems(applicationContext),
                                 onLaunchApp = { pkg -> launchAllowedApp(applicationContext, pkg) },

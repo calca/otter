@@ -49,7 +49,12 @@ class BlockOverlayActivity : BaseActivity() {
                     passwordManager = passwordManager,
                     phraseText = phraseText,
                     onExpiredImmediately = { finish() },
-                    onExpiredNaturally = { finish() },
+                    onExpiredNaturally = {
+                        // Pausa arrivata in fondo: prima di chiudere, "com'è
+                        // andata?" (specs/closing-moment/).
+                        ClosingMomentActivity.startIfPending(this)
+                        finish()
+                    },
                     onUnlocked = { finish() },
                     allowedApps = loadAllowedAppLaunchItems(applicationContext),
                     onLaunchApp = { pkg -> launchAllowedApp(applicationContext, pkg) },
