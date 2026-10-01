@@ -55,7 +55,8 @@ import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import com.calmotter.app.GroupPauseRecipe
 import com.calmotter.app.R
-import com.calmotter.app.decodeGroupPauseRecipe
+import com.calmotter.app.RecipeDecodeResult
+import com.calmotter.app.decodeGroupPauseRecipeResult
 import com.calmotter.app.ui.mascot.OtterZenMark
 import com.google.zxing.BinaryBitmap
 import com.google.zxing.MultiFormatReader
@@ -264,11 +265,15 @@ private fun ScanFullScreen(
         if (hasPermission) {
             var errorText by remember { mutableStateOf<String?>(null) }
             val invalidCodeText = stringResource(R.string.group_pause_invalid_code)
+            val otherVersionText = stringResource(R.string.group_pause_other_version)
 
             QrScannerView(
                 onDecoded = { raw ->
-                    val recipe = decodeGroupPauseRecipe(raw)
-                    if (recipe != null) onRecipeReady(recipe) else errorText = invalidCodeText
+                    when (val result = decodeGroupPauseRecipeResult(raw)) {
+                        is RecipeDecodeResult.Ok -> onRecipeReady(result.recipe)
+                        RecipeDecodeResult.OtherVersion -> errorText = otherVersionText
+                        RecipeDecodeResult.Invalid -> errorText = invalidCodeText
+                    }
                 },
                 modifier = Modifier.fillMaxSize()
             )
@@ -389,6 +394,7 @@ private fun ManualCodeTab(onRecipeReady: (GroupPauseRecipe) -> Unit) {
     var code by remember { mutableStateOf("") }
     var errorText by remember { mutableStateOf("") }
     val invalidCodeText = stringResource(R.string.group_pause_invalid_code)
+    val otherVersionText = stringResource(R.string.group_pause_other_version)
 
     CalmTextField(
         value = code,
@@ -413,8 +419,11 @@ private fun ManualCodeTab(onRecipeReady: (GroupPauseRecipe) -> Unit) {
     CalmSecondaryButton(
         text = stringResource(R.string.group_pause_manual_code_join_button),
         onClick = {
-            val recipe = decodeGroupPauseRecipe(code)
-            if (recipe != null) onRecipeReady(recipe) else errorText = invalidCodeText
+            errorText = when (val result = decodeGroupPauseRecipeResult(code)) {
+                is RecipeDecodeResult.Ok -> { onRecipeReady(result.recipe); "" }
+                RecipeDecodeResult.OtherVersion -> otherVersionText
+                RecipeDecodeResult.Invalid -> invalidCodeText
+            }
         },
         modifier = Modifier.fillMaxWidth().height(48.dp),
     )

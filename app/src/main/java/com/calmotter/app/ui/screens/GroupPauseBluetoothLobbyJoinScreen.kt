@@ -48,7 +48,8 @@ import com.calmotter.app.R
 import com.calmotter.app.bluetooth.GroupPauseBluetoothJoin
 import com.calmotter.app.bluetooth.bluetoothAdapterOrNull
 import com.calmotter.app.bluetooth.localBluetoothDisplayName
-import com.calmotter.app.decodeGroupPauseRecipe
+import com.calmotter.app.RecipeDecodeResult
+import com.calmotter.app.decodeGroupPauseRecipeResult
 import com.calmotter.app.groupPauseBluetoothRuntimePermissions
 import com.calmotter.app.hasGroupPauseBluetoothPermissions
 import com.calmotter.app.nfc.GroupPauseNfcReader
@@ -131,11 +132,15 @@ fun GroupPauseBluetoothLobbyJoinScreen(
     // la cambia mentre si aspetta.
     var hostActivityId by remember { mutableIntStateOf(0) }
     val invalidCodeText = stringResource(R.string.group_pause_invalid_code)
+    val otherVersionText = stringResource(R.string.group_pause_other_version_lobby)
     val connectionLostText = stringResource(R.string.group_pause_join_error)
 
     fun onRecipeCode(code: String) {
-        val recipe = decodeGroupPauseRecipe(code)
-        if (recipe != null) onRecipeReady(recipe, hostName) else state = JoinLobbyState.Error(invalidCodeText)
+        when (val result = decodeGroupPauseRecipeResult(code)) {
+            is RecipeDecodeResult.Ok -> onRecipeReady(result.recipe, hostName)
+            RecipeDecodeResult.OtherVersion -> state = JoinLobbyState.Error(otherVersionText)
+            RecipeDecodeResult.Invalid -> state = JoinLobbyState.Error(invalidCodeText)
+        }
     }
 
     val onReadinessAction: () -> Unit = {
@@ -174,6 +179,7 @@ fun GroupPauseBluetoothLobbyJoinScreen(
             },
             onRecipe = { code -> mainHandler.post { onRecipeCode(code) } },
             onError = { mainHandler.post { state = JoinLobbyState.Error(connectionLostText) } },
+            onVersionMismatch = { mainHandler.post { state = JoinLobbyState.Error(otherVersionText) } },
         )
     }
 

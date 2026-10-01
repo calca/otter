@@ -5,6 +5,7 @@ import android.bluetooth.BluetoothServerSocket
 import android.bluetooth.BluetoothSocket
 import android.content.Context
 import androidx.compose.runtime.mutableStateListOf
+import com.calmotter.app.GROUP_PAUSE_PROTOCOL_VERSION
 import java.io.IOException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -109,6 +110,13 @@ class GroupPauseBluetoothHost(private val context: Context) {
                 val line = readLine(socket.inputStream)
                 val hello = line?.let(::parseGroupPauseBtMessage) as? GroupPauseBtMessage.Hello
                 if (hello == null) {
+                    runCatching { socket.close() }
+                    return@launch
+                }
+                // Un'altra versione dell'app: glielo si dice e si chiude,
+                // invece di scambiare messaggi che l'altro capirebbe male.
+                if (hello.version != GROUP_PAUSE_PROTOCOL_VERSION) {
+                    runCatching { writeLine(socket.outputStream, formatVersionMismatch()) }
                     runCatching { socket.close() }
                     return@launch
                 }

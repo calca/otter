@@ -54,7 +54,7 @@ class GroupPauseRecipeTest {
         val now = 1_700_000_000_000L
         val recipe = GroupPauseRecipe(60, now + 60_000L, 42, activityId = 16)
         val code = recipe.encode()
-        assertEquals(12, code.length)
+        assertEquals(14, code.length)
         assertEquals(recipe.copy(startAtEpochMillis = (recipe.startAtEpochMillis / 1000) * 1000), decodeGroupPauseRecipe(code, now = now))
     }
 
@@ -66,7 +66,7 @@ class GroupPauseRecipeTest {
     }
 
     @Test
-    fun aCodeInTheOldEightByteFormatIsRejected() {
+    fun aCodeFromAnOlderVersionSaysSo() {
         val now = 1_700_000_000_000L
         val bytes = java.nio.ByteBuffer.allocate(8)
             .putInt(((now + 60_000L) / 1000).toInt()).put(30.toByte()).putShort(1).array()
@@ -75,5 +75,16 @@ class GroupPauseRecipeTest {
         bytes[7] = xor.toByte()
         val oldCode = java.util.Base64.getUrlEncoder().withoutPadding().encodeToString(bytes)
         assertNull(decodeGroupPauseRecipe(oldCode, now = now))
+        // ...e chi lo legge viene invitato ad aggiornare, non a riprovare.
+        assertEquals(RecipeDecodeResult.OtherVersion, decodeGroupPauseRecipeResult(oldCode, now = now))
+    }
+
+    @Test
+    fun aMistypedCodeIsInvalidNotAnotherVersion() {
+        val now = 1_700_000_000_000L
+        val code = GroupPauseRecipe(30, now + 60_000L, 1).encode()
+        val typo = code.substring(0, 5) + (if (code[5] == 'A') 'B' else 'A') + code.substring(6)
+        assertEquals(RecipeDecodeResult.Invalid, decodeGroupPauseRecipeResult(typo, now = now))
+        assertEquals(RecipeDecodeResult.Invalid, decodeGroupPauseRecipeResult("ciao", now = now))
     }
 }

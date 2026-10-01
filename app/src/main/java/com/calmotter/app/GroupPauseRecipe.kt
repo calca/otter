@@ -27,15 +27,16 @@ data class GroupPauseRecipe(
 )
 
 /**
- * Codifica: 9 byte grezzi (4 = orario di inizio in secondi epoch, 1 =
+ * Codifica: 10 byte grezzi (1 = versione del protocollo,
+ * [GROUP_PAUSE_PROTOCOL_VERSION]; 4 = orario di inizio in secondi epoch, 1 =
  * minuti di durata, 2 = tag di gruppo casuale — puramente cosmetico, non
  * ha alcun ruolo di sicurezza — 1 = attività proposta, 1 = checksum XOR
- * degli 8 byte precedenti, per segnalare un errore di battitura
+ * dei 9 byte precedenti, per segnalare un errore di battitura
  * nell'inserimento manuale invece di accettare silenziosamente una ricetta
- * corrotta) in Base64 URL-safe senza padding: una stringa di 12 caratteri.
- * Un codice del formato precedente (8 byte, senza attività) ha la lunghezza
- * sbagliata e viene rifiutato come qualunque codice non valido: l'app non è
- * distribuita, niente strato di compatibilità. Resta abbastanza corta da poter
+ * corrotta) in Base64 URL-safe senza padding: una stringa di 14 caratteri.
+ * Un codice di un'altra versione viene riconosciuto come tale
+ * ([RecipeDecodeResult.OtherVersion]) e chi lo legge vede "aggiornate", non
+ * "codice non valido". Resta abbastanza corta da poter
  * essere anche digitata a mano come fallback quando la fotocamera non è
  * disponibile o comoda. Stesso identico valore usato sia come contenuto
  * del QR sia come codice manuale — un solo formato, non due.
@@ -45,7 +46,15 @@ data class GroupPauseRecipe(
  * funziona anche nei test JVM puri (`testDebugUnitTest`) senza bisogno di
  * Robolectric, coerente con "logica pura, nessun Context" di questo file.
  */
-private const val PAYLOAD_SIZE = 9
+/**
+ * Versione del protocollo della pausa di gruppo: primo byte della ricetta e
+ * parte dell'HELLO Bluetooth. Va incrementata a ogni modifica di formato,
+ * così due telefoni con versioni diverse dell'app si dicono "aggiornate"
+ * invece di "codice non valido". 2 = ricetta con l'attività proposta.
+ */
+const val GROUP_PAUSE_PROTOCOL_VERSION = 2
+
+private const val PAYLOAD_SIZE = 10
 private const val CHECKSUM_INDEX = PAYLOAD_SIZE - 1
 private val URL_ENCODER = Base64.getUrlEncoder().withoutPadding()
 private val URL_DECODER = Base64.getUrlDecoder()
@@ -61,6 +70,7 @@ fun GroupPauseRecipe.encode(): String {
     require(activityId in 0..255) { "activityId must fit in one byte" }
     val startAtEpochSec = (startAtEpochMillis / 1000L).toInt()
     val buffer = ByteBuffer.allocate(PAYLOAD_SIZE)
+        .put(GROUP_PAUSE_PROTOCOL_VERSION.toByte())
         .putInt(startAtEpochSec)
         .put(durationMinutes.toByte())
         .putShort(groupTag.toShort())
@@ -78,30 +88,48 @@ fun GroupPauseRecipe.encode(): String {
  * unico messaggio di errore generico senza distinguere la causa esatta:
  * per chi si unisce non farebbe differenza saperla.
  */
-fun decodeGroupPauseRecipe(code: String, now: Long = System.currentTimeMillis()): GroupPauseRecipe? {
+fun decodeGroupPauseRecipe(code: String, now: Long = System.currentTimeMillis()): GroupPauseRecipe? =
+    (decodeGroupPauseRecipeResult(code, now) as? RecipeDecodeResult.Ok)?.recipe
+
+/** Esito della lettura di un codice: valido, di un'altra versione dell'app, o non valido. */
+sealed class RecipeDecodeResult {
+    data class Ok(val recipe: GroupPauseRecipe) : RecipeDecodeResult()
+    /** Un codice ben formato ma di un'altra versione: va detto "aggiornate", non "non valido". */
+    data object OtherVersion : RecipeDecodeResult()
+    data object Invalid : RecipeDecodeResult()
+}
+
+fun decodeGroupPauseRecipeResult(code: String, now: Long = System.currentTimeMillis()): RecipeDecodeResult {
     val bytes = try {
         URL_DECODER.decode(code.trim())
     } catch (e: IllegalArgumentException) {
-        return null
+        return RecipeDecodeResult.Invalid
     }
-    if (bytes.size != PAYLOAD_SIZE) return null
-    if (bytes[CHECKSUM_INDEX] != checksumOf(bytes)) return null
+    if (bytes.isEmpty()) return RecipeDecodeResult.Invalid
+    // La versione si guarda prima di lunghezza e checksum: sono proprio
+    // quelli a cambiare fra una versione e l'altra. Un codice del formato
+    // senza versione (8-9 byte) cade qui anche lui, ed è giusto: viene da
+    // un'altra versione dell'app.
+    if (bytes.size != PAYLOAD_SIZE || bytes[0].toInt() != GROUP_PAUSE_PROTOCOL_VERSION) {
+        return if (bytes.size in 8..16) RecipeDecodeResult.OtherVersion else RecipeDecodeResult.Invalid
+    }
+    if (bytes[CHECKSUM_INDEX] != checksumOf(bytes)) return RecipeDecodeResult.Invalid
 
     val buffer = ByteBuffer.wrap(bytes)
+    buffer.get() // versione, già controllata
     val startAtEpochSec = buffer.int
     val durationMinutes = buffer.get().toInt() and 0xFF
     val groupTag = buffer.short.toInt()
     val activityId = buffer.get().toInt() and 0xFF
     val startAtEpochMillis = startAtEpochSec * 1000L
 
-    if (durationMinutes <= 0) return null
-    if (startAtEpochMillis <= now) return null
-    if (startAtEpochMillis - now > MAX_FUTURE_START_MILLIS) return null
-    // Un'attività che questo telefono non conosce non può essere mostrata:
-    // il codice viene rifiutato come qualunque altro non valido.
-    if (activityId != TogetherActivities.NONE && TogetherActivities.byId(activityId) == null) return null
+    if (durationMinutes <= 0) return RecipeDecodeResult.Invalid
+    if (startAtEpochMillis <= now) return RecipeDecodeResult.Invalid
+    if (startAtEpochMillis - now > MAX_FUTURE_START_MILLIS) return RecipeDecodeResult.Invalid
+    // Un'attività che questo telefono non conosce non può essere mostrata.
+    if (activityId != TogetherActivities.NONE && TogetherActivities.byId(activityId) == null) return RecipeDecodeResult.Invalid
 
-    return GroupPauseRecipe(durationMinutes, startAtEpochMillis, groupTag, activityId)
+    return RecipeDecodeResult.Ok(GroupPauseRecipe(durationMinutes, startAtEpochMillis, groupTag, activityId))
 }
 
 private fun checksumOf(bytes: ByteArray): Byte {

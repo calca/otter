@@ -96,6 +96,8 @@ class GroupPauseBluetoothJoin(private val context: Context) {
         onLobbyInfo: (hostName: String, durationMinutes: Int, activityId: Int) -> Unit = { _, _, _ -> },
         onRecipe: (String) -> Unit,
         onError: () -> Unit,
+        // L'host ha un'altra versione dell'app (vedi GROUP_PAUSE_PROTOCOL_VERSION).
+        onVersionMismatch: () -> Unit = onError,
     ) {
         scope.launch {
             try {
@@ -115,6 +117,10 @@ class GroupPauseBluetoothJoin(private val context: Context) {
                         // Arriva subito dopo l'HELLO: dice di chi è la lobby e
                         // per quanto. Non interrompe il ciclo — si continua ad
                         // aspettare la ricetta vera, che arriva solo all'avvio.
+                        is GroupPauseBtMessage.VersionMismatch -> {
+                            onVersionMismatch()
+                            break
+                        }
                         is GroupPauseBtMessage.LobbyInfo ->
                             onLobbyInfo(message.hostName, message.durationMinutes, message.activityId)
                         // Righe sconosciute (o un HELLO di ritorno, che non ci

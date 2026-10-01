@@ -13,7 +13,7 @@ class GroupPauseBluetoothProtocolTest {
     fun helloRoundTrips() {
         val line = formatHello("Pixel di Gianluigi")
         val parsed = parseGroupPauseBtMessage(line)
-        assertEquals(GroupPauseBtMessage.Hello("Pixel di Gianluigi"), parsed)
+        assertEquals(GroupPauseBtMessage.Hello("Pixel di Gianluigi", com.calmotter.app.GROUP_PAUSE_PROTOCOL_VERSION), parsed)
     }
 
     @Test
@@ -144,5 +144,20 @@ class GroupPauseBluetoothProtocolTest {
     @Test
     fun lobbyInfoInTheOldTwoFieldFormatIsIgnored() {
         assertEquals(null, parseGroupPauseBtMessage("LOBBY:Marta|60"))
+    }
+
+    @Test
+    fun aHelloWithoutVersionReadsAsAnotherVersion() {
+        val parsed = parseGroupPauseBtMessage("HELLO:Pixel di Marta") as GroupPauseBtMessage.Hello
+        assertEquals("Pixel di Marta", parsed.displayName)
+        assertEquals(0, parsed.version)
+    }
+
+    @Test
+    fun versionMismatchRoundTrips() {
+        assertEquals(
+            GroupPauseBtMessage.VersionMismatch(com.calmotter.app.GROUP_PAUSE_PROTOCOL_VERSION),
+            parseGroupPauseBtMessage(formatVersionMismatch()),
+        )
     }
 }

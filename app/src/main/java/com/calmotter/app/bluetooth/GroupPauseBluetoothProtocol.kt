@@ -5,6 +5,7 @@ import android.bluetooth.BluetoothManager
 import android.content.Context
 import android.provider.Settings
 import android.os.Build
+import com.calmotter.app.GROUP_PAUSE_PROTOCOL_VERSION
 import java.io.InputStream
 import java.io.OutputStream
 import java.nio.charset.StandardCharsets
@@ -35,12 +36,17 @@ fun bluetoothAdapterOrNull(context: Context): BluetoothAdapter? =
 val GROUP_PAUSE_SERVICE_UUID: UUID = UUID.fromString("7e5a1c9e-7c2b-4b8b-9d1c-6f2a3b4c5d6e")
 
 private const val HELLO_PREFIX = "HELLO:"
+private const val MISMATCH_PREFIX = "MISMATCH:"
 private const val RECIPE_PREFIX = "RECIPE:"
 private const val LOBBY_PREFIX = "LOBBY:"
 private const val LOBBY_SEPARATOR = '|'
 
 sealed class GroupPauseBtMessage {
-    data class Hello(val displayName: String) : GroupPauseBtMessage()
+    /** [version] = [com.calmotter.app.GROUP_PAUSE_PROTOCOL_VERSION] di chi si unisce; 0 se non dichiarata. */
+    data class Hello(val displayName: String, val version: Int = 0) : GroupPauseBtMessage()
+
+    /** Host → joiner: versioni diverse, la connessione si chiude. */
+    data class VersionMismatch(val hostVersion: Int) : GroupPauseBtMessage()
     data class Recipe(val code: String) : GroupPauseBtMessage()
 
     /**
@@ -62,7 +68,10 @@ sealed class GroupPauseBtMessage {
     ) : GroupPauseBtMessage()
 }
 
-fun formatHello(displayName: String): String = HELLO_PREFIX + sanitizeDisplayName(displayName)
+fun formatHello(displayName: String, version: Int = GROUP_PAUSE_PROTOCOL_VERSION): String =
+    HELLO_PREFIX + version + LOBBY_SEPARATOR + sanitizeDisplayName(displayName)
+
+fun formatVersionMismatch(hostVersion: Int = GROUP_PAUSE_PROTOCOL_VERSION): String = MISMATCH_PREFIX + hostVersion
 
 fun formatRecipe(code: String): String = RECIPE_PREFIX + code
 
@@ -76,7 +85,20 @@ fun formatLobbyInfo(hostName: String, durationMinutes: Int, activityId: Int = 0)
  * prosegue, invece di rompere la connessione.
  */
 fun parseGroupPauseBtMessage(line: String): GroupPauseBtMessage? = when {
-    line.startsWith(HELLO_PREFIX) -> GroupPauseBtMessage.Hello(line.removePrefix(HELLO_PREFIX))
+    line.startsWith(HELLO_PREFIX) -> {
+        // "versione|nome"; senza versione (formato precedente) vale 0, cioè
+        // "un'altra versione", e l'host lo dirà.
+        val payload = line.removePrefix(HELLO_PREFIX)
+        val separator = payload.indexOf(LOBBY_SEPARATOR)
+        val version = if (separator > 0) payload.substring(0, separator).toIntOrNull() else null
+        if (version != null) {
+            GroupPauseBtMessage.Hello(payload.substring(separator + 1), version)
+        } else {
+            GroupPauseBtMessage.Hello(payload, 0)
+        }
+    }
+    line.startsWith(MISMATCH_PREFIX) ->
+        line.removePrefix(MISMATCH_PREFIX).toIntOrNull()?.let { GroupPauseBtMessage.VersionMismatch(it) }
     line.startsWith(RECIPE_PREFIX) -> GroupPauseBtMessage.Recipe(line.removePrefix(RECIPE_PREFIX))
     line.startsWith(LOBBY_PREFIX) -> {
         // "nome|minuti|attività": il nome non contiene mai il separatore

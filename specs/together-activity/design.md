@@ -9,7 +9,7 @@
 | `TogetherActivities.kt` (new) | The catalog: `TogetherActivity(id: Int, category, @StringRes text, minMinutes, maxMinutes)`, `enum TogetherCategory`; `fitting(duration)`; `next(duration, seen)`; `byId(id)` |
 | `res/values{,-en}/strings.xml` | One string per activity, plus the four category names |
 | `res/drawable/ic_together_*.xml` (new) | The four category icons |
-| `GroupPauseRecipe.kt` | New field `activityId: Int` (one byte), payload 8 → 9 bytes |
+| `GroupPauseRecipe.kt` | New field `activityId: Int` (one byte) and a version byte: payload 8 → 10 bytes |
 | `bluetooth/GroupPauseBluetoothProtocol.kt` | `LOBBY:` line carries the activity id too, so guests see it before the start |
 | `GroupPauseHostScreen.kt`, `GroupPauseBluetoothLobbyHostScreen.kt` | Suggestion card with "Another one" |
 | `GroupPauseBluetoothLobbyJoinScreen.kt`, `GroupPauseJoinScreen.kt` | Show the received suggestion |
@@ -24,14 +24,17 @@ an Italian host and an English guest see the same activity in their own
 words. Ids are stable forever (never reused); removing an activity leaves
 a gap. Id `0` means "no activity" (solo pause, or a host that removed it).
 
-## Recipe: no compatibility layer
+## Recipe and protocol: versioned
 
-Payload becomes `startAtSec(4) | duration(1) | groupTag(2) | activityId(1)
-| checksum(1)` = 9 bytes, 12 base64url characters instead of 11. A code
-from the old format has the wrong length and is rejected by the existing
-`bytes.size != PAYLOAD_SIZE` check — exactly the "invalid code" path, no
-special case. `GroupPauseRecipeTest` gains: round trip with an activity,
-unknown id rejected, old 8-byte code rejected.
+Payload: `version(1) | startAtSec(4) | duration(1) | groupTag(2) |
+activityId(1) | checksum(1)` = 10 bytes, 14 base64url characters. The first
+byte is `GROUP_PAUSE_PROTOCOL_VERSION` (2 = recipe with the activity); the
+Bluetooth HELLO carries it too (`HELLO:2|name`), and a host that receives a
+different one answers `MISMATCH:<version>` and closes. A code or lobby from
+another version of the app is recognised as such
+(`RecipeDecodeResult.OtherVersion`) and the person joining reads "update
+the app on both phones", not "invalid code"; a mistyped code is still just
+invalid. The version must be bumped with every format change.
 
 ## Suggestions
 
