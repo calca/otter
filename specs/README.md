@@ -24,6 +24,38 @@ Each feature has:
 - `requirements.md` — user stories with EARS-style acceptance criteria (WHEN/THE SYSTEM SHALL), matching current behavior
 - `design.md` — the technical shape: key files/classes, data flow, and any non-obvious constraints
 
+## Proposed (not built yet)
+
+Written before the code and marked **Status: Proposed** at the top of each
+file. Each `design.md` ends with "Decisioni aperte": the choices to settle
+before building. When a feature ships, its pair is rewritten as-built and
+moves to the list above.
+
+- [`quick-settings-tile/`](quick-settings-tile/requirements.md) — start a pause from the notification shade
+- [`breathing-pause/`](breathing-pause/requirements.md) — a 10-minute pause with a breathing ring
+- [`together-activity/`](together-activity/requirements.md) — the host proposes something to do together; it travels with the pause
+- [`closing-moment/`](closing-moment/requirements.md) — "How was it?" after a completed pause, saved in History
+- [`together-history/`](together-history/requirements.md) — time spent with each companion, and a "Together" filter
+- [`scheduled-pauses/`](scheduled-pauses/requirements.md) — recurring pauses that start by themselves; loosening needs the password
+- [`allowed-app-profiles/`](allowed-app-profiles/requirements.md) — named allowed-apps lists, chosen per pause
+- [`slow-exit/`](slow-exit/requirements.md) — opt-in: end a pause without the password after a wait
+- [`weekly-summary/`](weekly-summary/requirements.md) — one quiet note on Sunday evening
+
+**Suggested order**, smallest and least risky first, grouping the ones that
+share work:
+
+1. `quick-settings-tile`, `breathing-pause` — small, no schema change. The
+   tile also tests starting a session from a non-Activity context, which
+   `scheduled-pauses` needs.
+2. `together-activity`, `closing-moment`, `slow-exit` — all three add a
+   column to `SessionRecord`: built in the same round, they share one
+   database version bump and one migration.
+3. `together-history` — reads what step 2 stores.
+4. `scheduled-pauses` — after a spike on starting the foreground service
+   from an inexact alarm (see its design).
+5. `allowed-app-profiles` — scheduled pauses then gain a profile.
+6. `weekly-summary`.
+
 ## Convention for new features
 
 For anything new that touches multiple files or needs an architectural
