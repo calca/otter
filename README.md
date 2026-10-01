@@ -9,7 +9,7 @@ just you, your phone, and a bit of quiet.
   <img src="docs/screenshots/home.png" width="200" alt="Home screen with weekly streak" />
   <img src="docs/screenshots/paused.png" width="200" alt="Active pause screen" />
   <img src="docs/screenshots/history.png" width="200" alt="Session history" />
-  <img src="docs/screenshots/tempo_insieme.png" width="200" alt="Tempo Insieme setup screen" />
+  <img src="docs/screenshots/tempo_insieme.png" width="200" alt="Time together setup screen" />
 </p>
 
 ## How it works
@@ -43,7 +43,7 @@ app icons. It's optional, and it doesn't replace Accessibility — see
 "Known Limits" below for why the two work together rather than either
 one being enough alone.
 
-## Tempo Insieme (Group Pause)
+## Time Together (Group Pause)
 
 Some pauses are better together. "Time together" lets two or more people
 start the *same* pause at the *same* moment, each on their own phone —
@@ -57,6 +57,18 @@ made for a couple, a family, or a team that wants to disconnect as one:
   lobby, everyone else joins with a tap (NFC) or a quick search, and the
   host starts once people are in. The phones connect just long enough to
   agree on a start time, then disconnect the moment the pause begins.
+
+Everyone in the pause sees who they're with ("Together with Marta") on
+the block screen, and the pause shows up with those names in History.
+
+**Ending it together.** If the person who started the shared pause
+unlocks it early, their phone offers to release the others: hold the
+phones together (NFC) and the other pauses end too, without anyone having
+to know a password. That deliberately bypasses the other person's own
+password — the authorisation is being in the same room plus the host's
+explicit gesture, and it only ever works on that same shared pause. If
+the pause simply runs out, there's nothing to release: every phone
+finishes on its own.
 
 That's why Calm Otter asks for a couple of extra permissions here —
 **Camera** to scan a QR, **Bluetooth + NFC** for the live lobby — and
@@ -94,10 +106,6 @@ proves insufficient in practice.
 - Device Admin (not Device Owner) to make uninstallation harder during an
   active session.
 - Remote unlock (would require a small backend) instead of only local.
-- Named participants in a group pause's block screen/history — currently
-  generic, since the QR/code pairing mode has no live channel to learn
-  names from, and the live-lobby mode doesn't carry them forward past the
-  lobby yet.
 
 ## License
 
