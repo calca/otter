@@ -3,6 +3,7 @@ package com.calmotter.app
 import android.content.Context
 import android.util.Base64
 import androidx.annotation.VisibleForTesting
+import androidx.core.content.edit
 import androidx.security.crypto.EncryptedSharedPreferences
 import androidx.security.crypto.MasterKey
 import java.security.MessageDigest
@@ -53,7 +54,7 @@ class PasswordManager private constructor(context: Context) {
             // blocca l'app per sempre, ben peggio di perdere una password
             // già impostata (chi ha il telefono può comunque reimpostarla
             // dall'onboarding).
-            context.getSharedPreferences(PREFS_FILE_NAME, Context.MODE_PRIVATE).edit().clear().apply()
+            context.getSharedPreferences(PREFS_FILE_NAME, Context.MODE_PRIVATE).edit { clear() }
             openPrefs()
         }
     }
@@ -73,14 +74,14 @@ class PasswordManager private constructor(context: Context) {
     fun setPassword(password: String, partnerName: String? = null) {
         val salt = ByteArray(16).also { SecureRandom().nextBytes(it) }
         val hash = hash(password, salt)
-        val editor = prefs.edit()
-            .putString(KEY_SALT, Base64.encodeToString(salt, Base64.NO_WRAP))
-            .putString(KEY_HASH, Base64.encodeToString(hash, Base64.NO_WRAP))
         val trimmedName = partnerName?.trim()
-        if (!trimmedName.isNullOrEmpty()) {
-            editor.putString(KEY_PARTNER_NAME, trimmedName)
+        prefs.edit {
+            putString(KEY_SALT, Base64.encodeToString(salt, Base64.NO_WRAP))
+            putString(KEY_HASH, Base64.encodeToString(hash, Base64.NO_WRAP))
+            if (!trimmedName.isNullOrEmpty()) {
+                putString(KEY_PARTNER_NAME, trimmedName)
+            }
         }
-        editor.apply()
     }
 
     /** Nome di chi ha impostato la password, o null se non fornito. */
@@ -112,10 +113,10 @@ class PasswordManager private constructor(context: Context) {
         val matches = MessageDigest.isEqual(actual, expected)
 
         val next = LockoutPolicy.afterAttempt(current, matches, now)
-        prefs.edit()
-            .putInt(KEY_FAILED_ATTEMPTS, next.failedAttempts)
-            .putLong(KEY_LOCKOUT_UNTIL, next.lockoutUntilMs)
-            .apply()
+        prefs.edit {
+            putInt(KEY_FAILED_ATTEMPTS, next.failedAttempts)
+            putLong(KEY_LOCKOUT_UNTIL, next.lockoutUntilMs)
+        }
 
         return matches
     }

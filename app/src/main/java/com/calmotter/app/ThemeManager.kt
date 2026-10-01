@@ -2,6 +2,7 @@ package com.calmotter.app
 
 import android.content.Context
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.edit
 
 enum class AppTheme(val key: String) {
     SAGE("sage"),
@@ -44,7 +45,7 @@ object ThemeManager {
 
     fun setTheme(context: Context, theme: AppTheme) {
         context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
-            .edit().putString(KEY, theme.key).apply()
+            .edit { putString(KEY, theme.key) }
     }
 
     /** Applica il tema corretto — da chiamare PRIMA di super.onCreate(). */

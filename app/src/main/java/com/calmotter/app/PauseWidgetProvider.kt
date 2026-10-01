@@ -13,6 +13,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.content.edit
+import androidx.core.graphics.createBitmap
 import androidx.glance.GlanceId
 import androidx.glance.GlanceModifier
 import androidx.glance.Image
@@ -310,7 +312,7 @@ private fun buildRingBitmap(context: Context, sizeDp: Int, strokeDp: Float, frac
     val density = context.resources.displayMetrics.density
     val sizePx = (sizeDp * density).toInt().coerceAtLeast(1)
     val strokePx = strokeDp * density
-    val bitmap = Bitmap.createBitmap(sizePx, sizePx, Bitmap.Config.ARGB_8888)
+    val bitmap = createBitmap(sizePx, sizePx)
     val canvas = Canvas(bitmap)
     val inset = strokePx / 2f
     val rect = RectF(inset, inset, sizePx - inset, sizePx - inset)
@@ -403,7 +405,7 @@ class PauseWidgetProvider : GlanceAppWidgetReceiver() {
         /** Salva la durata appena usata così il widget la riusa al prossimo tap. */
         fun saveLastDuration(context: Context, minutes: Int) {
             context.getSharedPreferences(PREFS_WIDGET, Context.MODE_PRIVATE)
-                .edit().putInt(KEY_LAST_DURATION, minutes).apply()
+                .edit { putInt(KEY_LAST_DURATION, minutes) }
         }
 
         fun getLastDuration(context: Context): Int {

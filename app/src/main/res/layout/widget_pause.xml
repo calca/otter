@@ -4,8 +4,15 @@
     (FrameLayout, LinearLayout, RelativeLayout, TextView, ImageView, Button,
     ProgressBar…). NO MaterialButton, NO ConstraintLayout, NO ViewBinding.
     I colori hardcoded sono intenzionali: i widget non supportano ?attr/.
+
+    `tools:ignore` qui sotto: lint suggerisce di fondere i contenitori e di
+    usare drawable composti, ma sono semplificazioni pensate per layout
+    normali. Su RemoteViews l'albero va lasciato com'è, perché ogni id viene
+    aggiornato per nome da PauseWidgetProvider.
 -->
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:ignore="UselessParent,UseCompoundDrawables"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:padding="8dp">

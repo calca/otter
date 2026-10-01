@@ -1,6 +1,7 @@
 package com.calmotter.app
 
 import android.content.Context
+import androidx.core.content.edit
 
 /**
  * Elenco di pacchetti aggiuntivi, oltre al telefono, che restano accessibili
@@ -16,7 +17,7 @@ class AllowedAppsManager private constructor(context: Context) {
         prefs.getStringSet(KEY_PACKAGES, emptySet()) ?: emptySet()
 
     fun setAllowedPackages(packages: Set<String>) {
-        prefs.edit().putStringSet(KEY_PACKAGES, packages).apply()
+        prefs.edit { putStringSet(KEY_PACKAGES, packages) }
     }
 
     companion object {

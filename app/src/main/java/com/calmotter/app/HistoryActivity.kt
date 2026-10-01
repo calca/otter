@@ -1,5 +1,6 @@
 package com.calmotter.app
 
+import android.annotation.SuppressLint
 import android.content.Intent
 import android.os.Bundle
 import android.view.Menu
@@ -103,6 +104,9 @@ class HistoryActivity : BaseActivity() {
      * e come etichetta per TalkBack, quindi le icone non restano mute per chi
      * non le riconosce o non le vede.
      */
+    // ALWAYS di proposito: sono le due sole azioni della schermata, devono
+    // restare visibili e non finire in un menu a comparsa.
+    @SuppressLint("AlwaysShowAction")
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
         menu.add(0, MENU_EXPORT, 0, getString(R.string.history_export))
             .setIcon(R.drawable.ic_history_download)

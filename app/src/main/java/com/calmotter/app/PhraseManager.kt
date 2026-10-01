@@ -1,7 +1,9 @@
 package com.calmotter.app
 
+import android.annotation.SuppressLint
 import android.content.Context
 import androidx.annotation.VisibleForTesting
+import androidx.core.content.edit
 
 /**
  * Gestisce la preferenza utente "mostra frasi durante la pausa" e la
@@ -16,7 +18,7 @@ class PhraseManager private constructor(private val context: Context) {
     fun isEnabled(): Boolean = prefs.getBoolean(KEY_ENABLED, true) // default: attivo
 
     fun setEnabled(enabled: Boolean) {
-        prefs.edit().putBoolean(KEY_ENABLED, enabled).apply()
+        prefs.edit { putBoolean(KEY_ENABLED, enabled) }
     }
 
     /** Restituisce una frase casuale, o null se le frasi sono disabilitate. */
@@ -31,6 +33,7 @@ class PhraseManager private constructor(private val context: Context) {
         private const val PREFS_NAME = "calm_otter_phrases"
         private const val KEY_ENABLED = "phrases_enabled"
 
+        @SuppressLint("StaticFieldLeak") // tiene applicationContext, vedi getInstance()
         @Volatile private var instance: PhraseManager? = null
 
         fun getInstance(context: Context): PhraseManager =

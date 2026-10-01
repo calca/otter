@@ -7,6 +7,7 @@ import android.content.Context
 import android.content.Intent
 import android.os.Build
 import androidx.annotation.VisibleForTesting
+import androidx.core.content.edit
 
 /**
  * Gestisce lo stato "sessione di pausa attiva/non attiva", la sua durata e,
@@ -71,16 +72,16 @@ class SessionManager private constructor(private val context: Context) {
     ) {
         val now = System.currentTimeMillis()
         val endTime = now + durationMinutes * 60_000L
-        prefs.edit()
-            .putBoolean(KEY_ACTIVE, true)
-            .putLong(KEY_START_TIME, now)
-            .putLong(KEY_END_TIME, endTime)
-            .putInt(KEY_PLANNED_MINUTES, durationMinutes)
-            .putBoolean(KEY_IS_GROUP, isGroupSession)
-            .putString(KEY_COMPANIONS, companions.filter { it.isNotBlank() }.joinToString("\n"))
-            .putInt(KEY_GROUP_TAG, groupTag)
-            .putBoolean(KEY_IS_HOST, isHost)
-            .apply()
+        prefs.edit {
+            putBoolean(KEY_ACTIVE, true)
+            putLong(KEY_START_TIME, now)
+            putLong(KEY_END_TIME, endTime)
+            putInt(KEY_PLANNED_MINUTES, durationMinutes)
+            putBoolean(KEY_IS_GROUP, isGroupSession)
+            putString(KEY_COMPANIONS, companions.filter { it.isNotBlank() }.joinToString("\n"))
+            putInt(KEY_GROUP_TAG, groupTag)
+            putBoolean(KEY_IS_HOST, isHost)
+        }
         captureDndForRestore()
         applyPauseDnd()
         scheduleAutoExpiry(endTime)
@@ -153,20 +154,19 @@ class SessionManager private constructor(private val context: Context) {
             )
         }
 
-        val editor = prefs.edit()
-            .putBoolean(KEY_ACTIVE, false)
-            .remove(KEY_START_TIME)
-            .remove(KEY_PLANNED_MINUTES)
-            .remove(KEY_COMPANIONS)
-            .remove(KEY_GROUP_TAG)
-            .remove(KEY_IS_HOST)
-            .remove(KEY_END_TIME)
-        if (markBackgroundSummary) {
-            editor
-                .putLong(KEY_PENDING_SUMMARY_END, System.currentTimeMillis())
-                .putInt(KEY_PENDING_SUMMARY_MINUTES, effectiveMinutes)
+        prefs.edit {
+            putBoolean(KEY_ACTIVE, false)
+            remove(KEY_START_TIME)
+            remove(KEY_PLANNED_MINUTES)
+            remove(KEY_COMPANIONS)
+            remove(KEY_GROUP_TAG)
+            remove(KEY_IS_HOST)
+            remove(KEY_END_TIME)
+            if (markBackgroundSummary) {
+                putLong(KEY_PENDING_SUMMARY_END, System.currentTimeMillis())
+                putInt(KEY_PENDING_SUMMARY_MINUTES, effectiveMinutes)
+            }
         }
-        editor.apply()
         restoreDnd()
         cancelAutoExpiry()
         SessionForegroundService.stop(context)
@@ -186,10 +186,10 @@ class SessionManager private constructor(private val context: Context) {
         val endTimeMs = prefs.getLong(KEY_PENDING_SUMMARY_END, 0L)
         if (endTimeMs == 0L) return null
         val minutes = prefs.getInt(KEY_PENDING_SUMMARY_MINUTES, 0)
-        prefs.edit()
-            .remove(KEY_PENDING_SUMMARY_END)
-            .remove(KEY_PENDING_SUMMARY_MINUTES)
-            .apply()
+        prefs.edit {
+            remove(KEY_PENDING_SUMMARY_END)
+            remove(KEY_PENDING_SUMMARY_MINUTES)
+        }
         return PendingBackgroundSummary(endTimeMs, minutes)
     }
 
@@ -251,18 +251,18 @@ class SessionManager private constructor(private val context: Context) {
     private fun captureDndForRestore() {
         val nm = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
         if (!nm.isNotificationPolicyAccessGranted) {
-            prefs.edit().putBoolean(KEY_PREV_DND_CAPTURED, false).apply()
+            prefs.edit { putBoolean(KEY_PREV_DND_CAPTURED, false) }
             return
         }
         val policy = nm.notificationPolicy
-        prefs.edit()
-            .putBoolean(KEY_PREV_DND_CAPTURED, true)
-            .putInt(KEY_PREV_FILTER, nm.currentInterruptionFilter)
-            .putInt(KEY_PREV_POLICY_CATEGORIES, policy.priorityCategories)
-            .putInt(KEY_PREV_POLICY_CALL_SENDERS, policy.priorityCallSenders)
-            .putInt(KEY_PREV_POLICY_MESSAGE_SENDERS, policy.priorityMessageSenders)
-            .putInt(KEY_PREV_POLICY_SUPPRESSED_EFFECTS, policy.suppressedVisualEffects)
-            .apply()
+        prefs.edit {
+            putBoolean(KEY_PREV_DND_CAPTURED, true)
+            putInt(KEY_PREV_FILTER, nm.currentInterruptionFilter)
+            putInt(KEY_PREV_POLICY_CATEGORIES, policy.priorityCategories)
+            putInt(KEY_PREV_POLICY_CALL_SENDERS, policy.priorityCallSenders)
+            putInt(KEY_PREV_POLICY_MESSAGE_SENDERS, policy.priorityMessageSenders)
+            putInt(KEY_PREV_POLICY_SUPPRESSED_EFFECTS, policy.suppressedVisualEffects)
+        }
     }
 
     /**
@@ -346,14 +346,14 @@ class SessionManager private constructor(private val context: Context) {
         )
         nm.setInterruptionFilter(prefs.getInt(KEY_PREV_FILTER, NotificationManager.INTERRUPTION_FILTER_ALL))
 
-        prefs.edit()
-            .remove(KEY_PREV_DND_CAPTURED)
-            .remove(KEY_PREV_FILTER)
-            .remove(KEY_PREV_POLICY_CATEGORIES)
-            .remove(KEY_PREV_POLICY_CALL_SENDERS)
-            .remove(KEY_PREV_POLICY_MESSAGE_SENDERS)
-            .remove(KEY_PREV_POLICY_SUPPRESSED_EFFECTS)
-            .apply()
+        prefs.edit {
+            remove(KEY_PREV_DND_CAPTURED)
+            remove(KEY_PREV_FILTER)
+            remove(KEY_PREV_POLICY_CATEGORIES)
+            remove(KEY_PREV_POLICY_CALL_SENDERS)
+            remove(KEY_PREV_POLICY_MESSAGE_SENDERS)
+            remove(KEY_PREV_POLICY_SUPPRESSED_EFFECTS)
+        }
     }
 
     companion object {

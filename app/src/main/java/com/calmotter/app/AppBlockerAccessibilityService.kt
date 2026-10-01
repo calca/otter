@@ -2,6 +2,7 @@ package com.calmotter.app
 
 import android.accessibilityservice.AccessibilityService
 import android.accessibilityservice.AccessibilityServiceInfo
+import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Intent
 import android.graphics.Color
@@ -389,6 +390,9 @@ class AppBlockerAccessibilityService : AccessibilityService() {
          * quando non c'è una sessione attiva, che è il caso comune. */
         private const val EVENT_NOTIFICATION_TIMEOUT_MS = 0L
 
+        // Un servizio è un Context, ma il riferimento viene azzerato in
+        // onDestroy(): non può sopravvivergli.
+        @SuppressLint("StaticFieldLeak")
         @Volatile private var instance: AppBlockerAccessibilityService? = null
 
         /** Chiamato da [BlockOverlayActivity.onResume]: la vera schermata di

@@ -1,8 +1,10 @@
 package com.calmotter.app
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
+import androidx.core.content.edit
 
 /**
  * Memorizza il pacchetto del launcher "vero" del telefono (quello usato
@@ -60,7 +62,7 @@ class LauncherManager private constructor(private val context: Context) {
             .resolveActivity(intent, PackageManager.MATCH_DEFAULT_ONLY)
             ?.activityInfo?.packageName
         if (resolved != null && resolved != context.packageName && resolved !in EXCLUDED_PACKAGES) {
-            prefs.edit().putString(KEY_PACKAGE, resolved).apply()
+            prefs.edit { putString(KEY_PACKAGE, resolved) }
             return
         }
 
@@ -71,7 +73,7 @@ class LauncherManager private constructor(private val context: Context) {
             .firstOrNull { it != context.packageName && it !in EXCLUDED_PACKAGES }
 
         if (detected != null) {
-            prefs.edit().putString(KEY_PACKAGE, detected).apply()
+            prefs.edit { putString(KEY_PACKAGE, detected) }
         }
     }
 
@@ -86,6 +88,7 @@ class LauncherManager private constructor(private val context: Context) {
         // ricerca fresca quando non può fidarsi del valore salvato.
         val EXCLUDED_PACKAGES = setOf("com.android.settings")
 
+        @SuppressLint("StaticFieldLeak") // tiene applicationContext, vedi getInstance()
         @Volatile private var instance: LauncherManager? = null
 
         fun getInstance(context: Context): LauncherManager =

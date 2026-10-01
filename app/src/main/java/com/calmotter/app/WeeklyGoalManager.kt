@@ -2,6 +2,7 @@ package com.calmotter.app
 
 import android.content.Context
 import androidx.annotation.VisibleForTesting
+import androidx.core.content.edit
 
 enum class GoalType { MINUTES, SESSIONS }
 
@@ -28,10 +29,10 @@ class WeeklyGoalManager private constructor(context: Context) {
     }
 
     fun setGoal(goal: WeeklyGoal) {
-        prefs.edit()
-            .putString(KEY_TYPE, goal.type.name)
-            .putInt(KEY_TARGET, goal.target)
-            .apply()
+        prefs.edit {
+            putString(KEY_TYPE, goal.type.name)
+            putInt(KEY_TARGET, goal.target)
+        }
     }
 
     companion object {

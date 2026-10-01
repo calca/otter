@@ -1,11 +1,11 @@
 package com.calmotter.app
 
 import android.content.res.Configuration
-import android.graphics.drawable.ColorDrawable
 import android.os.Build
 import android.os.Bundle
 import android.util.TypedValue
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.graphics.drawable.toDrawable
 import androidx.core.view.WindowInsetsControllerCompat
 
 /**
@@ -58,7 +58,7 @@ abstract class BaseActivity : AppCompatActivity() {
             } else {
                 getColor(typedValue.resourceId)
             }
-            actionBar.setBackgroundDrawable(ColorDrawable(backgroundColor))
+            actionBar.setBackgroundDrawable(backgroundColor.toDrawable())
             actionBar.elevation = 0f
         }
     }

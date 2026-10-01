@@ -297,9 +297,9 @@ fun CalmLinkRow(text: String, onClick: () -> Unit, modifier: Modifier = Modifier
 @Composable
 fun OtterRingIllustration(
     dashed: Boolean,
+    modifier: Modifier = Modifier,
     size: Dp = 160.dp,
     pulsing: Boolean = false,
-    modifier: Modifier = Modifier,
     otter: @Composable () -> Unit,
 ) {
     val ringColor = MaterialTheme.colorScheme.primary
