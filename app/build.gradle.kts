@@ -114,6 +114,17 @@ android {
     testOptions {
         unitTests {
             isIncludeAndroidResources = true
+            // Screenshot test (app/src/test/java/.../screenshots/): con
+            // -Pscreenshots.record=true riscrivono i riferimenti invece di
+            // confrontarli. I riferimenti sono un input dichiarato, così un
+            // riferimento cambiato rimette in esecuzione i test invece di
+            // lasciarli "up-to-date".
+            all { test ->
+                test.systemProperty("screenshots.record", project.findProperty("screenshots.record") ?: "false")
+                test.inputs.files(project.fileTree("src/test/screenshots"))
+                    .withPropertyName("screenshotGoldens")
+                    .optional()
+            }
         }
     }
 }

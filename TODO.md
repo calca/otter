@@ -16,16 +16,16 @@ e senza compagni, ospite, token giusto e sbagliato, NFC assente, scadenza
 naturale, uscita lenta). Resta non provato solo il gesto fisico fra due
 telefoni, che l'emulatore non ha.
 
-## 2. Screenshot test delle schermate principali — **M**
+## 2. ~~Screenshot test delle schermate principali~~ — fatto
 
-Molti commit recenti sono regressioni visive scoperte a occhio: CTA troppo
-brillanti in dark mode, bottone Sblocca invisibile, pillola di durata
-invisibile. Con Roborazzi (o `captureToImage` con Robolectric
-`GraphicsMode.NATIVE`) si avrebbe uno screenshot di riferimento per Home,
-Blocco, Rilascio, lobby e Cronologia, in tutte le palette e in chiaro e
-scuro, con un diff in CI. Vincolo da verificare: Robolectric è fissato a SDK
-35 per Java 17 (vedi CLAUDE.md) e il rendering nativo deve funzionare con
-quella combinazione.
+24 schermate di riferimento in `app/src/test/screenshots/` (Home e blocco
+in tutte le palette e in chiaro/scuro; Cronologia, momento di chiusura,
+pause programmate e Impostazioni in Salvia chiaro/scuro), confrontate a ogni
+`testStableDebugUnitTest`, CI compresa. Nessuna libreria in più: vedi
+`Screenshots.kt`. Da tenere d'occhio: i riferimenti sono registrati su macOS
+e la CI gira su Linux; la tolleranza assorbe l'antialiasing, ma se la prima
+esecuzione in CI fallisse per differenze di piattaforma, l'artefatto
+`screenshot-diffs` lo mostra e i riferimenti vanno registrati dalla CI.
 
 ## 3. ~~Lint: aggiornamento di Gradle~~ — fatto
 

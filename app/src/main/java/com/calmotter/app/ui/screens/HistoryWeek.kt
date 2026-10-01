@@ -64,6 +64,7 @@ internal fun WeekOverviewCard(
     weekSessions: Int,
     weekMinutes: Int,
     onEditGoal: () -> Unit,
+    now: Long = System.currentTimeMillis(),
     modifier: Modifier = Modifier,
 ) {
     Surface(
@@ -101,6 +102,7 @@ internal fun WeekOverviewCard(
             }
 
             WeeklyChart(
+                now = now,
                 data = minutesByDay,
                 modifier = Modifier.padding(top = 8.dp, start = 16.dp, end = 16.dp),
                 // Stessa frase del Text subito sotto (summaryText) — vedi il
@@ -234,10 +236,11 @@ internal fun WeeklyGoalSection(
  * alla vecchia bindWeeklyChart() — pura aritmetica su Calendar, indipendente
  * da Compose.
  */
-internal fun weeklyChartData(sessions: List<SessionRecord>): Triple<IntArray, Int, Int> {
+internal fun weeklyChartData(sessions: List<SessionRecord>, now: Long = System.currentTimeMillis()): Triple<IntArray, Int, Int> {
     val minutesByDay = IntArray(7)
     val sessionsByDay = IntArray(7)
     val today = Calendar.getInstance().apply {
+        timeInMillis = now
         set(Calendar.HOUR_OF_DAY, 0)
         set(Calendar.MINUTE, 0)
         set(Calendar.SECOND, 0)

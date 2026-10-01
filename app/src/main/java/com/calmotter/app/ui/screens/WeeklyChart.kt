@@ -60,7 +60,12 @@ import java.util.Calendar
  * solo da rendere raggiungibile anche da qui.
  */
 @Composable
-fun WeeklyChart(data: IntArray, modifier: Modifier = Modifier, accessibilityLabel: String? = null) {
+fun WeeklyChart(
+    data: IntArray,
+    modifier: Modifier = Modifier,
+    accessibilityLabel: String? = null,
+    now: Long = System.currentTimeMillis(),
+) {
     // I colori del tema si leggono solo in scope @Composable, non dentro la
     // lambda di disegno di Canvas (DrawScope) — vanno quindi catturati qui,
     // prima di entrare in Canvas { ... }.
@@ -156,7 +161,7 @@ fun WeeklyChart(data: IntArray, modifier: Modifier = Modifier, accessibilityLabe
         val maxVal = data.max().coerceAtLeast(1)
 
         // Etichette giorno — calcolate partendo da 6 giorni fa fino a oggi.
-        val cal = Calendar.getInstance()
+        val cal = Calendar.getInstance().apply { timeInMillis = now }
         cal.add(Calendar.DAY_OF_YEAR, -6)
         val dayLabels = Array(barCount) {
             val label = weekdayInitials.getOrElse(cal.get(Calendar.DAY_OF_WEEK) - 1) { "" }

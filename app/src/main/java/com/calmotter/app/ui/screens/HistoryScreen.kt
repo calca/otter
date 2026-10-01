@@ -120,6 +120,9 @@ fun HistoryScreen(
     sessions: List<SessionRecord>,
     goal: WeeklyGoal?,
     onEditGoal: () -> Unit,
+    // "Adesso", di default l'ora vera: fissabile negli screenshot test,
+    // dove "oggi" e la settimana devono restare gli stessi ogni giorno.
+    now: Long = System.currentTimeMillis(),
 ) {
     if (sessions.isEmpty()) {
         EmptyHistory()
@@ -133,8 +136,8 @@ fun HistoryScreen(
     var togetherOnly by remember { mutableStateOf(false) }
     val shown = if (togetherOnly && hasTogether) sessions.filter { it.isGroupSession } else sessions
 
-    val streak = SessionStreak.currentStreakDays(shown)
-    val (minutesByDay, weekSessions, weekMinutes) = weeklyChartData(shown)
+    val streak = SessionStreak.currentStreakDays(shown, now)
+    val (minutesByDay, weekSessions, weekMinutes) = weeklyChartData(shown, now)
 
     val summaryText = if (weekSessions == 0) {
         stringResource(R.string.weekly_summary_none)
@@ -170,12 +173,14 @@ fun HistoryScreen(
             weekSessions = weekSessions,
             weekMinutes = weekMinutes,
             onEditGoal = onEditGoal,
+            now = now,
             modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp)
         )
 
         if (hasTogether) {
             TogetherCard(
                 sessions = sessions,
+                now = now,
                 modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
             )
         }
@@ -195,7 +200,7 @@ fun HistoryScreen(
         // giorno la lista intera diventava lunga e lenta da comporre; le
         // statistiche qui sopra contano comunque tutto.
         var extraMonths by remember(togetherOnly) { mutableIntStateOf(0) }
-        val view = remember(shown, extraMonths) { historyMonths(shown, System.currentTimeMillis(), extraMonths) }
+        val view = remember(shown, extraMonths) { historyMonths(shown, now, extraMonths) }
         val locale = LocalConfiguration.current.locales[0]
         val monthFormat = remember(locale) { DateTimeFormatter.ofPattern("LLLL yyyy", locale) }
         view.months.forEach { group ->

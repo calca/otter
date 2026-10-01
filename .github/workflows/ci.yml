@@ -67,6 +67,18 @@ jobs:
       - name: Unit tests
         run: ./gradlew testStableDebugUnitTest testBetaDebugUnitTest --stacktrace
 
+      # Gli screenshot test (app/src/test/.../screenshots/) girano con i test
+      # unitari. Se una schermata diverge dal riferimento, qui finiscono
+      # l'immagine attuale e la mappa delle differenze, da scaricare e
+      # guardare prima di decidere se è una regressione o un cambio voluto.
+      - name: Upload screenshot diffs
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: screenshot-diffs
+          path: app/build/screenshots/
+          if-no-files-found: ignore
+
       - name: Assemble debug APKs
         run: ./gradlew assembleDebug --stacktrace
 

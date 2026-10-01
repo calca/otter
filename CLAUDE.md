@@ -85,6 +85,15 @@ still alpha. Robolectric is pinned to run its own SDK shadow at 35
 targetSdk 37, because Robolectric's SDK-36+ shadows require Java 21 and
 this project builds with Java 17.
 
+**Screenshot tests** (`app/src/test/java/.../screenshots/`) render the main
+screens under Robolectric and compare them with the reference images in
+`app/src/test/screenshots/`; they run with the unit tests. After an
+intentional visual change, re-record with
+`./gradlew testStableDebugUnitTest --tests "*ScreenshotTest*" -Pscreenshots.record=true`
+and commit the new images together with the change. On a failure the actual
+image and a diff map are written to `app/build/screenshots/` (uploaded as
+the `screenshot-diffs` artifact in CI).
+
 ## Architecture
 
 **UI is 100% Jetpack Compose.** Every screen is an `Activity` (in

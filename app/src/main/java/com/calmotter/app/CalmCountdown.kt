@@ -1,6 +1,8 @@
 package com.calmotter.app
 
 import android.content.Context
+import androidx.annotation.VisibleForTesting
+import kotlin.random.Random
 
 /**
  * Trasforma i millisecondi rimanenti in una frase rilassante, senza
@@ -19,6 +21,10 @@ import android.content.Context
  */
 object CalmCountdown {
 
+    /** Sorgente della scelta delle frasi; fissabile negli screenshot test. */
+    @VisibleForTesting
+    internal var random: Random = Random.Default
+
     /** Cadenza di aggiornamento del testo: circa una volta al minuto. */
     const val TICK_MILLIS = 60_000L
 
@@ -35,14 +41,14 @@ object CalmCountdown {
         val totalMinutes = (remainingMillis / 60_000L).toInt()
 
         if (totalMinutes < 5) {
-            return context.resources.getStringArray(R.array.calm_countdown_near_end_phrases).random()
+            return context.resources.getStringArray(R.array.calm_countdown_near_end_phrases).random(random)
         }
 
         // Arrotonda al multiplo di 5 più vicino (sempre per difetto, mai sopravvalore)
         val rounded = (totalMinutes / 5) * 5
 
         return context.resources.getStringArray(R.array.calm_countdown_template_phrases)
-            .random()
+            .random(random)
             .format(rounded)
     }
 }

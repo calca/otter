@@ -49,10 +49,11 @@ internal fun HistoryFilterRow(togetherOnly: Boolean, onChange: (Boolean) -> Unit
  * punteggio.
  */
 @Composable
-internal fun TogetherCard(sessions: List<SessionRecord>, modifier: Modifier = Modifier) {
+internal fun TogetherCard(sessions: List<SessionRecord>, modifier: Modifier = Modifier, now: Long = System.currentTimeMillis()) {
     var allTime by remember { mutableStateOf(false) }
     val monthStart = remember {
         Calendar.getInstance().apply {
+            timeInMillis = now
             set(Calendar.DAY_OF_MONTH, 1)
             set(Calendar.HOUR_OF_DAY, 0); set(Calendar.MINUTE, 0)
             set(Calendar.SECOND, 0); set(Calendar.MILLISECOND, 0)
