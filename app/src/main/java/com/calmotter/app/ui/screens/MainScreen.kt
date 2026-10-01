@@ -575,7 +575,7 @@ private fun DurationChipRow(selectedMinutes: Int, onSelect: (Int) -> Unit) {
  * pillola resterebbe permanentemente più tenue delle altre anche a fine
  * corsa — che si legge come un difetto grafico, non come un indizio.
  */
-private fun Modifier.horizontalFadeEdge(visible: Boolean, width: Dp = 24.dp): Modifier = if (!visible) {
+internal fun Modifier.horizontalFadeEdge(visible: Boolean, width: Dp = 24.dp): Modifier = if (!visible) {
     this
 } else {
     this

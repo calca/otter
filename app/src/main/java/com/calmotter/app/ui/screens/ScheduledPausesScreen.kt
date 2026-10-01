@@ -1,16 +1,17 @@
 package com.calmotter.app.ui.screens
 
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
-import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawingPadding
+import androidx.compose.foundation.relocation.BringIntoViewRequester
+import androidx.compose.foundation.relocation.bringIntoViewRequester
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
@@ -25,6 +26,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.TimePicker
 import androidx.compose.material3.rememberTimePickerState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -140,7 +142,7 @@ fun ScheduledPausesScreen(
     }
 }
 
-@OptIn(ExperimentalLayoutApi::class, ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun ScheduleEditorDialog(
     original: ScheduledPause,
@@ -164,7 +166,7 @@ private fun ScheduleEditorDialog(
         text = {
             Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
                 SetupLabel(stringResource(R.string.schedule_days_label))
-                FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                ScrollingPillRow {
                     DayOfWeek.entries.forEach { day ->
                         val bit = 1 shl (day.value - 1)
                         CalmPill(
@@ -180,16 +182,26 @@ private fun ScheduleEditorDialog(
                     Text(timeLabel(minute), fontSize = 28.sp, fontWeight = FontWeight.SemiBold)
                 }
                 SetupLabel(stringResource(R.string.schedule_duration_label), topPadding = 8.dp)
-                FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                ScrollingPillRow { selectedInView ->
                     SESSION_DURATION_OPTIONS.forEach { option ->
-                        CalmPill(size = CalmPillSize.Small, label = durationPillLabel(option), selected = option == duration) { duration = option }
+                        CalmPill(
+                            size = CalmPillSize.Small,
+                            label = durationPillLabel(option),
+                            selected = option == duration,
+                            modifier = if (option == duration) selectedInView else Modifier,
+                        ) { duration = option }
                     }
                 }
                 if (profiles.size > 1) {
                     SetupLabel(stringResource(R.string.schedule_profile_label), topPadding = 16.dp)
-                    FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                    ScrollingPillRow { selectedInView ->
                         profiles.forEach { profile ->
-                            CalmPill(size = CalmPillSize.Small, label = profile.name, selected = profile.id == profileId) { profileId = profile.id }
+                            CalmPill(
+                                size = CalmPillSize.Small,
+                                label = profile.name,
+                                selected = profile.id == profileId,
+                                modifier = if (profile.id == profileId) selectedInView else Modifier,
+                            ) { profileId = profile.id }
                         }
                     }
                 }
@@ -253,3 +265,28 @@ private fun daysLabel(days: Int, locale: Locale): String = when (days) {
         .filter { days and (1 shl (it.value - 1)) != 0 }
         .joinToString(", ") { it.getDisplayName(TextStyle.SHORT, locale) }
 }
+
+/**
+ * Una riga di pillole che scorre in orizzontale invece di andare a capo,
+ * come le durate in Home: stesso gesto ovunque si scelga una durata, e il
+ * dialogo non si allunga su più righe. Il bordo destro sfuma finché c'è
+ * altro da scorrere. [content] riceve il modifier da dare alla pillola
+ * scelta, che all'apertura viene portata in vista (una durata come "4 h"
+ * starebbe altrimenti fuori schermo).
+ */
+@Composable
+private fun ScrollingPillRow(content: @Composable (selectedInView: Modifier) -> Unit) {
+    val scrollState = rememberScrollState()
+    val requester = remember { BringIntoViewRequester() }
+    LaunchedEffect(Unit) { requester.bringIntoView() }
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .horizontalScroll(scrollState)
+            .horizontalFadeEdge(visible = scrollState.canScrollForward),
+        horizontalArrangement = Arrangement.spacedBy(6.dp),
+    ) {
+        content(Modifier.bringIntoViewRequester(requester))
+    }
+}
+
