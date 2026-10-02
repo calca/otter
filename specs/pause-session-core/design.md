@@ -204,3 +204,15 @@ callers still pass the elapsed fraction. Track in `primary` 14% instead of
 grey `onSurface`, stroke 6 dp instead of 4 (and `RingReleaseBurst`, which
 replaces it on unlock, matches).
 
+## Remaining time in hours, not "235 minutes"
+
+Reported: a 4-hour pause said "235 minutes of calm". `CalmCountdown` rounded
+down to a multiple of 5 but always spoke in minutes. Now: under 5 minutes
+the near-end phrases (unchanged); under an hour, minutes rounded down to 5
+("55 minutes"); from an hour on, hours and minutes rounded down to the
+quarter hour ("3 hours 45 minutes", "4 hours"). The template phrases take
+the duration as text (`%1$s`), built from the `countdown_minutes` /
+`countdown_hours` plurals and `countdown_hours_minutes` ("3 ore e 45
+minuti" in Italian). Same text in the block screen and the ongoing
+notification. Always rounded down: never more time than is left.
+

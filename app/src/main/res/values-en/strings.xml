@@ -52,12 +52,21 @@
         <item>One last moment of calm</item>
     </string-array>
     <string-array name="calm_countdown_template_phrases">
-        <item>About %1$d minutes left</item>
-        <item>You still have %1$d minutes for yourself</item>
-        <item>Still %1$d minutes of quiet</item>
-        <item>Enjoy %1$d more minutes</item>
-        <item>%1$d minutes of calm</item>
+        <item>About %1$s left</item>
+        <item>You still have %1$s for yourself</item>
+        <item>Still %1$s of quiet</item>
+        <item>Enjoy %1$s more</item>
+        <item>%1$s of calm</item>
     </string-array>
+    <plurals name="countdown_minutes">
+        <item quantity="one">%1$d minute</item>
+        <item quantity="other">%1$d minutes</item>
+    </plurals>
+    <plurals name="countdown_hours">
+        <item quantity="one">%1$d hour</item>
+        <item quantity="other">%1$d hours</item>
+    </plurals>
+    <string name="countdown_hours_minutes">%1$s %2$s</string>
     <string-array name="notification_encouragement_phrases">
         <item>A moment for you</item>
         <item>The phone can wait</item>

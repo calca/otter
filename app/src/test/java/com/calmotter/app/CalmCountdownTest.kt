@@ -43,27 +43,28 @@ class CalmCountdownTest {
     }
 
     @Test
-    fun fiveMinutesOrMoreContainsRoundedDownMinutesAsSubstring() {
-        // 47 minuti -> arrotondato per difetto al multiplo di 5 più vicino -> 45
-        assertContainsRoundedMinutes(47, 45)
-        // Esattamente 5 minuti -> resta 5
-        assertContainsRoundedMinutes(5, 5)
-        // 59 minuti -> 55
-        assertContainsRoundedMinutes(59, 55)
-        // 300 minuti -> 300 (già multiplo di 5)
-        assertContainsRoundedMinutes(300, 300)
-        // 61 minuti -> 60
-        assertContainsRoundedMinutes(61, 60)
+    fun underAnHourContainsTheMinutesRoundedDownToFive() {
+        assertContainsInEveryPhrase(47, "45 minutes")
+        assertContainsInEveryPhrase(5, "5 minutes")
+        assertContainsInEveryPhrase(59, "55 minutes")
     }
 
-    private fun assertContainsRoundedMinutes(totalMinutes: Int, expectedRounded: Int) {
+    /** Segnalato: una pausa di 4 ore diceva "235 minutes of calm". */
+    @Test
+    fun anHourOrMoreIsSaidInHoursRoundedDownToTheQuarter() {
+        assertContainsInEveryPhrase(235, "3 hours 45 minutes")
+        assertContainsInEveryPhrase(240, "4 hours")
+        assertContainsInEveryPhrase(61, "1 hour")
+        assertContainsInEveryPhrase(89, "1 hour 15 minutes")
+        val fourHours = CalmCountdown.durationText(240, context)
+        assertFalse("no minutes on an exact hour: $fourHours", fourHours.contains("minute"))
+    }
+
+    private fun assertContainsInEveryPhrase(totalMinutes: Int, expected: String) {
         val remainingMillis = totalMinutes * 60_000L
         repeat(10) {
             val result = CalmCountdown.format(remainingMillis, context)
-            assertTrue(
-                "expected '$expectedRounded' as substring of: $result",
-                result.contains(expectedRounded.toString())
-            )
+            assertTrue("expected '$expected' in: $result", result.contains(expected))
         }
     }
 

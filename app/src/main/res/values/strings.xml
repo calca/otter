@@ -52,12 +52,21 @@
         <item>Un ultimo momento di calma</item>
     </string-array>
     <string-array name="calm_countdown_template_phrases">
-        <item>Ancora circa %1$d minuti</item>
-        <item>Hai ancora %1$d minuti per te</item>
-        <item>Ancora %1$d minuti di quiete</item>
-        <item>Goditi ancora %1$d minuti</item>
-        <item>%1$d minuti di calma</item>
+        <item>Ancora circa %1$s</item>
+        <item>Hai ancora %1$s per te</item>
+        <item>Ancora %1$s di quiete</item>
+        <item>Goditi ancora %1$s</item>
+        <item>%1$s di calma</item>
     </string-array>
+    <plurals name="countdown_minutes">
+        <item quantity="one">%1$d minuto</item>
+        <item quantity="other">%1$d minuti</item>
+    </plurals>
+    <plurals name="countdown_hours">
+        <item quantity="one">%1$d ora</item>
+        <item quantity="other">%1$d ore</item>
+    </plurals>
+    <string name="countdown_hours_minutes">%1$s e %2$s</string>
     <!-- Sottotitolo della notifica di sessione attiva (SessionForegroundService) —
          prima una lista Kotlin hardcoded, solo in italiano a prescindere dalla
          lingua del dispositivo (bug reale: l'unico testo dell'app rimasto fuori

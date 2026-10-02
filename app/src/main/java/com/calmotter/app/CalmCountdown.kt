@@ -9,8 +9,12 @@ import kotlin.random.Random
  * mostrare mai il conto alla rovescia esatto che genera ansia.
  *
  * - Sotto i 5 minuti: frasi che segnalano imminente fine senza urgenza
- * - Da 5 minuti in su: tempo arrotondato al multiplo di 5 più vicino,
- *   con frasi variate per evitare che la schermata sembri un timer.
+ * - Da 5 minuti a un'ora: minuti arrotondati per difetto al multiplo di 5
+ * - Da un'ora in su: ore e minuti arrotondati per difetto al quarto d'ora
+ *   ("3 ore e 45 minuti", "4 ore"). Prima restava tutto in minuti, e una
+ *   pausa di 4 ore diceva "235 minuti di calma" — segnalato.
+ * Frasi variate per evitare che la schermata sembri un timer; per difetto,
+ * mai più tempo di quello che resta.
  *
  * Le frasi vivono in `R.array.calm_countdown_near_end_phrases`/
  * `calm_countdown_template_phrases` (non più letterali Kotlin hardcoded
@@ -44,11 +48,28 @@ object CalmCountdown {
             return context.resources.getStringArray(R.array.calm_countdown_near_end_phrases).random(random)
         }
 
-        // Arrotonda al multiplo di 5 più vicino (sempre per difetto, mai sopravvalore)
-        val rounded = (totalMinutes / 5) * 5
-
         return context.resources.getStringArray(R.array.calm_countdown_template_phrases)
             .random(random)
-            .format(rounded)
+            .format(durationText(totalMinutes, context))
+    }
+
+    /** "55 minuti", "1 ora", "3 ore e 45 minuti": vedi la doc dell'oggetto per gli arrotondamenti. */
+    @VisibleForTesting
+    internal fun durationText(totalMinutes: Int, context: Context): String {
+        val res = context.resources
+        if (totalMinutes < 60) {
+            val rounded = (totalMinutes / 5) * 5
+            return res.getQuantityString(R.plurals.countdown_minutes, rounded, rounded)
+        }
+        val rounded = (totalMinutes / 15) * 15
+        val hours = rounded / 60
+        val minutes = rounded % 60
+        val hoursText = res.getQuantityString(R.plurals.countdown_hours, hours, hours)
+        if (minutes == 0) return hoursText
+        return res.getString(
+            R.string.countdown_hours_minutes,
+            hoursText,
+            res.getQuantityString(R.plurals.countdown_minutes, minutes, minutes),
+        )
     }
 }
