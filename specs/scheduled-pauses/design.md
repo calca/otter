@@ -90,12 +90,15 @@ laid out like Android's alarm editor:
   `primary`/`tertiary` — the defaults use roles the palettes don't set.
 - "Days": seven toggleable circles on one row (read by full day name).
 - "Duration" and, with 2+ profiles, "Allowed apps": regular `CalmPill`s in
-  a horizontally scrolling row; the selected one is scrolled into view by
-  moving only the row (a `bringIntoView` would scroll the page too).
+  a horizontally scrolling row. The row scrolls only if the selected pill
+  isn't fully visible, and then centres it, moving only the row (a
+  `bringIntoView` would scroll the page too; always scrolling to it left
+  the first pill cut in half).
 - Field labels are small, left-aligned, sentence case — references, not
   headings.
-- "Skip the next one" as a text button at the end of the content (existing,
-  enabled schedules only).
+- An options card in the Settings style (tinted round icon, divider):
+  "Protected by password" with its switch and, for an existing enabled
+  schedule, "Skip the next one".
 - **Save pinned to the bottom**, outside the scroll (project design rule,
   see CLAUDE.md). **Delete** is a trash icon in the ActionBar, only for an
   existing schedule — away from Save, as in the Clock app.

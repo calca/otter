@@ -10,7 +10,6 @@ import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.layout.size
@@ -20,7 +19,9 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Lock
+import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material3.Button
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
@@ -52,7 +53,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.positionInParent
 import androidx.compose.ui.platform.LocalConfiguration
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
@@ -256,38 +256,66 @@ fun ScheduleEditorScreen(
                 }
             }
 
-            // Spenta di default: la pausa è di chi l'ha messa. Accesa è un
-            // patto con la persona di fiducia (la password la chiede
-            // l'Activity al salvataggio, non qui).
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = 28.dp)
-                    .clickable { locked = !locked },
+            // Le opzioni della pausa in una card come quelle di Impostazioni:
+            // la protezione (spenta di default: la pausa è di chi l'ha messa;
+            // accesa è un patto, e la password la chiede l'Activity al
+            // salvataggio) e, per una pausa che esiste ed è accesa, "Salta la
+            // prossima". Prima erano un interruttore e un link sciolti.
+            Surface(
+                shape = RoundedCornerShape(20.dp),
+                color = MaterialTheme.colorScheme.primary.copy(alpha = 0.06f),
+                modifier = Modifier.fillMaxWidth().padding(top = 32.dp),
             ) {
-                Icon(
-                    Icons.Filled.Lock,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.size(20.dp),
-                )
-                Column(modifier = Modifier.weight(1f).padding(horizontal = 12.dp)) {
-                    Text(stringResource(R.string.schedule_locked_label), style = MaterialTheme.typography.titleSmall)
-                    Text(
-                        text = stringResource(R.string.schedule_locked_hint),
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.65f),
-                    )
-                }
-                Switch(checked = locked, onCheckedChange = { locked = it }, colors = settingsSwitchColors())
-            }
-
-            if (!isNew && original.enabled) {
-                // Spostato a sinistra del padding interno del TextButton: così
-                // il testo si allinea alle etichette dei campi sopra.
-                TextButton(onClick = onSkipNext, modifier = Modifier.padding(top = 20.dp).offset(x = (-12).dp)) {
-                    Text(stringResource(R.string.schedule_skip_next))
+                Column(modifier = Modifier.padding(horizontal = 16.dp)) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable { locked = !locked }
+                            .padding(vertical = 12.dp),
+                    ) {
+                        SettingsRowIcon {
+                            Icon(
+                                Icons.Filled.Lock,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.primary,
+                                modifier = Modifier.size(18.dp),
+                            )
+                        }
+                        Column(modifier = Modifier.weight(1f).padding(end = 12.dp)) {
+                            Text(stringResource(R.string.schedule_locked_label), color = MaterialTheme.colorScheme.onSurface)
+                            Text(
+                                text = stringResource(R.string.schedule_locked_hint),
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.65f),
+                            )
+                        }
+                        Switch(checked = locked, onCheckedChange = { locked = it }, colors = settingsSwitchColors())
+                    }
+                    if (!isNew && original.enabled) {
+                        HorizontalDivider(color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.08f))
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clickable(onClick = onSkipNext)
+                                .padding(vertical = 12.dp),
+                        ) {
+                            SettingsRowIcon {
+                                Icon(
+                                    Icons.AutoMirrored.Filled.ArrowForward,
+                                    contentDescription = null,
+                                    tint = MaterialTheme.colorScheme.primary,
+                                    modifier = Modifier.size(18.dp),
+                                )
+                            }
+                            Text(
+                                text = stringResource(R.string.schedule_skip_next),
+                                color = MaterialTheme.colorScheme.onSurface,
+                                modifier = Modifier.weight(1f),
+                            )
+                        }
+                    }
                 }
             }
         }
@@ -499,10 +527,16 @@ internal fun compactDays(days: Int, name: (DayOfWeek) -> String): String {
 @Composable
 private fun ScrollingPillRow(content: @Composable (selectedInView: Modifier) -> Unit) {
     val scrollState = rememberScrollState()
-    var selectedX by remember { mutableStateOf<Int?>(null) }
-    val margin = with(LocalDensity.current) { 48.dp.roundToPx() }
-    LaunchedEffect(selectedX) {
-        selectedX?.let { scrollState.scrollTo((it - margin).coerceAtLeast(0)) }
+    var selected by remember { mutableStateOf<IntRange?>(null) }
+    LaunchedEffect(selected, scrollState.viewportSize) {
+        val range = selected ?: return@LaunchedEffect
+        val viewport = scrollState.viewportSize
+        // Si scorre solo se la pillola scelta non si vede tutta, e allora la
+        // si porta al centro: prima la riga scorreva sempre fino a lei, e
+        // con "1 h" la prima pillola restava tagliata a metà ("…min").
+        if (viewport > 0 && range.last > viewport) {
+            scrollState.scrollTo((range.first - (viewport - (range.last - range.first)) / 2).coerceAtLeast(0))
+        }
     }
     Row(
         modifier = Modifier
@@ -511,6 +545,13 @@ private fun ScrollingPillRow(content: @Composable (selectedInView: Modifier) -> 
             .horizontalFadeEdge(visible = scrollState.canScrollForward),
         horizontalArrangement = Arrangement.spacedBy(6.dp),
     ) {
-        content(Modifier.onGloballyPositioned { if (selectedX == null) selectedX = it.positionInParent().x.toInt() })
+        content(
+            Modifier.onGloballyPositioned {
+                if (selected == null) {
+                    val x = it.positionInParent().x.toInt()
+                    selected = x..(x + it.size.width)
+                }
+            }
+        )
     }
 }
