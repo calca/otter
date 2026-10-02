@@ -344,9 +344,28 @@ private fun daysLabel(days: Int, locale: Locale): String = when (days) {
     ALL_DAYS -> stringResource(R.string.schedule_every_day)
     WEEKDAYS -> stringResource(R.string.schedule_weekdays)
     WEEKEND -> stringResource(R.string.schedule_weekend)
-    else -> DayOfWeek.entries
-        .filter { days and (1 shl (it.value - 1)) != 0 }
-        .joinToString(", ") { it.getDisplayName(TextStyle.SHORT, locale) }
+    else -> compactDays(days) { day ->
+        day.getDisplayName(TextStyle.SHORT, locale).trimEnd('.').replaceFirstChar { it.titlecase(locale) }
+    }
+}
+
+/**
+ * I giorni scelti, con i tratti di tre o più giorni consecutivi compattati
+ * in un intervallo: "Lun–Sab", "Lun–Mer, Ven", "Mar, Gio". Due giorni di
+ * fila restano separati ("Sab, Dom" si legge meglio di "Sab–Dom" quando
+ * non è la scorciatoia del weekend, che ha già la sua etichetta). La
+ * settimana parte dal lunedì e non si richiude sulla domenica.
+ */
+internal fun compactDays(days: Int, name: (DayOfWeek) -> String): String {
+    val chosen = DayOfWeek.entries.filter { days and (1 shl (it.value - 1)) != 0 }
+    val runs = mutableListOf<MutableList<DayOfWeek>>()
+    chosen.forEach { day ->
+        val last = runs.lastOrNull()
+        if (last != null && last.last().value + 1 == day.value) last += day else runs += mutableListOf(day)
+    }
+    return runs.joinToString(", ") { run ->
+        if (run.size >= 3) "${name(run.first())}–${name(run.last())}" else run.joinToString(", ") { name(it) }
+    }
 }
 
 /**
