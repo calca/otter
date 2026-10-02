@@ -18,7 +18,6 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalLocale
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.calmotter.app.R
@@ -107,14 +106,15 @@ internal fun SessionsSummaryLink(
             } else {
                 weeklySummaryText(weekSummary)
             },
-            style = MaterialTheme.typography.labelMedium,
-            fontFamily = FontFamily.Monospace,
+            // Stesso carattere di "Consentite: Standard ›" subito sopra: era
+            // monospaziato, l'unico testo dell'app in quel font (review UI).
+            style = MaterialTheme.typography.bodyMedium,
             fontWeight = FontWeight.Medium,
             color = linkColor,
         )
         Text(
             text = "›",
-            style = MaterialTheme.typography.labelMedium,
+            style = MaterialTheme.typography.bodyMedium,
             fontWeight = FontWeight.Medium,
             color = linkColor,
             modifier = Modifier.padding(start = 6.dp),
