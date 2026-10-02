@@ -45,3 +45,11 @@ cheap and keeps the history on the devices already in use.
 1. **Le tre risposte:** parole (Calma / Normale / Faticosa).
 2. **Pause di gruppo:** sì, uguale.
 3. **Nota:** 30 caratteri, una riga in Cronologia senza troncamenti.
+
+## Buttons pinned to the bottom (UI review)
+
+"Skip" and "Done" sat mid-page under the note field, with half the page
+empty below. The question, the mood pills and the note are now centred in
+the space above, and the two buttons pinned to the bottom (CTA rule in
+CLAUDE.md), as in the Time together lobby.
+
