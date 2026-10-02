@@ -12,9 +12,9 @@
     <string name="permission_action_grant">Concedi</string>
     <string name="permission_action_done">Fatto</string>
     <string name="home_permission_dialog_title">Permessi necessari</string>
-    <string name="home_launcher_chooser_title">Scegli il launcher da usare</string>
+    <string name="home_launcher_chooser_title">Scegli la tua app Home</string>
     <string name="settings_home_forward_hint">Se il tuo launcher mostra un avviso "impostalo come predefinito", puoi ignorarlo: Calm Otter deve restare l\'app Home per bloccare il tasto Home durante le pause.</string>
-    <string name="permission_reason_accessibility">Accessibilità — per rilevare quale app è aperta e mostrare la schermata di blocco.</string>
+    <string name="permission_reason_accessibility">Accessibilità — per sapere quale app è aperta e mostrare la schermata della pausa.</string>
     <string name="permission_reason_dnd">Non disturbare — per silenziare le notifiche durante la pausa, lasciando passare chiamate, sveglie e musica.</string>
     <string name="close">Chiudi</string>
     <string name="settings_info_label">Info</string>
@@ -82,39 +82,39 @@
     </string-array>
     <string name="hint_unlock_password">Password</string>
     <string name="unlock">Sblocca</string>
-    <string name="wrong_password">Password errata</string>
+    <string name="wrong_password">Password non corretta</string>
     <plurals name="password_locked_out">
         <item quantity="one">Troppi tentativi errati. Riprova tra %1$d secondo.</item>
         <item quantity="other">Troppi tentativi errati. Riprova tra %1$d secondi.</item>
     </plurals>
 
-    <string name="accessibility_service_description">Permette a PauseLock di rilevare quale app è in primo piano per applicare il blocco durante le sessioni di pausa.</string>
+    <string name="accessibility_service_description">Permette a Calm Otter di sapere quale app è in primo piano, per coprirla con la schermata della pausa.</string>
 
     <string name="theme_sage">Salvia</string>
     <string name="theme_dusk_sand">Sabbia al tramonto</string>
     <string name="theme_dawn_clay">Argilla all’alba</string>
     <string name="theme_still_water">Acqua ferma</string>
 
-    <string name="notification_channel_name">Sessione in corso</string>
-    <string name="notification_channel_description">Mostra lo stato della sessione di pausa attiva</string>
+    <string name="notification_channel_name">Pausa in corso</string>
+    <string name="notification_channel_description">Mostra lo stato della pausa in corso</string>
 
     <string name="history_tab_overview">Riepilogo</string>
-    <string name="history_tab_sessions">Sessioni</string>
+    <string name="history_tab_sessions">Pause</string>
     <!-- Riga streak/settimana in Home, per una sola apertura: la pausa
          precedente è finita mentre il telefono era chiuso, senza che nessuno
          schermo di fine pausa fosse lì a raccontarlo dal vivo. %1$s è l'ora
          (es. "14:32"), %2$s la durata effettiva (es. "1h 5m"). -->
     <string name="home_pending_summary">Pausa finita alle %1$s (%2$s)</string>
-    <string name="weekly_summary_none">Nessuna sessione questa settimana</string>
+    <string name="weekly_summary_none">Nessuna pausa questa settimana</string>
     <!-- quantity="one" ignora %1$d apposta: è sempre "1", quindi il numero
          non serve scriverlo. -->
     <plurals name="weekly_summary_sessions">
-        <item quantity="one">1 sessione questa settimana · %2$s</item>
-        <item quantity="other">%1$d sessioni questa settimana · %2$s</item>
+        <item quantity="one">1 pausa questa settimana · %2$s</item>
+        <item quantity="other">%1$d pause questa settimana · %2$s</item>
     </plurals>
 
     <string name="history_title">Cronologia</string>
-    <string name="history_empty">Nessuna sessione ancora</string>
+    <string name="history_empty">Nessuna pausa ancora</string>
     <!-- Stato vuoto della cronologia: una di queste compare sotto l'otter,
          scelta a caso a ogni apertura della schermata. Deliberatamente
          separate da pause_phrases: quelle l'utente può disattivarle dalle
@@ -122,14 +122,14 @@
          resterebbe con un buco al posto del testo. -->
     <string-array name="history_empty_phrases">
         <item>Qui comparirà il tempo che ti sei ripreso. Inizia quando vuoi.</item>
-        <item>Nessuna sessione è anche un buon punto di partenza.</item>
+        <item>Nessuna pausa, per ora: anche questo è un buon punto di partenza.</item>
         <item>La prima pausa è la più difficile. Le altre vengono da sole.</item>
     </string-array>
     <string name="history_clear">Svuota cronologia</string>
     <string name="history_clear_confirm">Vuoi eliminare tutta la cronologia? L\'operazione non è reversibile.</string>
-    <string name="history_item_natural">Completata naturalmente</string>
-    <string name="history_item_early">Interrotta — pianificata %1$d min</string>
-    <string name="stat_sessions">sessioni</string>
+    <string name="history_item_natural">Arrivata in fondo</string>
+    <string name="history_item_early">Chiusa prima — prevista %1$d min</string>
+    <string name="stat_sessions">pause</string>
     <string name="stat_minutes">tempo totale</string>
     <string name="stat_completed">completate</string>
     <string name="stat_completed_fraction">%1$d / %2$d</string>
@@ -143,14 +143,14 @@
     <string name="weekly_goal_set_button">Imposta obiettivo</string>
     <string name="weekly_goal_edit_button">Modifica obiettivo</string>
     <string name="weekly_goal_dialog_title">Obiettivo settimanale</string>
-    <string name="weekly_goal_type_sessions">Sessioni</string>
+    <string name="weekly_goal_type_sessions">Pause</string>
     <string name="weekly_goal_type_minutes">Minuti</string>
     <!-- quantity scelta su %2$d (l'obiettivo), non %1$d: è quello che
          concorda con "sessioni"/"minuti" grammaticalmente ("1 di 1
          sessione", non "1 di 1 sessioni"). -->
     <plurals name="weekly_goal_progress_sessions">
-        <item quantity="one">%1$d di %2$d sessione questa settimana</item>
-        <item quantity="other">%1$d di %2$d sessioni questa settimana</item>
+        <item quantity="one">%1$d di %2$d pausa questa settimana</item>
+        <item quantity="other">%1$d di %2$d pause questa settimana</item>
     </plurals>
     <plurals name="weekly_goal_progress_minutes">
         <item quantity="one">%1$d di %2$d minuto questa settimana</item>
@@ -158,7 +158,7 @@
     </plurals>
 
     <string name="history_export">Esporta cronologia</string>
-    <string name="history_export_empty">Nessuna sessione da esportare</string>
+    <string name="history_export_empty">Nessuna pausa da esportare</string>
 
     <string name="manage_allowed_apps">Gestisci app consentite</string>
     <string name="change_password">Cambia password</string>
@@ -166,13 +166,13 @@
     <string name="change_password_info">Solo chi conosce la password attuale può impostarne una nuova.</string>
     <string name="change_password_confirm">Salva nuova password</string>
     <string name="hint_current_password">Password attuale</string>
-    <string name="wrong_current_password">Password attuale errata</string>
+    <string name="wrong_current_password">Password attuale non corretta</string>
     <string name="password_changed">Password aggiornata</string>
     <string name="phrases_toggle_label">Mostra frasi durante la pausa</string>
     <string name="manage_allowed_apps_password_prompt">Inserisci la password per modificare l\'elenco</string>
     <string name="confirm">Conferma</string>
     <string name="allowed_apps_title">App consentite durante la pausa</string>
-    <string name="allowed_apps_intro">Le app selezionate resteranno utilizzabili durante una sessione. Le consentite appaiono in cima.</string>
+    <string name="allowed_apps_intro">Le app selezionate restano utilizzabili durante una pausa. Le consentite appaiono in cima.</string>
     <string name="allowed_apps_search">Cerca app</string>
     <string name="allowed_apps_clear_search">Cancella ricerca</string>
     <string name="allowed_apps_empty_filtered">Nessuna app trovata</string>
@@ -185,7 +185,7 @@
         <item quantity="other">Massimo %1$d app consentite</item>
     </plurals>
 
-    <string name="widget_description">Avvia una sessione di pausa in un tap</string>
+    <string name="widget_description">Avvia una pausa con un tocco</string>
     <string name="widget_label_idle">Pausa</string>
     <string name="widget_soon">tra poco</string>
     <string name="widget_minutes">~%1$d min</string>
@@ -232,7 +232,7 @@ Quando sentirai il bisogno di una pausa, basterà aprire l\'app, scegliere quant
     <string name="group_pause_chooser_create">Crea</string>
     <string name="group_pause_chooser_join">Unisciti</string>
     <string name="action_back">Indietro</string>
-    <string name="group_pause_chooser_subtitle">Fermatevi insieme: un amico, il partner, un collega</string>
+    <string name="group_pause_chooser_subtitle">Una pausa con chi hai accanto: un amico, il partner, un collega</string>
     <string name="group_pause_chooser_create_role">Chi ospita</string>
     <string name="group_pause_chooser_join_role">Chi si unisce</string>
     <string name="group_pause_chooser_footer">Fermarsi insieme tiene più che fermarsi da soli</string>
@@ -256,25 +256,25 @@ Quando sentirai il bisogno di una pausa, basterà aprire l\'app, scegliere quant
     <string name="group_pause_invalid_code">Codice non valido o scaduto</string>
 
     <string name="release_others_title">Gli altri sono ancora in pausa</string>
-    <string name="release_others_body">Avvicinate i telefoni per sbloccarli insieme a te.</string>
+    <string name="release_others_body">Avvicina il tuo telefono ai loro per sbloccarli insieme a te.</string>
     <string name="release_others_done">Fatto</string>
-    <string name="unlock_or_tap_hint">…oppure avvicina il telefono di chi ha convocato la pausa, se l\'ha già chiusa</string>
+    <string name="unlock_or_tap_hint">…oppure avvicina il telefono di chi ha creato la pausa, se l\'ha già chiusa</string>
     <string name="block_group_with_one">Insieme a %1$s</string>
     <plurals name="block_group_with_many">
         <item quantity="one">Insieme a %1$s e un\'altra persona</item>
         <item quantity="other">Insieme a %1$s e altre %2$d persone</item>
     </plurals>
     <string name="history_with_companions">con %1$s</string>
-    <string name="block_group_indicator">State vivendo un tempo insieme</string>
+    <string name="block_group_indicator">È un tempo insieme</string>
 
     <!-- Lobby dal vivo: Bluetooth + NFC (Fase 2) -->
-    <string name="group_pause_bt_gentle_notice">Per invitarvi serve il Bluetooth.</string>
+    <string name="group_pause_bt_gentle_notice">Per invitare qualcuno serve il Bluetooth.</string>
     <string name="group_pause_bt_gentle_action">Attivalo</string>
-    <string name="group_pause_bt_permission_notice">Per invitarvi servono i permessi Bluetooth.</string>
+    <string name="group_pause_bt_permission_notice">Per invitare qualcuno servono i permessi Bluetooth.</string>
     <string name="group_pause_bt_permission_action">Concedili</string>
 
     <string name="group_pause_lobby_waiting_title">In attesa di qualcuno…</string>
-    <string name="group_pause_lobby_waiting_subtitle">Avvicinate i telefoni o condividete il Bluetooth</string>
+    <string name="group_pause_lobby_waiting_subtitle">Avvicina i telefoni o usa il Bluetooth</string>
     <string name="group_pause_lobby_with_one">%1$s è con te</string>
     <string name="group_pause_lobby_with_two">%1$s e %2$s sono con te</string>
     <!-- quantity="one" è irraggiungibile per come questa stringa è
@@ -301,7 +301,7 @@ Quando sentirai il bisogno di una pausa, basterà aprire l\'app, scegliere quant
     <string name="group_pause_join_searching">Alla ricerca di un amico…</string>
     <string name="group_pause_join_connecting">Connessione in corso…</string>
     <string name="group_pause_join_lobby_duration">Pausa di %1$s</string>
-    <string name="group_pause_join_waiting_host">Connesso — in attesa che l\'host inizi…</string>
+    <string name="group_pause_join_waiting_host">Connesso — in attesa che chi ospita inizi…</string>
     <string name="group_pause_join_error">Connessione persa.</string>
     <string name="group_pause_join_retry_button">Riprova</string>
     <string name="group_pause_nfc_service_description">Tempo insieme — scambio Bluetooth via NFC</string>
@@ -452,13 +452,13 @@ Quando sentirai il bisogno di una pausa, basterà aprire l\'app, scegliere quant
     <string name="history_month_empty">Nessuna pausa in questo mese.</string>
     <string name="history_show_earlier">Mostra mesi precedenti</string>
     <!-- Pausa di gruppo: versioni diverse dell'app -->
-    <string name="group_pause_other_version">Questo codice viene da un\'altra versione di Calm Otter: aggiornate l\'app su entrambi i telefoni.</string>
-    <string name="group_pause_other_version_lobby">L\'altro telefono ha un\'altra versione di Calm Otter: aggiornate l\'app su entrambi.</string>
+    <string name="group_pause_other_version">Questo codice viene da un\'altra versione di Calm Otter: aggiorna l\'app su entrambi i telefoni.</string>
+    <string name="group_pause_other_version_lobby">L\'altro telefono ha un\'altra versione di Calm Otter: aggiorna l\'app su entrambi.</string>
     <!-- Informativa sull'accessibilità prima delle impostazioni di sistema (richiesta da Google Play) -->
     <string name="a11y_disclosure_title">Come Calm Otter usa l\'accessibilità</string>
     <string name="a11y_disclosure_what">Durante una pausa, Calm Otter usa il servizio di accessibilità di Android solo per sapere quale app si sta aprendo, così da coprirla con la schermata della pausa.</string>
     <string name="a11y_disclosure_not">Non legge il contenuto dello schermo né quello che scrivi. Non raccoglie, non salva e non invia questa informazione da nessuna parte: l\'app non usa internet.</string>
     <string name="a11y_disclosure_off">Puoi disattivarlo quando vuoi dalle impostazioni di Accessibilità.</string>
-    <string name="a11y_disclosure_accept">Accetto e continua</string>
+    <string name="a11y_disclosure_accept">Accetta e continua</string>
     <string name="a11y_disclosure_decline">Non ora</string>
 </resources>

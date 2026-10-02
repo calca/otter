@@ -12,9 +12,9 @@
     <string name="permission_action_grant">Grant</string>
     <string name="permission_action_done">Done</string>
     <string name="home_permission_dialog_title">Permissions needed</string>
-    <string name="home_launcher_chooser_title">Choose which launcher to use</string>
+    <string name="home_launcher_chooser_title">Choose your Home app</string>
     <string name="settings_home_forward_hint">If your launcher shows a "set as default" notice, you can ignore it — Calm Otter needs to stay the Home app to block the Home button during pauses.</string>
-    <string name="permission_reason_accessibility">Accessibility — to detect which app is open and show the lock screen.</string>
+    <string name="permission_reason_accessibility">Accessibility — to know which app is open and show the pause screen.</string>
     <string name="permission_reason_dnd">Do Not Disturb — to silence notifications during the pause, letting calls, alarms and music through.</string>
     <string name="close">Close</string>
     <string name="settings_info_label">About</string>
@@ -32,7 +32,7 @@
     <string name="passwords_dont_match">Passwords do not match</string>
 
     <string name="home_start_hint">Tap &lt;b&gt;Otter&lt;/b&gt; to start</string>
-    <string name="home_active_label">On Pause</string>
+    <string name="home_active_label">On pause</string>
     <string name="home_time_remaining">%1$d min left</string>
     <string name="weekly_chart_today">today</string>
     <string-array name="weekday_initials">
@@ -55,7 +55,7 @@
         <item>About %1$s left</item>
         <item>You still have %1$s for yourself</item>
         <item>Still %1$s of quiet</item>
-        <item>Enjoy %1$s more</item>
+        <item>Enjoy another %1$s</item>
         <item>%1$s of calm</item>
     </string-array>
     <plurals name="countdown_minutes">
@@ -77,39 +77,39 @@
     </string-array>
     <string name="hint_unlock_password">Password</string>
     <string name="unlock">Unlock</string>
-    <string name="wrong_password">Wrong password</string>
+    <string name="wrong_password">Incorrect password</string>
     <plurals name="password_locked_out">
         <item quantity="one">Too many wrong attempts. Try again in %1$d second.</item>
         <item quantity="other">Too many wrong attempts. Try again in %1$d seconds.</item>
     </plurals>
 
-    <string name="accessibility_service_description">Allows Calm Otter to detect which app is in the foreground to apply the block during pause sessions.</string>
+    <string name="accessibility_service_description">Allows Calm Otter to know which app is in the foreground, to cover it with the pause screen during a pause.</string>
 
     <string name="theme_sage">Sage</string>
     <string name="theme_dusk_sand">Dusk Sand</string>
     <string name="theme_dawn_clay">Dawn Clay</string>
     <string name="theme_still_water">Still Water</string>
 
-    <string name="notification_channel_name">Session in progress</string>
-    <string name="notification_channel_description">Shows the status of the active pause session</string>
+    <string name="notification_channel_name">Pause in progress</string>
+    <string name="notification_channel_description">Shows the status of the pause in progress</string>
 
     <string name="history_tab_overview">Overview</string>
-    <string name="history_tab_sessions">Sessions</string>
+    <string name="history_tab_sessions">Pauses</string>
     <!-- Streak/week row in Home, for one opening only: the previous pause
          ended while the phone was closed, with no end-of-pause screen there
          to tell the story live. %1$s is the time (e.g. "14:32"), %2$s the
          effective duration (e.g. "1h 5m"). -->
     <string name="home_pending_summary">Pause ended at %1$s (%2$s)</string>
-    <string name="weekly_summary_none">No sessions this week</string>
+    <string name="weekly_summary_none">No pauses this week</string>
     <!-- quantity="one" ignores %1$d on purpose: it's always "1", no need
          to print the number. -->
     <plurals name="weekly_summary_sessions">
-        <item quantity="one">1 session this week · %2$s</item>
-        <item quantity="other">%1$d sessions this week · %2$s</item>
+        <item quantity="one">1 pause this week · %2$s</item>
+        <item quantity="other">%1$d pauses this week · %2$s</item>
     </plurals>
 
     <string name="history_title">History</string>
-    <string name="history_empty">No sessions yet</string>
+    <string name="history_empty">No pauses yet</string>
     <!-- History empty state: one of these shows under the otter, picked at
          random each time the screen opens. Deliberately separate from
          pause_phrases, which the user can switch off in Settings ("show
@@ -117,40 +117,38 @@
          where the text should be. -->
     <string-array name="history_empty_phrases">
         <item>This is where the time you take back will show up. Start whenever you like.</item>
-        <item>No sessions is a fine place to start from, too.</item>
+        <item>No pauses yet is a fine place to start, too.</item>
         <item>The first pause is the hardest. The rest follow on their own.</item>
     </string-array>
     <string name="history_clear">Clear history</string>
     <string name="history_clear_confirm">Delete all history? This action cannot be undone.</string>
-    <string name="history_item_natural">Completed naturally</string>
+    <string name="history_item_natural">Ran its full course</string>
     <string name="history_item_early">Ended early — planned %1$d min</string>
-    <string name="stat_sessions">sessions</string>
+    <string name="stat_sessions">pauses</string>
     <string name="stat_minutes">total time</string>
     <string name="stat_completed">completed</string>
     <string name="stat_completed_fraction">%1$d / %2$d</string>
 
-    <!-- Both quantities read the same: "day" used attributively here
-         ("5 day streak") doesn't pluralize in English, unlike Italian's
-         "giorno"/"giorni". Kept as plurals anyway for symmetry with the
-         Italian resource and because getQuantityString() needs a
-         resource that exists in both. -->
+    <!-- "days in a row", not "day streak": the store listing promises
+         "never streaks to keep", and the Italian already said "giorni di
+         fila". -->
     <plurals name="streak_days">
-        <item quantity="one">%1$d day streak</item>
-        <item quantity="other">%1$d day streak</item>
+        <item quantity="one">%1$d day in a row</item>
+        <item quantity="other">%1$d days in a row</item>
     </plurals>
 
     <string name="weekly_goal_none">No goal set for this week</string>
     <string name="weekly_goal_set_button">Set goal</string>
     <string name="weekly_goal_edit_button">Edit goal</string>
     <string name="weekly_goal_dialog_title">Weekly goal</string>
-    <string name="weekly_goal_type_sessions">Sessions</string>
+    <string name="weekly_goal_type_sessions">Pauses</string>
     <string name="weekly_goal_type_minutes">Minutes</string>
     <!-- Quantity picked on %2$d (the goal), not %1$d: that's the one
          "sessions"/"minutes" agrees with grammatically ("1 of 1 session",
          not "1 of 1 sessions"). -->
     <plurals name="weekly_goal_progress_sessions">
-        <item quantity="one">%1$d of %2$d session this week</item>
-        <item quantity="other">%1$d of %2$d sessions this week</item>
+        <item quantity="one">%1$d of %2$d pause this week</item>
+        <item quantity="other">%1$d of %2$d pauses this week</item>
     </plurals>
     <plurals name="weekly_goal_progress_minutes">
         <item quantity="one">%1$d of %2$d minute this week</item>
@@ -158,7 +156,7 @@
     </plurals>
 
     <string name="history_export">Export history</string>
-    <string name="history_export_empty">No sessions to export</string>
+    <string name="history_export_empty">No pauses to export</string>
 
     <string name="manage_allowed_apps">Manage allowed apps</string>
     <string name="change_password">Change password</string>
@@ -171,8 +169,8 @@
     <string name="phrases_toggle_label">Show phrases during pause</string>
     <string name="manage_allowed_apps_password_prompt">Enter the password to edit the list</string>
     <string name="confirm">Confirm</string>
-    <string name="allowed_apps_title">Apps allowed during pause</string>
-    <string name="allowed_apps_intro">Selected apps will remain usable during a session. Allowed ones appear at the top.</string>
+    <string name="allowed_apps_title">Apps allowed during a pause</string>
+    <string name="allowed_apps_intro">Selected apps stay usable during a pause. Allowed ones appear at the top.</string>
     <string name="allowed_apps_search">Search apps</string>
     <string name="allowed_apps_clear_search">Clear search</string>
     <string name="allowed_apps_empty_filtered">No apps found</string>
@@ -183,7 +181,7 @@
         <item quantity="other">Maximum %1$d allowed apps</item>
     </plurals>
 
-    <string name="widget_description">Start a pause session in one tap</string>
+    <string name="widget_description">Start a pause in one tap</string>
     <string name="widget_label_idle">Pause</string>
     <string name="widget_soon">almost done</string>
     <string name="widget_minutes">~%1$d min</string>
@@ -239,7 +237,7 @@ Whenever you feel the need for a break, just open the app, choose how long — &
     <string name="group_pause_code_copied">Code copied</string>
     <string name="group_pause_countdown_with_duration">Begins in %1$d:%2$02d · Duration: %3$d min</string>
 
-    <string name="group_pause_join_title">Join the time together</string>
+    <string name="group_pause_join_title">Join time together</string>
     <string name="group_pause_join_scan_tab">Scan</string>
     <string name="group_pause_camera_permission_rationale">Camera permission is needed to scan the QR.</string>
     <string name="group_pause_scan_instruction">Point your camera at the QR code</string>
@@ -249,25 +247,25 @@ Whenever you feel the need for a break, just open the app, choose how long — &
     <string name="group_pause_invalid_code">Invalid or expired code</string>
 
     <string name="release_others_title">The others are still paused</string>
-    <string name="release_others_body">Hold the phones together to unlock them with you.</string>
+    <string name="release_others_body">Hold your phone to theirs to unlock them with you.</string>
     <string name="release_others_done">Done</string>
-    <string name="unlock_or_tap_hint">…or hold up the phone of whoever called the pause, once they\'ve ended theirs</string>
+    <string name="unlock_or_tap_hint">…or hold up the phone of whoever started the pause, once they\'ve ended theirs</string>
     <string name="block_group_with_one">Together with %1$s</string>
     <plurals name="block_group_with_many">
         <item quantity="one">Together with %1$s and 1 other</item>
         <item quantity="other">Together with %1$s and %2$d others</item>
     </plurals>
     <string name="history_with_companions">with %1$s</string>
-    <string name="block_group_indicator">You\'re having time together</string>
+    <string name="block_group_indicator">This is time together</string>
 
     <!-- Live lobby: Bluetooth + NFC (Phase 2) -->
-    <string name="group_pause_bt_gentle_notice">Bluetooth is needed to invite each other.</string>
+    <string name="group_pause_bt_gentle_notice">Bluetooth is needed to invite someone.</string>
     <string name="group_pause_bt_gentle_action">Turn it on</string>
-    <string name="group_pause_bt_permission_notice">Bluetooth permissions are needed to invite each other.</string>
+    <string name="group_pause_bt_permission_notice">Bluetooth permissions are needed to invite someone.</string>
     <string name="group_pause_bt_permission_action">Grant them</string>
 
     <string name="group_pause_lobby_waiting_title">Waiting for someone…</string>
-    <string name="group_pause_lobby_waiting_subtitle">Tap phones together or share via Bluetooth</string>
+    <string name="group_pause_lobby_waiting_subtitle">Tap phones together or use Bluetooth</string>
     <string name="group_pause_lobby_with_one">%1$s is with you</string>
     <string name="group_pause_lobby_with_two">%1$s and %2$s are with you</string>
     <!-- quantity="one" is unreachable given how this string is actually
@@ -363,7 +361,7 @@ Whenever you feel the need for a break, just open the app, choose how long — &
     <string name="together_activity_label">What shall we do?</string>
     <string name="together_activity_another">Another one</string>
     <!-- Cronologia: uscita lenta e momento di chiusura -->
-    <string name="history_item_slow_exit">Ended without password</string>
+    <string name="history_item_slow_exit">Ended without the password</string>
     <string name="mood_calm">Calm</string>
     <string name="mood_ordinary">Ordinary</string>
     <string name="mood_hard">Hard</string>
@@ -378,7 +376,7 @@ Whenever you feel the need for a break, just open the app, choose how long — &
     <string name="slow_exit_confirm_title">Leave without the password?</string>
     <string name="slow_exit_confirm_start">Start the wait</string>
     <string name="slow_exit_stay">Stay in the pause</string>
-    <string name="slow_exit_waiting">The pause is ending, without password</string>
+    <string name="slow_exit_waiting">The pause is ending, without the password</string>
     <string name="settings_slow_exit_label">Leave without password</string>
     <string name="settings_slow_exit_off">Off</string>
     <string name="settings_slow_exit_pill">%1$d min</string>
@@ -386,8 +384,8 @@ Whenever you feel the need for a break, just open the app, choose how long — &
     <string name="onboarding_slow_exit_note">If the password can\'t be reached, the pause can also be ended by waiting 10 minutes. You can switch this off in Settings.</string>
     <!-- Uscita lenta: conferma -->
     <plurals name="slow_exit_confirm_body">
-        <item quantity="one">The pause will end in %1$d minute. It will show in History as ended without password.</item>
-        <item quantity="other">The pause will end in %1$d minutes. It will show in History as ended without password.</item>
+        <item quantity="one">The pause will end in %1$d minute. It will show in History as ended without the password.</item>
+        <item quantity="other">The pause will end in %1$d minutes. It will show in History as ended without the password.</item>
     </plurals>
     <!-- Time together in Cronologia (specs/together-history/) -->
     <string name="history_filter_together">Together</string>
@@ -429,8 +427,8 @@ Whenever you feel the need for a break, just open the app, choose how long — &
     <string name="schedule_locked_hint">A pact: switching it off, shortening or deleting it will need the password.</string>
     <string name="settings_schedule_label">Scheduled pauses</string>
     <plurals name="settings_schedule_count">
-        <item quantity="one">%1$d on</item>
-        <item quantity="other">%1$d on</item>
+        <item quantity="one">%1$d active</item>
+        <item quantity="other">%1$d active</item>
     </plurals>
     <string name="settings_schedule_none">None</string>
     <!-- Nota della settimana (specs/weekly-summary/) -->
