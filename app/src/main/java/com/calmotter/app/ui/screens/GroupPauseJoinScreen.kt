@@ -2,9 +2,10 @@ package com.calmotter.app.ui.screens
 
 import android.Manifest
 import android.content.pm.PackageManager
-import androidx.annotation.VisibleForTesting
+import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.annotation.VisibleForTesting
 import androidx.camera.core.CameraSelector
 import androidx.camera.core.ImageAnalysis
 import androidx.camera.core.ImageProxy
@@ -26,10 +27,12 @@ import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.Button
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -140,13 +143,14 @@ fun GroupPauseJoinScreen(
  * [CalmScreenColumn].
  */
 @Composable
-// `internal`, non `private`: CtaButtonInvariantsTest (TODO.md "2.2") la
-// compone direttamente per proteggere l'ordine Cancel/Scan appena
-// corretto ("Scan dovrebbe essere l'ultimo bottone") da una regressione
-// silenziosa.
+// `internal`, non `private`: CtaButtonInvariantsTest la compone direttamente
+// per proteggere la gerarchia della modalità manuale (un solo bottone,
+// "Unisciti", in fondo) da una regressione silenziosa.
 @VisibleForTesting
 internal fun GroupPauseCodeEntryScreen(onRecipeReady: (GroupPauseRecipe) -> Unit, onCancel: () -> Unit) {
     var mode by remember { mutableStateOf(JoinMode.SCAN) }
+    // Indietro, da entrambe le modalità, fa quello che fa la freccia / "Annulla".
+    BackHandler(onBack = onCancel)
 
     when (mode) {
         JoinMode.SCAN -> ScanFullScreen(
@@ -154,61 +158,90 @@ internal fun GroupPauseCodeEntryScreen(onRecipeReady: (GroupPauseRecipe) -> Unit
             onSwitchToManual = { mode = JoinMode.MANUAL },
             onCancel = onCancel,
         )
-        // Niente più CalmCard: sfondo piatto come il resto del flusso.
-        //
-        // Bottoni ancorati al fondo pagina, su richiesta esplicita — stesso
-        // schema del resto del flusso "Tempo insieme" (vedi
-        // GroupPauseBluetoothLobbyHostScreen.kt): titolo+campo vivono in una
-        // Column interna con weight(1f) e la stessa `Arrangement.Center` che
-        // CalmScreenColumn usava di default per tutto, "Scansiona invece" e
-        // Cancel restano gli ultimi fratelli non pesati, a tutta larghezza e
-        // 48.dp di altezza come le altre CTA di questa serie di modifiche.
-        //
-        // **L'otter e la gerarchia dei due bottoni** sono stati corretti su
-        // segnalazione ("è un po' vuota e manca otter, le CTA sono errate,
-        // scan è la primary"): prima questa schermata non aveva alcuna
-        // mascotte (unica dell'intero flusso "Tempo insieme" a esserne
-        // priva), e "Scansiona invece" era un `CalmSecondaryButton` mentre
-        // il bottone di invio del codice manuale era il `Button` pieno —
-        // al contrario di quanto dice il commento originale di
-        // [ManualCodeTab] qui sotto: scansionare è la via più rapida delle
-        // due, quindi è lei ad avere il trattamento da CTA primaria, non
-        // l'inserimento manuale (il ripiego per chi non può o non vuole
-        // usare la fotocamera).
-        JoinMode.MANUAL -> CalmScreenColumn(contentPadding = PaddingValues(32.dp), verticalArrangement = Arrangement.Top) {
-            Column(
-                modifier = Modifier.weight(1f).fillMaxWidth(),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Center,
-            ) {
-                OtterRingIllustration(dashed = false) { OtterZenMark(markSize = 88.dp) }
-                Text(
-                    text = stringResource(R.string.group_pause_join_title),
-                    fontSize = 22.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.primary,
-                    textAlign = TextAlign.Center,
-                    modifier = Modifier.padding(top = 14.dp, bottom = 20.dp)
+        JoinMode.MANUAL -> ManualCodeScreen(
+            onRecipeReady = onRecipeReady,
+            onScanInstead = { mode = JoinMode.SCAN },
+            onCancel = onCancel,
+        )
+    }
+}
+
+/**
+ * Il codice da incollare o digitare. **Un solo bottone**, "Unisciti", fisso
+ * in fondo (regola della CTA in CLAUDE.md) e attivo appena c'è un codice:
+ * prima i bottoni erano tre — "Unisciti" tonale sotto il campo, "Annulla"
+ * e "Scansiona" pieno in fondo, cioè la CTA più evidente era l'alternativa,
+ * non l'azione di questa pagina (segnalato: "troppi bottoni"). Ora
+ * "Scansiona un QR" è un link sotto il campo e si esce con la freccia in
+ * alto, come nelle altre pagine di Tempo insieme.
+ */
+@Composable
+private fun ManualCodeScreen(
+    onRecipeReady: (GroupPauseRecipe) -> Unit,
+    onScanInstead: () -> Unit,
+    onCancel: () -> Unit,
+) {
+    var code by remember { mutableStateOf("") }
+    var errorText by remember { mutableStateOf("") }
+    val invalidCodeText = stringResource(R.string.group_pause_invalid_code)
+    val otherVersionText = stringResource(R.string.group_pause_other_version)
+
+    CalmScreenColumn(contentPadding = PaddingValues(horizontal = 24.dp, vertical = 16.dp), verticalArrangement = Arrangement.Top) {
+        Row(modifier = Modifier.fillMaxWidth()) {
+            IconButton(onClick = onCancel) {
+                Icon(
+                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                    contentDescription = stringResource(R.string.action_back),
+                    tint = MaterialTheme.colorScheme.primary,
                 )
-                ManualCodeTab(onRecipeReady)
             }
-            // Cancel sopra, Scan (la CTA primaria di questa schermata)
-            // sotto — stesso ordine del resto del flusso "Tempo insieme"
-            // (Cancel/"Iniziamo" nella lobby host, Cancel/conferma nel
-            // countdown): l'azione primaria è sempre l'ultimo bottone,
-            // non il primo.
-            OutlinedButton(
-                onClick = onCancel,
-                modifier = Modifier.fillMaxWidth().padding(top = 8.dp).height(48.dp),
-            ) {
-                Text(stringResource(android.R.string.cancel))
+        }
+        Column(
+            modifier = Modifier.weight(1f).fillMaxWidth().padding(horizontal = 8.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center,
+        ) {
+            OtterRingIllustration(dashed = false) { OtterZenMark(markSize = 88.dp) }
+            Text(
+                text = stringResource(R.string.group_pause_join_title),
+                fontSize = 22.sp,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.primary,
+                textAlign = TextAlign.Center,
+                modifier = Modifier.padding(top = 14.dp, bottom = 20.dp)
+            )
+            CalmTextField(
+                value = code,
+                onValueChange = { code = it; errorText = "" },
+                label = stringResource(R.string.group_pause_manual_code_hint),
+                keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.None),
+                modifier = Modifier.fillMaxWidth(),
+            )
+            if (errorText.isNotBlank()) {
+                Text(
+                    text = errorText,
+                    color = MaterialTheme.colorScheme.error,
+                    modifier = Modifier.fillMaxWidth().padding(top = 8.dp)
+                )
             }
-            Button(
-                onClick = { mode = JoinMode.SCAN },
-                modifier = Modifier.fillMaxWidth().padding(top = 8.dp).height(48.dp),
-            ) {
-                Text(stringResource(R.string.group_pause_join_scan_tab))
-            }
+            CalmLinkRow(
+                text = stringResource(R.string.group_pause_scan_instead),
+                onClick = onScanInstead,
+                modifier = Modifier.padding(top = 12.dp),
+            )
+        }
+        Button(
+            onClick = {
+                errorText = when (val result = decodeGroupPauseRecipeResult(code)) {
+                    is RecipeDecodeResult.Ok -> { onRecipeReady(result.recipe); "" }
+                    RecipeDecodeResult.OtherVersion -> otherVersionText
+                    RecipeDecodeResult.Invalid -> invalidCodeText
+                }
+            },
+            enabled = code.isNotBlank(),
+            modifier = Modifier.fillMaxWidth().padding(top = 16.dp, start = 8.dp, end = 8.dp).height(52.dp),
+        ) {
+            Text(stringResource(R.string.group_pause_manual_code_join_button))
         }
     }
 }
@@ -310,8 +343,10 @@ private fun ScanFullScreen(
                 errorText?.let {
                     Text(it, color = MaterialTheme.colorScheme.error, textAlign = TextAlign.Center)
                 }
+                // Bianco come "Annulla" in alto: in verde scuro sopra
+                // l'anteprima della fotocamera quasi non si leggeva.
                 TextButton(onClick = onSwitchToManual, modifier = Modifier.padding(top = 8.dp)) {
-                    Text(stringResource(R.string.group_pause_manual_entry_link))
+                    Text(stringResource(R.string.group_pause_manual_entry_link), color = Color.White)
                 }
             }
         } else {
@@ -387,46 +422,6 @@ private fun ScanFullScreen(
             }
         }
     }
-}
-
-@Composable
-private fun ManualCodeTab(onRecipeReady: (GroupPauseRecipe) -> Unit) {
-    var code by remember { mutableStateOf("") }
-    var errorText by remember { mutableStateOf("") }
-    val invalidCodeText = stringResource(R.string.group_pause_invalid_code)
-    val otherVersionText = stringResource(R.string.group_pause_other_version)
-
-    CalmTextField(
-        value = code,
-        onValueChange = { code = it; errorText = "" },
-        label = stringResource(R.string.group_pause_manual_code_hint),
-        keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.None),
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(bottom = 8.dp)
-    )
-    if (errorText.isNotBlank()) {
-        Text(
-            text = errorText,
-            color = MaterialTheme.colorScheme.error,
-            modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp)
-        )
-    }
-    // Non più il `Button` pieno: la CTA primaria di questa schermata è
-    // "Scansiona invece" (vedi il commento al punto di chiamata in
-    // [GroupPauseCodeEntryScreen]) — l'invio del codice digitato resta
-    // un'azione secondaria, coerente con [CalmSecondaryButton].
-    CalmSecondaryButton(
-        text = stringResource(R.string.group_pause_manual_code_join_button),
-        onClick = {
-            errorText = when (val result = decodeGroupPauseRecipeResult(code)) {
-                is RecipeDecodeResult.Ok -> { onRecipeReady(result.recipe); "" }
-                RecipeDecodeResult.OtherVersion -> otherVersionText
-                RecipeDecodeResult.Invalid -> invalidCodeText
-            }
-        },
-        modifier = Modifier.fillMaxWidth().height(48.dp),
-    )
 }
 
 /**

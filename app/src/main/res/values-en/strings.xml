@@ -242,6 +242,7 @@ Whenever you feel the need for a break, just open the app, choose how long — &
     <string name="group_pause_camera_permission_rationale">Camera permission is needed to scan the QR.</string>
     <string name="group_pause_scan_instruction">Point your camera at the QR code</string>
     <string name="group_pause_manual_entry_link">Enter a code manually</string>
+    <string name="group_pause_scan_instead">Scan a QR instead</string>
     <string name="group_pause_manual_code_hint">Paste or type the code</string>
     <string name="group_pause_manual_code_join_button">Join</string>
     <string name="group_pause_invalid_code">Invalid or expired code</string>

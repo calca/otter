@@ -2231,3 +2231,15 @@ app (also from the beta build). Settings → About has the same invite as
 "Recommend Calm Otter". No network call: the user sends it, as with the
 history CSV export.
 
+### Join with a code: one button
+
+Reported: "la pagina di unisciti con codice ha troppi bottoni". The manual
+mode had three — "Join" (tonal, under the field), "Cancel" and "Scan"
+(filled, at the bottom): the most prominent was the alternative, not this
+page's action. Now (`ManualCodeScreen`): a back arrow at the top (and
+system Back, `BackHandler`) instead of Cancel, the field, "Scan a QR
+instead ›" as a link under it, and **one** CTA, "Join", pinned to the
+bottom and enabled once something is typed. `CtaButtonInvariantsTest`
+guards it. On the camera screen, "Enter a code manually" is white like
+"Cancel": dark green over the camera preview was barely readable.
+

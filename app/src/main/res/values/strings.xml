@@ -251,6 +251,7 @@ Quando sentirai il bisogno di una pausa, basterà aprire l\'app, scegliere quant
     <string name="group_pause_camera_permission_rationale">Serve il permesso fotocamera per leggere il QR.</string>
     <string name="group_pause_scan_instruction">Inquadra il codice QR</string>
     <string name="group_pause_manual_entry_link">Inserisci un codice manualmente</string>
+    <string name="group_pause_scan_instead">Scansiona un QR</string>
     <string name="group_pause_manual_code_hint">Incolla o digita il codice</string>
     <string name="group_pause_manual_code_join_button">Unisciti</string>
     <string name="group_pause_invalid_code">Codice non valido o scaduto</string>

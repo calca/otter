@@ -13,6 +13,9 @@ import androidx.compose.ui.test.assertWidthIsEqualTo
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performTextInput
+import androidx.compose.ui.test.assertIsNotEnabled
+import androidx.compose.ui.test.assertIsEnabled
 import androidx.compose.ui.unit.dp
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
@@ -103,8 +106,14 @@ class CtaButtonInvariantsTest {
             .assertWidthIsEqualTo(referenceWidth)
     }
 
+    /**
+     * Modalità manuale: un solo bottone, "Unisciti", spento finché il campo
+     * è vuoto; "Scansiona un QR" è un link e non c'è più "Annulla" (si esce
+     * con la freccia). Prima i bottoni erano tre, e il più evidente era
+     * l'alternativa ("Scansiona") — segnalato: "troppi bottoni".
+     */
     @Test
-    fun manualCodeEntryScreenPutsScanLastBelowCancelAndBothMatchIn48dpHeightAndWidth() {
+    fun manualCodeEntryScreenHasOneJoinButtonDisabledUntilACodeIsTyped() {
         val context = ApplicationProvider.getApplicationContext<android.content.Context>()
         compose.setContent {
             Box(modifier = Modifier.width(360.dp)) {
@@ -112,35 +121,20 @@ class CtaButtonInvariantsTest {
             }
         }
 
-        // Stato iniziale è JoinMode.SCAN, senza permesso fotocamera concesso
-        // sotto Robolectric: ricade sulla schermata di motivazione, che ha il
-        // link "inserisci codice manualmente" per passare a JoinMode.MANUAL —
-        // lo stesso percorso che una persona reale segue negando la
-        // fotocamera, non una scorciatoia inventata per il test.
+        // Stato iniziale è JoinMode.SCAN, senza permesso fotocamera sotto
+        // Robolectric: ricade sulla schermata di motivazione, che ha il link
+        // per passare al codice manuale — lo stesso percorso di chi nega la
+        // fotocamera.
         compose.onNodeWithText(context.getString(R.string.group_pause_manual_entry_link))
             .performClick()
 
-        val cancelLabel = context.getString(android.R.string.cancel)
-        val scanLabel = context.getString(R.string.group_pause_join_scan_tab)
+        val join = compose.onNodeWithText(context.getString(R.string.group_pause_manual_code_join_button))
+        join.assertIsNotEnabled()
+        compose.onNodeWithText(context.getString(R.string.group_pause_scan_instead)).assertExists()
+        compose.onNodeWithText(context.getString(android.R.string.cancel)).assertDoesNotExist()
+        compose.onNodeWithText(context.getString(R.string.group_pause_join_scan_tab)).assertDoesNotExist()
 
-        compose.onNodeWithText(cancelLabel).assertHeightIsEqualTo(48.dp)
-        compose.onNodeWithText(scanLabel).assertHeightIsEqualTo(48.dp)
-
-        val cancelBounds = compose.onNodeWithText(cancelLabel).fetchSemanticsNode().boundsInRoot
-        val scanBounds = compose.onNodeWithText(scanLabel).fetchSemanticsNode().boundsInRoot
-
-        // "A tutta larghezza" verificato per confronto fra i due fratelli,
-        // non contro un numero calcolato a mano — vedi il commento di classe.
-        assertTrue(
-            "Cancel e Scan sono fratelli nello stesso contenitore a tutta larghezza: " +
-                "devono avere la stessa larghezza (Cancel=${cancelBounds.width}, " +
-                "Scan=${scanBounds.width}).",
-            kotlin.math.abs(cancelBounds.width - scanBounds.width) < 0.5f,
-        )
-        assertTrue(
-            "Scan (la CTA primaria di questa schermata) deve essere l'ultimo bottone, " +
-                "sotto Cancel — non il primo.",
-            scanBounds.top > cancelBounds.top,
-        )
+        compose.onNodeWithText(context.getString(R.string.group_pause_manual_code_hint)).performTextInput("abc")
+        join.assertIsEnabled()
     }
 }
