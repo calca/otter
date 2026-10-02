@@ -196,11 +196,7 @@ private fun ManualCodeScreen(
                 )
             }
         }
-        Column(
-            modifier = Modifier.weight(1f).fillMaxWidth().padding(horizontal = 8.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center,
-        ) {
+        CenteredInRemainingSpace(modifier = Modifier.padding(horizontal = 8.dp)) {
             OtterRingIllustration(dashed = false) { OtterZenMark(markSize = 88.dp) }
             Text(
                 text = stringResource(R.string.group_pause_join_title),

@@ -2243,3 +2243,17 @@ bottom and enabled once something is typed. `CtaButtonInvariantsTest`
 guards it. On the camera screen, "Enter a code manually" is white like
 "Cancel": dark green over the camera preview was barely readable.
 
+### Pages no longer cut off on smaller screens
+
+Reported on the QR page: on a shorter phone the "Starts in" pills, the
+activity and the countdown line disappeared. The pages built as "content
+centred above bottom buttons" (QR/countdown, host and join lobbies, code
+entry, closing moment) put the content in a `Column` with `weight(1f)`
+inside the scrolling `CalmScreenColumn`: a weighted child gets a fixed
+height (what's left), so content that didn't fit was clipped instead of
+scrolling. Now `CenteredInRemainingSpace` (`CalmBackground.kt`): two
+weighted spacers around a plain column — centred when it fits, spacers at
+zero and the page scrolls when it doesn't. Reproduced and verified on the
+emulator at 1080×2220 / 450 dpi. The QR is also `min(220dp, ¼ of screen
+height)`, and the countdown line says "Duration: 4 h", not "240 min".
+

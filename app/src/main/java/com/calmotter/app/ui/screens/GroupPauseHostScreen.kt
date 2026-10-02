@@ -1,5 +1,6 @@
 package com.calmotter.app.ui.screens
 
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
@@ -474,9 +475,14 @@ private fun GroupPauseShareHeader(code: String) {
         Image(
             bitmap = qrBitmap.asImageBitmap(),
             contentDescription = null,
+            // 220dp, ma meno sugli schermi bassi (un quarto dell'altezza):
+            // con 220 fissi su un telefono più piccolo la pagina non ci
+            // stava e bisognava scorrere per vedere "Inizia tra" e il conto
+            // alla rovescia. Resta ben sopra la misura che una fotocamera
+            // legge senza fatica.
             modifier = Modifier
                 .padding(16.dp)
-                .size(220.dp)
+                .size(minOf(220.dp, LocalConfiguration.current.screenHeightDp.dp / 4))
         )
     }
     // L'intera pillola è il bersaglio del tocco, non solo un bottone

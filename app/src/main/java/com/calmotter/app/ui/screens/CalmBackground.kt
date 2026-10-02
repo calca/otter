@@ -145,6 +145,30 @@ fun CalmScreenColumn(
 }
 
 /**
+ * Il contenuto di una pagina centrato nello spazio sopra i bottoni in fondo,
+ * dentro [CalmScreenColumn]. Due spazi elastici sopra e sotto invece di una
+ * `Column` con `weight(1f)`: quella riceveva un'altezza fissa (lo spazio che
+ * restava), e se il contenuto non ci stava veniva **tagliato** invece di far
+ * scorrere la pagina — segnalato sulla pagina del QR, dove su uno schermo
+ * più piccolo sparivano le pillole "Inizia tra", l'attività e il conto alla
+ * rovescia. Con gli spazi elastici, se il contenuto sta resta centrato e i
+ * bottoni in fondo; se non sta, gli spazi vanno a zero e la pagina scorre.
+ */
+@Composable
+fun ColumnScope.CenteredInRemainingSpace(
+    modifier: Modifier = Modifier,
+    content: @Composable ColumnScope.() -> Unit,
+) {
+    Spacer(modifier = Modifier.weight(1f))
+    Column(
+        modifier = modifier.fillMaxWidth(),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        content = content,
+    )
+    Spacer(modifier = Modifier.weight(1f))
+}
+
+/**
  * Card tinta arrotondata per raggruppare il contenuto di una schermata —
  * stesso linguaggio visivo di `WeekOverviewCard` in HistoryScreen.kt
  * (`Surface` con `RoundedCornerShape(20.dp)` e `primary` al 6% di opacità).

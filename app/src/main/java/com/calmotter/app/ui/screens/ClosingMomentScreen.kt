@@ -57,11 +57,7 @@ fun ClosingMomentScreen(
     // in fondo (regola della CTA in CLAUDE.md) invece che a metà pagina con
     // mezza pagina vuota sotto — come nella lobby di Tempo insieme.
     CalmScreenColumn(contentPadding = PaddingValues(32.dp), verticalArrangement = Arrangement.Top) {
-        Column(
-            modifier = Modifier.weight(1f).fillMaxWidth(),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center,
-        ) {
+        CenteredInRemainingSpace {
             OtterZenMark(markSize = 96.dp)
             Text(
                 text = stringResource(R.string.closing_title, durationPillLabel(effectiveMinutes.coerceAtLeast(1))),

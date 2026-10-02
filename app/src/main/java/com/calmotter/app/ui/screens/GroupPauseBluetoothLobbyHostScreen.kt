@@ -228,11 +228,7 @@ fun GroupPauseBluetoothLobbyHostScreen(
     // i bottoni (e il banner sotto di loro, invariato) restano l'ultima cosa
     // in basso indipendentemente da quanto contenuto c'è sopra.
     CalmScreenColumn(contentPadding = PaddingValues(32.dp), verticalArrangement = Arrangement.Top) {
-        Column(
-            modifier = Modifier.weight(1f).fillMaxWidth(),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center,
-        ) {
+        CenteredInRemainingSpace {
             ParticipantRing(participantNames = participantNames, ready = allReady)
 
             // **Titolo e sottotitolo non raccontano più lo stato dei permessi.**

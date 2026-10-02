@@ -1,5 +1,6 @@
 package com.calmotter.app.ui.screens
 
+import com.calmotter.app.durationPillLabel
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -148,11 +149,7 @@ fun GroupPauseCountdownScreen(
     // prescindere da quanto contenuto porta [header] (vuoto per il
     // countdown "puro" dopo una lobby dal vivo, pieno per il percorso QR).
     CalmScreenColumn(contentPadding = PaddingValues(32.dp), verticalArrangement = Arrangement.Top) {
-        Column(
-            modifier = Modifier.weight(1f).fillMaxWidth(),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center,
-        ) {
+        CenteredInRemainingSpace {
             OtterZenMark(markSize = 88.dp, modifier = Modifier.padding(bottom = 14.dp))
             header(minutes, seconds)
 
@@ -221,7 +218,8 @@ fun GroupPauseCountdownScreen(
                             R.string.group_pause_countdown_with_duration,
                             minutes,
                             seconds,
-                            durationMinutes,
+                            // "4 h", non "240 min": come le pillole delle durate.
+                            durationPillLabel(durationMinutes),
                         ),
                         fontWeight = FontWeight.SemiBold,
                         color = MaterialTheme.colorScheme.primary,

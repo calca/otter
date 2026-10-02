@@ -246,11 +246,7 @@ fun GroupPauseBluetoothLobbyJoinScreen(
     // che CalmScreenColumn usava di default per tutto, Cancel resta
     // l'ultimo fratello non pesato.
     CalmScreenColumn(contentPadding = PaddingValues(32.dp), verticalArrangement = Arrangement.Top) {
-        Column(
-            modifier = Modifier.weight(1f).fillMaxWidth(),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center,
-        ) {
+        CenteredInRemainingSpace {
             when (val current = state) {
                 JoinLobbyState.Listening -> {
                     val hasResults = join.discovered.isNotEmpty()
