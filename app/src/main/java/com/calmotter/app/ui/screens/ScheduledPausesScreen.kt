@@ -31,6 +31,12 @@ import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TimeInput
+import androidx.compose.material3.TimePicker
+import androidx.compose.material3.TimePickerColors
+import androidx.compose.material3.TimePickerDefaults
+import androidx.compose.material3.TimePickerDialog
+import androidx.compose.material3.TimePickerDialogDefaults
+import androidx.compose.material3.TimePickerDisplayMode
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.TimeInputColors
 import androidx.compose.material3.TimeInputDefaults
@@ -42,7 +48,6 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -50,7 +55,6 @@ import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.positionInParent
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
@@ -152,10 +156,12 @@ fun ScheduledPausesScreen(
  * Nuova pausa programmata o modifica di una esistente, a tutta pagina.
  * Prima era un dialogo con dentro giorni, durata, profilo e azioni, che per
  * l'ora apriva un secondo dialogo sopra di sé: troppo per lo spazio di un
- * AlertDialog. Qui l'ora si scrive direttamente nella pagina (TimeInput: il
- * quadrante di TimePicker, provato, riempiva mezza pagina da solo), i sette
- * giorni stanno su una riga senza scorrere, e una frase di riepilogo dice
- * cosa si sta impostando prima di salvare.
+ * AlertDialog. Qui l'ora è un "21:00" grande che apre il TimePickerDialog
+ * di Material (quadrante, con l'icona per passare alla tastiera): provati
+ * prima il quadrante nella pagina, che ne riempiva metà, e TimeInput, che
+ * apriva la tastiera da solo e con "00" già scritto trasformava "30" in
+ * "03". I sette giorni stanno su una riga senza scorrere, e una frase di
+ * riepilogo dice cosa si sta impostando prima di salvare.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -170,22 +176,9 @@ fun ScheduleEditorScreen(
     var days by remember { mutableIntStateOf(original.days) }
     var duration by remember { mutableIntStateOf(original.durationMinutes) }
     var profileId by remember { mutableIntStateOf(original.profileId) }
-    val time = rememberTimePickerState(
-        initialHour = original.startMinuteOfDay / 60,
-        initialMinute = original.startMinuteOfDay % 60,
-        is24Hour = true,
-    )
-    val minute = time.hour * 60 + time.minute
+    var minute by remember { mutableIntStateOf(original.startMinuteOfDay) }
+    var pickingTime by remember { mutableStateOf(false) }
     val isNew = original.id == 0
-    // TimeInput dà il focus all'ora appena compare, e la tastiera si apriva
-    // da sola coprendo mezza pagina. Il focus si toglie dopo i primi frame
-    // (prima TimeInput non l'ha ancora chiesto): la tastiera compare solo
-    // toccando l'ora o i minuti.
-    val focusManager = LocalFocusManager.current
-    LaunchedEffect(Unit) {
-        repeat(2) { withFrameNanos { } }
-        focusManager.clearFocus()
-    }
 
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -196,9 +189,21 @@ fun ScheduleEditorScreen(
             .padding(horizontal = 24.dp, vertical = 16.dp),
     ) {
         SetupLabel(stringResource(R.string.schedule_time_label))
-        TimeInput(state = time, colors = calmTimePickerColors())
+        Surface(
+            onClick = { pickingTime = true },
+            shape = RoundedCornerShape(24.dp),
+            color = MaterialTheme.colorScheme.tertiary.copy(alpha = 0.55f),
+        ) {
+            Text(
+                text = timeLabel(minute),
+                fontSize = 48.sp,
+                fontWeight = FontWeight.SemiBold,
+                color = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.padding(horizontal = 32.dp, vertical = 8.dp),
+            )
+        }
 
-        SetupLabel(stringResource(R.string.schedule_days_label), topPadding = 8.dp)
+        SetupLabel(stringResource(R.string.schedule_days_label), topPadding = 24.dp)
         DayCircles(days = days, locale = locale, onChange = { days = it })
         Row(
             horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -288,6 +293,55 @@ fun ScheduleEditorScreen(
             }
         }
     }
+
+    if (pickingTime) {
+        TimeDialog(
+            initialMinute = minute,
+            onDismiss = { pickingTime = false },
+            onConfirm = { minute = it; pickingTime = false },
+        )
+    }
+}
+
+/**
+ * Il TimePickerDialog di Material: quadrante a 24 ore, e in basso a sinistra
+ * l'icona per scrivere l'ora con la tastiera.
+ */
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun TimeDialog(initialMinute: Int, onDismiss: () -> Unit, onConfirm: (Int) -> Unit) {
+    val state = rememberTimePickerState(
+        initialHour = initialMinute / 60,
+        initialMinute = initialMinute % 60,
+        is24Hour = true,
+    )
+    var mode by remember { mutableStateOf(TimePickerDisplayMode.Picker) }
+    TimePickerDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(stringResource(R.string.schedule_time_label)) },
+        confirmButton = {
+            TextButton(onClick = { onConfirm(state.hour * 60 + state.minute) }) {
+                Text(stringResource(R.string.allowed_profile_save))
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) { Text(stringResource(android.R.string.cancel)) }
+        },
+        modeToggleButton = {
+            TimePickerDialogDefaults.DisplayModeToggle(
+                onDisplayModeChange = {
+                    mode = if (mode == TimePickerDisplayMode.Picker) TimePickerDisplayMode.Input else TimePickerDisplayMode.Picker
+                },
+                displayMode = mode,
+            )
+        },
+    ) {
+        if (mode == TimePickerDisplayMode.Picker) {
+            TimePicker(state = state, colors = calmTimePickerColors())
+        } else {
+            TimeInput(state = state, colors = calmTimeInputColors())
+        }
+    }
 }
 
 /**
@@ -330,14 +384,14 @@ private fun DayCircles(days: Int, locale: Locale, onChange: (Int) -> Unit) {
 }
 
 /**
- * I colori di default di TimeInput vengono da ruoli che le palette non
+ * I colori di default di TimePicker e TimeInput vengono da ruoli che le palette non
  * personalizzano (primaryContainer, surfaceContainerHighest: vedi la nota
  * in CLAUDE.md), e sarebbero rimasti lilla-M3 su ogni palette. Qui sono
  * presi da primary/tertiary come il resto delle scelte dell'app.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun calmTimePickerColors(): TimeInputColors {
+private fun calmTimeInputColors(): TimeInputColors {
     val scheme = MaterialTheme.colorScheme
     return TimeInputDefaults.colors(
         timeTextFieldColors = TextFieldDefaults.colors(
@@ -351,6 +405,22 @@ private fun calmTimePickerColors(): TimeInputColors {
             focusedSupportingTextColor = scheme.onSurface.copy(alpha = 0.6f),
             unfocusedSupportingTextColor = scheme.onSurface.copy(alpha = 0.6f),
         ),
+    )
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun calmTimePickerColors(): TimePickerColors {
+    val scheme = MaterialTheme.colorScheme
+    return TimePickerDefaults.colors(
+        clockDialColor = scheme.tertiary.copy(alpha = 0.55f),
+        clockDialSelectedContentColor = scheme.onPrimary,
+        clockDialContentColor = scheme.onSurface,
+        selectorColor = scheme.primary,
+        timeSelectorSelectedContainerColor = scheme.primary,
+        timeSelectorSelectedContentColor = scheme.onPrimary,
+        timeSelectorContainerColor = scheme.tertiary.copy(alpha = 0.55f),
+        timeSelectorContentColor = scheme.onSurface,
     )
 }
 
