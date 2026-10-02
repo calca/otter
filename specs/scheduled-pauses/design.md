@@ -9,7 +9,7 @@
 | `ScheduledPauses.kt` (`ScheduleManager`, `ScheduledPause`, `nextOccurrence`) | Singleton like `WeeklyGoalManager`: CRUD of `ScheduledPause`, plain `SharedPreferences`, `resetInstanceForTests()` |
 | `ScheduledPauseReceiver.kt` (`ScheduleAlarms`) | Arming/cancelling via `AlarmManager`; the receiver for heads-up and start |
 | `BootReceiver.kt` | Also re-arms all enabled schedules |
-| `ScheduledPausesActivity.kt` / `ui/screens/ScheduledPausesScreen.kt` | List with on/off switches, editor (days, time picker, duration, profile), password for loosening changes; Settings has a "Scheduled pauses" row |
+| `ScheduledPausesActivity.kt` / `ui/screens/ScheduledPausesScreen.kt` | List with on/off switches; a full-page editor (`ScheduleEditorScreen`) in place of the list; password for loosening changes; Settings has a "Scheduled pauses" row |
 
 ## Storage
 
@@ -57,11 +57,30 @@ an explanation: exact alarms are exempt.
 
 ## Password rules
 
-The edit dialog compares old and new schedule: stricter (more days, longer,
+The editor compares old and new schedule: stricter (more days, longer,
 new schedule) saves directly; looser (fewer days, shorter, different time,
 disabled, deleted, skip-next) goes through `PasswordVerifyDialog` first.
 "Different time" counts as looser because moving 21:00 to 23:30 is a way to
 dodge the pause.
+
+## The editor page
+
+Was an `AlertDialog` holding days, duration, profile and actions, which
+opened a second dialog on top of itself for the time. Now a page that
+replaces the list inside `ScheduledPausesActivity` (state `editing`; the
+ActionBar title follows it, Back/Up return to the list without saving):
+
+- Material `TimePicker` (24 h dial) inline, with colors taken from
+  `primary`/`tertiary` — its defaults use roles the palettes don't set.
+- Seven day circles on one row (toggleable, read by full day name), plus
+  "Mon–Fri / Sat–Sun / Every day" shortcuts.
+- Duration and profile as regular `CalmPill`s in a horizontally scrolling
+  row; the selected one is scrolled into view by moving only the row (a
+  `bringIntoView` would scroll the page down to it).
+- A one-line summary ("Mon–Fri at 21:00, for 1 h"), then Save; for an
+  existing schedule "Skip the next one" and a red "Delete pause".
+- The page closes only once the change is applied: if the password is
+  cancelled, what was set stays on screen.
 
 ## Interaction with other features
 

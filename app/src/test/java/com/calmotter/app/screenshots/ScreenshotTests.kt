@@ -26,6 +26,7 @@ import com.calmotter.app.ui.screens.BlockScreen
 import com.calmotter.app.ui.screens.ClosingMomentScreen
 import com.calmotter.app.ui.screens.HistoryScreen
 import com.calmotter.app.ui.screens.MainScreen
+import com.calmotter.app.ui.screens.ScheduleEditorScreen
 import com.calmotter.app.ui.screens.ScheduledPausesScreen
 import com.calmotter.app.ui.screens.SettingsScreen
 import com.calmotter.app.ui.theme.CalmOtterTheme
@@ -196,6 +197,15 @@ class ScreenScreenshotTest(private val night: Boolean) {
                 ScheduledPause(id = 1, days = 0b0011111, startMinuteOfDay = 21 * 60, durationMinutes = 60),
                 ScheduledPause(id = 2, days = 0b1000000, startMinuteOfDay = 9 * 60, durationMinutes = 120, enabled = false),
             ),
+            onToggle = {},
+            onEdit = {},
+        )
+    }
+
+    @Test
+    fun scheduleEditor() = capture("schedule-editor") {
+        ScheduleEditorScreen(
+            original = ScheduledPause(id = 1, days = 0b0011111, startMinuteOfDay = 21 * 60, durationMinutes = 60),
             profiles = AllowedAppsManager.getInstance(context).profiles(),
             onSave = {},
             onDelete = {},

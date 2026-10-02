@@ -2,17 +2,21 @@ package com.calmotter.app
 
 import android.os.Bundle
 import android.view.MenuItem
+import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.res.stringResource
 import com.calmotter.app.ui.screens.PasswordVerifyDialog
+import com.calmotter.app.ui.screens.ScheduleEditorScreen
 import com.calmotter.app.ui.screens.ScheduledPausesScreen
 import com.calmotter.app.ui.theme.CalmOtterTheme
 
 /**
- * Le pause programmate (specs/scheduled-pauses/). Si apre senza password:
+ * Le pause programmate (specs/scheduled-pauses/): l'elenco e, al posto suo,
+ * la pagina di modifica di una pausa. Si apre senza password:
  * aggiungere una pausa o renderla più severa stringe il patto. Ogni modifica
  * che lo allenta ([ScheduledPause.isLooserThan], la cancellazione, "salta la
  * prossima") passa prima dalla password.
@@ -23,6 +27,8 @@ class ScheduledPausesActivity : BaseActivity() {
 
     private lateinit var manager: ScheduleManager
     private var schedules by mutableStateOf<List<ScheduledPause>>(emptyList())
+    /** La pausa aperta nella pagina di modifica; null = si vede l'elenco. */
+    private var editing by mutableStateOf<ScheduledPause?>(null)
     /** Modifica in attesa della password; null = nessuna. */
     private var pending by mutableStateOf<(() -> Unit)?>(null)
 
@@ -39,21 +45,41 @@ class ScheduledPausesActivity : BaseActivity() {
 
         setContent {
             CalmOtterTheme(appTheme = ThemeManager.getTheme(this)) {
-                ScheduledPausesScreen(
-                    schedules = schedules,
-                    profiles = profiles,
-                    onSave = { updated ->
-                        val old = manager.byId(updated.id)
-                        guard(old != null && updated.isLooserThan(old)) { save(updated) }
-                    },
-                    onDelete = { schedule -> guard(true) { delete(schedule) } },
-                    onSkipNext = { schedule ->
-                        guard(true) {
-                            val next = nextOccurrence(schedule, System.currentTimeMillis()) ?: return@guard
-                            save(schedule.copy(skipUntil = next))
+                val current = editing
+                LaunchedEffect(current?.id, current == null) {
+                    supportActionBar?.title = getString(
+                        when {
+                            current == null -> R.string.schedule_title
+                            current.id == 0 -> R.string.schedule_new_title
+                            else -> R.string.schedule_edit_title
                         }
-                    },
-                )
+                    )
+                }
+                if (current == null) {
+                    ScheduledPausesScreen(
+                        schedules = schedules,
+                        onToggle = ::saveGuarded,
+                        onEdit = { editing = it },
+                    )
+                } else {
+                    // Indietro torna all'elenco senza salvare. La pagina si
+                    // chiude solo a modifica fatta: se la password viene
+                    // annullata, quanto impostato resta lì.
+                    BackHandler { editing = null }
+                    ScheduleEditorScreen(
+                        original = current,
+                        profiles = profiles,
+                        onSave = { updated -> saveGuarded(updated) { editing = null } },
+                        onDelete = { guard(true) { delete(current); editing = null } },
+                        onSkipNext = {
+                            guard(true) {
+                                val next = nextOccurrence(current, System.currentTimeMillis()) ?: return@guard
+                                save(current.copy(skipUntil = next))
+                                editing = null
+                            }
+                        },
+                    )
+                }
                 pending?.let { action ->
                     PasswordVerifyDialog(
                         passwordManager = passwordManager,
@@ -66,6 +92,11 @@ class ScheduledPausesActivity : BaseActivity() {
                 }
             }
         }
+    }
+
+    private fun saveGuarded(updated: ScheduledPause, then: () -> Unit = {}) {
+        val old = manager.byId(updated.id)
+        guard(old != null && updated.isLooserThan(old)) { save(updated); then() }
     }
 
     /** Esegue subito, o dopo la password se la modifica allenta il patto. */
@@ -86,7 +117,10 @@ class ScheduledPausesActivity : BaseActivity() {
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        if (item.itemId == android.R.id.home) { finish(); return true }
+        if (item.itemId == android.R.id.home) {
+            if (editing != null) editing = null else finish()
+            return true
+        }
         return super.onOptionsItemSelected(item)
     }
 }
