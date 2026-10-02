@@ -500,7 +500,8 @@ fun RingReleaseBurst(progress: Float, modifier: Modifier = Modifier) {
     val ringColor = MaterialTheme.colorScheme.primary
 
     Canvas(modifier = modifier) {
-        val strokeWidth = 4.dp.toPx()
+        // Stesso spessore di [ProgressRing], che sostituisce.
+        val strokeWidth = 6.dp.toPx()
         // Parte esattamente dov'era l'anello di avanzamento, così lo
         // sostituisce senza scarti di raggio.
         val startRadius = (size.minDimension - strokeWidth) / 2f
@@ -518,20 +519,27 @@ fun RingReleaseBurst(progress: Float, modifier: Modifier = Modifier) {
 }
 
 /**
- * Anello di avanzamento della sessione attiva: l'unico punto della Home
- * dove "primary" è usato a piena intensità (non a bassa opacità come nel
- * resto della scena), perché qui porta un'informazione reale — quanto è
- * passato — e non è decorazione. Non `private`: condiviso anche da
- * `BlockScreen`, che dopo il redesign mostra lo stesso identico
- * anello+otter fluttuante della Home invece di un badge statico.
+ * Anello del tempo della sessione attiva (Home in pausa, schermata di
+ * blocco, attesa dell'uscita senza password): l'unico punto dove "primary"
+ * è usato a piena intensità, perché qui porta un'informazione reale.
+ * [fraction] è il tempo *passato* (0..1), come lo calcolano i chiamanti.
+ *
+ * **Disegna il tempo che manca**, non quello passato: parte pieno dall'alto
+ * e si accorcia in senso antiorario. Prima cresceva da zero, e a inizio
+ * pausa era un anello tutto grigio con un puntino in cima — non si capiva
+ * che fosse un indicatore (review UI); ora si legge insieme a "mancano
+ * circa 55 minuti". Traccia nella tinta della palette invece che grigia, e
+ * tratto più spesso, per lo stesso motivo. Non `private`: condiviso anche da
+ * `BlockScreen` e dalla copertura dell'accessibilità.
  */
 @Composable
 fun ProgressRing(fraction: Float, modifier: Modifier = Modifier) {
-    val trackColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.12f)
+    val trackColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.14f)
     val progressColor = MaterialTheme.colorScheme.primary
+    val remaining = (1f - fraction).coerceIn(0f, 1f)
 
     Canvas(modifier = modifier) {
-        val strokeWidth = 4.dp.toPx()
+        val strokeWidth = 6.dp.toPx()
         val diameter = size.minDimension - strokeWidth
         val topLeft = Offset((size.width - diameter) / 2f, (size.height - diameter) / 2f)
         val arcSize = Size(diameter, diameter)
@@ -547,7 +555,7 @@ fun ProgressRing(fraction: Float, modifier: Modifier = Modifier) {
         drawArc(
             color = progressColor,
             startAngle = -90f,
-            sweepAngle = 360f * fraction,
+            sweepAngle = 360f * remaining,
             useCenter = false,
             topLeft = topLeft,
             size = arcSize,

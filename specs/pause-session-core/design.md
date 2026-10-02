@@ -192,3 +192,15 @@ original filter and all four policy fields come back exactly.
 Verified on the emulator beyond the unit tests: started a real pause,
 unlocked it with the password, confirmed exactly one row in History (not
 two) and no crash in `adb logcat` for the app's own process.
+
+## The ring shows the time left (UI review)
+
+`ProgressRing` (Home during a pause, block screen, accessibility cover,
+slow-exit wait) used to draw the elapsed fraction: at the start of a pause
+it was an all-grey ring with a dot at the top, not readable as an
+indicator. It now draws the **remaining** fraction — full at the start,
+shrinking anticlockwise from the top — next to "About 55 minutes left";
+callers still pass the elapsed fraction. Track in `primary` 14% instead of
+grey `onSurface`, stroke 6 dp instead of 4 (and `RingReleaseBurst`, which
+replaces it on unlock, matches).
+
