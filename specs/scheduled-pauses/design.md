@@ -57,11 +57,24 @@ an explanation: exact alarms are exempt.
 
 ## Password rules
 
-The editor compares old and new schedule: stricter (more days, longer,
-new schedule) saves directly; looser (fewer days, shorter, different time,
-disabled, deleted, skip-next) goes through `PasswordVerifyDialog` first.
-"Different time" counts as looser because moving 21:00 to 23:30 is a way to
-dodge the pause.
+Requested: "le scheduling che faccio io senza password". The app can't know
+who created a schedule (creating never asked for the password), so it's an
+explicit flag: `ScheduledPause.locked`, "Protected by password", off by
+default, a switch in the editor; a lock icon in the list.
+
+`passwordNeededToSave(old, updated)` (pure, tested):
+
+- unprotected (or new) → password only if `updated.locked` (protecting is
+  the partner's gesture; prompt "Protecting … needs the password");
+- protected → password if the protection is removed or
+  `updated.isLooserThan(old)` (fewer days, shorter, different time,
+  disabled, other profile, skip-next). "Different time" counts as looser
+  because moving 21:00 to 23:30 is a way to dodge the pause.
+
+Delete (trash in the ActionBar) and "Skip the next one" ask for the
+password only when the schedule is protected. Storage: an 8th field in the
+`|`-separated line; 7-field lines (saved before the flag) read as
+unprotected.
 
 ## The editor page
 

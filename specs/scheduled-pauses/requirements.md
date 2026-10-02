@@ -37,22 +37,31 @@ days at a chosen time, so I don't have to remember to start it.
 7. WHEN the device reboots THEN the system SHALL re-arm every enabled
    scheduled pause.
 
-## User Story 2: The schedule is part of the pact
+## User Story 2: My schedules are mine; a protected one is a pact
 
-As the accountability partner, I want loosening the schedule to require the
-password, so that it can't be removed in a weak moment.
+As the user, I want to manage the scheduled pauses I set for myself without
+the password. As the accountability partner, I want to be able to protect a
+schedule so that loosening it requires the password, and it can't be
+removed in a weak moment.
 
 ### Acceptance Criteria
 
-1. WHEN the user adds a scheduled pause, or makes an existing one longer
-   or more frequent THEN the system SHALL NOT ask for the password —
-   these only make the pact stricter.
-2. WHEN the user deletes, disables, shortens, moves, or removes days from
-   a scheduled pause THEN the system SHALL require the password, through
-   the same `PasswordVerifyDialog` used for the allowed-apps list.
-3. WHEN the user wants to skip only the next occurrence ("not tonight")
-   THEN the system SHALL offer it, password-gated, without disabling the
-   schedule.
+1. WHEN the user adds, edits, disables or deletes a scheduled pause that is
+   not protected THEN the system SHALL NOT ask for the password.
+2. WHEN a scheduled pause is marked "Protected by password" (on a new or an
+   existing one) THEN the system SHALL require the password — protecting
+   is the partner's gesture. New schedules are unprotected by default.
+3. WHEN the user deletes, disables, shortens, moves, removes days from,
+   changes the profile of, or removes the protection from a protected
+   scheduled pause THEN the system SHALL require the password, through the
+   same `PasswordVerifyDialog` used for the allowed-apps list. Making a
+   protected one longer or more frequent SHALL NOT.
+4. WHEN the user wants to skip only the next occurrence ("not tonight")
+   THEN the system SHALL offer it without disabling the schedule,
+   password-gated only if the schedule is protected.
+5. Protected schedules SHALL show a lock in the list.
+6. Once a scheduled pause is running, ending it early SHALL need the
+   password like any other pause, protected or not.
 
 ## User Story 3: No surprises
 

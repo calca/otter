@@ -18,7 +18,10 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material3.Button
+import androidx.compose.material3.Icon
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -118,12 +121,22 @@ fun ScheduledPausesScreen(
                         .padding(horizontal = 16.dp, vertical = 12.dp),
                 ) {
                     Column(modifier = Modifier.weight(1f)) {
-                        Text(
-                            text = timeLabel(schedule.startMinuteOfDay) + " · " + durationPillLabel(schedule.durationMinutes),
-                            fontSize = 18.sp,
-                            fontWeight = FontWeight.SemiBold,
-                            color = MaterialTheme.colorScheme.primary,
-                        )
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Text(
+                                text = timeLabel(schedule.startMinuteOfDay) + " · " + durationPillLabel(schedule.durationMinutes),
+                                fontSize = 18.sp,
+                                fontWeight = FontWeight.SemiBold,
+                                color = MaterialTheme.colorScheme.primary,
+                            )
+                            if (schedule.locked) {
+                                Icon(
+                                    Icons.Filled.Lock,
+                                    contentDescription = stringResource(R.string.schedule_locked_label),
+                                    tint = MaterialTheme.colorScheme.primary.copy(alpha = 0.7f),
+                                    modifier = Modifier.padding(start = 8.dp).size(16.dp),
+                                )
+                            }
+                        }
                         Text(
                             text = daysLabel(schedule.days, locale),
                             color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.75f),
@@ -174,6 +187,7 @@ fun ScheduleEditorScreen(
     var profileId by remember { mutableIntStateOf(original.profileId) }
     var minute by remember { mutableIntStateOf(original.startMinuteOfDay) }
     var pickingTime by remember { mutableStateOf(false) }
+    var locked by remember { mutableStateOf(original.locked) }
     val isNew = original.id == 0
 
     Column(
@@ -242,6 +256,33 @@ fun ScheduleEditorScreen(
                 }
             }
 
+            // Spenta di default: la pausa è di chi l'ha messa. Accesa è un
+            // patto con la persona di fiducia (la password la chiede
+            // l'Activity al salvataggio, non qui).
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 28.dp)
+                    .clickable { locked = !locked },
+            ) {
+                Icon(
+                    Icons.Filled.Lock,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.size(20.dp),
+                )
+                Column(modifier = Modifier.weight(1f).padding(horizontal = 12.dp)) {
+                    Text(stringResource(R.string.schedule_locked_label), style = MaterialTheme.typography.titleSmall)
+                    Text(
+                        text = stringResource(R.string.schedule_locked_hint),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.65f),
+                    )
+                }
+                Switch(checked = locked, onCheckedChange = { locked = it }, colors = settingsSwitchColors())
+            }
+
             if (!isNew && original.enabled) {
                 // Spostato a sinistra del padding interno del TextButton: così
                 // il testo si allinea alle etichette dei campi sopra.
@@ -261,6 +302,7 @@ fun ScheduleEditorScreen(
                         durationMinutes = duration,
                         profileId = profileId,
                         enabled = if (isNew) true else original.enabled,
+                        locked = locked,
                     )
                 )
             },

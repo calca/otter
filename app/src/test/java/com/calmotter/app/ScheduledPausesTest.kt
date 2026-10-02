@@ -67,6 +67,25 @@ class ScheduledPausesTest {
     }
 
     @Test
+    fun anUnprotectedScheduleIsFreeAndProtectingItNeedsThePassword() {
+        assertFalse(passwordNeededToSave(null, evening)) // nuova
+        assertFalse(passwordNeededToSave(evening, evening.copy(durationMinutes = 30))) // accorciata
+        assertFalse(passwordNeededToSave(evening, evening.copy(enabled = false))) // spenta
+        assertTrue(passwordNeededToSave(null, evening.copy(locked = true))) // nuova e già protetta
+        assertTrue(passwordNeededToSave(evening, evening.copy(locked = true))) // protetta dopo
+    }
+
+    @Test
+    fun aProtectedScheduleNeedsThePasswordOnlyToLoosen() {
+        val locked = evening.copy(locked = true)
+        assertFalse(passwordNeededToSave(locked, locked.copy(durationMinutes = 90))) // più lunga
+        assertFalse(passwordNeededToSave(locked, locked.copy(days = 0b1111111))) // più giorni
+        assertTrue(passwordNeededToSave(locked, locked.copy(durationMinutes = 30)))
+        assertTrue(passwordNeededToSave(locked, locked.copy(enabled = false)))
+        assertTrue(passwordNeededToSave(locked, locked.copy(locked = false))) // protezione tolta
+    }
+
+    @Test
     fun schedulesAreSavedAndReadBack() {
         val context: Context = ApplicationProvider.getApplicationContext()
         context.getSharedPreferences("calm_otter_schedules", Context.MODE_PRIVATE).edit().clear().commit()
@@ -74,7 +93,7 @@ class ScheduledPausesTest {
 
         val saved = manager.save(evening.copy(id = 0))
         assertEquals(1, saved.id)
-        val second = manager.save(evening.copy(id = 0, days = 0b1000000, startMinuteOfDay = 9 * 60))
+        val second = manager.save(evening.copy(id = 0, days = 0b1000000, startMinuteOfDay = 9 * 60, locked = true))
         assertEquals(2, second.id)
         assertEquals(listOf(saved, second), manager.all())
 

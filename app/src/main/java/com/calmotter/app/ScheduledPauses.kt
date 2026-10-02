@@ -12,6 +12,8 @@ import java.time.ZonedDateTime
  * (specs/scheduled-pauses/). [days]: un bit per giorno, lunedì = bit 0 …
  * domenica = bit 6. [skipUntil]: "non stasera" — le occorrenze fino a questo
  * istante (incluso) vengono saltate senza spegnere la programmazione.
+ * [locked]: "protetta da password", un patto con la persona di fiducia
+ * invece di una pausa che ci si è messi da soli (vedi [passwordNeededToSave]).
  */
 data class ScheduledPause(
     val id: Int,
@@ -21,6 +23,7 @@ data class ScheduledPause(
     val enabled: Boolean = true,
     val profileId: Int = AllowedAppsManager.DEFAULT_PROFILE_ID,
     val skipUntil: Long = 0L,
+    val locked: Boolean = false,
 ) {
     fun runsOn(dayOfWeekIso: Int): Boolean = days and (1 shl (dayOfWeekIso - 1)) != 0
 
@@ -37,6 +40,20 @@ data class ScheduledPause(
             startMinuteOfDay != old.startMinuteOfDay ||
             profileId != old.profileId ||
             skipUntil > old.skipUntil
+}
+
+/**
+ * Se salvare [updated] al posto di [old] (null = pausa nuova) chiede la
+ * password. Una pausa non protetta è di chi l'ha messa: si cambia
+ * liberamente. Proteggerla è il gesto della persona di fiducia, quindi
+ * chiede la password; da lì ogni modifica che allenta il patto
+ * ([ScheduledPause.isLooserThan]), togliere la protezione compreso, la
+ * chiede di nuovo. Eliminare o saltare la prossima: password solo se
+ * protetta ([ScheduledPause.locked]).
+ */
+fun passwordNeededToSave(old: ScheduledPause?, updated: ScheduledPause): Boolean = when {
+    old == null || !old.locked -> updated.locked
+    else -> !updated.locked || updated.isLooserThan(old)
 }
 
 /**
@@ -86,17 +103,19 @@ class ScheduleManager internal constructor(context: Context) {
     }
 
     private fun encode(s: ScheduledPause) =
-        listOf(s.id, s.days, s.startMinuteOfDay, s.durationMinutes, if (s.enabled) 1 else 0, s.profileId, s.skipUntil)
+        listOf(s.id, s.days, s.startMinuteOfDay, s.durationMinutes, if (s.enabled) 1 else 0, s.profileId, s.skipUntil, if (s.locked) 1 else 0)
             .joinToString("|")
 
     private fun decode(line: String): ScheduledPause? {
         val p = line.split("|")
-        if (p.size != 7) return null
+        // 7 campi: salvate prima che esistesse "protetta" (locked), che vale
+        // false — così le pause già sul telefono di prova non si perdono.
+        if (p.size != 7 && p.size != 8) return null
         return runCatching {
             ScheduledPause(
                 id = p[0].toInt(), days = p[1].toInt(), startMinuteOfDay = p[2].toInt(),
                 durationMinutes = p[3].toInt(), enabled = p[4] == "1", profileId = p[5].toInt(),
-                skipUntil = p[6].toLong(),
+                skipUntil = p[6].toLong(), locked = p.getOrNull(7) == "1",
             )
         }.getOrNull()
     }

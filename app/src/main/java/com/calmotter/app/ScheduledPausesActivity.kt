@@ -18,10 +18,10 @@ import com.calmotter.app.ui.theme.CalmOtterTheme
 
 /**
  * Le pause programmate (specs/scheduled-pauses/): l'elenco e, al posto suo,
- * la pagina di modifica di una pausa. Si apre senza password:
- * aggiungere una pausa o renderla più severa stringe il patto. Ogni modifica
- * che lo allenta ([ScheduledPause.isLooserThan], la cancellazione, "salta la
- * prossima") passa prima dalla password.
+ * la pagina di modifica di una pausa. Si apre senza password. Le pause non
+ * protette si gestiscono liberamente; proteggerne una, e poi allentarla,
+ * eliminarla o saltarne la prossima, passa dalla password (le regole in
+ * [passwordNeededToSave]).
  */
 class ScheduledPausesActivity : BaseActivity() {
 
@@ -33,6 +33,8 @@ class ScheduledPausesActivity : BaseActivity() {
     private var editing by mutableStateOf<ScheduledPause?>(null)
     /** Modifica in attesa della password; null = nessuna. */
     private var pending by mutableStateOf<(() -> Unit)?>(null)
+    /** Il messaggio del dialogo della password: proteggere o allentare. */
+    private var pendingMessage by mutableStateOf(R.string.schedule_password_prompt)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -74,7 +76,7 @@ class ScheduledPausesActivity : BaseActivity() {
                         profiles = profiles,
                         onSave = { updated -> saveGuarded(updated) { editing = null } },
                         onSkipNext = {
-                            guard(true) {
+                            guard(current.locked) {
                                 val next = nextOccurrence(current, System.currentTimeMillis()) ?: return@guard
                                 save(current.copy(skipUntil = next))
                                 editing = null
@@ -86,7 +88,7 @@ class ScheduledPausesActivity : BaseActivity() {
                     PasswordVerifyDialog(
                         passwordManager = passwordManager,
                         title = stringResource(R.string.schedule_title),
-                        message = stringResource(R.string.schedule_password_prompt),
+                        message = stringResource(pendingMessage),
                         confirmLabel = stringResource(R.string.confirm),
                         onDismiss = { pending = null },
                         onVerified = { pending = null; action() },
@@ -98,12 +100,21 @@ class ScheduledPausesActivity : BaseActivity() {
 
     private fun saveGuarded(updated: ScheduledPause, then: () -> Unit = {}) {
         val old = manager.byId(updated.id)
-        guard(old != null && updated.isLooserThan(old)) { save(updated); then() }
+        val protecting = updated.locked && old?.locked != true
+        guard(
+            passwordNeededToSave(old, updated),
+            if (protecting) R.string.schedule_lock_prompt else R.string.schedule_password_prompt,
+        ) { save(updated); then() }
     }
 
-    /** Esegue subito, o dopo la password se la modifica allenta il patto. */
-    private fun guard(needsPassword: Boolean, action: () -> Unit) {
-        if (needsPassword) pending = action else action()
+    /** Esegue subito, o dopo la password se serve. */
+    private fun guard(needsPassword: Boolean, message: Int = R.string.schedule_password_prompt, action: () -> Unit) {
+        if (needsPassword) {
+            pendingMessage = message
+            pending = action
+        } else {
+            action()
+        }
     }
 
     private fun save(schedule: ScheduledPause) {
@@ -143,7 +154,7 @@ class ScheduledPausesActivity : BaseActivity() {
         }
         if (item.itemId == MENU_DELETE) {
             val current = editing ?: return true
-            guard(true) { delete(current); editing = null }
+            guard(manager.byId(current.id)?.locked == true) { delete(current); editing = null }
             return true
         }
         return super.onOptionsItemSelected(item)
