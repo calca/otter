@@ -315,7 +315,8 @@ Whenever you feel the need for a break, just open the app, choose how long — &
     <!-- Profili di app consentite (specs/allowed-app-profiles/) -->
     <string name="allowed_profile_default_name">Standard</string>
     <string name="allowed_profile_new">+ New</string>
-    <string name="allowed_profile_rename">Rename</string>
+    <string name="allowed_profile_edit_title">Edit profile</string>
+    <string name="allowed_profile_delete_action">Delete profile</string>
     <string name="allowed_profile_delete">Delete</string>
     <string name="allowed_profile_delete_title">Delete “%1$s”?</string>
     <string name="allowed_profile_delete_body">Pauses will use the Standard profile again.</string>

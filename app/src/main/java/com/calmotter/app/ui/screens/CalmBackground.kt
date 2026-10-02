@@ -55,6 +55,8 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.delay
 import kotlin.math.pow
+import androidx.compose.material3.Icon
+import androidx.compose.ui.graphics.vector.ImageVector
 
 /**
  * Velo tenue di "primary" sullo sfondo (più percepibile in alto, sfuma verso
@@ -502,21 +504,39 @@ fun CalmPill(
     selected: Boolean,
     modifier: Modifier = Modifier,
     size: CalmPillSize = CalmPillSize.Regular,
+    trailingIcon: ImageVector? = null,
+    trailingIconDescription: String? = null,
     onClick: () -> Unit,
 ) {
+    val contentColor = if (selected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.65f)
     Surface(
         onClick = onClick,
         shape = RoundedCornerShape(50),
         color = if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.tertiary.copy(alpha = 0.55f),
         modifier = modifier,
     ) {
-        Text(
-            text = label,
-            maxLines = 1,
-            fontSize = size.fontSize,
-            color = if (selected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.65f),
-            fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Normal,
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier.padding(horizontal = size.horizontal, vertical = size.vertical),
-        )
+        ) {
+            Text(
+                text = label,
+                maxLines = 1,
+                fontSize = size.fontSize,
+                color = contentColor,
+                fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Normal,
+            )
+            // Un'azione sulla scelta stessa (es. la matita del profilo):
+            // dentro la pillola, così è chiaro a cosa si riferisce.
+            if (trailingIcon != null) {
+                Spacer(Modifier.width(6.dp))
+                Icon(
+                    imageVector = trailingIcon,
+                    contentDescription = trailingIconDescription,
+                    tint = contentColor,
+                    modifier = Modifier.size(16.dp),
+                )
+            }
+        }
     }
 }

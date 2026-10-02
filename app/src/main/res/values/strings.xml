@@ -322,7 +322,8 @@ Quando sentirai il bisogno di una pausa, basterà aprire l\'app, scegliere quant
     <!-- Profili di app consentite (specs/allowed-app-profiles/) -->
     <string name="allowed_profile_default_name">Standard</string>
     <string name="allowed_profile_new">+ Nuovo</string>
-    <string name="allowed_profile_rename">Rinomina</string>
+    <string name="allowed_profile_edit_title">Modifica profilo</string>
+    <string name="allowed_profile_delete_action">Elimina profilo</string>
     <string name="allowed_profile_delete">Elimina</string>
     <string name="allowed_profile_delete_title">Eliminare «%1$s»?</string>
     <string name="allowed_profile_delete_body">Le pause useranno di nuovo il profilo Standard.</string>

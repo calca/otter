@@ -51,6 +51,12 @@ import androidx.compose.ui.unit.sp
 import com.calmotter.app.AllowedAppsManager
 import com.calmotter.app.AllowedAppsProfile
 import com.calmotter.app.R
+import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.width
 
 /**
  * Modello UI di una singola app installata sul dispositivo.
@@ -283,7 +289,10 @@ private const val PROFILE_NAME_MAX = 20
 
 /**
  * Le pillole dei profili in cima alla schermata, più "Nuovo" finché c'è
- * posto; sotto, per un profilo non predefinito, "Rinomina" ed "Elimina".
+ * posto. Il profilo scelto, se non è lo Standard, porta una matita: toccarlo
+ * apre "Modifica profilo" (nome, e in fondo "Elimina profilo"). Prima
+ * "Rinomina" ed "Elimina" stavano sotto le pillole come due link sciolti,
+ * staccati dal profilo a cui si riferivano.
  */
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
@@ -297,7 +306,7 @@ private fun ProfileBar(
     onDeleteProfile: () -> Unit,
 ) {
     var naming by remember { mutableStateOf<String?>(null) } // null = nessun dialogo; "" = nuovo
-    var renaming by remember { mutableStateOf(false) }
+    var editingName by remember { mutableStateOf(false) }
     var confirmingDelete by remember { mutableStateOf(false) }
     val editing = profiles.firstOrNull { it.id == editingProfileId } ?: profiles.first()
 
@@ -307,10 +316,13 @@ private fun ProfileBar(
             verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
             profiles.forEach { profile ->
+                val editable = profile.id == editing.id && !profile.isDefault
                 CalmPill(
                     label = profile.name,
                     selected = profile.id == editing.id,
-                    onClick = { onSelectProfile(profile.id) },
+                    trailingIcon = if (editable) Icons.Filled.Edit else null,
+                    trailingIconDescription = stringResource(R.string.allowed_profile_edit_title),
+                    onClick = { if (editable) editingName = true else onSelectProfile(profile.id) },
                 )
             }
             if (canCreateProfile) {
@@ -319,16 +331,6 @@ private fun ProfileBar(
                     selected = false,
                     onClick = { naming = "" },
                 )
-            }
-        }
-        if (!editing.isDefault) {
-            Row {
-                TextButton(onClick = { renaming = true }) {
-                    Text(stringResource(R.string.allowed_profile_rename))
-                }
-                TextButton(onClick = { confirmingDelete = true }) {
-                    Text(stringResource(R.string.allowed_profile_delete))
-                }
             }
         }
     }
@@ -340,11 +342,13 @@ private fun ProfileBar(
             onConfirm = { onCreateProfile(it); naming = null },
         )
     }
-    if (renaming) {
+    if (editingName) {
         ProfileNameDialog(
             initial = editing.name,
-            onDismiss = { renaming = false },
-            onConfirm = { onRenameProfile(it); renaming = false },
+            title = stringResource(R.string.allowed_profile_edit_title),
+            onDismiss = { editingName = false },
+            onConfirm = { onRenameProfile(it); editingName = false },
+            onDelete = { editingName = false; confirmingDelete = true },
         )
     }
     if (confirmingDelete) {
@@ -367,17 +371,38 @@ private fun ProfileBar(
 }
 
 @Composable
-private fun ProfileNameDialog(initial: String, onDismiss: () -> Unit, onConfirm: (String) -> Unit) {
+private fun ProfileNameDialog(
+    initial: String,
+    onDismiss: () -> Unit,
+    onConfirm: (String) -> Unit,
+    title: String = stringResource(R.string.allowed_profile_name_title),
+    onDelete: (() -> Unit)? = null,
+) {
     var name by remember { mutableStateOf(initial) }
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text(stringResource(R.string.allowed_profile_name_title)) },
+        title = { Text(title) },
         text = {
-            CalmTextField(
-                value = name,
-                onValueChange = { name = it.take(PROFILE_NAME_MAX) },
-                label = stringResource(R.string.allowed_profile_name_hint),
-            )
+            Column {
+                CalmTextField(
+                    value = name,
+                    onValueChange = { name = it.take(PROFILE_NAME_MAX) },
+                    label = stringResource(R.string.allowed_profile_name_hint),
+                )
+                // Separata dal nome e in rosso: l'unica azione distruttiva
+                // del dialogo, che comunque chiede conferma.
+                if (onDelete != null) {
+                    Spacer(Modifier.height(16.dp))
+                    TextButton(
+                        onClick = onDelete,
+                        colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.error),
+                    ) {
+                        Icon(Icons.Filled.Delete, contentDescription = null, modifier = Modifier.size(18.dp))
+                        Spacer(Modifier.width(8.dp))
+                        Text(stringResource(R.string.allowed_profile_delete_action))
+                    }
+                }
+            }
         },
         confirmButton = {
             TextButton(onClick = { onConfirm(name.trim()) }, enabled = name.isNotBlank()) {
