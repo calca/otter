@@ -3,10 +3,8 @@ package com.calmotter.app.ui.screens
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -23,7 +21,6 @@ import androidx.compose.ui.unit.dp
 import com.calmotter.app.R
 import com.calmotter.app.SessionManager
 import com.calmotter.app.SessionRecord
-import com.calmotter.app.ui.mascot.SprigMark
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Date
@@ -94,10 +91,8 @@ internal fun SessionsSummaryLink(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.Center,
     ) {
-        // La fogliolina resta: è l'unico segno che lega questa riga allo
-        // stagno qui sopra, e senza pastiglia non compete più con nulla.
-        SprigMark(markSize = 14.dp)
-        Spacer(modifier = Modifier.width(6.dp))
+        // Niente fogliolina: tolta insieme all'icona del profilo qui sopra,
+        // per pulire la Home (segnalato). Restano testo e "›".
         Text(
             text = if (pendingBackgroundSummary != null) {
                 pendingSummaryText(pendingBackgroundSummary)

@@ -47,8 +47,9 @@ pills, which read as detached from the profile they acted on.
 
 The line under the duration pills was "Allowed: Standard ›" in link green —
 reported as one technical word too many in the most important spot of
-Home. Now an apps icon plus the profile name, "≡ Standard ›", in
-`onSurface` 60%: still tappable (same dialog), no longer reads as an
+Home. Now just the profile name, "Standard ›", in `onSurface` 60% (an
+apps icon was tried and removed, together with the sprig on the streak
+line below, to clean up Home): still tappable (same dialog), no longer reads as an
 action. TalkBack still reads "Allowed: Standard". Shown only with 2+
 profiles, as before (`AllowedProfileLine`).
 
