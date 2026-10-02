@@ -213,7 +213,7 @@ fun HistoryScreen(
     }
 }
 
-/** "Riepilogo": totali, la settimana con l'obiettivo e la frase che chiude. */
+/** "Riepilogo": totali, l'obiettivo, la settimana e la frase che chiude. */
 @Composable
 private fun OverviewPage(
     sessions: List<SessionRecord>,
@@ -237,16 +237,20 @@ private fun OverviewPage(
                 .padding(horizontal = 16.dp, vertical = 12.dp)
         )
 
-        WeekOverviewCard(
-            streak = streak,
-            minutesByDay = minutesByDay,
-            summaryText = summaryText,
+        WeeklyGoalCard(
             goal = goal,
             weekSessions = weekSessions,
             weekMinutes = weekMinutes,
             onEditGoal = onEditGoal,
+            modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
+        )
+
+        WeekOverviewCard(
+            streak = streak,
+            minutesByDay = minutesByDay,
+            summaryText = summaryText,
             now = now,
-            modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp)
+            modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
         )
 
         ClosingPhraseCard(now = now, modifier = Modifier.padding(horizontal = 16.dp, vertical = 20.dp))
@@ -523,7 +527,7 @@ private fun SessionOutcomeIcon(isGroupSession: Boolean, completedNaturally: Bool
 /**
  * Otter, titolo, una frase. Nient'altro: niente obiettivo settimanale.
  *
- * [WeeklyGoalSection] compariva anche qui (con `weekSessions`/`weekMinutes`
+ * [WeeklyGoalCard] compariva anche qui (con `weekSessions`/`weekMinutes`
  * a 0), per una richiesta precedente di tenere "Imposta obiettivo" sempre
  * visibile; la richiesta è stata poi ritirata — chiedere un obiettivo a chi
  * non ha ancora fatto una pausa suona come un impegno da prendere prima di

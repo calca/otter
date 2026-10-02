@@ -1,6 +1,11 @@
 package com.calmotter.app.ui.screens
 
 import androidx.compose.foundation.horizontalScroll
+import androidx.compose.material3.Icon
+import androidx.compose.material.icons.filled.Star
+import androidx.compose.material.icons.Icons
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -10,8 +15,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -44,26 +47,16 @@ import java.util.Calendar
 // spostato, non riscritto.
 
 /**
- * Streak, grafico settimanale, sommario e obiettivo raggruppati in un'unica
- * card tinta (Surface arrotondata) invece di lasciarli sciolti sulla pagina
- * come prima di questo redesign. Senza divisori interni, a differenza delle
- * sezioni di SettingsScreen.kt: lì ogni riga è un'azione o un dato a sé,
- * qui streak/grafico/sommario/obiettivo sono la stessa storia raccontata in
- * quattro tappe — un divisore fra sommario e obiettivo c'era, segnalato e
- * tolto, perché tagliava a metà "questa settimana" → "verso l'obiettivo di
- * questa settimana" come se fossero due argomenti diversi, mentre nel
- * mockup ("Calm Otter - History & Journey") restano nella stessa card senza
- * separatore.
+ * Streak, grafico settimanale e sommario in un'unica card tinta. L'obiettivo
+ * stava in fondo a questa card (barra, testo e un bottone sotto il grafico):
+ * segnalato come "bruttino", ora ha una card sua, [WeeklyGoalCard], subito
+ * dopo i totali.
  */
 @Composable
 internal fun WeekOverviewCard(
     streak: Int,
     minutesByDay: IntArray,
     summaryText: String,
-    goal: WeeklyGoal?,
-    weekSessions: Int,
-    weekMinutes: Int,
-    onEditGoal: () -> Unit,
     modifier: Modifier = Modifier,
     now: Long = System.currentTimeMillis(),
 ) {
@@ -117,112 +110,93 @@ internal fun WeekOverviewCard(
                 textAlign = TextAlign.Center,
                 modifier = Modifier
                     .fillMaxWidth()
-                    // 4dp sopra e sotto bastavano quando c'era un divisore
-                    // fra questa riga e l'obiettivo: tolto (vedi sotto), è
-                    // rimasto solo questo respiro, e il sommario finiva
-                    // appiccicato alla barra di avanzamento — segnalato.
-                    // 16dp sotto, niente in più sopra: qui il sommario deve
-                    // restare vicino al grafico che descrive, e staccarsi
-                    // solo dall'obiettivo che viene dopo.
-                    .padding(start = 16.dp, top = 4.dp, end = 16.dp, bottom = 16.dp)
-            )
-
-            // Nessun divisore qui, segnalato: sommario e obiettivo sono la
-            // stessa storia continuata ("questa settimana" → "verso
-            // l'obiettivo di questa settimana"), non due sezioni distinte
-            // come lo sono card diverse — il mockup le tiene in un'unica
-            // card senza separatore interno, vedi il commento di classe di
-            // [WeekOverviewCard].
-            WeeklyGoalSection(
-                goal = goal,
-                weekSessions = weekSessions,
-                weekMinutes = weekMinutes,
-                onEditGoal = onEditGoal,
+                    // Vicino al grafico che descrive.
+                    .padding(start = 16.dp, top = 4.dp, end = 16.dp, bottom = 8.dp)
             )
         }
     }
 }
 
+/**
+ * L'obiettivo settimanale, in una card sua dopo i totali, con la forma delle
+ * righe di Impostazioni: icona nella pastiglia tinta, "Obiettivo
+ * settimanale", sotto lo stato ("3 di 5 pause" o "nessun obiettivo"), freccia;
+ * tutta la riga apre il dialogo. Con un obiettivo, la barra di avanzamento
+ * sotto. Prima stava in fondo alla card del grafico con un bottone tonale.
+ */
 @Composable
-internal fun WeeklyGoalSection(
+internal fun WeeklyGoalCard(
     goal: WeeklyGoal?,
     weekSessions: Int,
     weekMinutes: Int,
     onEditGoal: () -> Unit,
+    modifier: Modifier = Modifier,
 ) {
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 8.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
+    val current = when (goal?.type) {
+        GoalType.SESSIONS -> weekSessions
+        GoalType.MINUTES -> weekMinutes
+        null -> 0
+    }
+    Surface(
+        shape = RoundedCornerShape(20.dp),
+        color = MaterialTheme.colorScheme.primary.copy(alpha = 0.06f),
+        modifier = modifier.fillMaxWidth(),
     ) {
-        if (goal != null) {
-            val current = if (goal.type == GoalType.SESSIONS) weekSessions else weekMinutes
-            val percent = (current * 100 / goal.target).coerceIn(0, 100)
-
-            LinearProgressIndicator(
-                progress = { percent / 100f },
-                color = MaterialTheme.colorScheme.primary,
-                // trackColor esplicito: il default di LinearProgressIndicator
-                // legge surfaceVariant, un ruolo NON personalizzato per
-                // palette in CalmOtterTheme.kt — cadeva sul lavanda/viola di
-                // base di Material3 a prescindere dal tema scelto (stessa
-                // trappola di Switch/Checkbox/AlertDialog altrove nell'app).
-                trackColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.12f),
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(bottom = 6.dp)
-            )
-
-            Text(
-                // Quantity su goal.target, non su current: è quello con cui
-                // "sessioni"/"minuti" concorda grammaticalmente — vedi il
-                // commento sulla risorsa in strings.xml.
-                text = when (goal.type) {
-                    GoalType.SESSIONS -> pluralStringResource(R.plurals.weekly_goal_progress_sessions, goal.target, current, goal.target)
-                    GoalType.MINUTES -> pluralStringResource(R.plurals.weekly_goal_progress_minutes, goal.target, current, goal.target)
-                },
-                fontSize = 13.sp,
-                color = MaterialTheme.colorScheme.onSurface,
-                textAlign = TextAlign.Center,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(bottom = 8.dp)
-            )
-        } else {
-            // Senza obiettivo la sezione era il solo bottone dentro una card
-            // larga tutta la pagina: un blocco vuoto con qualcosa in mezzo,
-            // che non diceva di cosa fosse la card. Questa riga è il dato
-            // mancante — "obiettivo: nessuno" — non un invito in più.
-            Text(
-                text = stringResource(R.string.weekly_goal_none),
-                fontSize = 13.sp,
-                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
-                textAlign = TextAlign.Center,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(bottom = 10.dp)
-            )
-        }
-
-        // FilledTonalButton, non TextButton: azione con più peso visivo,
-        // coerente con le altre call-to-action dell'app. Colori espliciti:
-        // ButtonDefaults.filledTonalButtonColors() di default userebbe
-        // secondaryContainer/onSecondaryContainer, ruoli NON personalizzati
-        // per palette in CalmOtterTheme.kt (stessa trappola di
-        // surfaceVariant/onSurfaceVariant già documentata altrove).
-        FilledTonalButton(
-            onClick = onEditGoal,
-            colors = ButtonDefaults.filledTonalButtonColors(
-                containerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.14f),
-                contentColor = MaterialTheme.colorScheme.primary,
-            ),
-        ) {
-            Text(
-                text = stringResource(
-                    if (goal == null) R.string.weekly_goal_set_button else R.string.weekly_goal_edit_button
+        Column(
+            modifier = Modifier
+                .clickable(
+                    onClickLabel = stringResource(
+                        if (goal == null) R.string.weekly_goal_set_button else R.string.weekly_goal_edit_button
+                    ),
+                    onClick = onEditGoal,
                 )
-            )
+                .padding(horizontal = 16.dp, vertical = 14.dp),
+        ) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                SettingsRowIcon {
+                    Icon(
+                        imageVector = Icons.Filled.Star,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.size(18.dp),
+                    )
+                }
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = stringResource(R.string.weekly_goal_dialog_title),
+                        color = MaterialTheme.colorScheme.onSurface,
+                    )
+                    Text(
+                        // Quantity su goal.target, non su current: è quello
+                        // con cui "sessioni"/"minuti" concorda
+                        // grammaticalmente — vedi la risorsa in strings.xml.
+                        text = when (goal?.type) {
+                            GoalType.SESSIONS -> pluralStringResource(R.plurals.weekly_goal_progress_sessions, goal.target, current, goal.target)
+                            GoalType.MINUTES -> pluralStringResource(R.plurals.weekly_goal_progress_minutes, goal.target, current, goal.target)
+                            null -> stringResource(R.string.weekly_goal_none)
+                        },
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.65f),
+                    )
+                }
+                Text(
+                    text = "→",
+                    color = MaterialTheme.colorScheme.primary,
+                    fontWeight = FontWeight.SemiBold,
+                )
+            }
+            if (goal != null) {
+                LinearProgressIndicator(
+                    progress = { (current.toFloat() / goal.target).coerceIn(0f, 1f) },
+                    color = MaterialTheme.colorScheme.primary,
+                    // trackColor esplicito: il default legge surfaceVariant,
+                    // un ruolo NON personalizzato per palette (vedi CLAUDE.md).
+                    trackColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.12f),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 12.dp),
+                )
+            }
         }
     }
 }

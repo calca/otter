@@ -617,8 +617,12 @@ one column, two different things ("how am I doing" and "the log") on one
 page. Split with an M3 `PrimaryTabRow` over a `HorizontalPager` (tap or
 swipe), in the same Activity:
 
-- **Overview**: totals (`StatsBar`), the week card with the goal, the
-  closing phrase — all pauses.
+- **Overview**: totals (`StatsBar`), the weekly goal in a card of its own
+  (`WeeklyGoalCard`, Settings-row shape: icon, "Weekly goal", the progress
+  or "no goal" under it, an arrow, the whole card opens the dialog; the
+  progress bar under it when there is a goal — it used to sit at the bottom
+  of the chart card with a tonal button, reported as "bruttino"), the week
+  card (streak, chart, summary), the closing phrase — all pauses.
 - **Sessions**: the list by month (specs/history-by-month/), "Show earlier"
   — all pauses.
 - **Together** (only if there's at least one group pause): totals of the

@@ -43,7 +43,7 @@ import java.util.Calendar
  * 3158702940609906617), che per i giorni senza sessioni disegna una pillola
  * bassa e grigia invece di lasciare la colonna vuota — un giorno "a riposo"
  * si vede ancora, non sparisce dal grafico. Stessa tinta già usata in
- * questo file per la traccia di [WeeklyGoalSection]'s
+ * questo file per la traccia di [WeeklyGoalCard]'s
  * `LinearProgressIndicator` (`onSurface` a bassa opacità, non
  * `surfaceVariant`: quel ruolo non è personalizzato per palette in
  * CalmOtterTheme.kt, la stessa trappola già documentata più volte in questo
