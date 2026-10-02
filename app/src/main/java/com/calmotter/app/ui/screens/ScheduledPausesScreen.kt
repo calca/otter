@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.layout.size
@@ -243,17 +244,16 @@ fun ScheduleEditorScreen(
                 }
             }
 
+            // Il profilo come in Home: una riga sotto le durate che apre il
+            // dialogo, invece di una terza riga di pillole con etichetta.
             if (profiles.size > 1) {
-                FieldLabel(stringResource(R.string.schedule_profile_label))
-                ScrollingPillRow { selectedInView ->
-                    profiles.forEach { profile ->
-                        CalmPill(
-                            label = profile.name,
-                            selected = profile.id == profileId,
-                            modifier = if (profile.id == profileId) selectedInView else Modifier,
-                        ) { profileId = profile.id }
-                    }
-                }
+                AllowedProfileLine(
+                    profiles = profiles,
+                    selectedProfileId = profileId,
+                    onSelect = { profileId = it },
+                    // Il testo allineato alle etichette, oltre il padding del TextButton.
+                    modifier = Modifier.padding(top = 4.dp).offset(x = (-12).dp),
+                )
             }
 
             // Le opzioni della pausa in una card come quelle di Impostazioni:

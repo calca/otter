@@ -1,6 +1,5 @@
 package com.calmotter.app.ui.screens
 
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -15,8 +14,6 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.relocation.BringIntoViewRequester
 import androidx.compose.foundation.relocation.bringIntoViewRequester
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.RadioButton
 import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Brush
@@ -29,7 +26,6 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -208,7 +204,6 @@ fun MainScreen(
     val allowedAppsManager = remember { AllowedAppsManager.getInstance(context) }
     var profiles by remember { mutableStateOf(allowedAppsManager.profiles()) }
     var selectedProfileId by remember { mutableIntStateOf(allowedAppsManager.selectedProfileId()) }
-    var pickingProfile by remember { mutableStateOf(false) }
 
     fun refreshDerivedState() {
         accessibilityOk = isAccessibilityServiceEnabled()
@@ -331,14 +326,14 @@ fun MainScreen(
             // com'era. Scegliere non chiede la password, perché ogni profilo
             // è già stato approvato da chi la tiene.
             if (profiles.size > 1) {
-                val selectedName = profiles.firstOrNull { it.id == selectedProfileId }?.name.orEmpty()
-                TextButton(onClick = { pickingProfile = true }) {
-                    Text(
-                        text = stringResource(R.string.home_profile_line, selectedName) + " ›",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.primary,
-                    )
-                }
+                AllowedProfileLine(
+                    profiles = profiles,
+                    selectedProfileId = selectedProfileId,
+                    onSelect = {
+                        allowedAppsManager.selectProfile(it)
+                        selectedProfileId = it
+                    },
+                )
             }
 
             SessionsSummaryLink(
@@ -397,55 +392,6 @@ fun MainScreen(
                 modifier = Modifier.padding(top = 20.dp).fillMaxWidth(HOME_PILL_WIDTH_FRACTION),
             )
         }
-    }
-
-    if (pickingProfile) {
-        AlertDialog(
-            onDismissRequest = { pickingProfile = false },
-            title = { Text(stringResource(R.string.home_profile_dialog_title)) },
-            text = {
-                Column {
-                    profiles.forEach { profile ->
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .clickable {
-                                    allowedAppsManager.selectProfile(profile.id)
-                                    selectedProfileId = profile.id
-                                    pickingProfile = false
-                                }
-                                .padding(vertical = 4.dp),
-                        ) {
-                            RadioButton(selected = profile.id == selectedProfileId, onClick = null)
-                            Spacer(modifier = Modifier.width(12.dp))
-                            Text(profile.name)
-                        }
-                    }
-                }
-            },
-            confirmButton = {
-                TextButton(onClick = { pickingProfile = false }) { Text(stringResource(android.R.string.cancel)) }
-            },
-        )
-    }
-
-    // Prima delle impostazioni di sistema, l'informativa sull'accessibilità.
-    val grantAccessibility = rememberAccessibilityDisclosure(onGrantAccessibility)
-    if (showPermissionDialog) {
-        PermissionExplainerDialog(
-            accessibilityOk = accessibilityOk,
-            dndOk = dndOk,
-            onGrantAccessibility = {
-                onDismissPermissionDialog()
-                grantAccessibility()
-            },
-            onGrantDnd = {
-                onDismissPermissionDialog()
-                onGrantDnd()
-            },
-            onDismiss = onDismissPermissionDialog,
-        )
     }
 }
 

@@ -89,8 +89,10 @@ laid out like Android's alarm editor:
   one-line summary under it ("Mon–Fri · for 1 h"). Picker colors come from
   `primary`/`tertiary` — the defaults use roles the palettes don't set.
 - "Days": seven toggleable circles on one row (read by full day name).
-- "Duration" and, with 2+ profiles, "Allowed apps": regular `CalmPill`s in
-  a horizontally scrolling row. The row scrolls only if the selected pill
+- "Duration": regular `CalmPill`s in a horizontally scrolling row. With
+  2+ profiles, under it the same "Allowed: Standard ›" line as Home
+  (`AllowedProfileLine`, shared), which opens the same profile dialog — it
+  was a third row of pills with its own label. The duration row scrolls only if the selected pill
   isn't fully visible, and then centres it, moving only the row (a
   `bringIntoView` would scroll the page too; always scrolling to it left
   the first pill cut in half).
