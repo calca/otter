@@ -214,7 +214,12 @@ fun BlockScreen(
     // di aggiungersi altrove — è il momento esatto in cui serve, e non costa
     // spazio permanente da nessuna parte.
     releaseThenExit?.let { exit ->
-        ReleaseOthersStep(groupTag = controller.groupTag, onDone = exit)
+        ReleaseOthersStep(
+            groupTag = controller.groupTag,
+            onDone = exit,
+            drawOtter = drawOtter,
+            otterFloatOffset = otterFloatOffset,
+        )
         return
     }
 
@@ -559,14 +564,35 @@ fun BlockScreen(
  * vedi specs/group-pause/design.md.
  */
 @Composable
-private fun ReleaseOthersStep(groupTag: Int, onDone: () -> Unit) {
+private fun ReleaseOthersStep(
+    groupTag: Int,
+    onDone: () -> Unit,
+    // Come per il resto della schermata di blocco: false quando l'otter lo
+    // disegna già MainActivity sopra la schermata (l'otter persistente, vedi
+    // [PersistentOtter]). Prima questo passo ne disegnava comunque uno suo,
+    // in un'altra posizione, e in Home se ne vedevano due — segnalato.
+    drawOtter: Boolean,
+    otterFloatOffset: State<Float>?,
+) {
     DisposableEffect(groupTag) {
         GroupPauseHceService.pendingMarker = groupPauseUnlockToken(groupTag)
         onDispose { GroupPauseHceService.pendingMarker = null }
     }
 
-    CalmScreenColumn(contentPadding = PaddingValues(40.dp)) {
-        OtterZenMark(markSize = 96.dp)
+    // Stesso contenitore della schermata di blocco: l'otter cade nello stesso
+    // punto, quindi quello persistente (o quello disegnato qui) non salta
+    // quando questo passo prende il posto del blocco.
+    OtterAnchoredScreen(
+        horizontalPadding = 40.dp,
+        otter = {
+            if (drawOtter) {
+                val floatOffset = otterFloatOffset ?: rememberOtterFloatOffset(periodMillis = 5200)
+                Box(modifier = Modifier.graphicsLayer { translationY = floatOffset.value * density }) {
+                    OtterZenMark(markSize = OtterMarkSize)
+                }
+            }
+        },
+    ) {
         Text(
             text = stringResource(R.string.release_others_title),
             fontSize = 19.sp,
