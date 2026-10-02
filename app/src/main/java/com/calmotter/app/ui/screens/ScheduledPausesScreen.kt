@@ -10,7 +10,6 @@ import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.layout.size
@@ -20,7 +19,8 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Lock
-import androidx.compose.material.icons.automirrored.filled.ArrowForward
+import androidx.compose.material.icons.automirrored.filled.List
+import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material3.Button
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -50,6 +50,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.positionInParent
@@ -189,6 +191,7 @@ fun ScheduleEditorScreen(
     var minute by remember { mutableIntStateOf(original.startMinuteOfDay) }
     var pickingTime by remember { mutableStateOf(false) }
     var locked by remember { mutableStateOf(original.locked) }
+    var pickingProfile by remember { mutableStateOf(false) }
     val isNew = original.id == 0
 
     Column(
@@ -230,58 +233,51 @@ fun ScheduleEditorScreen(
                 )
             }
 
-            FieldLabel(stringResource(R.string.schedule_days_label))
-            DayCircles(days = days, locale = locale, onChange = { days = it })
-
-            FieldLabel(stringResource(R.string.schedule_duration_label))
-            ScrollingPillRow { selectedInView ->
-                SESSION_DURATION_OPTIONS.forEach { option ->
-                    CalmPill(
-                        label = durationPillLabel(option),
-                        selected = option == duration,
-                        modifier = if (option == duration) selectedInView else Modifier,
-                    ) { duration = option }
+            // Due blocchi, come le card di Impostazioni: "quando" (giorni e
+            // durata) e "come" (app consentite, protezione, salta la
+            // prossima). Prima ogni campo aveva un aspetto suo — tondi,
+            // pillole, un link, una card — e la pagina non stava insieme.
+            EditorCard(modifier = Modifier.padding(top = 24.dp)) {
+                Column(modifier = Modifier.padding(16.dp)) {
+                    FieldLabel(stringResource(R.string.schedule_days_label), topPadding = 0.dp)
+                    DayCircles(days = days, locale = locale, onChange = { days = it })
+                    FieldLabel(stringResource(R.string.schedule_duration_label))
+                    ScrollingPillRow { selectedInView ->
+                        SESSION_DURATION_OPTIONS.forEach { option ->
+                            CalmPill(
+                                label = durationPillLabel(option),
+                                selected = option == duration,
+                                modifier = if (option == duration) selectedInView else Modifier,
+                            ) { duration = option }
+                        }
+                    }
                 }
             }
 
-            // Il profilo come in Home: una riga sotto le durate che apre il
-            // dialogo, invece di una terza riga di pillole con etichetta.
-            if (profiles.size > 1) {
-                AllowedProfileLine(
-                    profiles = profiles,
-                    selectedProfileId = profileId,
-                    onSelect = { profileId = it },
-                    // Il testo allineato alle etichette, oltre il padding del TextButton.
-                    modifier = Modifier.padding(top = 4.dp).offset(x = (-12).dp),
-                )
-            }
-
-            // Le opzioni della pausa in una card come quelle di Impostazioni:
-            // la protezione (spenta di default: la pausa è di chi l'ha messa;
-            // accesa è un patto, e la password la chiede l'Activity al
-            // salvataggio) e, per una pausa che esiste ed è accesa, "Salta la
-            // prossima". Prima erano un interruttore e un link sciolti.
-            Surface(
-                shape = RoundedCornerShape(20.dp),
-                color = MaterialTheme.colorScheme.primary.copy(alpha = 0.06f),
-                modifier = Modifier.fillMaxWidth().padding(top = 32.dp),
-            ) {
+            EditorCard(modifier = Modifier.padding(top = 16.dp)) {
                 Column(modifier = Modifier.padding(horizontal = 16.dp)) {
+                    // Il profilo con lo stesso dialogo della Home; la riga
+                    // c'è solo con più di un profilo, come in Home.
+                    if (profiles.size > 1) {
+                        SettingsActionRow(
+                            label = stringResource(R.string.schedule_profile_label),
+                            value = profiles.firstOrNull { it.id == profileId }?.name,
+                            onClick = { pickingProfile = true },
+                            icon = { RowIcon(Icons.AutoMirrored.Filled.List) },
+                        )
+                        CardDivider()
+                    }
+                    // Spenta di default: la pausa è di chi l'ha messa. Accesa
+                    // è un patto; la password la chiede l'Activity al
+                    // salvataggio, non qui.
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
                         modifier = Modifier
                             .fillMaxWidth()
                             .clickable { locked = !locked }
-                            .padding(vertical = 12.dp),
+                            .padding(vertical = 14.dp),
                     ) {
-                        SettingsRowIcon {
-                            Icon(
-                                Icons.Filled.Lock,
-                                contentDescription = null,
-                                tint = MaterialTheme.colorScheme.primary,
-                                modifier = Modifier.size(18.dp),
-                            )
-                        }
+                        SettingsRowIcon { RowIcon(Icons.Filled.Lock) }
                         Column(modifier = Modifier.weight(1f).padding(end = 12.dp)) {
                             Text(stringResource(R.string.schedule_locked_label), color = MaterialTheme.colorScheme.onSurface)
                             Text(
@@ -293,28 +289,12 @@ fun ScheduleEditorScreen(
                         Switch(checked = locked, onCheckedChange = { locked = it }, colors = settingsSwitchColors())
                     }
                     if (!isNew && original.enabled) {
-                        HorizontalDivider(color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.08f))
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .clickable(onClick = onSkipNext)
-                                .padding(vertical = 12.dp),
-                        ) {
-                            SettingsRowIcon {
-                                Icon(
-                                    Icons.AutoMirrored.Filled.ArrowForward,
-                                    contentDescription = null,
-                                    tint = MaterialTheme.colorScheme.primary,
-                                    modifier = Modifier.size(18.dp),
-                                )
-                            }
-                            Text(
-                                text = stringResource(R.string.schedule_skip_next),
-                                color = MaterialTheme.colorScheme.onSurface,
-                                modifier = Modifier.weight(1f),
-                            )
-                        }
+                        CardDivider()
+                        SettingsActionRow(
+                            label = stringResource(R.string.schedule_skip_next),
+                            onClick = onSkipNext,
+                            icon = { RowIcon(Icons.Filled.DateRange) },
+                        )
                     }
                 }
             }
@@ -343,6 +323,14 @@ fun ScheduleEditorScreen(
         }
     }
 
+    if (pickingProfile) {
+        AllowedProfileDialog(
+            profiles = profiles,
+            selectedProfileId = profileId,
+            onSelect = { profileId = it; pickingProfile = false },
+            onDismiss = { pickingProfile = false },
+        )
+    }
     if (pickingTime) {
         TimeDialog(
             initialMinute = minute,
@@ -354,14 +342,36 @@ fun ScheduleEditorScreen(
 
 /** Etichetta di un campo della pagina: discreta, a sinistra, come un riferimento e non un titolo. */
 @Composable
-private fun FieldLabel(text: String) {
+private fun FieldLabel(text: String, topPadding: Dp = 20.dp) {
     Text(
         text = text,
         style = MaterialTheme.typography.titleSmall,
         color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
-        modifier = Modifier.padding(top = 24.dp, bottom = 10.dp),
+        modifier = Modifier.padding(top = topPadding, bottom = 10.dp),
     )
 }
+
+/** La card delle sezioni di Impostazioni, qui per i due blocchi della pagina. */
+@Composable
+private fun EditorCard(modifier: Modifier = Modifier, content: @Composable () -> Unit) {
+    Surface(
+        shape = RoundedCornerShape(20.dp),
+        color = MaterialTheme.colorScheme.primary.copy(alpha = 0.06f),
+        modifier = modifier.fillMaxWidth(),
+        content = content,
+    )
+}
+
+@Composable
+private fun CardDivider() = HorizontalDivider(color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.08f))
+
+@Composable
+private fun RowIcon(icon: ImageVector) = Icon(
+    imageVector = icon,
+    contentDescription = null,
+    tint = MaterialTheme.colorScheme.primary,
+    modifier = Modifier.size(18.dp),
+)
 
 /**
  * Il TimePickerDialog di Material: quadrante a 24 ore, e in basso a sinistra

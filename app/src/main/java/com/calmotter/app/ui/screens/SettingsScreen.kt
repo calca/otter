@@ -480,7 +480,7 @@ private fun PasswordCard(
 
 /** Riga d'azione interna all'app (non un link esterno, vedi [InfoLinkRow]): stesso layout, freccia semplice invece della freccia diagonale. */
 @Composable
-private fun SettingsActionRow(
+internal fun SettingsActionRow(
     label: String,
     onClick: () -> Unit,
     value: String? = null,

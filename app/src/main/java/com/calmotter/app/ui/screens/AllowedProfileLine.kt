@@ -28,7 +28,9 @@ import com.calmotter.app.R
  * "Consentite: Standard ›" sotto le durate, e il dialogo che sceglie il
  * profilo di app consentite (specs/allowed-app-profiles/). Una sola versione
  * per la Home e per la pagina di una pausa programmata, così si sceglie allo
- * stesso modo ovunque. Il chiamante la mostra solo con più di un profilo.
+ * stesso modo ovunque (nella pausa programmata il dialogo si apre da una
+ * riga della card, vedi [AllowedProfileDialog]). Il chiamante la mostra solo
+ * con più di un profilo.
  */
 @Composable
 internal fun AllowedProfileLine(
@@ -48,32 +50,45 @@ internal fun AllowedProfileLine(
     }
 
     if (picking) {
-        AlertDialog(
-            onDismissRequest = { picking = false },
-            title = { Text(stringResource(R.string.home_profile_dialog_title)) },
-            text = {
-                Column {
-                    profiles.forEach { profile ->
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .clickable {
-                                    onSelect(profile.id)
-                                    picking = false
-                                }
-                                .padding(vertical = 4.dp),
-                        ) {
-                            RadioButton(selected = profile.id == selectedProfileId, onClick = null)
-                            Spacer(modifier = Modifier.width(12.dp))
-                            Text(profile.name)
-                        }
-                    }
-                }
-            },
-            confirmButton = {
-                TextButton(onClick = { picking = false }) { Text(stringResource(android.R.string.cancel)) }
-            },
+        AllowedProfileDialog(
+            profiles = profiles,
+            selectedProfileId = selectedProfileId,
+            onSelect = { onSelect(it); picking = false },
+            onDismiss = { picking = false },
         )
     }
+}
+
+/** Il dialogo che sceglie il profilo; da solo per la riga della pagina di una pausa programmata. */
+@Composable
+internal fun AllowedProfileDialog(
+    profiles: List<AllowedAppsProfile>,
+    selectedProfileId: Int,
+    onSelect: (Int) -> Unit,
+    onDismiss: () -> Unit,
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(stringResource(R.string.home_profile_dialog_title)) },
+        text = {
+            Column {
+                profiles.forEach { profile ->
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable { onSelect(profile.id) }
+                            .padding(vertical = 4.dp),
+                    ) {
+                        RadioButton(selected = profile.id == selectedProfileId, onClick = null)
+                        Spacer(modifier = Modifier.width(12.dp))
+                        Text(profile.name)
+                    }
+                }
+            }
+        },
+        confirmButton = {
+            TextButton(onClick = onDismiss) { Text(stringResource(android.R.string.cancel)) }
+        },
+    )
 }

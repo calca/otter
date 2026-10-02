@@ -88,19 +88,19 @@ laid out like Android's alarm editor:
   `TimePickerDialog` (24 h dial, keyboard toggle for typing), with a
   one-line summary under it ("Mon–Fri · for 1 h"). Picker colors come from
   `primary`/`tertiary` — the defaults use roles the palettes don't set.
-- "Days": seven toggleable circles on one row (read by full day name).
-- "Duration": regular `CalmPill`s in a horizontally scrolling row. With
-  2+ profiles, under it the same "Allowed: Standard ›" line as Home
-  (`AllowedProfileLine`, shared), which opens the same profile dialog — it
-  was a third row of pills with its own label. The duration row scrolls only if the selected pill
-  isn't fully visible, and then centres it, moving only the row (a
-  `bringIntoView` would scroll the page too; always scrolling to it left
-  the first pill cut in half).
-- Field labels are small, left-aligned, sentence case — references, not
-  headings.
-- An options card in the Settings style (tinted round icon, divider):
-  "Protected by password" with its switch and, for an existing enabled
-  schedule, "Skip the next one".
+- Two cards in the Settings style, so the page speaks the same language as
+  the rest of the app (before, every field had a look of its own — circles,
+  pills, a loose link, a card — and the page didn't hold together):
+  - **When**: "Days" (seven toggleable circles on one row, read by full day
+    name) and "Duration" (regular `CalmPill`s in a horizontally scrolling
+    row; it scrolls only if the selected pill isn't fully visible, and then
+    centres it, moving only the row — a `bringIntoView` would scroll the
+    page too).
+  - **How**: rows with a tinted round icon and dividers — "Allowed apps …
+    Standard →" (only with 2+ profiles; opens the same profile dialog as
+    Home, `AllowedProfileDialog`), "Protected by password" with its switch,
+    and "Skip the next one" (existing, enabled schedules only). The rows
+    reuse `SettingsActionRow`/`SettingsRowIcon` from Settings.
 - **Save pinned to the bottom**, outside the scroll (project design rule,
   see CLAUDE.md). **Delete** is a trash icon in the ActionBar, only for an
   existing schedule — away from Save, as in the Clock app.

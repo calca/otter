@@ -405,6 +405,7 @@ Whenever you feel the need for a break, just open the app, choose how long — &
     <string name="schedule_days_label">Days</string>
     <string name="schedule_time_label">Time</string>
     <string name="schedule_duration_label">Duration</string>
+    <string name="schedule_profile_label">Allowed apps</string>
     <string name="schedule_skip_next">Skip the next one</string>
     <string name="schedule_delete">Delete pause</string>
     <string name="schedule_summary_short">%1$s · for %2$s</string>
