@@ -158,7 +158,7 @@
     <string name="history_export">Export history</string>
     <string name="history_export_empty">No pauses to export</string>
 
-    <string name="manage_allowed_apps">Manage allowed apps</string>
+    <string name="manage_allowed_apps">Apps that stay</string>
     <string name="change_password">Change password</string>
     <string name="change_password_title">Change password</string>
     <string name="change_password_info">Only someone who knows the current password can set a new one.</string>
@@ -169,16 +169,16 @@
     <string name="phrases_toggle_label">Show phrases during pause</string>
     <string name="manage_allowed_apps_password_prompt">Enter the password to edit the list</string>
     <string name="confirm">Confirm</string>
-    <string name="allowed_apps_title">Apps allowed during a pause</string>
-    <string name="allowed_apps_intro">Selected apps stay usable during a pause. Allowed ones appear at the top.</string>
+    <string name="allowed_apps_title">Apps that stay during a pause</string>
+    <string name="allowed_apps_intro">During a pause everything stops except the phone and the apps you pick here. Picked ones appear at the top.</string>
     <string name="allowed_apps_search">Search apps</string>
     <string name="allowed_apps_clear_search">Clear search</string>
     <string name="allowed_apps_empty_filtered">No apps found</string>
     <string name="save">Save</string>
     <string name="allowed_apps_saved">List updated</string>
     <plurals name="allowed_apps_limit_reached">
-        <item quantity="one">Maximum %1$d allowed app</item>
-        <item quantity="other">Maximum %1$d allowed apps</item>
+        <item quantity="one">At most %1$d app</item>
+        <item quantity="other">At most %1$d apps</item>
     </plurals>
 
     <string name="widget_description">Start a pause in one tap</string>
@@ -331,8 +331,8 @@ Whenever you feel the need for a break, just open the app, choose how long — &
     <string name="allowed_profile_name_title">Profile name</string>
     <string name="allowed_profile_name_hint">E.g. Evening, Work</string>
     <string name="allowed_profile_save">Save</string>
-    <string name="home_profile_line">Allowed: %1$s</string>
-    <string name="home_profile_dialog_title">Apps allowed in this pause</string>
+    <string name="home_profile_line">Apps that stay: %1$s</string>
+    <string name="home_profile_dialog_title">Which apps stay in this pause?</string>
     <!-- Attività da fare insieme (specs/together-activity/): prima persona plurale, una sola attività per voce -->
     <string name="together_activity_together">Nothing: let\'s just be together</string>
     <string name="together_activity_tea">Let\'s make tea and drink it slowly</string>
@@ -416,7 +416,7 @@ Whenever you feel the need for a break, just open the app, choose how long — &
     <string name="schedule_duration_label">Duration</string>
     <string name="schedule_duration_shorter">Shorter</string>
     <string name="schedule_duration_longer">Longer</string>
-    <string name="schedule_profile_label">Allowed apps</string>
+    <string name="schedule_profile_label">Apps that stay</string>
     <string name="schedule_skip_next">Skip the next one</string>
     <string name="schedule_delete">Delete pause</string>
     <string name="schedule_summary_short">%1$s · for %2$s</string>

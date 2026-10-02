@@ -36,7 +36,7 @@ just you, your phone, and a bit of quiet.
    ends, marked in History as ended without password. It's on by default
    and only the password holder can switch it off.
 
-## Extra Allowed Apps
+## Apps That Stay
 
 Not everything needs to wait. Keep a short list of apps that stay
 reachable during a pause — maps, a family chat, whatever is

@@ -160,7 +160,7 @@
     <string name="history_export">Esporta cronologia</string>
     <string name="history_export_empty">Nessuna pausa da esportare</string>
 
-    <string name="manage_allowed_apps">Gestisci app consentite</string>
+    <string name="manage_allowed_apps">App che restano</string>
     <string name="change_password">Cambia password</string>
     <string name="change_password_title">Cambia password</string>
     <string name="change_password_info">Solo chi conosce la password attuale può impostarne una nuova.</string>
@@ -171,18 +171,17 @@
     <string name="phrases_toggle_label">Mostra frasi durante la pausa</string>
     <string name="manage_allowed_apps_password_prompt">Inserisci la password per modificare l\'elenco</string>
     <string name="confirm">Conferma</string>
-    <string name="allowed_apps_title">App consentite durante la pausa</string>
-    <string name="allowed_apps_intro">Le app selezionate restano utilizzabili durante una pausa. Le consentite appaiono in cima.</string>
+    <string name="allowed_apps_title">App che restano durante la pausa</string>
+    <string name="allowed_apps_intro">Durante la pausa si ferma tutto, tranne il telefono e le app che scegli qui. Quelle scelte appaiono in cima.</string>
     <string name="allowed_apps_search">Cerca app</string>
     <string name="allowed_apps_clear_search">Cancella ricerca</string>
     <string name="allowed_apps_empty_filtered">Nessuna app trovata</string>
     <string name="save">Salva</string>
     <string name="allowed_apps_saved">Elenco aggiornato</string>
-    <!-- "app" non cambia (invariante in italiano), ma l'aggettivo sì:
-         "consentita"/"consentite". -->
+    <!-- "app" non cambia (invariante in italiano): le due forme coincidono. -->
     <plurals name="allowed_apps_limit_reached">
-        <item quantity="one">Massimo %1$d app consentita</item>
-        <item quantity="other">Massimo %1$d app consentite</item>
+        <item quantity="one">Al massimo %1$d app</item>
+        <item quantity="other">Al massimo %1$d app</item>
     </plurals>
 
     <string name="widget_description">Avvia una pausa con un tocco</string>
@@ -340,8 +339,8 @@ Quando sentirai il bisogno di una pausa, basterà aprire l\'app, scegliere quant
     <string name="allowed_profile_name_title">Nome del profilo</string>
     <string name="allowed_profile_name_hint">Es. Sera, Lavoro</string>
     <string name="allowed_profile_save">Salva</string>
-    <string name="home_profile_line">Consentite: %1$s</string>
-    <string name="home_profile_dialog_title">App consentite in questa pausa</string>
+    <string name="home_profile_line">App che restano: %1$s</string>
+    <string name="home_profile_dialog_title">Quali app restano in questa pausa?</string>
     <!-- Attività da fare insieme (specs/together-activity/): prima persona plurale, una sola attività per voce -->
     <string name="together_activity_together">Niente: stiamo assieme</string>
     <string name="together_activity_tea">Prepariamo un tè e beviamolo con calma</string>
@@ -425,7 +424,7 @@ Quando sentirai il bisogno di una pausa, basterà aprire l\'app, scegliere quant
     <string name="schedule_duration_label">Durata</string>
     <string name="schedule_duration_shorter">Più breve</string>
     <string name="schedule_duration_longer">Più lunga</string>
-    <string name="schedule_profile_label">App consentite</string>
+    <string name="schedule_profile_label">App che restano</string>
     <string name="schedule_skip_next">Salta la prossima</string>
     <string name="schedule_delete">Elimina pausa</string>
     <string name="schedule_summary_short">%1$s · per %2$s</string>

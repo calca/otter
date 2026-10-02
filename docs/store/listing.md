@@ -41,7 +41,7 @@ PICCOLI RITUALI
 - Una nota la domenica sera con le pause della settimana. Mai serie da non perdere né confronti.
 
 PER LE APP CHE SERVONO
-Liste di app consentite per tipo di pausa: Mappe e la chat di lavoro per il pomeriggio, niente per la sera.
+Scegli quali app restano, per ogni tipo di pausa: Mappe e la chat di lavoro il pomeriggio, nessuna la sera.
 
 NIENTE DATI, NIENTE ACCOUNT
 Calm Otter non ha il permesso di usare internet. Niente registrazione, niente pubblicità, niente analisi: la cronologia resta sul telefono. Il codice è aperto, su GitHub.
@@ -72,7 +72,7 @@ SMALL RITUALS
 - A Sunday evening note with your pauses of the week. Never streaks to keep or comparisons.
 
 FOR THE APPS YOU NEED
-Allowed-app lists for each kind of pause: Maps and the work chat in the afternoon, nothing in the evening.
+Choose which apps stay, for each kind of pause: Maps and the work chat in the afternoon, none in the evening.
 
 NO DATA, NO ACCOUNT
 Calm Otter doesn't have permission to use the internet. No sign-up, no ads, no analytics: your history stays on your phone. The code is open, on GitHub.

@@ -13,7 +13,7 @@ private storage:
   it ended, the first names of the people you paused with, the activity
   suggested for a shared pause, and your optional answer and short note
   after a pause.
-- **Your settings**: theme, durations, allowed-apps lists, scheduled
+- **Your settings**: theme, durations, the lists of apps that stay, scheduled
   pauses, and the other switches in Settings.
 - **The password**, never in plain text: only a salted PBKDF2-HMAC-SHA256
   hash, encrypted with a key held by Android Keystore.
@@ -90,7 +90,7 @@ memoria privata dell'app:
   come sono finite, i nomi delle persone con cui le hai fatte, l'attività
   proposta in una pausa di gruppo, e la risposta e la breve nota facoltative
   a fine pausa.
-- **Le impostazioni**: tema, durate, liste di app consentite, pause
+- **Le impostazioni**: tema, durate, liste delle app che restano, pause
   programmate e gli altri interruttori.
 - **La password**, mai in chiaro: solo un hash PBKDF2-HMAC-SHA256 con sale,
   cifrato con una chiave custodita da Android Keystore.

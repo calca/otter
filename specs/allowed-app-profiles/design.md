@@ -53,3 +53,14 @@ line below, to clean up Home): still tappable (same dialog), no longer reads as 
 action. TalkBack still reads "Allowed: Standard". Shown only with 2+
 profiles, as before (`AllowedProfileLine`).
 
+## Wording: "apps that stay"
+
+"App consentite / Allowed apps" sounded like a rulebook — someone granting
+permission. Now **"App che restano / Apps that stay"**, echoing onboarding
+("only the phone and a few apps you choose stay reachable"): Settings row,
+page title ("Apps that stay during a pause"), intro ("During a pause
+everything stops except the phone and the apps you pick here"), schedule
+editor row, Home dialog ("Which apps stay in this pause?"), TalkBack line
+("Apps that stay: Standard"), the limit ("At most 10 apps"); store
+listing, privacy policy and README follow. Resource keys unchanged.
+
