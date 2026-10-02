@@ -414,6 +414,8 @@ Quando sentirai il bisogno di una pausa, basterà aprire l\'app, scegliere quant
     <string name="schedule_title">Pause programmate</string>
     <string name="schedule_intro">Pause che partono da sole, nei giorni e all\'ora che scegli.</string>
     <string name="schedule_empty">Nessuna pausa programmata, per ora.</string>
+    <string name="schedule_exact_notice">Per far partire le pause all\'ora giusta anche a telefono fermo, consenti a Calm Otter «Sveglie e promemoria». Senza, possono partire con qualche minuto di ritardo.</string>
+    <string name="schedule_exact_action">Consenti</string>
     <string name="schedule_add">Aggiungi una pausa programmata</string>
     <string name="schedule_new_title">Nuova pausa programmata</string>
     <string name="schedule_edit_title">Pausa programmata</string>

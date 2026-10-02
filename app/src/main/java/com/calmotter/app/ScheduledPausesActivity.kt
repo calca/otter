@@ -1,7 +1,11 @@
 package com.calmotter.app
 
 import android.annotation.SuppressLint
+import android.content.Intent
+import android.net.Uri
+import android.os.Build
 import android.os.Bundle
+import android.provider.Settings
 import android.view.Menu
 import android.view.MenuItem
 import androidx.activity.compose.BackHandler
@@ -33,6 +37,8 @@ class ScheduledPausesActivity : BaseActivity() {
     private var editing by mutableStateOf<ScheduledPause?>(null)
     /** Modifica in attesa della password; null = nessuna. */
     private var pending by mutableStateOf<(() -> Unit)?>(null)
+    /** Permesso "Sveglie e promemoria", riletto a ogni ripresa (si concede fuori dall'app). */
+    private var exactAlarmsAllowed by mutableStateOf(true)
     /** Il messaggio del dialogo della password: proteggere o allentare. */
     private var pendingMessage by mutableStateOf(R.string.schedule_password_prompt)
 
@@ -65,6 +71,8 @@ class ScheduledPausesActivity : BaseActivity() {
                         schedules = schedules,
                         onToggle = ::saveGuarded,
                         onEdit = { editing = it },
+                        exactAlarmsAllowed = exactAlarmsAllowed,
+                        onAllowExactAlarms = ::requestExactAlarms,
                     )
                 } else {
                     // Indietro torna all'elenco senza salvare. La pagina si
@@ -95,6 +103,19 @@ class ScheduledPausesActivity : BaseActivity() {
                     )
                 }
             }
+        }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        exactAlarmsAllowed = ScheduleAlarms.canBeExact(this)
+    }
+
+    /** Apre "Sveglie e promemoria" per Calm Otter (Android 12+; prima non serve). */
+    private fun requestExactAlarms() {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S) return
+        runCatching {
+            startActivity(Intent(Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM, Uri.parse("package:$packageName")))
         }
     }
 

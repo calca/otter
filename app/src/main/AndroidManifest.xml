@@ -4,6 +4,10 @@
 
     <uses-permission android:name="android.permission.ACCESS_NOTIFICATION_POLICY" />
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+    <!-- Pause programmate all'ora giusta (specs/scheduled-pauses/): concesso
+         dall'utente in "Sveglie e promemoria", mai obbligatorio. Senza, gli
+         allarmi restano inesatti ma arrivano comunque anche in Doze. -->
+    <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <!-- Android 14+: specifica il tipo del foreground service -->
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE" />
@@ -203,6 +207,8 @@
                      ancora ricevere. -->
                 <action android:name="android.intent.action.TIME_SET" />
                 <action android:name="android.intent.action.TIMEZONE_CHANGED" />
+                <!-- Permesso "Sveglie e promemoria" concesso: riarma esatti. -->
+                <action android:name="android.app.action.SCHEDULE_EXACT_ALARM_PERMISSION_STATE_CHANGED" />
             </intent-filter>
         </receiver>
 

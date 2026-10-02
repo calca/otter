@@ -1,5 +1,6 @@
 package com.calmotter.app
 
+import androidx.core.app.AlarmManagerCompat
 import android.Manifest
 import android.app.AlarmManager
 import android.app.NotificationChannel
@@ -18,14 +19,21 @@ import java.util.Date
 
 /**
  * Allarmi delle pause programmate (specs/scheduled-pauses/): uno cinque
- * minuti prima (avviso silenzioso) e uno alla partenza. Inesatti di
- * proposito (`setWindow`): gli allarmi esatti chiedono un permesso negato di
- * default da Android 14, e una pausa che parte alle 21:02 invece che alle
- * 21:00 va bene. Ogni giro arma solo la prossima occorrenza.
+ * minuti prima (avviso silenzioso) e uno alla partenza. Ogni giro arma solo
+ * la prossima occorrenza.
+ *
+ * **Devono arrivare anche a telefono fermo.** Prima erano `setWindow`, che
+ * in Doze (schermo spento, telefono immobile: proprio la sera) viene
+ * rinviato alla prossima finestra di manutenzione, anche di ore — segnalato
+ * da un test sul telefono: "non è partita la pausa". Ora:
+ * - con il permesso "Sveglie e promemoria" (`SCHEDULE_EXACT_ALARM`, che
+ *   l'utente concede dalla lista delle pause programmate):
+ *   `setExactAndAllowWhileIdle`, all'ora giusta anche in Doze, e con
+ *   l'esenzione che permette di avviare subito il servizio della pausa;
+ * - senza: `setAndAllowWhileIdle`, inesatto ma consegnato anche in Doze.
  */
 object ScheduleAlarms {
     private const val HEADS_UP_MILLIS = 5 * 60_000L
-    private const val WINDOW_MILLIS = 2 * 60_000L
 
     /** Riarma tutte le programmazioni: dopo una modifica, al riavvio, a ogni apertura (rete di sicurezza). */
     fun armAll(context: Context) {
@@ -39,11 +47,21 @@ object ScheduleAlarms {
         val at = nextOccurrence(schedule, now) ?: return
         val am = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
         if (at - HEADS_UP_MILLIS > now) {
-            am.setWindow(AlarmManager.RTC_WAKEUP, at - HEADS_UP_MILLIS, WINDOW_MILLIS,
-                pendingIntent(context, schedule.id, at, ScheduledPauseReceiver.ACTION_HEADS_UP))
+            set(am, at - HEADS_UP_MILLIS, pendingIntent(context, schedule.id, at, ScheduledPauseReceiver.ACTION_HEADS_UP))
         }
-        am.setWindow(AlarmManager.RTC_WAKEUP, at, WINDOW_MILLIS,
-            pendingIntent(context, schedule.id, at, ScheduledPauseReceiver.ACTION_START))
+        set(am, at, pendingIntent(context, schedule.id, at, ScheduledPauseReceiver.ACTION_START))
+    }
+
+    /** `true` se gli allarmi possono essere esatti (permesso "Sveglie e promemoria"). */
+    fun canBeExact(context: Context): Boolean =
+        AlarmManagerCompat.canScheduleExactAlarms(context.getSystemService(Context.ALARM_SERVICE) as AlarmManager)
+
+    private fun set(am: AlarmManager, at: Long, pi: PendingIntent) {
+        if (AlarmManagerCompat.canScheduleExactAlarms(am)) {
+            am.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, at, pi)
+        } else {
+            am.setAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, at, pi)
+        }
     }
 
     fun cancel(context: Context, id: Int) {

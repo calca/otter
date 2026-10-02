@@ -1,5 +1,6 @@
 package com.calmotter.app.ui.screens
 
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -99,6 +100,11 @@ fun ScheduledPausesScreen(
     schedules: List<ScheduledPause>,
     onToggle: (ScheduledPause) -> Unit,
     onEdit: (ScheduledPause) -> Unit,
+    // Permesso "Sveglie e promemoria": senza, le pause partono con qualche
+    // minuto di ritardo e senza notifica finché non si apre l'app (vedi
+    // ScheduleAlarms). Mai obbligatorio: un invito, solo se c'è una pausa.
+    exactAlarmsAllowed: Boolean = true,
+    onAllowExactAlarms: () -> Unit = {},
 ) {
     val locale = LocalConfiguration.current.locales[0]
 
@@ -118,7 +124,27 @@ fun ScheduledPausesScreen(
                 color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.75f),
                 modifier = Modifier.padding(bottom = 16.dp),
             )
-            if (schedules.isEmpty()) {
+            if (schedules.isNotEmpty() && !exactAlarmsAllowed) {
+            Surface(
+                shape = RoundedCornerShape(20.dp),
+                color = MaterialTheme.colorScheme.primary.copy(alpha = 0.06f),
+                modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp),
+            ) {
+                Column(modifier = Modifier.padding(16.dp)) {
+                    Text(
+                        text = stringResource(R.string.schedule_exact_notice),
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f),
+                    )
+                    TextButton(
+                        onClick = onAllowExactAlarms,
+                        modifier = Modifier.offset(x = (-12).dp),
+                    ) {
+                        Text(stringResource(R.string.schedule_exact_action))
+                    }
+                }
+            }
+        }
+        if (schedules.isEmpty()) {
                 Column(
                     horizontalAlignment = Alignment.CenterHorizontally,
                     modifier = Modifier.fillMaxWidth().padding(top = 48.dp),

@@ -51,9 +51,28 @@ opened (verified). Not verified: whether a device with the Accessibility
 service actually enabled (the emulator runs the debug bypass) gets an
 exemption that lets the service start immediately.
 
-If the missing notification turns out to matter, the remaining option is
-asking for `SCHEDULE_EXACT_ALARM` when the first schedule is created, with
-an explanation: exact alarms are exempt.
+### The alarm didn't arrive: Doze (fixed)
+
+Reported from a test on a real phone: "non è partita la pausa". The alarms
+were `setWindow`, which Doze (screen off, phone still: exactly the evening)
+defers to the next maintenance window, possibly hours later; Samsung's app
+sleeping makes it worse. Now (`ScheduleAlarms.set`):
+
+- with **"Alarms & reminders"** (`SCHEDULE_EXACT_ALARM`, declared, granted
+  by the user — never required): `setExactAndAllowWhileIdle`. Verified on
+  the emulator: fires on the minute (21:12:03 for 21:12), and the alarm's
+  `ALARM_MANAGER_WHILE_IDLE` exemption lets `SessionForegroundService`
+  start right away, so the ongoing notification is there too;
+- without it: `setAndAllowWhileIdle` — inexact but delivered in Doze.
+  Verified: fired inside the ~2-minute window; the foreground service is
+  still refused (see above) until the app is opened.
+
+The list shows a card inviting to allow "Alarms & reminders" (only when
+there is at least one schedule and the permission is missing; re-read on
+resume), whose "Allow" opens `ACTION_REQUEST_SCHEDULE_EXACT_ALARM` for the
+app. Granting it broadcasts `SCHEDULE_EXACT_ALARM_PERMISSION_STATE_CHANGED`,
+caught by `BootReceiver` → `AppScheduler.reconcile()` to re-arm as exact.
+Not a Play-restricted permission (unlike `USE_EXACT_ALARM`).
 
 ## The list
 

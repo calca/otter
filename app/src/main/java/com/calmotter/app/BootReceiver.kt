@@ -26,7 +26,8 @@ class BootReceiver : BroadcastReceiver() {
         when (intent.action) {
             // Ora o fuso cambiati: gli allarmi a ora locale (pause programmate,
             // nota della domenica) vanno ricalcolati. Nient'altro da fare.
-            Intent.ACTION_TIME_CHANGED, Intent.ACTION_TIMEZONE_CHANGED -> AppScheduler.reconcile(context)
+            Intent.ACTION_TIME_CHANGED, Intent.ACTION_TIMEZONE_CHANGED,
+            ACTION_EXACT_ALARM_PERMISSION_CHANGED -> AppScheduler.reconcile(context)
             Intent.ACTION_BOOT_COMPLETED, "android.intent.action.QUICKBOOT_POWERON" -> onBoot(context)
         }
     }
@@ -44,5 +45,10 @@ class BootReceiver : BroadcastReceiver() {
                     Intent.FLAG_ACTIVITY_CLEAR_TASK
         }
         context.startActivity(blockIntent)
+    }
+
+    private companion object {
+        /** AlarmManager.ACTION_SCHEDULE_EXACT_ALARM_PERMISSION_STATE_CHANGED (API 31), come stringa per minSdk 26. */
+        const val ACTION_EXACT_ALARM_PERMISSION_CHANGED = "android.app.action.SCHEDULE_EXACT_ALARM_PERMISSION_STATE_CHANGED"
     }
 }

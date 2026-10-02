@@ -405,6 +405,8 @@ Whenever you feel the need for a break, just open the app, choose how long — &
     <string name="schedule_title">Scheduled pauses</string>
     <string name="schedule_intro">Pauses that start by themselves, on the days and at the time you choose.</string>
     <string name="schedule_empty">No scheduled pauses yet.</string>
+    <string name="schedule_exact_notice">To start pauses on time even when the phone is idle, allow Calm Otter “Alarms &amp; reminders”. Without it they may start a few minutes late.</string>
+    <string name="schedule_exact_action">Allow</string>
     <string name="schedule_add">Add a scheduled pause</string>
     <string name="schedule_new_title">New scheduled pause</string>
     <string name="schedule_edit_title">Scheduled pause</string>

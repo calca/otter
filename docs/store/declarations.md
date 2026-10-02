@@ -70,7 +70,10 @@ No special declaration needed for: `ACCESS_NOTIFICATION_POLICY`,
 `POST_NOTIFICATIONS`, `RECEIVE_BOOT_COMPLETED`, `CAMERA`, Bluetooth
 (`BLUETOOTH_SCAN` with `neverForLocation`, `CONNECT`, `ADVERTISE`), `NFC`.
 Not used (so nothing to declare): `QUERY_ALL_PACKAGES` (the app uses a
-`<queries>` block), exact alarms, SMS, call log, location.
+`<queries>` block), `USE_EXACT_ALARM`, SMS, call log, location.
+`SCHEDULE_EXACT_ALARM` is declared but user-granted ("Alarms & reminders")
+and optional: it only makes scheduled pauses start on the minute; it needs
+no Play declaration.
 
 ## Content rating (IARC questionnaire)
 
