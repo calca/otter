@@ -2,10 +2,8 @@ package com.calmotter.app.ui.screens
 
 import android.app.Activity
 import android.bluetooth.BluetoothAdapter
-import android.content.ComponentName
 import android.content.Intent
 import android.nfc.NfcAdapter
-import android.nfc.cardemulation.CardEmulation
 import android.os.Handler
 import android.os.Looper
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -59,6 +57,7 @@ import com.calmotter.app.encode
 import com.calmotter.app.groupPauseBluetoothRuntimePermissions
 import com.calmotter.app.hasGroupPauseBluetoothPermissions
 import com.calmotter.app.nfc.GroupPauseHceService
+import com.calmotter.app.nfc.NfcTapGuard
 import com.calmotter.app.ui.mascot.OtterZenMark
 import com.calmotter.app.ui.mascot.OtterSatelliteMark
 import kotlin.math.cos
@@ -166,28 +165,6 @@ fun GroupPauseBluetoothLobbyHostScreen(
             host.start(markerName, hostName, durationMinutes, suggestion.activityId)
             if (nfcAvailable) {
                 GroupPauseHceService.pendingMarker = markerName
-                // Senza questo, un tap NFC apriva il selettore di sistema
-                // "Completa azione con" invece di rispondere subito —
-                // segnalato, riprodotto su un Galaxy S22. L'AID dichiarato in
-                // apduservice.xml è categoria "other" (non "payment"): per
-                // quella categoria Android instrada un tap verso il servizio
-                // preferito solo se qualcuno lo dichiara esplicitamente
-                // tale mentre è in primo piano — altrimenti, con più di un
-                // gestore possibile per lo stesso AID (anche solo il nostro
-                // servizio più un gestore di sistema/OEM), chiede all'utente
-                // ogni volta. `setPreferredService`/`unsetPreferredService`
-                // vogliono l'Activity, non un Context qualunque: questa
-                // composable vive sempre dentro una, come già assunto altrove
-                // in questo file (vedi `activity` in BlockScreen.kt per lo
-                // stesso pattern).
-                nfcAdapter?.let {
-                    runCatching {
-                        CardEmulation.getInstance(it).setPreferredService(
-                            context as Activity,
-                            ComponentName(context, GroupPauseHceService::class.java),
-                        )
-                    }
-                }
                 // processCommandApdu() gira sul thread NFC del sistema, non
                 // su quello principale: mutableStateOf va toccato dal main
                 // thread, da cui il post esplicito.
@@ -199,13 +176,14 @@ fun GroupPauseBluetoothLobbyHostScreen(
             host.stop()
             GroupPauseHceService.pendingMarker = null
             GroupPauseHceService.onTapRead = null
-            if (nfcAvailable) {
-                nfcAdapter?.let {
-                    runCatching { CardEmulation.getInstance(it).unsetPreferredService(context as Activity) }
-                }
-            }
         }
     }
+
+    // Il tocco NFC deve arrivare a Calm Otter e non al selettore di sistema
+    // (Samsung): servizio preferito reimpostato a ogni ripresa dell'Activity
+    // — il dialogo "rendi visibile" la mette in pausa e prima la preferenza
+    // si perdeva lì — e letture di tag intercettate. Vedi NfcTapGuard.
+    NfcTapGuard(enabled = allReady && nfcAvailable, swallowTags = true)
 
     val participantNames = host.participantNames
 

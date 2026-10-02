@@ -70,6 +70,7 @@ import com.calmotter.app.CalmCountdown
 import com.calmotter.app.PasswordManager
 import com.calmotter.app.R
 import com.calmotter.app.SessionManager
+import com.calmotter.app.nfc.NfcTapGuard
 import com.calmotter.app.ui.mascot.OtterZenMark
 import kotlinx.coroutines.delay
 
@@ -578,6 +579,11 @@ private fun ReleaseOthersStep(
         GroupPauseHceService.pendingMarker = groupPauseUnlockToken(groupTag)
         onDispose { GroupPauseHceService.pendingMarker = null }
     }
+    // Il tocco dell'altro telefono deve arrivare a Calm Otter e non al
+    // selettore di sistema (Samsung) — vedi NfcTapGuard. Senza intercettare
+    // i tag: qui l'Activity è MainActivity o BlockOverlayActivity, a cui un
+    // Intent in più non va consegnato.
+    NfcTapGuard(enabled = true)
 
     // Stesso contenitore della schermata di blocco: l'otter cade nello stesso
     // punto, quindi quello persistente (o quello disegnato qui) non salta

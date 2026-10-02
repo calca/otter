@@ -327,6 +327,42 @@ tap" behavior needs a second NFC-capable phone to tap against to confirm
 end-to-end, which wasn't available; flagged rather than claimed as fully
 verified.
 
+### The resolver dialog came back on Samsung
+
+Reported again after the fix above: "quando tappo i device su samsung non
+parte la sessione ma apre il selettore nfc. con il BT funziona bene". Three
+holes, none reproducible on the emulator (no NFC), all closed by reading
+the platform contract:
+
+1. **The preference was set once, at the wrong moment.** The effect that
+   called `setPreferredService` runs when `allReady` flips — which is right
+   after the host launches the system "make discoverable" dialog, a
+   separate Activity that **pauses** the lobby. The preferred service only
+   holds while the Activity is resumed (the docs ask for it in `onResume`,
+   off in `onPause`), so it was gone by the time the phones touched.
+   `nfc/NfcTapGuard.kt` (a composable) now re-applies it on every
+   `ON_RESUME` and drops it on every `ON_PAUSE`, via a lifecycle observer.
+2. **The host also reads tags.** While emulating a card, the host phone
+   keeps polling; if the other phone is not (yet) in reader mode it is
+   seen as a tag and dispatched to the system — the same chooser.
+   `NfcTapGuard(swallowTags = true)` enables foreground dispatch with a
+   `SINGLE_TOP` PendingIntent (action `ACTION_IGNORED_TAG`) back to the
+   lobby's own Activity, which ignores it. Used only in the host lobby:
+   `GroupPauseHostActivity` does nothing with an extra Intent, while
+   `MainActivity` (`singleTask`, `handleIntent`) would.
+3. **The joiner's reader started late.** `GroupPauseNfcReader.start()` was
+   inside `startListening()`, i.e. only after permissions and Bluetooth
+   were ready. It now has its own `DisposableEffect` keyed on
+   `nfcAvailable`, so reader mode is on as soon as the lobby is on screen;
+   the marker read waits in `pendingNfcMarker` until discovery finds it.
+
+The release step after an early group unlock (`ReleaseOthersStep` in
+`BlockScreen.kt`) is a card too (`groupPauseUnlockToken`) and never had a
+preferred service at all; it now calls `NfcTapGuard(enabled = true)`,
+without swallowing tags (it lives in `MainActivity`/`BlockOverlayActivity`).
+
+Verification limit unchanged: needs two NFC phones.
+
 ### After a tap, the session starts on its own — no manual "Iniziamo" needed
 
 Requested: "l'nfc è pensato per quando la pausa è 2, quindi dopo il tap la
@@ -380,7 +416,8 @@ verification limit as the resolver-dialog fix above: no second NFC-capable
 device was available to physically tap and confirm the session actually
 starts end-to-end. What was checked was code-level: `onTapRead` is
 registered/cleared in the same `DisposableEffect(allReady)` block, on the
-same lifecycle, as `pendingMarker` and `setPreferredService`.
+same lifecycle, as `pendingMarker` (the preferred service later moved to
+`NfcTapGuard`, see above).
 
 ### Permissions
 

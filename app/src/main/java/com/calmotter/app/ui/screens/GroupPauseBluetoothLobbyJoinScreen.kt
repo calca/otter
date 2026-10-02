@@ -159,9 +159,16 @@ fun GroupPauseBluetoothLobbyJoinScreen(
     // (vedi lì).
     fun startListening() {
         join.startDiscovery()
-        if (nfcAvailable) {
-            nfcReader.start { marker -> mainHandler.post { pendingNfcMarker = marker } }
-        }
+    }
+
+    // Il lettore NFC parte appena la lobby è a schermo, senza aspettare
+    // permessi e Bluetooth (allReady): finché non è in modalità lettore, un
+    // tocco fra i telefoni lo gestisce il sistema, che su Samsung apre il
+    // selettore "Completa azione con" — segnalato. Il nome letto resta in
+    // pendingNfcMarker finché la ricerca Bluetooth non lo trova.
+    DisposableEffect(nfcAvailable) {
+        if (nfcAvailable) nfcReader.start { marker -> mainHandler.post { pendingNfcMarker = marker } }
+        onDispose { nfcReader.stop() }
     }
 
     fun connect(device: BluetoothDevice) {
@@ -216,7 +223,6 @@ fun GroupPauseBluetoothLobbyJoinScreen(
     DisposableEffect(allReady) {
         if (allReady) startListening()
         onDispose {
-            nfcReader.stop()
             join.stop()
         }
     }
