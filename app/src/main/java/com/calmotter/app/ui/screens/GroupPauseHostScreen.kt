@@ -319,8 +319,13 @@ internal fun ScrollableMinutePillRow(
     LaunchedEffect(Unit) {
         bringSelectedIntoView.bringIntoView()
     }
+    val scrollState = rememberScrollState()
     Row(
-        modifier = Modifier.horizontalScroll(rememberScrollState()),
+        // Sfumata sui due bordi come la riga delle durate in Home.
+        // Sfumatura prima dello scorrimento, così vale per la parte visibile.
+        modifier = Modifier
+            .scrollFadeEdges(scrollState)
+            .horizontalScroll(scrollState),
         horizontalArrangement = Arrangement.spacedBy(8.dp),
     ) {
         options.forEach { value ->

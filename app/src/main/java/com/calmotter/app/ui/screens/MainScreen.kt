@@ -14,6 +14,8 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.relocation.BringIntoViewRequester
 import androidx.compose.foundation.relocation.bringIntoViewRequester
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.foundation.ScrollState
 import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Brush
@@ -481,9 +483,12 @@ private fun DurationChipRow(selectedMinutes: Int, onSelect: (Int) -> Unit) {
     val bringSelectedIntoView = remember { BringIntoViewRequester() }
     LaunchedEffect(selectedMinutes) { bringSelectedIntoView.bringIntoView() }
     Row(
+        // La sfumatura PRIMA dello scorrimento: dopo, si applicava al
+        // contenuto intero (largo quanto tutte le pillole) invece che alla
+        // parte visibile, e sfumava l'ultima pillola anche a fine corsa.
         modifier = Modifier
+            .scrollFadeEdges(scrollState)
             .horizontalScroll(scrollState)
-            .horizontalFadeEdge(visible = scrollState.canScrollForward)
             .padding(horizontal = 8.dp),
         horizontalArrangement = Arrangement.spacedBy(8.dp),
     ) {
@@ -500,6 +505,22 @@ private fun DurationChipRow(selectedMinutes: Int, onSelect: (Int) -> Unit) {
             )
         }
     }
+}
+
+/**
+ * [horizontalFadeEdge] guidata da uno [ScrollState], sui due bordi. Da
+ * mettere PRIMA di `horizontalScroll`, così sfuma la parte visibile e non il
+ * contenuto intero. Un bordo sfuma solo se da quel lato resta più di qualche
+ * dp da scorrere: con `canScrollForward` bastava il margine dopo l'ultima
+ * pillola per sfumarla anche a fine corsa.
+ */
+@Composable
+internal fun Modifier.scrollFadeEdges(scrollState: ScrollState): Modifier {
+    val threshold = with(LocalDensity.current) { 12.dp.toPx() }
+    return horizontalFadeEdge(
+        visible = scrollState.maxValue - scrollState.value > threshold,
+        fadeStart = scrollState.value > threshold,
+    )
 }
 
 /**
@@ -527,7 +548,15 @@ private fun DurationChipRow(selectedMinutes: Int, onSelect: (Int) -> Unit) {
  * pillola resterebbe permanentemente più tenue delle altre anche a fine
  * corsa — che si legge come un difetto grafico, non come un indizio.
  */
-internal fun Modifier.horizontalFadeEdge(visible: Boolean, width: Dp = 24.dp): Modifier = if (!visible) {
+internal fun Modifier.horizontalFadeEdge(
+    visible: Boolean,
+    width: Dp = 24.dp,
+    // La stessa sfumatura sul bordo sinistro, quando c'è altro da scorrere
+    // anche da quel lato (`canScrollBackward`): senza, con una durata in
+    // fondo alla riga scelta, a sinistra restava mezza pillola tagliata di
+    // netto mentre a destra sfumava (review UI).
+    fadeStart: Boolean = false,
+): Modifier = if (!visible && !fadeStart) {
     this
 } else {
     this
@@ -543,13 +572,26 @@ internal fun Modifier.horizontalFadeEdge(visible: Boolean, width: Dp = 24.dp): M
             // l'intera riga spariva (alfa 0 su tutta l'area a sinistra
             // di startX, non solo l'ultimo tratto) — trovato
             // sull'emulatore, corretto prima di committare.
-            drawRect(
-                brush = Brush.horizontalGradient(
-                    colors = listOf(Color.Black, Color.Transparent),
-                    startX = size.width - width.toPx(),
-                    endX = size.width,
-                ),
-                blendMode = BlendMode.DstIn,
-            )
+            if (visible) {
+                drawRect(
+                    brush = Brush.horizontalGradient(
+                        colors = listOf(Color.Black, Color.Transparent),
+                        startX = size.width - width.toPx(),
+                        endX = size.width,
+                    ),
+                    blendMode = BlendMode.DstIn,
+                )
+            }
+            // A specchio: trasparente al bordo, pieno dopo `width`.
+            if (fadeStart) {
+                drawRect(
+                    brush = Brush.horizontalGradient(
+                        colors = listOf(Color.Transparent, Color.Black),
+                        startX = 0f,
+                        endX = width.toPx(),
+                    ),
+                    blendMode = BlendMode.DstIn,
+                )
+            }
         }
 }
