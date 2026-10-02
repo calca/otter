@@ -396,7 +396,8 @@ Whenever you feel the need for a break, just open the app, choose how long — &
     <string name="schedule_missing_permissions">The scheduled pause didn\'t start: Calm Otter is missing its permissions.</string>
     <!-- Pause programmate: schermata -->
     <string name="schedule_title">Scheduled pauses</string>
-    <string name="schedule_intro">Pauses that start by themselves on the days and at the time you choose. Yours are yours to manage; a password-protected pause can only be loosened or deleted with the password.</string>
+    <string name="schedule_intro">Pauses that start by themselves, on the days and at the time you choose.</string>
+    <string name="schedule_empty">No scheduled pauses yet.</string>
     <string name="schedule_add">Add a scheduled pause</string>
     <string name="schedule_new_title">New scheduled pause</string>
     <string name="schedule_edit_title">Scheduled pause</string>

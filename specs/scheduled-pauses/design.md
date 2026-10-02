@@ -55,6 +55,14 @@ If the missing notification turns out to matter, the remaining option is
 asking for `SCHEDULE_EXACT_ALARM` when the first schedule is created, with
 an explanation: exact alarms are exempt.
 
+## The list
+
+One-line intro ("Pauses that start by themselves, on the days and at the
+time you choose") — the protection rule is explained in the editor, next to
+its switch; it used to be five lines before any schedule. "Add a scheduled
+pause" is pinned to the bottom (CTA rule); with no schedules, an otter and
+"No scheduled pauses yet" instead of an empty page.
+
 ## Password rules
 
 Requested: "le scheduling che faccio io senza password". The app can't know

@@ -403,7 +403,8 @@ Quando sentirai il bisogno di una pausa, basterà aprire l\'app, scegliere quant
     <string name="schedule_missing_permissions">La pausa programmata non è partita: mancano i permessi di Calm Otter.</string>
     <!-- Pause programmate: schermata -->
     <string name="schedule_title">Pause programmate</string>
-    <string name="schedule_intro">Pause che partono da sole nei giorni e all\'ora che scegli. Le tue le gestisci liberamente; una pausa protetta da password si allenta o si elimina solo con la password.</string>
+    <string name="schedule_intro">Pause che partono da sole, nei giorni e all\'ora che scegli.</string>
+    <string name="schedule_empty">Nessuna pausa programmata, per ora.</string>
     <string name="schedule_add">Aggiungi una pausa programmata</string>
     <string name="schedule_new_title">Nuova pausa programmata</string>
     <string name="schedule_edit_title">Pausa programmata</string>

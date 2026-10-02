@@ -70,6 +70,7 @@ import com.calmotter.app.R
 import com.calmotter.app.SESSION_DURATION_OPTIONS
 import com.calmotter.app.ScheduledPause
 import com.calmotter.app.durationPillLabel
+import com.calmotter.app.ui.mascot.OtterZenMark
 import java.time.DayOfWeek
 import java.time.format.TextStyle
 import java.util.Locale
@@ -101,63 +102,85 @@ fun ScheduledPausesScreen(
 ) {
     val locale = LocalConfiguration.current.locales[0]
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .safeDrawingPadding()
-            .verticalScroll(rememberScrollState())
-            .padding(24.dp),
-    ) {
-        Text(
-            text = stringResource(R.string.schedule_intro),
-            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.75f),
-            modifier = Modifier.padding(bottom = 16.dp),
-        )
-        schedules.forEach { schedule ->
-            Surface(
-                shape = RoundedCornerShape(20.dp),
-                color = MaterialTheme.colorScheme.primary.copy(alpha = 0.06f),
-                modifier = Modifier.fillMaxWidth().padding(bottom = 10.dp),
-            ) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier
-                        .clickable { onEdit(schedule) }
-                        .padding(horizontal = 16.dp, vertical = 12.dp),
+    // "Aggiungi" fisso in fondo (regola della CTA), l'elenco scorre sopra.
+    // Introduzione di una riga: la regola della protezione la spiega la
+    // pagina di modifica, accanto all'interruttore (review UI: erano cinque
+    // righe prima di qualunque pausa).
+    Column(modifier = Modifier.fillMaxSize().safeDrawingPadding()) {
+        Column(
+            modifier = Modifier
+                .weight(1f)
+                .verticalScroll(rememberScrollState())
+                .padding(horizontal = 24.dp, vertical = 16.dp),
+        ) {
+            Text(
+                text = stringResource(R.string.schedule_intro),
+                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.75f),
+                modifier = Modifier.padding(bottom = 16.dp),
+            )
+            if (schedules.isEmpty()) {
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    modifier = Modifier.fillMaxWidth().padding(top = 48.dp),
                 ) {
-                    Column(modifier = Modifier.weight(1f)) {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Text(
-                                text = timeLabel(schedule.startMinuteOfDay) + " · " + durationPillLabel(schedule.durationMinutes),
-                                fontSize = 18.sp,
-                                fontWeight = FontWeight.SemiBold,
-                                color = MaterialTheme.colorScheme.primary,
-                            )
-                            if (schedule.locked) {
-                                Icon(
-                                    Icons.Filled.Lock,
-                                    contentDescription = stringResource(R.string.schedule_locked_label),
-                                    tint = MaterialTheme.colorScheme.primary.copy(alpha = 0.7f),
-                                    modifier = Modifier.padding(start = 8.dp).size(16.dp),
+                    OtterZenMark(markSize = 96.dp)
+                    Text(
+                        text = stringResource(R.string.schedule_empty),
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.65f),
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier.padding(top = 16.dp),
+                    )
+                }
+            }
+            schedules.forEach { schedule ->
+                Surface(
+                    shape = RoundedCornerShape(20.dp),
+                    color = MaterialTheme.colorScheme.primary.copy(alpha = 0.06f),
+                    modifier = Modifier.fillMaxWidth().padding(bottom = 10.dp),
+                ) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier
+                            .clickable { onEdit(schedule) }
+                            .padding(horizontal = 16.dp, vertical = 12.dp),
+                    ) {
+                        Column(modifier = Modifier.weight(1f)) {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Text(
+                                    text = timeLabel(schedule.startMinuteOfDay) + " · " + durationPillLabel(schedule.durationMinutes),
+                                    fontSize = 18.sp,
+                                    fontWeight = FontWeight.SemiBold,
+                                    color = MaterialTheme.colorScheme.primary,
                                 )
+                                if (schedule.locked) {
+                                    Icon(
+                                        Icons.Filled.Lock,
+                                        contentDescription = stringResource(R.string.schedule_locked_label),
+                                        tint = MaterialTheme.colorScheme.primary.copy(alpha = 0.7f),
+                                        modifier = Modifier.padding(start = 8.dp).size(16.dp),
+                                    )
+                                }
                             }
+                            Text(
+                                text = daysLabel(schedule.days, locale),
+                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.75f),
+                            )
                         }
-                        Text(
-                            text = daysLabel(schedule.days, locale),
-                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.75f),
+                        Switch(
+                            checked = schedule.enabled,
+                            onCheckedChange = { onToggle(schedule.copy(enabled = it)) },
+                            colors = settingsSwitchColors(),
                         )
                     }
-                    Switch(
-                        checked = schedule.enabled,
-                        onCheckedChange = { onToggle(schedule.copy(enabled = it)) },
-                        colors = settingsSwitchColors(),
-                    )
                 }
             }
         }
         Button(
             onClick = { onEdit(newScheduledPause()) },
-            modifier = Modifier.fillMaxWidth().padding(top = 8.dp).height(48.dp),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 24.dp, vertical = 16.dp)
+                .height(52.dp),
         ) {
             Text(stringResource(R.string.schedule_add))
         }
