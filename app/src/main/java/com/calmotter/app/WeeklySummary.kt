@@ -12,6 +12,7 @@ import android.content.pm.PackageManager
 import android.os.Build
 import androidx.annotation.VisibleForTesting
 import androidx.core.app.NotificationCompat
+import com.calmotter.app.ui.screens.HistoryTab
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat
 import androidx.core.content.edit
@@ -107,7 +108,8 @@ object WeeklySummary {
             NotificationChannel(CHANNEL_ID, context.getString(R.string.weekly_note_channel), NotificationManager.IMPORTANCE_LOW)
         )
         val open = PendingIntent.getActivity(
-            context, 0, Intent(context, HistoryActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK),
+            // La nota parla della settimana: si apre sul Riepilogo.
+            context, 0, HistoryActivity.intent(context, HistoryTab.Overview).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK),
             PendingIntent.FLAG_IMMUTABLE,
         )
         val notification = NotificationCompat.Builder(context, CHANNEL_ID)

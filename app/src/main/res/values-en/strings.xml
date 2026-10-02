@@ -85,7 +85,8 @@
     <string name="notification_channel_name">Session in progress</string>
     <string name="notification_channel_description">Shows the status of the active pause session</string>
 
-    <string name="history_all_sessions">All sessions</string>
+    <string name="history_tab_overview">Overview</string>
+    <string name="history_tab_sessions">Sessions</string>
     <!-- Streak/week row in Home, for one opening only: the previous pause
          ended while the phone was closed, with no end-of-pause screen there
          to tell the story live. %1$s is the time (e.g. "14:32"), %2$s the

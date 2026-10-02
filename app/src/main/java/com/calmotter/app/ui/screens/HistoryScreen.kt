@@ -61,6 +61,16 @@ import java.text.SimpleDateFormat
 import java.time.format.DateTimeFormatter
 import java.util.Date
 import java.util.Locale
+import kotlinx.coroutines.launch
+import androidx.compose.ui.graphics.Color
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.material3.Tab
+import androidx.compose.material3.PrimaryTabRow
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.foundation.pager.rememberPagerState
+import androidx.compose.foundation.pager.HorizontalPager
 
 // Formatter con giorno della settimana esteso. Locale.getDefault(), non
 // Locale.ITALY: era hardcoded in italiano, quindi ogni riga mostrava sempre
@@ -93,10 +103,14 @@ private fun rememberHistoryDateFormat(): SimpleDateFormat {
     return remember(locale) { SimpleDateFormat("EEEE d MMM · HH:mm", locale) }
 }
 
+/** Le due schede della Cronologia. */
+enum class HistoryTab { Overview, Sessions }
+
 /**
  * Schermata cronologia (ultimo step della migrazione a Compose — il più
  * articolato: statistiche, streak, grafico settimanale disegnato a mano,
- * obiettivo opzionale con dialog, lista sessioni, stato vuoto).
+ * obiettivo opzionale con dialog, lista sessioni, stato vuoto), divisa in
+ * due schede: Riepilogo e Sessioni.
  *
  * **La barra statistiche scorre con il resto della pagina.** Riproduceva
  * esattamente la struttura della vecchia activity_history.xml, dove restava
@@ -115,6 +129,7 @@ private fun rememberHistoryDateFormat(): SimpleDateFormat {
  * solo da onCreate() e dopo lo svuotamento della cronologia, mai da
  * onResume() — comportamento volutamente preservato qui.
  */
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HistoryScreen(
     sessions: List<SessionRecord>,
@@ -123,6 +138,8 @@ fun HistoryScreen(
     // "Adesso", di default l'ora vera: fissabile negli screenshot test,
     // dove "oggi" e la settimana devono restare gli stessi ogni giorno.
     now: Long = System.currentTimeMillis(),
+    initialTab: HistoryTab = HistoryTab.Overview,
+    onTabChange: (HistoryTab) -> Unit = {},
 ) {
     if (sessions.isEmpty()) {
         EmptyHistory()
@@ -136,21 +153,48 @@ fun HistoryScreen(
     var togetherOnly by remember { mutableStateOf(false) }
     val shown = if (togetherOnly && hasTogether) sessions.filter { it.isGroupSession } else sessions
 
-    val streak = SessionStreak.currentStreakDays(shown, now)
-    val (minutesByDay, weekSessions, weekMinutes) = weeklyChartData(shown, now)
-
-    val summaryText = if (weekSessions == 0) {
-        stringResource(R.string.weekly_summary_none)
-    } else {
-        pluralStringResource(R.plurals.weekly_summary_sessions, weekSessions, weekSessions, formatHistoryMinutes(weekMinutes))
-    }
+    // Due schede invece di un'unica colonna lunga (segnalato: "la pagina è
+    // un po' lunga"): "Riepilogo" (come sto andando) e "Sessioni" (il
+    // registro, per mese). Si passa con le schede o scorrendo di lato; il
+    // filtro Insieme sta sopra e vale per entrambe.
+    val tabs = HistoryTab.entries
+    val pager = rememberPagerState(initialPage = initialTab.ordinal) { tabs.size }
+    val scope = rememberCoroutineScope()
+    LaunchedEffect(pager.currentPage) { onTabChange(tabs[pager.currentPage]) }
 
     Column(
         modifier = Modifier
             .fillMaxSize()
             .safeDrawingPadding()
-            .verticalScroll(rememberScrollState())
     ) {
+        PrimaryTabRow(
+            selectedTabIndex = pager.currentPage,
+            containerColor = Color.Transparent,
+            contentColor = MaterialTheme.colorScheme.primary,
+            // Il divisore di default usa outlineVariant, un ruolo che le
+            // palette non personalizzano (vedi CLAUDE.md).
+            divider = { HorizontalDivider(color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.08f)) },
+        ) {
+            tabs.forEach { tab ->
+                Tab(
+                    selected = pager.currentPage == tab.ordinal,
+                    onClick = { scope.launch { pager.animateScrollToPage(tab.ordinal) } },
+                    selectedContentColor = MaterialTheme.colorScheme.primary,
+                    unselectedContentColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
+                    text = {
+                        Text(
+                            stringResource(
+                                when (tab) {
+                                    HistoryTab.Overview -> R.string.history_tab_overview
+                                    HistoryTab.Sessions -> R.string.history_tab_sessions
+                                }
+                            ),
+                            fontWeight = FontWeight.SemiBold,
+                        )
+                    },
+                )
+            }
+        }
         if (hasTogether) {
             HistoryFilterRow(
                 togetherOnly = togetherOnly,
@@ -158,6 +202,34 @@ fun HistoryScreen(
                 modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 12.dp),
             )
         }
+        HorizontalPager(state = pager, modifier = Modifier.weight(1f), verticalAlignment = Alignment.Top) { page ->
+            when (tabs[page]) {
+                HistoryTab.Overview -> OverviewPage(sessions = sessions, shown = shown, hasTogether = hasTogether, goal = goal, onEditGoal = onEditGoal, now = now)
+                HistoryTab.Sessions -> SessionsPage(shown = shown, togetherOnly = togetherOnly, now = now)
+            }
+        }
+    }
+}
+
+/** "Riepilogo": totali, la settimana con l'obiettivo, la scheda Insieme e la frase che chiude. */
+@Composable
+private fun OverviewPage(
+    sessions: List<SessionRecord>,
+    shown: List<SessionRecord>,
+    hasTogether: Boolean,
+    goal: WeeklyGoal?,
+    onEditGoal: () -> Unit,
+    now: Long,
+) {
+    val streak = SessionStreak.currentStreakDays(shown, now)
+    val (minutesByDay, weekSessions, weekMinutes) = weeklyChartData(shown, now)
+    val summaryText = if (weekSessions == 0) {
+        stringResource(R.string.weekly_summary_none)
+    } else {
+        pluralStringResource(R.plurals.weekly_summary_sessions, weekSessions, weekSessions, formatHistoryMinutes(weekMinutes))
+    }
+
+    Column(modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState())) {
         StatsBar(
             sessions = shown,
             modifier = Modifier
@@ -185,24 +257,24 @@ fun HistoryScreen(
             )
         }
 
-        Text(
-            text = stringResource(R.string.history_all_sessions),
-            fontSize = 13.sp,
-            fontWeight = FontWeight.Bold,
-            color = MaterialTheme.colorScheme.onSurface,
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(start = 16.dp, top = 20.dp, end = 16.dp, bottom = 4.dp)
-        )
+        ClosingPhraseCard(now = now, modifier = Modifier.padding(horizontal = 16.dp, vertical = 20.dp))
+    }
+}
 
-        // Per mese (specs/history-by-month/): all'apertura il mese corrente e
-        // il precedente, poi un mese in più a ogni tocco. Con una pausa al
-        // giorno la lista intera diventava lunga e lenta da comporre; le
-        // statistiche qui sopra contano comunque tutto.
-        var extraMonths by remember(togetherOnly) { mutableIntStateOf(0) }
-        val view = remember(shown, extraMonths) { historyMonths(shown, now, extraMonths) }
-        val locale = LocalConfiguration.current.locales[0]
-        val monthFormat = remember(locale) { DateTimeFormatter.ofPattern("LLLL yyyy", locale) }
+/**
+ * "Sessioni", per mese (specs/history-by-month/): all'apertura il mese
+ * corrente e il precedente, poi un mese in più a ogni tocco. Con una pausa al
+ * giorno la lista intera diventava lunga e lenta da comporre; il Riepilogo
+ * conta comunque tutto.
+ */
+@Composable
+private fun SessionsPage(shown: List<SessionRecord>, togetherOnly: Boolean, now: Long) {
+    var extraMonths by remember(togetherOnly) { mutableIntStateOf(0) }
+    val view = remember(shown, extraMonths) { historyMonths(shown, now, extraMonths) }
+    val locale = LocalConfiguration.current.locales[0]
+    val monthFormat = remember(locale) { DateTimeFormatter.ofPattern("LLLL yyyy", locale) }
+
+    Column(modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState())) {
         view.months.forEach { group ->
             Text(
                 text = group.month.format(monthFormat).replaceFirstChar { it.uppercase(locale) },
@@ -231,9 +303,6 @@ fun HistoryScreen(
                 Text(stringResource(R.string.history_show_earlier))
             }
         }
-
-        ClosingPhraseCard(modifier = Modifier.padding(horizontal = 16.dp, vertical = 20.dp))
-
         Spacer(modifier = Modifier.height(16.dp))
     }
 }
@@ -580,9 +649,12 @@ fun ClearHistoryConfirmDialog(onDismiss: () -> Unit, onConfirm: () -> Unit) {
  * e da cui esci quando vuoi — contesto diverso, preferenza diversa.
  */
 @Composable
-private fun ClosingPhraseCard(modifier: Modifier = Modifier) {
+private fun ClosingPhraseCard(now: Long, modifier: Modifier = Modifier) {
+    // La frase del giorno, non una a caso a ogni apertura: stessa frase per
+    // tutta la giornata (e stabile negli screenshot test, dove `now` è fisso;
+    // da quando il Riepilogo è una scheda corta la card è in vista).
     val phrases = stringArrayResource(R.array.pause_phrases)
-    val phrase = remember(phrases) { phrases.random() }
+    val phrase = remember(phrases, now) { phrases[Math.floorMod(now / 86_400_000L, phrases.size.toLong()).toInt()] }
 
     Surface(
         shape = RoundedCornerShape(20.dp),

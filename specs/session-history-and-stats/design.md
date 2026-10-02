@@ -608,3 +608,31 @@ of assumed, per the TODO item's own request. If `HistoryScreen`'s single
 `weeklyChartData(sessions)` computation (already `sessions: List<SessionRecord>`,
 read once per screen open) ever needs to become paginated or windowed,
 that's the trigger — not a row-count milestone.
+
+## Two tabs: Overview and Sessions
+
+Reported: "la pagina history è un po' lunga" — stats, week, goal, the
+Together card, every month of sessions and the closing phrase stacked in
+one column, two different things ("how am I doing" and "the log") on one
+page. Split with an M3 `PrimaryTabRow` over a `HorizontalPager` (tap or
+swipe), in the same Activity:
+
+- **Overview**: totals (`StatsBar`), the week card with the goal, the
+  Together card, the closing phrase.
+- **Sessions**: the list by month (specs/history-by-month/), "Show earlier".
+- The "All / Together" filter sits above the pager and applies to both.
+- Tab colors are set explicitly (transparent container, `primary` /
+  `onSurface` 60%, a divider at `onSurface` 8%): the defaults use
+  `outlineVariant`, a role the palettes don't customize.
+- Opening tab: `HistoryActivity.EXTRA_TAB` if the caller asks (Home's
+  "Paused until…/Pause ended at…" summary → Sessions, the Sunday note →
+  Overview), else the last tab viewed, kept in plain prefs
+  (`calm_otter_history_ui`) as a convenience only.
+- The closing phrase became the **phrase of the day** (index = days since
+  epoch mod count) instead of random per opening: with the shorter
+  Overview it is on screen, and random text made the screenshot test
+  flaky.
+
+Two separate Activities were considered and dropped: a second entry point
+from Home, and the filter chosen twice.
+

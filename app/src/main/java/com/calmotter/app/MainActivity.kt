@@ -20,6 +20,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.core.content.ContextCompat
 import com.calmotter.app.ui.screens.BlockScreen
+import com.calmotter.app.ui.screens.HistoryTab
 import com.calmotter.app.ui.screens.MainScreen
 import com.calmotter.app.ui.screens.rememberOtterFloatOffset
 import com.calmotter.app.ui.theme.CalmOtterTheme
@@ -245,6 +246,7 @@ class MainActivity : BaseActivity() {
                                 onGrantAccessibility = { startActivity(Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS)) },
                                 onGrantDnd = { startActivity(Intent(Settings.ACTION_NOTIFICATION_POLICY_ACCESS_SETTINGS)) },
                                 onHistory = { startActivity(Intent(this@MainActivity, HistoryActivity::class.java)) },
+                                onHistorySessions = { startActivity(HistoryActivity.intent(this@MainActivity, HistoryTab.Sessions)) },
                                 onSettings = { startActivity(Intent(this@MainActivity, SettingsActivity::class.java)) },
                                 onGroupPause = { durationMinutes ->
                                     startActivity(

@@ -25,6 +25,7 @@ import com.calmotter.app.installFakeAndroidKeyStore
 import com.calmotter.app.ui.screens.BlockScreen
 import com.calmotter.app.ui.screens.ClosingMomentScreen
 import com.calmotter.app.ui.screens.HistoryScreen
+import com.calmotter.app.ui.screens.HistoryTab
 import com.calmotter.app.ui.screens.MainScreen
 import com.calmotter.app.ui.screens.ScheduleEditorScreen
 import com.calmotter.app.ui.screens.ScheduledPausesScreen
@@ -183,6 +184,11 @@ class ScreenScreenshotTest(private val night: Boolean) {
     @Test
     fun history() = capture("history") {
         HistoryScreen(sessions = history, goal = null, onEditGoal = {}, now = NOW)
+    }
+
+    @Test
+    fun historySessions() = capture("history-sessions") {
+        HistoryScreen(sessions = history, goal = null, onEditGoal = {}, now = NOW, initialTab = HistoryTab.Sessions)
     }
 
     @Test

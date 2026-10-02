@@ -90,7 +90,8 @@
     <string name="notification_channel_name">Sessione in corso</string>
     <string name="notification_channel_description">Mostra lo stato della sessione di pausa attiva</string>
 
-    <string name="history_all_sessions">Tutte le sessioni</string>
+    <string name="history_tab_overview">Riepilogo</string>
+    <string name="history_tab_sessions">Sessioni</string>
     <!-- Riga streak/settimana in Home, per una sola apertura: la pausa
          precedente è finita mentre il telefono era chiuso, senza che nessuno
          schermo di fine pausa fosse lì a raccontarlo dal vivo. %1$s è l'ora

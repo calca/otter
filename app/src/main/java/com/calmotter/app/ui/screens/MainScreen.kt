@@ -155,6 +155,9 @@ fun MainScreen(
     onGrantAccessibility: () -> Unit,
     onGrantDnd: () -> Unit,
     onHistory: () -> Unit,
+    // "Pausa finita alle…": la Cronologia aperta sulle Sessioni, dove c'è
+    // quella pausa. Di default come [onHistory].
+    onHistorySessions: () -> Unit = onHistory,
     onSettings: () -> Unit,
     // Riceve la durata scelta qui in Home (vedi selectedDurationMinutes sotto),
     // in minuti: il flow di creazione la usa come valore iniziale del proprio
@@ -344,7 +347,10 @@ fun MainScreen(
                 // pausa non ha ancora una risposta (specs/closing-moment/);
                 // altrimenti, come sempre, la Cronologia.
                 onHistory = {
-                    if (pendingSummary == null || !ClosingMomentActivity.startIfPending(context)) onHistory()
+                    when {
+                        pendingSummary == null -> onHistory()
+                        !ClosingMomentActivity.startIfPending(context) -> onHistorySessions()
+                    }
                 },
             )
 

@@ -1,7 +1,9 @@
 package com.calmotter.app
 
 import android.annotation.SuppressLint
+import android.content.Context
 import android.content.Intent
+import android.content.SharedPreferences
 import android.os.Bundle
 import android.view.Menu
 import android.view.MenuItem
@@ -11,8 +13,10 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.core.content.FileProvider
+import androidx.core.content.edit
 import com.calmotter.app.ui.screens.ClearHistoryConfirmDialog
 import com.calmotter.app.ui.screens.HistoryScreen
+import com.calmotter.app.ui.screens.HistoryTab
 import com.calmotter.app.ui.screens.WeeklyGoalDialog
 import com.calmotter.app.ui.theme.CalmOtterTheme
 import java.io.File
@@ -45,6 +49,8 @@ class HistoryActivity : BaseActivity() {
     private var goal by mutableStateOf<WeeklyGoal?>(null)
     private var showGoalDialog by mutableStateOf(false)
     private var showClearConfirmDialog by mutableStateOf(false)
+    private lateinit var uiPrefs: SharedPreferences
+    private var initialTab = HistoryTab.Overview
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -59,6 +65,12 @@ class HistoryActivity : BaseActivity() {
 
         sessions = historyManager.getAll()
         goal = weeklyGoalManager.getGoal()
+        // La scheda con cui si apre: quella chiesta da chi apre la
+        // Cronologia (EXTRA_TAB), altrimenti l'ultima vista — una comodità
+        // e basta, quindi in preferenze semplici e senza drammi se manca.
+        uiPrefs = getSharedPreferences(UI_PREFS, MODE_PRIVATE)
+        val requested = intent.getStringExtra(EXTRA_TAB) ?: uiPrefs.getString(KEY_TAB, null)
+        initialTab = HistoryTab.entries.firstOrNull { it.name == requested } ?: HistoryTab.Overview
 
         setContent {
             CalmOtterTheme(appTheme = ThemeManager.getTheme(this)) {
@@ -66,6 +78,8 @@ class HistoryActivity : BaseActivity() {
                     sessions = sessions,
                     goal = goal,
                     onEditGoal = { showGoalDialog = true },
+                    initialTab = initialTab,
+                    onTabChange = { tab -> runCatching { uiPrefs.edit { putString(KEY_TAB, tab.name) } } },
                 )
 
                 if (showGoalDialog) {
@@ -149,5 +163,14 @@ class HistoryActivity : BaseActivity() {
     companion object {
         private const val MENU_CLEAR = 1
         private const val MENU_EXPORT = 2
+        private const val UI_PREFS = "calm_otter_history_ui"
+        private const val KEY_TAB = "tab"
+
+        /** Extra opzionale: il nome di una [HistoryTab] con cui aprire. */
+        const val EXTRA_TAB = "com.calmotter.app.extra.HISTORY_TAB"
+
+        /** La Cronologia aperta su una scheda precisa. */
+        fun intent(context: Context, tab: HistoryTab): Intent =
+            Intent(context, HistoryActivity::class.java).putExtra(EXTRA_TAB, tab.name)
     }
 }
