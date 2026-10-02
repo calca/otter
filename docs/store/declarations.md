@@ -17,6 +17,9 @@ off the device. Everything Calm Otter stores (history, settings, the
 password hash) stays in the app's private storage, and the short-range
 Bluetooth/NFC exchange of a shared pause goes phone-to-phone, never to the
 developer or a third party. See `docs/privacy-policy.md`.
+Android's own backup (`allowBackup`, password excluded) goes to the user's
+own Google account under their control and is not "collection" by the app;
+the privacy policy says so explicitly.
 
 ## Accessibility API
 

@@ -30,7 +30,7 @@ UN PATTO, NON UNA GABBIA
 La pausa la chiude prima del tempo solo chi conosce la password: tu, oppure una persona di fiducia che la sceglie per te. Se la password non è raggiungibile c'è anche un'uscita lenta: aspetti dieci minuti e la pausa finisce, segnata in cronologia.
 
 PAUSE CHE PARTONO DA SOLE
-"Nei giorni feriali alle 21:00 per un'ora", "la domenica mattina, due ore": le imposti una volta e partono da sole, con un avviso cinque minuti prima. Aggiungerle è libero; spegnerle o accorciarle chiede la password.
+"Nei giorni feriali alle 21:00 per un'ora", "la domenica mattina, due ore": le imposti una volta e partono da sole, con un avviso cinque minuti prima. Quelle che ti metti da solo le cambi quando vuoi; quelle protette da password, un patto con chi ti vuole bene, si allentano solo con la password.
 
 TEMPO INSIEME
 Una pausa condivisa con chi hai accanto: il partner, la famiglia, i colleghi. Un QR o un codice, oppure avvicinando i telefoni. L'app propone anche qualcosa da fare insieme — una passeggiata, una partita a carte, o niente, solo stare insieme.
@@ -61,7 +61,7 @@ A PACT, NOT A CAGE
 Only the person who knows the password can end a pause early: you, or someone you trust who sets it for you. If the password can't be reached there's a slower way out: wait ten minutes and the pause ends, marked in your history.
 
 PAUSES THAT START BY THEMSELVES
-"Weekdays at 9pm for an hour", "Sunday morning, two hours": set them once and they start on their own, with a heads-up five minutes before. Adding one is free; switching it off or shortening it needs the password.
+"Weekdays at 9pm for an hour", "Sunday morning, two hours": set them once and they start on their own, with a heads-up five minutes before. The ones you set for yourself are yours to change; a password-protected one, a pact with someone who cares about you, can only be loosened with the password.
 
 TIME TOGETHER
 A pause shared with whoever is next to you: your partner, your family, your colleagues. A QR or a code, or just tap the phones together. The app even suggests something to do together — a walk, a game of cards, or nothing at all, just being together.

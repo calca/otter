@@ -1,6 +1,6 @@
 # Calm Otter — Privacy Policy
 
-*Last updated: 1 October 2026*
+*Last updated: 2 October 2026*
 
 **Short version: Calm Otter collects nothing. Everything stays on your phone.**
 
@@ -23,6 +23,12 @@ None of this is ever sent anywhere. Calm Otter does not have the
 account, no server, no analytics, no advertising, no crash reporting and no
 third-party SDK that collects data (the QR scanner, ZXing, works entirely on
 the device).
+
+**Android backup.** If you have Android's own backup turned on, Android may
+include the app's history and settings (never the password) in *your*
+backup, in your Google account, like it does for other apps. That's
+Android, under your control, not Calm Otter sending data: you can turn it
+off in the phone's settings.
 
 Uninstalling the app, or clearing its storage from Android settings,
 deletes all of it. You can also clear History from inside the app. History
@@ -69,7 +75,7 @@ address with a new date. Questions: open an issue at
 
 # Calm Otter — Informativa sulla privacy
 
-*Ultimo aggiornamento: 1 ottobre 2026*
+*Ultimo aggiornamento: 2 ottobre 2026*
 
 **In breve: Calm Otter non raccoglie nulla. Tutto resta sul tuo telefono.**
 
@@ -92,6 +98,12 @@ Niente di tutto questo viene mai inviato. Calm Otter non ha il permesso
 server, nessuna analisi, pubblicità, segnalazione di errori o libreria di
 terze parti che raccolga dati (il lettore QR, ZXing, lavora tutto sul
 telefono).
+
+**Backup di Android.** Se hai attivo il backup di Android, Android può
+includere la cronologia e le impostazioni dell'app (mai la password) nel
+*tuo* backup, nel tuo account Google, come fa per le altre app. È Android,
+sotto il tuo controllo, non Calm Otter che invia dati: puoi disattivarlo
+dalle impostazioni del telefono.
 
 Disinstallare l'app, o cancellarne i dati dalle impostazioni di Android, li
 elimina tutti. Puoi anche cancellare la Cronologia dall'app. La Cronologia
