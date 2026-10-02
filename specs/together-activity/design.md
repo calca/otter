@@ -11,7 +11,7 @@
 | `res/drawable/ic_together_*.xml` (new) | The four category icons |
 | `GroupPauseRecipe.kt` | New field `activityId: Int` (one byte) and a version byte: payload 8 → 10 bytes |
 | `bluetooth/GroupPauseBluetoothProtocol.kt` | `LOBBY:` line carries the activity id too, so guests see it before the start |
-| `GroupPauseHostScreen.kt`, `GroupPauseBluetoothLobbyHostScreen.kt` | Suggestion card with "Another one" |
+| `GroupPauseHostScreen.kt`, `GroupPauseBluetoothLobbyHostScreen.kt` | Suggestion card; "Another one" is a refresh icon next to the "What shall we do?" label (was a text button under the phrase) |
 | `GroupPauseBluetoothLobbyJoinScreen.kt`, `GroupPauseJoinScreen.kt` | Show the received suggestion |
 | `SessionManager.kt` | `KEY_GROUP_ACTIVITY` stored at start, written to history at end |
 | `SessionRecord.kt` | New column `activityId INTEGER NOT NULL DEFAULT 0` (0 = none) |

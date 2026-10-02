@@ -2211,3 +2211,13 @@ schermo/scala del carattere.
 
 Verificato sull'emulatore: "Have this QR scanned," / "or share the code
 below" su due righe pulite. Full build/lint/test verde.
+
+### Lobby: "Prefer a code or a QR?" above Cancel
+
+Requested: in the host lobby, "Prefer a code or a QR?" moved from under the
+activity suggestion to just above Cancel — it's another way out of this
+lobby, not part of choosing duration and activity — still as a bare link
+(`CalmLinkRow`) so it doesn't compete with "Let's go". In the same pass the
+activity's "Another one" text button became a refresh icon next to the
+"What shall we do?" label (`TogetherActivityCard`), one line shorter.
+

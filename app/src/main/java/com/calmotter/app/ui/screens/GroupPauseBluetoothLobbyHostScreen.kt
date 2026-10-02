@@ -282,19 +282,6 @@ fun GroupPauseBluetoothLobbyHostScreen(
                 onAnother = { suggestion.another(durationMinutes) },
             )
 
-            // Riprovato in stile link nudo (come SessionsSummaryLink in
-            // HomeSummary.kt) su segnalazione — il contenitore tinto
-            // distraeva troppo per essere solo l'uscita di riserva della
-            // lobby. Se dovesse tornare a perdersi fra gli altri testi della
-            // schermata, [CalmSecondaryButton] è il trattamento già provato
-            // in precedenza per il motivo opposto. Estratto in
-            // [CalmLinkRow] (CalmBackground.kt) da quando la stessa forma
-            // serve anche alla lobby join.
-            CalmLinkRow(
-                text = stringResource(R.string.group_pause_prefer_code_link),
-                onClick = { onWantCodeInstead(durationMinutes, suggestion.activityId) },
-                modifier = Modifier.padding(top = 20.dp),
-            )
         }
 
         // A tutta larghezza, uno sotto l'altro invece che affiancati, ancorati
@@ -315,6 +302,17 @@ fun GroupPauseBluetoothLobbyHostScreen(
             // di modifier, il padding veniva "mangiato" dentro l'altezza già
             // fissata invece di aggiungersi sopra — misurato 40dp invece di
             // 48dp sull'emulatore. Lo spazio fra i due va sulla Column.
+            //
+            // "Preferisci un codice o un QR?" sta qui, subito sopra Annulla:
+            // è un'altra strada per uscire da questa lobby, non un passo
+            // della scelta di durata e attività sopra, dove stava prima.
+            // Link nudo e non contenitore tinto (vedi [CalmLinkRow]): è
+            // l'uscita di riserva, non deve competere con Iniziamo.
+            CalmLinkRow(
+                text = stringResource(R.string.group_pause_prefer_code_link),
+                onClick = { onWantCodeInstead(durationMinutes, suggestion.activityId) },
+                modifier = Modifier.align(Alignment.CenterHorizontally),
+            )
             OutlinedButton(
                 onClick = onCancel,
                 modifier = Modifier.fillMaxWidth().height(48.dp)

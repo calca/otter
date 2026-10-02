@@ -1,11 +1,16 @@
 package com.calmotter.app.ui.screens
 
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.size
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.Stable
@@ -20,6 +25,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.em
 import androidx.compose.ui.unit.sp
 import com.calmotter.app.R
 import com.calmotter.app.TogetherActivities
@@ -63,7 +69,9 @@ fun rememberActivitySuggestion(durationMinutes: Int, initialId: Int = TogetherAc
 
 /**
  * "Cosa facciamo?" e la frase dell'attività. Con [onAnother] (solo l'host)
- * compare anche "Un'altra". Niente se [activityId] è 0.
+ * accanto all'etichetta compare un'icona per cambiarla: prima era un
+ * bottone di testo "Un'altra" sotto la frase, che allungava la lobby di una
+ * riga. Niente se [activityId] è 0.
  */
 @Composable
 fun TogetherActivityCard(
@@ -73,7 +81,31 @@ fun TogetherActivityCard(
 ) {
     val activity = TogetherActivities.byId(activityId) ?: return
     Column(modifier = modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
-        SetupLabel(stringResource(R.string.together_activity_label), topPadding = 20.dp)
+        if (onAnother == null) {
+            SetupLabel(stringResource(R.string.together_activity_label), topPadding = 20.dp)
+        } else {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.padding(top = 8.dp),
+            ) {
+                // Stesso stile di [SetupLabel], che però occupa tutta la
+                // riga e qui deve stare accanto all'icona.
+                Text(
+                    text = stringResource(R.string.together_activity_label).uppercase(),
+                    style = MaterialTheme.typography.labelSmall,
+                    letterSpacing = 0.12.em,
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.55f),
+                )
+                IconButton(onClick = onAnother) {
+                    Icon(
+                        imageVector = Icons.Filled.Refresh,
+                        contentDescription = stringResource(R.string.together_activity_another),
+                        tint = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.size(18.dp),
+                    )
+                }
+            }
+        }
         Text(
             text = stringResource(activity.text),
             color = MaterialTheme.colorScheme.primary,
@@ -82,10 +114,5 @@ fun TogetherActivityCard(
             textAlign = TextAlign.Center,
             modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp),
         )
-        if (onAnother != null) {
-            TextButton(onClick = onAnother) {
-                Text(stringResource(R.string.together_activity_another))
-            }
-        }
     }
 }
