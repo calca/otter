@@ -452,4 +452,12 @@ Whenever you feel the need for a break, just open the app, choose how long — &
     <string name="a11y_disclosure_off">You can turn it off at any time in Accessibility settings.</string>
     <string name="a11y_disclosure_accept">Agree and continue</string>
     <string name="a11y_disclosure_decline">Not now</string>
+
+    <!-- Condivisione e inviti (Share.kt): menu di condivisione di Android, nessuna rete. -->
+    <string name="share_pause_text">%1$s of calm, away from the phone. With Calm Otter 🦦 %2$s</string>
+    <string name="share_invite_text">Shall we take a break from our phones together? Get Calm Otter 🦦 %1$s</string>
+    <string name="share_chooser_title">Share</string>
+    <string name="closing_share">Share this pause</string>
+    <string name="group_pause_invite_link">Your friend doesn\'t have Calm Otter? Invite them</string>
+    <string name="settings_info_recommend">Recommend Calm Otter</string>
 </resources>

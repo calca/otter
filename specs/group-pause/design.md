@@ -2221,3 +2221,13 @@ lobby, not part of choosing duration and activity — still as a bare link
 activity's "Another one" text button became a refresh icon next to the
 "What shall we do?" label (`TogetherActivityCard`), one line shorter.
 
+### Inviting a friend who doesn't have the app
+
+The Time together chooser ends with "Your friend doesn't have Calm Otter?
+Invite them ›": a pause together needs the app on both phones, so the
+invite lives where it's missing. It opens Android's share menu
+(`Share.invite`) with a short text and the Play Store link of the stable
+app (also from the beta build). Settings → About has the same invite as
+"Recommend Calm Otter". No network call: the user sends it, as with the
+history CSV export.
+

@@ -53,3 +53,11 @@ empty below. The question, the mood pills and the note are now centred in
 the space above, and the two buttons pinned to the bottom (CTA rule in
 CLAUDE.md), as in the Time together lobby.
 
+## Share this pause
+
+A bare link "Share this pause ›" under the note field opens Android's share
+menu (`Share.pause`) with "1 h of calm, away from the phone. With Calm
+Otter 🦦 <Play Store link>". Neutral wording (no "I took…", which in Italian
+would be gendered); no streaks or comparisons. Nothing leaves the app
+unless the user picks a target.
+

@@ -33,7 +33,9 @@ off in the phone's settings.
 Uninstalling the app, or clearing its storage from Android settings,
 deletes all of it. You can also clear History from inside the app. History
 can be exported as a CSV file through Android's share menu: it goes only
-where you choose to send it, by your own tap.
+where you choose to send it, by your own tap. The same goes for sharing a
+finished pause or inviting a friend: the app prepares a short text with
+the Play Store link, and you choose whether and where to send it.
 
 ## Permissions, and why
 
@@ -108,7 +110,9 @@ dalle impostazioni del telefono.
 Disinstallare l'app, o cancellarne i dati dalle impostazioni di Android, li
 elimina tutti. Puoi anche cancellare la Cronologia dall'app. La Cronologia
 si può esportare in un file CSV dal menu di condivisione di Android: va solo
-dove scegli tu di mandarla, con un tuo tocco.
+dove scegli tu di mandarla, con un tuo tocco. Lo stesso vale per condividere
+una pausa finita o invitare un amico: l'app prepara un breve testo con il
+link al Play Store, e sei tu a decidere se e dove mandarlo.
 
 ## Permessi, e perché
 

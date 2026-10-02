@@ -1,5 +1,6 @@
 package com.calmotter.app.ui.screens
 
+import com.calmotter.app.Share
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -258,6 +259,7 @@ fun SettingsScreen(
             onOpenGitHub = onOpenGitHub,
             onOpenLicense = onOpenLicense,
             onOpenDeveloper = onOpenDeveloper,
+            onRecommend = { Share.invite(context) },
         )
 
         // Versione in chiusura di pagina (redesign). Non è decorazione: da
@@ -520,6 +522,7 @@ private fun InfoCard(
     onOpenGitHub: () -> Unit,
     onOpenLicense: () -> Unit,
     onOpenDeveloper: () -> Unit,
+    onRecommend: () -> Unit,
 ) {
     Surface(
         shape = RoundedCornerShape(20.dp),
@@ -532,6 +535,9 @@ private fun InfoCard(
             InfoLinkRow(label = stringResource(R.string.settings_info_license), onClick = onOpenLicense)
             HorizontalDivider(color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.08f))
             InfoLinkRow(label = stringResource(R.string.settings_info_developer), onClick = onOpenDeveloper)
+            HorizontalDivider(color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.08f))
+            // Non un link esterno: apre il menu di condivisione (vedi Share).
+            InfoLinkRow(label = stringResource(R.string.settings_info_recommend), onClick = onRecommend)
         }
     }
 }

@@ -461,4 +461,12 @@ Quando sentirai il bisogno di una pausa, basterà aprire l\'app, scegliere quant
     <string name="a11y_disclosure_off">Puoi disattivarlo quando vuoi dalle impostazioni di Accessibilità.</string>
     <string name="a11y_disclosure_accept">Accetta e continua</string>
     <string name="a11y_disclosure_decline">Non ora</string>
+
+    <!-- Condivisione e inviti (Share.kt): menu di condivisione di Android, nessuna rete. -->
+    <string name="share_pause_text">%1$s di calma, lontano dal telefono. Con Calm Otter 🦦 %2$s</string>
+    <string name="share_invite_text">Facciamo una pausa insieme dal telefono? Scarica Calm Otter 🦦 %1$s</string>
+    <string name="share_chooser_title">Condividi</string>
+    <string name="closing_share">Condividi questa pausa</string>
+    <string name="group_pause_invite_link">Il tuo amico non ha Calm Otter? Invitalo</string>
+    <string name="settings_info_recommend">Consiglia Calm Otter</string>
 </resources>

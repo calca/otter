@@ -1,5 +1,7 @@
 package com.calmotter.app.ui.screens
 
+import androidx.compose.ui.platform.LocalContext
+import com.calmotter.app.Share
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -152,6 +154,16 @@ fun GroupPauseChooserScreen(
                         // Poco sotto, ma staccata: non è una terza scelta, e
                         // attaccata alle card lo sarebbe sembrata.
                         GroupPauseChooserFooter(modifier = Modifier.padding(top = 20.dp))
+
+                        // Per una pausa insieme l'app serve su entrambi i
+                        // telefoni: l'invito sta qui, dove manca. Dal menu di
+                        // condivisione di Android, nessuna rete (vedi Share).
+                        val context = LocalContext.current
+                        CalmLinkRow(
+                            text = stringResource(R.string.group_pause_invite_link),
+                            onClick = { Share.invite(context) },
+                            modifier = Modifier.padding(top = 12.dp),
+                        )
                     }
                 }
             }

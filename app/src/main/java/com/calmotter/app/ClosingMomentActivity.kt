@@ -42,6 +42,7 @@ class ClosingMomentActivity : BaseActivity() {
                         sessionManager.clearPendingReflection()
                         finish()
                     },
+                    onShare = { Share.pause(this, record.effectiveMinutes) },
                 )
             }
         }

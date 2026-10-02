@@ -46,6 +46,9 @@ fun ClosingMomentScreen(
     effectiveMinutes: Int,
     onDone: (mood: Int?, note: String) -> Unit,
     onSkip: () -> Unit,
+    // Condividere la pausa appena finita (vedi Share): un link discreto
+    // sotto la nota, per scelta di chi l'ha fatta. Vuoto negli screenshot.
+    onShare: () -> Unit = {},
 ) {
     var mood by remember { mutableStateOf<Int?>(null) }
     var note by remember { mutableStateOf("") }
@@ -94,6 +97,11 @@ fun ClosingMomentScreen(
                 onValueChange = { note = it.replace('\n', ' ').take(CLOSING_NOTE_MAX) },
                 label = stringResource(R.string.closing_note_hint),
                 modifier = Modifier.fillMaxWidth().padding(top = 20.dp),
+            )
+            CalmLinkRow(
+                text = stringResource(R.string.closing_share),
+                onClick = onShare,
+                modifier = Modifier.padding(top = 12.dp),
             )
         }
         Column(
