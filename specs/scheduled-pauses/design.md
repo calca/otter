@@ -68,23 +68,32 @@ dodge the pause.
 Was an `AlertDialog` holding days, duration, profile and actions, which
 opened a second dialog on top of itself for the time. Now a page that
 replaces the list inside `ScheduledPausesActivity` (state `editing`; the
-ActionBar title follows it, Back/Up return to the list without saving):
+ActionBar title follows it, Back/Up return to the list without saving),
+laid out like Android's alarm editor:
 
-- The time as a large "21:00" that opens Material's `TimePickerDialog`
-  (24 h dial, with the keyboard toggle for typing), colors taken from
+- On top, the time as a large "21:00" that opens Material's
+  `TimePickerDialog` (24 h dial, keyboard toggle for typing), with a
+  one-line summary under it ("Mon–Fri · for 1 h"). Picker colors come from
   `primary`/`tertiary` — the defaults use roles the palettes don't set.
-  Tried first and dropped: the dial inline (half the page on its own) and
-  `TimeInput` inline (opened the keyboard on entry; with "00" in the field,
-  typing "30" gave "03").
-- Seven day circles on one row (toggleable, read by full day name), plus
-  "Mon–Fri / Sat–Sun / Every day" shortcuts.
-- Duration and profile as regular `CalmPill`s in a horizontally scrolling
-  row; the selected one is scrolled into view by moving only the row (a
-  `bringIntoView` would scroll the page down to it).
-- A one-line summary ("Mon–Fri at 21:00, for 1 h"), then Save; for an
-  existing schedule "Skip the next one" and a red "Delete pause".
+- "Days": seven toggleable circles on one row (read by full day name).
+- "Duration" and, with 2+ profiles, "Allowed apps": regular `CalmPill`s in
+  a horizontally scrolling row; the selected one is scrolled into view by
+  moving only the row (a `bringIntoView` would scroll the page too).
+- Field labels are small, left-aligned, sentence case — references, not
+  headings.
+- "Skip the next one" as a text button at the end of the content (existing,
+  enabled schedules only).
+- **Save pinned to the bottom**, outside the scroll (project design rule,
+  see CLAUDE.md). **Delete** is a trash icon in the ActionBar, only for an
+  existing schedule — away from Save, as in the Clock app.
 - The page closes only once the change is applied: if the password is
   cancelled, what was set stays on screen.
+
+Tried and dropped along the way: the dial inline (half the page on its
+own), `TimeInput` inline (opened the keyboard on entry; "00" + typing "30"
+gave "03"), the Mon–Fri / Sat–Sun / Every day shortcut pills (a row of
+pills to save a couple of taps), centered uppercase section labels and the
+summary sentence above Save (the page read as cluttered).
 
 ## Interaction with other features
 

@@ -6,25 +6,20 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
@@ -59,7 +54,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.calmotter.app.AllowedAppsProfile
@@ -153,15 +147,18 @@ fun ScheduledPausesScreen(
 }
 
 /**
- * Nuova pausa programmata o modifica di una esistente, a tutta pagina.
- * Prima era un dialogo con dentro giorni, durata, profilo e azioni, che per
- * l'ora apriva un secondo dialogo sopra di sé: troppo per lo spazio di un
- * AlertDialog. Qui l'ora è un "21:00" grande che apre il TimePickerDialog
- * di Material (quadrante, con l'icona per passare alla tastiera): provati
- * prima il quadrante nella pagina, che ne riempiva metà, e TimeInput, che
- * apriva la tastiera da solo e con "00" già scritto trasformava "30" in
- * "03". I sette giorni stanno su una riga senza scorrere, e una frase di
- * riepilogo dice cosa si sta impostando prima di salvare.
+ * Nuova pausa programmata o modifica di una esistente, a tutta pagina, sul
+ * modello della sveglia di Android: in cima l'ora grande (apre il
+ * TimePickerDialog di Material) con sotto il riepilogo in una riga, poi
+ * giorni, durata e, se ce n'è più d'uno, il profilo. "Salva" sta fisso in
+ * fondo, fuori dallo scroll (regola di design, vedi CLAUDE.md); "Elimina"
+ * è il cestino nella barra in alto, gestito dall'Activity.
+ *
+ * Arrivata così dopo due tentativi: il quadrante dentro la pagina ne
+ * riempiva metà, e TimeInput apriva la tastiera da solo e con "00" già
+ * scritto trasformava "30" in "03". Tolte anche le scorciatoie Lun–Ven /
+ * Sab–Dom / Ogni giorno: con i sette tondi erano una riga di pillole in più
+ * per risparmiare un paio di tocchi.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -169,7 +166,6 @@ fun ScheduleEditorScreen(
     original: ScheduledPause,
     profiles: List<AllowedAppsProfile>,
     onSave: (ScheduledPause) -> Unit,
-    onDelete: () -> Unit,
     onSkipNext: () -> Unit,
 ) {
     val locale = LocalConfiguration.current.locales[0]
@@ -181,83 +177,80 @@ fun ScheduleEditorScreen(
     val isNew = original.id == 0
 
     Column(
-        horizontalAlignment = Alignment.CenterHorizontally,
         modifier = Modifier
             .fillMaxSize()
-            .safeDrawingPadding()
-            .verticalScroll(rememberScrollState())
-            .padding(horizontal = 24.dp, vertical = 16.dp),
+            .safeDrawingPadding(),
     ) {
-        SetupLabel(stringResource(R.string.schedule_time_label))
-        Surface(
-            onClick = { pickingTime = true },
-            shape = RoundedCornerShape(24.dp),
-            color = MaterialTheme.colorScheme.tertiary.copy(alpha = 0.55f),
+        Column(
+            modifier = Modifier
+                .weight(1f)
+                .verticalScroll(rememberScrollState())
+                .padding(horizontal = 24.dp, vertical = 16.dp),
         ) {
-            Text(
-                text = timeLabel(minute),
-                fontSize = 48.sp,
-                fontWeight = FontWeight.SemiBold,
-                color = MaterialTheme.colorScheme.primary,
-                modifier = Modifier.padding(horizontal = 32.dp, vertical = 8.dp),
-            )
-        }
-
-        SetupLabel(stringResource(R.string.schedule_days_label), topPadding = 24.dp)
-        DayCircles(days = days, locale = locale, onChange = { days = it })
-        Row(
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-            modifier = Modifier.padding(top = 12.dp),
-        ) {
-            listOf(
-                WEEKDAYS to R.string.schedule_weekdays,
-                WEEKEND to R.string.schedule_weekend,
-                ALL_DAYS to R.string.schedule_every_day,
-            ).forEach { (mask, label) ->
-                CalmPill(
-                    label = stringResource(label),
-                    selected = days == mask,
-                    size = CalmPillSize.Small,
-                    onClick = { days = mask },
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                modifier = Modifier.fillMaxWidth().padding(top = 8.dp, bottom = 8.dp),
+            ) {
+                Surface(
+                    onClick = { pickingTime = true },
+                    shape = RoundedCornerShape(24.dp),
+                    color = MaterialTheme.colorScheme.tertiary.copy(alpha = 0.55f),
+                ) {
+                    Text(
+                        text = timeLabel(minute),
+                        fontSize = 56.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        color = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.padding(horizontal = 32.dp, vertical = 4.dp),
+                    )
+                }
+                Text(
+                    text = if (days == 0) {
+                        stringResource(R.string.schedule_pick_a_day)
+                    } else {
+                        stringResource(R.string.schedule_summary_short, daysLabel(days, locale), durationPillLabel(duration))
+                    },
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.65f),
+                    modifier = Modifier.padding(top = 10.dp),
                 )
             }
-        }
 
-        SetupLabel(stringResource(R.string.schedule_duration_label), topPadding = 24.dp)
-        ScrollingPillRow { selectedInView ->
-            SESSION_DURATION_OPTIONS.forEach { option ->
-                CalmPill(
-                    label = durationPillLabel(option),
-                    selected = option == duration,
-                    modifier = if (option == duration) selectedInView else Modifier,
-                ) { duration = option }
-            }
-        }
+            FieldLabel(stringResource(R.string.schedule_days_label))
+            DayCircles(days = days, locale = locale, onChange = { days = it })
 
-        if (profiles.size > 1) {
-            SetupLabel(stringResource(R.string.schedule_profile_label), topPadding = 24.dp)
+            FieldLabel(stringResource(R.string.schedule_duration_label))
             ScrollingPillRow { selectedInView ->
-                profiles.forEach { profile ->
+                SESSION_DURATION_OPTIONS.forEach { option ->
                     CalmPill(
-                        label = profile.name,
-                        selected = profile.id == profileId,
-                        modifier = if (profile.id == profileId) selectedInView else Modifier,
-                    ) { profileId = profile.id }
+                        label = durationPillLabel(option),
+                        selected = option == duration,
+                        modifier = if (option == duration) selectedInView else Modifier,
+                    ) { duration = option }
+                }
+            }
+
+            if (profiles.size > 1) {
+                FieldLabel(stringResource(R.string.schedule_profile_label))
+                ScrollingPillRow { selectedInView ->
+                    profiles.forEach { profile ->
+                        CalmPill(
+                            label = profile.name,
+                            selected = profile.id == profileId,
+                            modifier = if (profile.id == profileId) selectedInView else Modifier,
+                        ) { profileId = profile.id }
+                    }
+                }
+            }
+
+            if (!isNew && original.enabled) {
+                // Spostato a sinistra del padding interno del TextButton: così
+                // il testo si allinea alle etichette dei campi sopra.
+                TextButton(onClick = onSkipNext, modifier = Modifier.padding(top = 20.dp).offset(x = (-12).dp)) {
+                    Text(stringResource(R.string.schedule_skip_next))
                 }
             }
         }
 
-        Text(
-            text = if (days == 0) {
-                stringResource(R.string.schedule_pick_a_day)
-            } else {
-                stringResource(R.string.schedule_summary, daysLabel(days, locale), timeLabel(minute), durationPillLabel(duration))
-            },
-            textAlign = TextAlign.Center,
-            color = MaterialTheme.colorScheme.primary,
-            fontWeight = FontWeight.Medium,
-            modifier = Modifier.fillMaxWidth().padding(top = 28.dp),
-        )
         Button(
             enabled = days != 0,
             onClick = {
@@ -271,26 +264,12 @@ fun ScheduleEditorScreen(
                     )
                 )
             },
-            modifier = Modifier.fillMaxWidth().padding(top = 16.dp).height(52.dp),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 24.dp, vertical = 16.dp)
+                .height(52.dp),
         ) {
             Text(stringResource(R.string.allowed_profile_save))
-        }
-        if (!isNew) {
-            if (original.enabled) {
-                TextButton(onClick = onSkipNext, modifier = Modifier.padding(top = 8.dp)) {
-                    Text(stringResource(R.string.schedule_skip_next))
-                }
-            }
-            // In rosso e in fondo, come "Elimina profilo": l'unica azione
-            // distruttiva della pagina (e chiede comunque la password).
-            TextButton(
-                onClick = onDelete,
-                colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.error),
-            ) {
-                Icon(Icons.Filled.Delete, contentDescription = null, modifier = Modifier.size(18.dp))
-                Spacer(Modifier.width(8.dp))
-                Text(stringResource(R.string.schedule_delete))
-            }
         }
     }
 
@@ -301,6 +280,17 @@ fun ScheduleEditorScreen(
             onConfirm = { minute = it; pickingTime = false },
         )
     }
+}
+
+/** Etichetta di un campo della pagina: discreta, a sinistra, come un riferimento e non un titolo. */
+@Composable
+private fun FieldLabel(text: String) {
+    Text(
+        text = text,
+        style = MaterialTheme.typography.titleSmall,
+        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
+        modifier = Modifier.padding(top = 24.dp, bottom = 10.dp),
+    )
 }
 
 /**

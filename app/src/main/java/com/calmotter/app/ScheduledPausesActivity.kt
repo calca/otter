@@ -1,6 +1,8 @@
 package com.calmotter.app
 
+import android.annotation.SuppressLint
 import android.os.Bundle
+import android.view.Menu
 import android.view.MenuItem
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
@@ -47,6 +49,7 @@ class ScheduledPausesActivity : BaseActivity() {
             CalmOtterTheme(appTheme = ThemeManager.getTheme(this)) {
                 val current = editing
                 LaunchedEffect(current?.id, current == null) {
+                    invalidateOptionsMenu()
                     supportActionBar?.title = getString(
                         when {
                             current == null -> R.string.schedule_title
@@ -70,7 +73,6 @@ class ScheduledPausesActivity : BaseActivity() {
                         original = current,
                         profiles = profiles,
                         onSave = { updated -> saveGuarded(updated) { editing = null } },
-                        onDelete = { guard(true) { delete(current); editing = null } },
                         onSkipNext = {
                             guard(true) {
                                 val next = nextOccurrence(current, System.currentTimeMillis()) ?: return@guard
@@ -116,11 +118,38 @@ class ScheduledPausesActivity : BaseActivity() {
         schedules = manager.all()
     }
 
+    /**
+     * Il cestino in barra, solo nella pagina di modifica di una pausa che
+     * esiste già: lontano da "Salva" (fisso in fondo), come nella sveglia di
+     * Android. Il titolo fa da tooltip e da etichetta per TalkBack.
+     */
+    @SuppressLint("AlwaysShowAction")
+    override fun onCreateOptionsMenu(menu: Menu): Boolean {
+        menu.add(0, MENU_DELETE, 0, getString(R.string.schedule_delete))
+            .setIcon(R.drawable.ic_history_delete)
+            .setShowAsAction(MenuItem.SHOW_AS_ACTION_ALWAYS)
+        return true
+    }
+
+    override fun onPrepareOptionsMenu(menu: Menu): Boolean {
+        menu.findItem(MENU_DELETE)?.isVisible = editing.let { it != null && it.id != 0 }
+        return super.onPrepareOptionsMenu(menu)
+    }
+
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         if (item.itemId == android.R.id.home) {
             if (editing != null) editing = null else finish()
             return true
         }
+        if (item.itemId == MENU_DELETE) {
+            val current = editing ?: return true
+            guard(true) { delete(current); editing = null }
+            return true
+        }
         return super.onOptionsItemSelected(item)
+    }
+
+    private companion object {
+        const val MENU_DELETE = 1
     }
 }

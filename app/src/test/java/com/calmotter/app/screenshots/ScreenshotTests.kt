@@ -208,7 +208,6 @@ class ScreenScreenshotTest(private val night: Boolean) {
             original = ScheduledPause(id = 1, days = 0b0011111, startMinuteOfDay = 21 * 60, durationMinutes = 60),
             profiles = AllowedAppsManager.getInstance(context).profiles(),
             onSave = {},
-            onDelete = {},
             onSkipNext = {},
         )
     }

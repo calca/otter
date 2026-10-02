@@ -136,6 +136,14 @@ checks it). To simulate "the app restarted" inside a test, construct a new
 instance directly (`PasswordManager(context)`); constructors are
 `internal`. A new state-holding class goes into `AppGraph` the same way.
 
+**A page's primary action sits at the bottom, outside the scroll.** On a
+full-page form (editor, setup), the main CTA ("Save", "Start"…) is pinned
+to the bottom of the screen, full width, and the content above it scrolls
+on its own — never a button that ends up somewhere mid-page depending on
+how long the content is. Secondary/destructive actions don't share that
+spot (ActionBar menu or a quieter text button). Dialogs keep the standard
+M3 button row.
+
 **Pause logic lives outside the composables.** `BlockSessionController`
 decides who can release whom and how a pause ends (password, NFC, natural
 expiry, slow exit); `SessionManager` coordinates `PauseDnd` (Do Not
