@@ -51,6 +51,18 @@ class BlockPolicyTest {
         assertFalse(block(own))
     }
 
+    /** Segnalato: su Samsung una telefonata durante la pausa finiva sotto il blocco. */
+    @Test
+    fun callScreensAreNeverBlocked() {
+        assertFalse(block("com.samsung.android.incallui"))
+        assertFalse(block("com.android.incallui"))
+        assertFalse(block("com.android.server.telecom"))
+        // Un produttore non in elenco, con lo stesso nome di pacchetto.
+        assertFalse(block("com.oneplus.incallui"))
+        // Il nome deve finire così: non basta contenerlo.
+        assertTrue(block("com.example.incalluifake"))
+    }
+
     @Test
     fun keyboardsAreAllowed() {
         // Senza, aprire la tastiera nel dialog di sblocco faceva scattare il blocco.
@@ -67,7 +79,9 @@ class BlockPolicyTest {
     fun missingDefaultDialerDoesNotAllowAnythingElse() {
         val set = BlockPolicy.allowedPackages(null, own, emptySet(), emptySet())
         assertEquals(
-            setOf(BlockPolicy.SYSTEM_UI_PACKAGE, BlockPolicy.ANDROID_PACKAGE, own),
+            // Le schermate di chiamata note restano consentite anche senza
+            // dialer predefinito: le chiamate passano sempre.
+            setOf(BlockPolicy.SYSTEM_UI_PACKAGE, BlockPolicy.ANDROID_PACKAGE, own) + BlockPolicy.IN_CALL_PACKAGES,
             set,
         )
     }

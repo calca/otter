@@ -15,9 +15,32 @@ object BlockPolicy {
     const val ANDROID_PACKAGE = "android"
 
     /**
-     * L'insieme dei pacchetti consentiti: dialer predefinito, systemUI,
-     * dialog di sistema, questa stessa app (per mostrare il blocco), le
-     * tastiere abilitate e la whitelist scelta dall'utente.
+     * Le schermate di chiamata dei produttori. La chiamata in arrivo o in
+     * corso non è sempre il dialer predefinito: su Samsung è un'app di
+     * sistema a parte (`com.samsung.android.incallui`), e senza questo
+     * elenco una telefonata durante la pausa faceva comparire il blocco
+     * sopra la chiamata — segnalato. Le chiamate devono sempre passare: è
+     * l'unica eccezione dichiarata della pausa. Oltre all'elenco, qualunque
+     * pacchetto che finisce in `.incallui` (vedi [isCallScreen]).
+     */
+    val IN_CALL_PACKAGES = setOf(
+        "com.samsung.android.incallui",
+        "com.samsung.android.dialer",
+        "com.android.incallui",
+        "com.android.dialer",
+        "com.android.server.telecom",
+        "com.google.android.dialer",
+    )
+
+    /** `true` per una schermata di chiamata: dell'elenco o `*.incallui` di qualunque produttore. */
+    fun isCallScreen(packageName: String): Boolean =
+        packageName in IN_CALL_PACKAGES || packageName.endsWith(".incallui")
+
+    /**
+     * L'insieme dei pacchetti consentiti: dialer predefinito, schermate di
+     * chiamata note ([IN_CALL_PACKAGES]), systemUI, dialog di sistema, questa
+     * stessa app (per mostrare il blocco), le tastiere abilitate e la
+     * whitelist scelta dall'utente.
      */
     fun allowedPackages(
         defaultDialer: String?,
@@ -26,7 +49,7 @@ object BlockPolicy {
         userAllowed: Set<String>,
     ): Set<String> =
         setOfNotNull(defaultDialer, SYSTEM_UI_PACKAGE, ANDROID_PACKAGE, ownPackage) +
-            keyboards + userAllowed
+            IN_CALL_PACKAGES + keyboards + userAllowed
 
     /**
      * `true` se la finestra appena comparsa va coperta con il blocco.
@@ -34,12 +57,12 @@ object BlockPolicy {
      * - Senza sessione attiva non si blocca mai.
      * - Solo finestre a schermo intero: popup e barre di sistema aprono
      *   finestre sopra la schermata corrente, già giudicata.
-     * - Un pacchetto consentito non si blocca.
+     * - Un pacchetto consentito non si blocca, né una schermata di chiamata.
      */
     fun shouldBlock(
         sessionActive: Boolean,
         isFullScreen: Boolean,
         packageName: String,
         allowedPackages: Set<String>,
-    ): Boolean = sessionActive && isFullScreen && packageName !in allowedPackages
+    ): Boolean = sessionActive && isFullScreen && packageName !in allowedPackages && !isCallScreen(packageName)
 }

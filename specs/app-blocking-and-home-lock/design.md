@@ -1260,3 +1260,18 @@ usata altrove in questo file) per simulare un allarme mancato a telefono
 chiuso, riaperta l'app — la riga streak mostra "Pausa finita alle 00:38
 (1h)" al posto di "1 giorno di fila"; chiusa e riaperta una seconda
 volta, torna correttamente al testo streak normale.
+
+## Calls are never covered: in-call screens of every vendor
+
+Reported: on Samsung, a phone call during a pause brought up the block
+screen over the call. Only the *default dialer* was allowed, but the
+incoming/ongoing call screen is often a separate system app
+(`com.samsung.android.incallui`, `com.android.incallui`, Telecom).
+`BlockPolicy.IN_CALL_PACKAGES` lists the known ones and `isCallScreen()`
+also lets through any package ending in `.incallui`; they are part of
+`allowedPackages()` even without a default dialer. Calls getting through
+is the pause's one declared exception. Checked on the emulator (incoming
+call via `adb emu gsm call`, answered: the in-call activity stays on top,
+the block comes back when the call ends); the Samsung case itself needs a
+real Samsung phone.
+
