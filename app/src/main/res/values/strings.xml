@@ -391,7 +391,7 @@ Quando sentirai il bisogno di una pausa, basterà aprire l\'app, scegliere quant
     </plurals>
     <!-- Time together in Cronologia (specs/together-history/) -->
     <string name="history_filter_together">Insieme</string>
-    <string name="together_card_title">Insieme</string>
+    <string name="together_card_title">Con chi</string>
     <string name="together_period_month">Questo mese</string>
     <string name="together_period_all">Sempre</string>
     <string name="together_none_month">Nessuna pausa insieme questo mese.</string>

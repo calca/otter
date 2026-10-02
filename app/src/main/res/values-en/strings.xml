@@ -384,7 +384,7 @@ Whenever you feel the need for a break, just open the app, choose how long — &
     </plurals>
     <!-- Time together in Cronologia (specs/together-history/) -->
     <string name="history_filter_together">Together</string>
-    <string name="together_card_title">Together</string>
+    <string name="together_card_title">With whom</string>
     <string name="together_period_month">This month</string>
     <string name="together_period_all">All time</string>
     <string name="together_none_month">No pauses together this month.</string>
