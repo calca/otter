@@ -373,6 +373,7 @@ Whenever you feel the need for a break, just open the app, choose how long — &
     <string name="settings_slow_exit_label">Leave without password</string>
     <string name="settings_slow_exit_off">Off</string>
     <string name="settings_slow_exit_value">After %1$d min</string>
+    <string name="settings_slow_exit_pill">%1$d min</string>
     <string name="settings_slow_exit_dialog_body">Lets the pause end without the password after a wait. Weaker than the password: choose it together.</string>
     <string name="onboarding_slow_exit_note">If the password can\'t be reached, the pause can also be ended by waiting 10 minutes. You can switch this off in Settings.</string>
     <!-- Uscita lenta: conferma -->

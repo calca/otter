@@ -3,6 +3,8 @@ package com.calmotter.app.ui.screens
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -21,7 +23,6 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.List
-import androidx.compose.material3.RadioButton
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.ui.platform.LocalContext
@@ -82,6 +83,7 @@ import com.calmotter.app.R
  * ogni onResume() dell'Activity tramite [resumeSignal] (vedi
  * SettingsActivity) — stesso pattern di MainScreen/OnboardingScreen.
  */
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun SettingsScreen(
     currentTheme: AppTheme,
@@ -300,27 +302,30 @@ fun SettingsScreen(
                         text = stringResource(R.string.settings_slow_exit_dialog_body),
                         modifier = Modifier.padding(bottom = 12.dp),
                     )
-                    options.forEach { option ->
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .clickable {
+                    // Pillole come le durate in Home e le scelte delle pause
+                    // programmate: prima era una lista di radio, l'unica
+                    // scelta fra pochi valori fatta così nell'app.
+                    FlowRow(
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        verticalArrangement = Arrangement.spacedBy(8.dp),
+                    ) {
+                        options.forEach { option ->
+                            CalmPill(
+                                label = if (option == null) {
+                                    stringResource(R.string.settings_slow_exit_off)
+                                } else {
+                                    stringResource(R.string.settings_slow_exit_pill, option)
+                                },
+                                selected = option == current,
+                                // Piccola, come le scelte dentro gli altri
+                                // dialoghi: le quattro stanno su una riga.
+                                size = CalmPillSize.Small,
+                                onClick = {
                                     slowExitEnabled = option != null
                                     if (option != null) slowExitWait = option
                                     slowExitManager.update(enabled = option != null, waitMinutes = option ?: slowExitWait)
                                     showSlowExitChoice = false
-                                }
-                                .padding(vertical = 6.dp),
-                        ) {
-                            RadioButton(selected = option == current, onClick = null)
-                            Text(
-                                text = if (option == null) {
-                                    stringResource(R.string.settings_slow_exit_off)
-                                } else {
-                                    stringResource(R.string.settings_slow_exit_value, option)
                                 },
-                                modifier = Modifier.padding(start = 12.dp),
                             )
                         }
                     }

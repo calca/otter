@@ -380,6 +380,7 @@ Quando sentirai il bisogno di una pausa, basterà aprire l\'app, scegliere quant
     <string name="settings_slow_exit_label">Uscita senza password</string>
     <string name="settings_slow_exit_off">Spenta</string>
     <string name="settings_slow_exit_value">Dopo %1$d min</string>
+    <string name="settings_slow_exit_pill">%1$d min</string>
     <string name="settings_slow_exit_dialog_body">Permette di chiudere la pausa senza password dopo un\'attesa. È più debole della password: sceglietela insieme.</string>
     <string name="onboarding_slow_exit_note">Se la password non è raggiungibile, la pausa si può chiudere anche aspettando 10 minuti. Si può spegnere nelle Impostazioni.</string>
     <!-- Uscita lenta: conferma -->

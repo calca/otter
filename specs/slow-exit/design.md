@@ -12,7 +12,7 @@
 | `PasswordVerifyDialog.kt` | Optional secondary action, shown only when slow exit is on |
 | `BlockScreen.kt` | Wait state: ring = wait progress, "Stay in the pause" action |
 | `SessionRecord.kt` | New column `endReason` (see below) |
-| `SettingsScreen.kt` | Password-gated toggle and wait length |
+| `SettingsScreen.kt` | Password-gated choice of Off / 5 / 10 / 15 min, as small `CalmPill`s in one row (was a radio list) |
 | `OnboardingScreen.kt` | One line in the password step: the slow exit exists, and where to switch it off |
 
 ## Ending reasons
