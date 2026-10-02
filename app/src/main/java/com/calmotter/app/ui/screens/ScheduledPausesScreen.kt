@@ -1,11 +1,13 @@
 package com.calmotter.app.ui.screens
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -20,6 +22,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.automirrored.filled.List
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material3.Button
 import androidx.compose.material3.HorizontalDivider
@@ -42,7 +45,6 @@ import androidx.compose.material3.TimeInputColors
 import androidx.compose.material3.TimeInputDefaults
 import androidx.compose.material3.rememberTimePickerState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -53,10 +55,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.onGloballyPositioned
-import androidx.compose.ui.layout.positionInParent
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
@@ -238,19 +240,12 @@ fun ScheduleEditorScreen(
             // prossima). Prima ogni campo aveva un aspetto suo — tondi,
             // pillole, un link, una card — e la pagina non stava insieme.
             EditorCard(modifier = Modifier.padding(top = 24.dp)) {
-                Column(modifier = Modifier.padding(16.dp)) {
-                    FieldLabel(stringResource(R.string.schedule_days_label), topPadding = 0.dp)
+                Column(modifier = Modifier.padding(horizontal = 16.dp)) {
+                    FieldLabel(stringResource(R.string.schedule_days_label), topPadding = 16.dp)
                     DayCircles(days = days, locale = locale, onChange = { days = it })
-                    FieldLabel(stringResource(R.string.schedule_duration_label))
-                    ScrollingPillRow { selectedInView ->
-                        SESSION_DURATION_OPTIONS.forEach { option ->
-                            CalmPill(
-                                label = durationPillLabel(option),
-                                selected = option == duration,
-                                modifier = if (option == duration) selectedInView else Modifier,
-                            ) { duration = option }
-                        }
-                    }
+                    Spacer(Modifier.height(16.dp))
+                    CardDivider()
+                    DurationStepper(duration = duration, onChange = { duration = it })
                 }
             }
 
@@ -526,42 +521,75 @@ internal fun compactDays(days: Int, name: (DayOfWeek) -> String): String {
 }
 
 /**
- * Una riga di pillole che scorre in orizzontale invece di andare a capo,
- * come le durate in Home: stesso gesto ovunque si scelga una durata. Il
- * bordo destro sfuma finché c'è altro da scorrere. [content] riceve il
- * modifier da dare alla pillola scelta, che all'apertura viene portata in
- * vista (una durata come "4 h" starebbe altrimenti fuori schermo) —
- * scorrendo solo la riga: un bringIntoView farebbe scorrere anche la
- * pagina fino a lei.
+ * La durata come contatore in una riga della card: "–" e "+" scorrono le
+ * stesse durate della Home ([SESSION_DURATION_OPTIONS]) e si spengono ai due
+ * estremi. Prima era una riga di pillole che dentro la card scorreva e
+ * restava tagliata sul bordo; la durata è anche il valore che si cambia più
+ * spesso, e così si regola senza aprire nulla.
  */
 @Composable
-private fun ScrollingPillRow(content: @Composable (selectedInView: Modifier) -> Unit) {
-    val scrollState = rememberScrollState()
-    var selected by remember { mutableStateOf<IntRange?>(null) }
-    LaunchedEffect(selected, scrollState.viewportSize) {
-        val range = selected ?: return@LaunchedEffect
-        val viewport = scrollState.viewportSize
-        // Si scorre solo se la pillola scelta non si vede tutta, e allora la
-        // si porta al centro: prima la riga scorreva sempre fino a lei, e
-        // con "1 h" la prima pillola restava tagliata a metà ("…min").
-        if (viewport > 0 && range.last > viewport) {
-            scrollState.scrollTo((range.first - (viewport - (range.last - range.first)) / 2).coerceAtLeast(0))
-        }
-    }
+private fun DurationStepper(duration: Int, onChange: (Int) -> Unit) {
+    val index = SESSION_DURATION_OPTIONS.indexOf(duration).coerceAtLeast(0)
     Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .horizontalScroll(scrollState)
-            .horizontalFadeEdge(visible = scrollState.canScrollForward),
-        horizontalArrangement = Arrangement.spacedBy(6.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = Modifier.fillMaxWidth().padding(vertical = 10.dp),
     ) {
-        content(
-            Modifier.onGloballyPositioned {
-                if (selected == null) {
-                    val x = it.positionInParent().x.toInt()
-                    selected = x..(x + it.size.width)
-                }
-            }
+        SettingsRowIcon {
+            Icon(
+                painter = painterResource(R.drawable.ic_hourglass),
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.size(18.dp),
+            )
+        }
+        Text(
+            text = stringResource(R.string.schedule_duration_label),
+            color = MaterialTheme.colorScheme.onSurface,
+            modifier = Modifier.weight(1f),
         )
+        StepButton(
+            plus = false,
+            description = stringResource(R.string.schedule_duration_shorter),
+            enabled = index > 0,
+            onClick = { onChange(SESSION_DURATION_OPTIONS[index - 1]) },
+        )
+        Text(
+            text = durationPillLabel(SESSION_DURATION_OPTIONS[index]),
+            fontWeight = FontWeight.SemiBold,
+            color = MaterialTheme.colorScheme.primary,
+            textAlign = TextAlign.Center,
+            modifier = Modifier.width(76.dp),
+        )
+        StepButton(
+            plus = true,
+            description = stringResource(R.string.schedule_duration_longer),
+            enabled = index < SESSION_DURATION_OPTIONS.lastIndex,
+            onClick = { onChange(SESSION_DURATION_OPTIONS[index + 1]) },
+        )
+    }
+}
+
+/**
+ * Un tasto tondo del contatore, nella stessa pastiglia tinta delle icone di
+ * riga. Segni disegnati e non caratteri: "+" e "–" del font stanno su
+ * altezze diverse e i due tasti sembravano storti.
+ */
+@Composable
+private fun StepButton(plus: Boolean, description: String, enabled: Boolean, onClick: () -> Unit) {
+    Surface(
+        onClick = onClick,
+        enabled = enabled,
+        shape = CircleShape,
+        color = MaterialTheme.colorScheme.primary.copy(alpha = if (enabled) 0.12f else 0.05f),
+        modifier = Modifier.size(36.dp).semantics { contentDescription = description },
+    ) {
+        val tint = MaterialTheme.colorScheme.primary.copy(alpha = if (enabled) 1f else 0.35f)
+        Box(contentAlignment = Alignment.Center) {
+            if (plus) {
+                Icon(Icons.Filled.Add, contentDescription = null, tint = tint, modifier = Modifier.size(20.dp))
+            } else {
+                Box(Modifier.size(width = 14.dp, height = 2.5.dp).background(tint, RoundedCornerShape(2.dp)))
+            }
+        }
     }
 }

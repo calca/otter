@@ -412,6 +412,8 @@ Quando sentirai il bisogno di una pausa, basterà aprire l\'app, scegliere quant
     <string name="schedule_days_label">Giorni</string>
     <string name="schedule_time_label">Ora</string>
     <string name="schedule_duration_label">Durata</string>
+    <string name="schedule_duration_shorter">Più breve</string>
+    <string name="schedule_duration_longer">Più lunga</string>
     <string name="schedule_profile_label">App consentite</string>
     <string name="schedule_skip_next">Salta la prossima</string>
     <string name="schedule_delete">Elimina pausa</string>

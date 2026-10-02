@@ -92,10 +92,11 @@ laid out like Android's alarm editor:
   the rest of the app (before, every field had a look of its own — circles,
   pills, a loose link, a card — and the page didn't hold together):
   - **When**: "Days" (seven toggleable circles on one row, read by full day
-    name) and "Duration" (regular `CalmPill`s in a horizontally scrolling
-    row; it scrolls only if the selected pill isn't fully visible, and then
-    centres it, moving only the row — a `bringIntoView` would scroll the
-    page too).
+    name) and, below a divider, "Duration" as a stepper row: "–" / "+"
+    step through the same options as Home (`SESSION_DURATION_OPTIONS`) and
+    switch off at the two ends; the signs are drawn, not typed (the font's
+    "+" and "–" sit at different heights). It was a scrolling row of pills,
+    which inside the card got cut at the edge.
   - **How**: rows with a tinted round icon and dividers — "Allowed apps …
     Standard →" (only with 2+ profiles; opens the same profile dialog as
     Home, `AllowedProfileDialog`), "Protected by password" with its switch,
