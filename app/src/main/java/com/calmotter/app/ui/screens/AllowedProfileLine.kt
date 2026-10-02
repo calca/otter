@@ -6,8 +6,12 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Text
@@ -20,12 +24,14 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import com.calmotter.app.AllowedAppsProfile
 import com.calmotter.app.R
 
 /**
- * "Consentite: Standard ›" sotto le durate, e il dialogo che sceglie il
+ * "⊞ Standard ›" sotto le durate, e il dialogo che sceglie il
  * profilo di app consentite (specs/allowed-app-profiles/). Una sola versione
  * per la Home e per la pagina di una pausa programmata, così si sceglie allo
  * stesso modo ovunque (nella pausa programmata il dialogo si apre da una
@@ -41,11 +47,28 @@ internal fun AllowedProfileLine(
 ) {
     var picking by remember { mutableStateOf(false) }
     val selectedName = profiles.firstOrNull { it.id == selectedProfileId }?.name.orEmpty()
-    TextButton(onClick = { picking = true }, modifier = modifier) {
+    // Icona delle app più il nome del profilo, in tono smorzato: prima era
+    // "Consentite: Standard ›" in verde da link, una parola tecnica in più
+    // nel punto più importante della Home (segnalato). Il nome basta, perché
+    // il profilo l'ha chiamato chi lo usa. TalkBack legge ancora la frase
+    // intera ("Consentite: Standard").
+    val description = stringResource(R.string.home_profile_line, selectedName)
+    val muted = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+    TextButton(
+        onClick = { picking = true },
+        modifier = modifier.semantics(mergeDescendants = true) { contentDescription = description },
+    ) {
+        Icon(
+            imageVector = Icons.AutoMirrored.Filled.List,
+            contentDescription = null,
+            tint = muted,
+            modifier = Modifier.size(16.dp),
+        )
+        Spacer(modifier = Modifier.width(6.dp))
         Text(
-            text = stringResource(R.string.home_profile_line, selectedName) + " ›",
+            text = "$selectedName ›",
             style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.primary,
+            color = muted,
         )
     }
 

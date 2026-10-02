@@ -42,3 +42,13 @@ pills, which read as detached from the profile they acted on.
 2. **Nome del predefinito:** "Standard".
 3. **Pause di gruppo:** ognuno usa il proprio profilo; non viaggia nella
    ricetta.
+
+## Home: the profile line, muted
+
+The line under the duration pills was "Allowed: Standard ›" in link green —
+reported as one technical word too many in the most important spot of
+Home. Now an apps icon plus the profile name, "≡ Standard ›", in
+`onSurface` 60%: still tappable (same dialog), no longer reads as an
+action. TalkBack still reads "Allowed: Standard". Shown only with 2+
+profiles, as before (`AllowedProfileLine`).
+
