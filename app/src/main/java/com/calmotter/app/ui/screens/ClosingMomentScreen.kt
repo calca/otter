@@ -1,9 +1,10 @@
 package com.calmotter.app.ui.screens
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.ui.Alignment
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -49,53 +50,66 @@ fun ClosingMomentScreen(
     var mood by remember { mutableStateOf<Int?>(null) }
     var note by remember { mutableStateOf("") }
 
-    CalmScreenColumn(contentPadding = PaddingValues(32.dp)) {
-        OtterZenMark(markSize = 96.dp)
-        Text(
-            text = stringResource(R.string.closing_title, durationPillLabel(effectiveMinutes.coerceAtLeast(1))),
-            fontSize = 20.sp,
-            fontWeight = FontWeight.Bold,
-            fontStyle = FontStyle.Italic,
-            color = MaterialTheme.colorScheme.primary,
-            textAlign = TextAlign.Center,
-            modifier = Modifier.padding(top = 16.dp),
-        )
-        Text(
-            text = stringResource(R.string.closing_question),
-            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.75f),
-            textAlign = TextAlign.Center,
-            modifier = Modifier.padding(top = 6.dp, bottom = 20.dp),
-        )
-        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            listOf(
-                Mood.CALM to R.string.mood_calm,
-                Mood.ORDINARY to R.string.mood_ordinary,
-                Mood.HARD to R.string.mood_hard,
-            ).forEach { (value, label) ->
-                CalmPill(
-                    label = stringResource(label),
-                    selected = mood == value,
-                    // Un secondo tocco sulla stessa toglie la scelta.
-                    onClick = { mood = if (mood == value) null else value },
-                )
-            }
-        }
-        CalmTextField(
-            value = note,
-            onValueChange = { note = it.replace('\n', ' ').take(CLOSING_NOTE_MAX) },
-            label = stringResource(R.string.closing_note_hint),
-            modifier = Modifier.fillMaxWidth().padding(top = 20.dp),
-        )
-        Spacer(modifier = Modifier.height(28.dp))
-        TextButton(onClick = onSkip, modifier = Modifier.fillMaxWidth().height(48.dp)) {
-            Text(stringResource(R.string.closing_skip))
-        }
-        Button(
-            onClick = { onDone(mood, note.trim()) },
-            enabled = mood != null || note.isNotBlank(),
-            modifier = Modifier.fillMaxWidth().height(48.dp),
+    // Domanda e risposte centrate nello spazio sopra; "Salta" e "Fatto" fissi
+    // in fondo (regola della CTA in CLAUDE.md) invece che a metà pagina con
+    // mezza pagina vuota sotto — come nella lobby di Tempo insieme.
+    CalmScreenColumn(contentPadding = PaddingValues(32.dp), verticalArrangement = Arrangement.Top) {
+        Column(
+            modifier = Modifier.weight(1f).fillMaxWidth(),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center,
         ) {
-            Text(stringResource(R.string.closing_done))
+            OtterZenMark(markSize = 96.dp)
+            Text(
+                text = stringResource(R.string.closing_title, durationPillLabel(effectiveMinutes.coerceAtLeast(1))),
+                fontSize = 20.sp,
+                fontWeight = FontWeight.Bold,
+                fontStyle = FontStyle.Italic,
+                color = MaterialTheme.colorScheme.primary,
+                textAlign = TextAlign.Center,
+                modifier = Modifier.padding(top = 16.dp),
+            )
+            Text(
+                text = stringResource(R.string.closing_question),
+                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.75f),
+                textAlign = TextAlign.Center,
+                modifier = Modifier.padding(top = 6.dp, bottom = 20.dp),
+            )
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                listOf(
+                    Mood.CALM to R.string.mood_calm,
+                    Mood.ORDINARY to R.string.mood_ordinary,
+                    Mood.HARD to R.string.mood_hard,
+                ).forEach { (value, label) ->
+                    CalmPill(
+                        label = stringResource(label),
+                        selected = mood == value,
+                        // Un secondo tocco sulla stessa toglie la scelta.
+                        onClick = { mood = if (mood == value) null else value },
+                    )
+                }
+            }
+            CalmTextField(
+                value = note,
+                onValueChange = { note = it.replace('\n', ' ').take(CLOSING_NOTE_MAX) },
+                label = stringResource(R.string.closing_note_hint),
+                modifier = Modifier.fillMaxWidth().padding(top = 20.dp),
+            )
+        }
+        Column(
+            modifier = Modifier.fillMaxWidth().padding(top = 20.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            TextButton(onClick = onSkip, modifier = Modifier.fillMaxWidth().height(48.dp)) {
+                Text(stringResource(R.string.closing_skip))
+            }
+            Button(
+                onClick = { onDone(mood, note.trim()) },
+                enabled = mood != null || note.isNotBlank(),
+                modifier = Modifier.fillMaxWidth().height(48.dp),
+            ) {
+                Text(stringResource(R.string.closing_done))
+            }
         }
     }
 }
