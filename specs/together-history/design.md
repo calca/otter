@@ -8,7 +8,7 @@
 |---|---|
 | `CompanionStats.kt` (new) | Pure `companionTotals(sessions, from, to): List<CompanionTotal>` — grouping, sorting, and per-companion top categories, unit-tested |
 | `ui/screens/HistoryTogether.kt` (new) | The "Together" card, same tinted-card language as `WeekOverviewCard` |
-| `HistoryScreen.kt` | Filter chips "All / Together"; passes the filtered list to everything below |
+| `HistoryScreen.kt` | A "Together" tab (only with group pauses): their totals, the Together card, their list by month. Was an "All / Together" filter; see specs/session-history-and-stats/design.md, "Two tabs" |
 
 ## Data
 

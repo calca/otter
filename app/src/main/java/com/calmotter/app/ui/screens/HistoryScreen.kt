@@ -4,6 +4,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -29,7 +30,6 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -103,8 +103,8 @@ private fun rememberHistoryDateFormat(): SimpleDateFormat {
     return remember(locale) { SimpleDateFormat("EEEE d MMM · HH:mm", locale) }
 }
 
-/** Le due schede della Cronologia. */
-enum class HistoryTab { Overview, Sessions }
+/** Le schede della Cronologia; Together solo se c'è almeno una pausa di gruppo. */
+enum class HistoryTab { Overview, Sessions, Together }
 
 /**
  * Schermata cronologia (ultimo step della migrazione a Compose — il più
@@ -146,19 +146,15 @@ fun HistoryScreen(
         return
     }
 
-    // "Insieme" (specs/together-history/): con il filtro acceso statistiche,
-    // settimana ed elenco guardano solo le pause di gruppo. Filtro e scheda
-    // compaiono solo se ce n'è almeno una.
-    val hasTogether = remember(sessions) { sessions.any { it.isGroupSession } }
-    var togetherOnly by remember { mutableStateOf(false) }
-    val shown = if (togetherOnly && hasTogether) sessions.filter { it.isGroupSession } else sessions
-
-    // Due schede invece di un'unica colonna lunga (segnalato: "la pagina è
-    // un po' lunga"): "Riepilogo" (come sto andando) e "Sessioni" (il
-    // registro, per mese). Si passa con le schede o scorrendo di lato; il
-    // filtro Insieme sta sopra e vale per entrambe.
-    val tabs = HistoryTab.entries
-    val pager = rememberPagerState(initialPage = initialTab.ordinal) { tabs.size }
+    // Schede invece di un'unica colonna lunga (segnalato: "la pagina è un
+    // po' lunga"): "Riepilogo" (come sto andando), "Sessioni" (il registro,
+    // per mese) e, se c'è almeno una pausa di gruppo, "Insieme"
+    // (specs/together-history/). Insieme era un filtro "Tutte / Insieme"
+    // sopra le prime due, che sotto le schede si leggeva come un secondo
+    // livello di schede; ora è una scheda e le altre mostrano tutto.
+    val together = remember(sessions) { sessions.filter { it.isGroupSession } }
+    val tabs = if (together.isEmpty()) HistoryTab.entries - HistoryTab.Together else HistoryTab.entries
+    val pager = rememberPagerState(initialPage = tabs.indexOf(initialTab).coerceAtLeast(0)) { tabs.size }
     val scope = rememberCoroutineScope()
     LaunchedEffect(pager.currentPage) { onTabChange(tabs[pager.currentPage]) }
 
@@ -187,6 +183,7 @@ fun HistoryScreen(
                                 when (tab) {
                                     HistoryTab.Overview -> R.string.history_tab_overview
                                     HistoryTab.Sessions -> R.string.history_tab_sessions
+                                    HistoryTab.Together -> R.string.history_filter_together
                                 }
                             ),
                             fontWeight = FontWeight.SemiBold,
@@ -195,34 +192,37 @@ fun HistoryScreen(
                 )
             }
         }
-        if (hasTogether) {
-            HistoryFilterRow(
-                togetherOnly = togetherOnly,
-                onChange = { togetherOnly = it },
-                modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 12.dp),
-            )
-        }
         HorizontalPager(state = pager, modifier = Modifier.weight(1f), verticalAlignment = Alignment.Top) { page ->
             when (tabs[page]) {
-                HistoryTab.Overview -> OverviewPage(sessions = sessions, shown = shown, hasTogether = hasTogether, goal = goal, onEditGoal = onEditGoal, now = now)
-                HistoryTab.Sessions -> SessionsPage(shown = shown, togetherOnly = togetherOnly, now = now)
+                HistoryTab.Overview -> OverviewPage(sessions = sessions, goal = goal, onEditGoal = onEditGoal, now = now)
+                HistoryTab.Sessions -> PageColumn { MonthList(sessions = sessions, now = now) }
+                HistoryTab.Together -> PageColumn {
+                    StatsBar(
+                        sessions = together,
+                        modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 12.dp),
+                    )
+                    TogetherCard(
+                        sessions = sessions,
+                        now = now,
+                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
+                    )
+                    MonthList(sessions = together, now = now)
+                }
             }
         }
     }
 }
 
-/** "Riepilogo": totali, la settimana con l'obiettivo, la scheda Insieme e la frase che chiude. */
+/** "Riepilogo": totali, la settimana con l'obiettivo e la frase che chiude. */
 @Composable
 private fun OverviewPage(
     sessions: List<SessionRecord>,
-    shown: List<SessionRecord>,
-    hasTogether: Boolean,
     goal: WeeklyGoal?,
     onEditGoal: () -> Unit,
     now: Long,
 ) {
-    val streak = SessionStreak.currentStreakDays(shown, now)
-    val (minutesByDay, weekSessions, weekMinutes) = weeklyChartData(shown, now)
+    val streak = SessionStreak.currentStreakDays(sessions, now)
+    val (minutesByDay, weekSessions, weekMinutes) = weeklyChartData(sessions, now)
     val summaryText = if (weekSessions == 0) {
         stringResource(R.string.weekly_summary_none)
     } else {
@@ -231,7 +231,7 @@ private fun OverviewPage(
 
     Column(modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState())) {
         StatsBar(
-            sessions = shown,
+            sessions = sessions,
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = 16.dp, vertical = 12.dp)
@@ -249,62 +249,59 @@ private fun OverviewPage(
             modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp)
         )
 
-        if (hasTogether) {
-            TogetherCard(
-                sessions = sessions,
-                now = now,
-                modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
-            )
-        }
-
         ClosingPhraseCard(now = now, modifier = Modifier.padding(horizontal = 16.dp, vertical = 20.dp))
     }
 }
 
+/** Il contenuto di una scheda: una colonna che scorre per conto suo. */
+@Composable
+private fun PageColumn(content: @Composable ColumnScope.() -> Unit) {
+    Column(modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()), content = content)
+}
+
 /**
- * "Sessioni", per mese (specs/history-by-month/): all'apertura il mese
+ * Le sessioni per mese (specs/history-by-month/): all'apertura il mese
  * corrente e il precedente, poi un mese in più a ogni tocco. Con una pausa al
  * giorno la lista intera diventava lunga e lenta da comporre; il Riepilogo
- * conta comunque tutto.
+ * conta comunque tutto. In Sessioni con tutte le pause, in Insieme con
+ * quelle di gruppo.
  */
 @Composable
-private fun SessionsPage(shown: List<SessionRecord>, togetherOnly: Boolean, now: Long) {
-    var extraMonths by remember(togetherOnly) { mutableIntStateOf(0) }
-    val view = remember(shown, extraMonths) { historyMonths(shown, now, extraMonths) }
+private fun MonthList(sessions: List<SessionRecord>, now: Long) {
+    var extraMonths by remember { mutableIntStateOf(0) }
+    val view = remember(sessions, extraMonths) { historyMonths(sessions, now, extraMonths) }
     val locale = LocalConfiguration.current.locales[0]
     val monthFormat = remember(locale) { DateTimeFormatter.ofPattern("LLLL yyyy", locale) }
 
-    Column(modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState())) {
-        view.months.forEach { group ->
+    view.months.forEach { group ->
+        Text(
+            text = group.month.format(monthFormat).replaceFirstChar { it.uppercase(locale) },
+            fontSize = 13.sp,
+            fontWeight = FontWeight.SemiBold,
+            color = MaterialTheme.colorScheme.primary,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(start = 16.dp, top = 14.dp, end = 16.dp, bottom = 4.dp),
+        )
+        if (group.sessions.isEmpty()) {
             Text(
-                text = group.month.format(monthFormat).replaceFirstChar { it.uppercase(locale) },
+                text = stringResource(R.string.history_month_empty),
                 fontSize = 13.sp,
-                fontWeight = FontWeight.SemiBold,
-                color = MaterialTheme.colorScheme.primary,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(start = 16.dp, top = 14.dp, end = 16.dp, bottom = 4.dp),
+                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
+                modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
             )
-            if (group.sessions.isEmpty()) {
-                Text(
-                    text = stringResource(R.string.history_month_empty),
-                    fontSize = 13.sp,
-                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
-                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
-                )
-            }
-            group.sessions.forEach { session -> SessionRow(session) }
         }
-        if (view.hasEarlier) {
-            TextButton(
-                onClick = { extraMonths++ },
-                modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
-            ) {
-                Text(stringResource(R.string.history_show_earlier))
-            }
-        }
-        Spacer(modifier = Modifier.height(16.dp))
+        group.sessions.forEach { session -> SessionRow(session) }
     }
+    if (view.hasEarlier) {
+        TextButton(
+            onClick = { extraMonths++ },
+            modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
+        ) {
+            Text(stringResource(R.string.history_show_earlier))
+        }
+    }
+    Spacer(modifier = Modifier.height(16.dp))
 }
 
 // ── Statistiche totali ──────────────────────────────────────────────────

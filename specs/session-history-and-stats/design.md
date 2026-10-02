@@ -618,9 +618,13 @@ page. Split with an M3 `PrimaryTabRow` over a `HorizontalPager` (tap or
 swipe), in the same Activity:
 
 - **Overview**: totals (`StatsBar`), the week card with the goal, the
-  Together card, the closing phrase.
-- **Sessions**: the list by month (specs/history-by-month/), "Show earlier".
-- The "All / Together" filter sits above the pager and applies to both.
+  closing phrase — all pauses.
+- **Sessions**: the list by month (specs/history-by-month/), "Show earlier"
+  — all pauses.
+- **Together** (only if there's at least one group pause): totals of the
+  group pauses, the Together card (who, this month / all time), and the
+  group pauses by month. It replaced an "All / Together" filter that sat
+  under the tabs, applied to both, and read as a second row of tabs.
 - Tab colors are set explicitly (transparent container, `primary` /
   `onSurface` 60%, a divider at `onSurface` 8%): the defaults use
   `outlineVariant`, a role the palettes don't customize.
@@ -635,4 +639,7 @@ swipe), in the same Activity:
 
 Two separate Activities were considered and dropped: a second entry point
 from Home, and the filter chosen twice.
+
+An initial tab that isn't shown (Together with no group pauses) falls back
+to Overview.
 

@@ -192,6 +192,11 @@ class ScreenScreenshotTest(private val night: Boolean) {
     }
 
     @Test
+    fun historyTogether() = capture("history-together") {
+        HistoryScreen(sessions = history, goal = null, onEditGoal = {}, now = NOW, initialTab = HistoryTab.Together)
+    }
+
+    @Test
     fun closingMoment() = capture("closing") {
         ClosingMomentScreen(effectiveMinutes = 60, onDone = { _, _ -> }, onSkip = {})
     }

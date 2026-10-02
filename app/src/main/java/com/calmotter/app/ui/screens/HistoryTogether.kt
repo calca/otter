@@ -1,6 +1,5 @@
 package com.calmotter.app.ui.screens
 
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -32,15 +31,6 @@ import java.util.Calendar
 // La parte "insieme" della Cronologia (specs/together-history/): il tempo
 // passato in pausa con ciascuna persona e il filtro sulle sole pause di
 // gruppo.
-
-/** "Tutte / Insieme": con "Insieme" tutta la pagina guarda solo le pause di gruppo. */
-@Composable
-internal fun HistoryFilterRow(togetherOnly: Boolean, onChange: (Boolean) -> Unit, modifier: Modifier = Modifier) {
-    Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = modifier) {
-        CalmPill(size = CalmPillSize.Small, label = stringResource(R.string.history_filter_all), selected = !togetherOnly) { onChange(false) }
-        CalmPill(size = CalmPillSize.Small, label = stringResource(R.string.history_filter_together), selected = togetherOnly) { onChange(true) }
-    }
-}
 
 /**
  * La scheda "Insieme": per ogni persona tempo e numero di pause, e le icone
