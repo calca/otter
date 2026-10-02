@@ -25,7 +25,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
-import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -38,7 +37,6 @@ import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.calmotter.app.AppTheme
 import com.calmotter.app.R
 import com.calmotter.app.ui.theme.paletteFor
@@ -54,7 +52,7 @@ import com.calmotter.app.ui.theme.paletteFor
  * spiegazione) al tap sull'otter se ancora mancanti, vedi
  * PondOtter/PermissionExplainerDialog in MainScreen.kt. Qui sono uno stato
  * sempre consultabile, non un promemoria a ogni apertura dell'app.
- * L'app Home ha una sua card separata sotto (vedi [HomeCard]): non è un
+ * L'app Home ha una sua card separata sotto (ora una riga della card "La pausa" in SettingsScreen.kt): non è un
  * permesso di sistema, è solo "consigliata".
  */
 @Composable
@@ -147,78 +145,6 @@ private fun PermissionStatusRow(
                 modifier = Modifier
                     .clickable(onClick = onAction)
                     .padding(4.dp),
-            )
-        }
-    }
-}
-
-/**
- * Sezione dedicata all'app Home, separata dai permessi di sistema sopra:
- * impostare Calm Otter come Home è solo "consigliato", non un requisito per
- * avviare una pausa (vedi app-blocking-and-home-lock/requirements.md), e
- * non è nemmeno un vero permesso — merita quindi una card propria invece di
- * essere una terza riga tra Accessibilità e Non disturbare.
- *
- * Lo Switch non riflette un vero stato on/off comandabile da qui: non
- * esiste un'API per "smettere di essere l'app Home" senza passare dalle
- * Impostazioni di sistema. Tapparlo in entrambe le direzioni richiama
- * [onSetHome] (riapre il selettore Home di Android, da cui si può anche
- * scegliere un'altra app) — checked riflette solo lo stato attuale.
- *
- * Quando [homeOk] è vero, mostra anche una nota: CalmOtter deve restare
- * titolare del ruolo Home di sistema anche quando non c'è una pausa attiva
- * (per poterlo intercettare di nuovo alla pausa successiva), quindi il
- * forward al vecchio launcher (vedi MainActivity.forwardToOriginalLauncher())
- * ne avvia solo l'Activity senza restituirgli il ruolo — quel launcher può
- * quindi mostrare un proprio avviso "impostami come predefinito", che non è
- * un problema di CalmOtter e non è evitabile senza un dialog di sistema ad
- * ogni pausa iniziata/finita (vedi README "Known Limits"). La nota non ha
- * senso finché CalmOtter non è ancora l'app Home: quel comportamento non si
- * verifica ancora.
- */
-@Composable
-internal fun HomeCard(homeOk: Boolean, onSetHome: () -> Unit) {
-    Column(modifier = Modifier.fillMaxWidth()) {
-        Surface(
-            shape = RoundedCornerShape(20.dp),
-            color = MaterialTheme.colorScheme.primary.copy(alpha = 0.06f),
-            modifier = Modifier.fillMaxWidth(),
-        ) {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 12.dp),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                SettingsRowIcon {
-                    Icon(
-                        imageVector = Icons.Default.Home,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.size(18.dp),
-                    )
-                }
-                Text(
-                    text = stringResource(R.string.permission_row_home),
-                    color = MaterialTheme.colorScheme.onSurface,
-                    modifier = Modifier.weight(1f),
-                )
-                Switch(
-                    checked = homeOk,
-                    onCheckedChange = { onSetHome() },
-                    colors = settingsSwitchColors(),
-                )
-            }
-        }
-        if (homeOk) {
-            Text(
-                text = stringResource(R.string.settings_home_forward_hint),
-                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.55f),
-                fontSize = 12.sp,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = 8.dp, start = 4.dp, end = 4.dp),
             )
         }
     }

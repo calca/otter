@@ -2,9 +2,8 @@
     <string name="app_name">Calm Otter</string>
     <string name="settings_title">Settings</string>
     <string name="settings_permissions_label">Permissions</string>
-    <string name="settings_home_label">Home</string>
     <string name="settings_theme_label">Theme</string>
-    <string name="settings_pause_experience_label">Pause experience</string>
+    <string name="settings_pause_label">The pause</string>
     <string name="settings_password_label">Password</string>
     <string name="settings_password_set_by">Set by %1$s</string>
     <string name="permission_row_accessibility">Accessibility</string>
@@ -373,7 +372,6 @@ Whenever you feel the need for a break, just open the app, choose how long — &
     <string name="slow_exit_waiting">The pause is ending, without password</string>
     <string name="settings_slow_exit_label">Leave without password</string>
     <string name="settings_slow_exit_off">Off</string>
-    <string name="settings_slow_exit_value">After %1$d min</string>
     <string name="settings_slow_exit_pill">%1$d min</string>
     <string name="settings_slow_exit_dialog_body">Lets the pause end without the password after a wait. Weaker than the password: choose it together.</string>
     <string name="onboarding_slow_exit_note">If the password can\'t be reached, the pause can also be ended by waiting 10 minutes. You can switch this off in Settings.</string>

@@ -36,6 +36,8 @@ import com.calmotter.app.ui.mascot.SprigMark
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Notifications
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.material3.Icon
 import com.calmotter.app.BuildConfig
 import androidx.compose.ui.text.style.TextAlign
@@ -148,57 +150,16 @@ fun SettingsScreen(
         SectionLabel(stringResource(R.string.settings_theme_label), topPadding = 0.dp)
         ThemeListCard(currentTheme = currentTheme, onPickTheme = onPickTheme)
 
-        SectionLabel(stringResource(R.string.settings_password_label))
-        PasswordCard(
-            partnerName = partnerName,
-            onChangePassword = onChangePassword,
-            onManageApps = { showManageAppsDialog = true },
-            slowExitValue = if (slowExitEnabled) {
-                stringResource(R.string.settings_slow_exit_value, slowExitWait)
-            } else {
-                stringResource(R.string.settings_slow_exit_off)
-            },
-            onSlowExit = { showSlowExitPassword = true },
-        )
-
-        SectionLabel(stringResource(R.string.settings_schedule_label))
+        // "La pausa": tutto ciò che decide com'è una pausa, in una card sola.
+        // Prima "Gestisci app consentite" e "Uscita senza password" stavano
+        // sotto Password (solo perché la chiedono), e Pause programmate,
+        // Home ed Esperienza di pausa erano sezioni da una riga, due delle
+        // quali ripetevano il titolo nella riga ("PAUSE PROGRAMMATE →
+        // Pause programmate", "HOME → App Home") — segnalato nella review UI.
+        SectionLabel(stringResource(R.string.settings_pause_label))
         val activeSchedules = remember(resumeSignal) {
             ScheduleManager.getInstance(context).all().count { it.enabled }
         }
-        Surface(
-            shape = RoundedCornerShape(20.dp),
-            color = MaterialTheme.colorScheme.primary.copy(alpha = 0.06f),
-            modifier = Modifier.fillMaxWidth(),
-        ) {
-            Column(modifier = Modifier.padding(horizontal = 16.dp)) {
-                SettingsActionRow(
-                    label = stringResource(R.string.settings_schedule_label),
-                    value = if (activeSchedules == 0) {
-                        stringResource(R.string.settings_schedule_none)
-                    } else {
-                        pluralStringResource(R.plurals.settings_schedule_count, activeSchedules, activeSchedules)
-                    },
-                    onClick = onScheduledPauses,
-                    icon = {
-                        Icon(
-                            imageVector = Icons.Default.DateRange,
-                            contentDescription = null,
-                            tint = MaterialTheme.colorScheme.primary,
-                            modifier = Modifier.size(18.dp),
-                        )
-                    },
-                )
-            }
-        }
-
-        SectionLabel(stringResource(R.string.settings_home_label))
-        HomeCard(homeOk = homeOk, onSetHome = onSetHome)
-
-        SectionLabel(stringResource(R.string.settings_pause_experience_label))
-        PhrasesCard(checked = phrasesEnabled, onCheckedChange = { checked ->
-            phrasesEnabled = checked
-            phraseManager.setEnabled(checked)
-        })
         // La nota della domenica sera (specs/weekly-summary/): niente
         // password, è solo una notifica. Se le notifiche dell'app sono
         // spente lo dice, senza chiedere il permesso solo per questo.
@@ -207,40 +168,80 @@ fun SettingsScreen(
         Surface(
             shape = RoundedCornerShape(20.dp),
             color = MaterialTheme.colorScheme.primary.copy(alpha = 0.06f),
-            modifier = Modifier.fillMaxWidth().padding(top = 10.dp),
+            modifier = Modifier.fillMaxWidth(),
         ) {
-            Row(
-                modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 12.dp),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                SettingsRowIcon {
-                    Icon(
-                        imageVector = Icons.Default.DateRange,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.size(16.dp),
-                    )
-                }
-                Column(modifier = Modifier.weight(1f)) {
-                    Text(stringResource(R.string.weekly_note_toggle_label), color = MaterialTheme.colorScheme.onSurface)
-                    if (!notificationsOn) {
-                        Text(
-                            stringResource(R.string.weekly_note_notifications_off),
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
+            Column(modifier = Modifier.padding(horizontal = 16.dp)) {
+                SettingsActionRow(
+                    label = stringResource(R.string.manage_allowed_apps),
+                    onClick = { showManageAppsDialog = true },
+                    icon = { RowIcon(Icons.Default.List) },
+                )
+                RowDivider()
+                SettingsActionRow(
+                    label = stringResource(R.string.settings_schedule_label),
+                    value = if (activeSchedules == 0) {
+                        stringResource(R.string.settings_schedule_none)
+                    } else {
+                        pluralStringResource(R.plurals.settings_schedule_count, activeSchedules, activeSchedules)
+                    },
+                    onClick = onScheduledPauses,
+                    icon = { RowIcon(Icons.Default.DateRange) },
+                )
+                RowDivider()
+                // Uscita lenta (specs/slow-exit/): si cambia solo dopo la
+                // password. Valore corto ("10 min", non "Dopo 10 min"): con
+                // l'etichetta lunga andava su due righe.
+                SettingsActionRow(
+                    label = stringResource(R.string.settings_slow_exit_label),
+                    value = if (slowExitEnabled) {
+                        stringResource(R.string.settings_slow_exit_pill, slowExitWait)
+                    } else {
+                        stringResource(R.string.settings_slow_exit_off)
+                    },
+                    onClick = { showSlowExitPassword = true },
+                    icon = {
+                        Icon(
+                            painter = painterResource(R.drawable.ic_hourglass),
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.size(18.dp),
                         )
-                    }
-                }
-                Switch(
+                    },
+                )
+                RowDivider()
+                SettingsSwitchRow(
+                    icon = { SprigMark(markSize = 16.dp) },
+                    label = stringResource(R.string.phrases_toggle_label),
+                    checked = phrasesEnabled,
+                    onCheckedChange = { checked ->
+                        phrasesEnabled = checked
+                        phraseManager.setEnabled(checked)
+                    },
+                )
+                RowDivider()
+                SettingsSwitchRow(
+                    icon = { RowIcon(Icons.Default.Notifications) },
+                    label = stringResource(R.string.weekly_note_toggle_label),
+                    subtitle = if (notificationsOn) null else stringResource(R.string.weekly_note_notifications_off),
                     checked = weeklyNote,
                     onCheckedChange = {
                         weeklyNote = it
                         WeeklySummary.setEnabled(context, it)
                     },
-                    colors = settingsSwitchColors(),
+                )
+                RowDivider()
+                SettingsSwitchRow(
+                    icon = { RowIcon(Icons.Default.Home) },
+                    label = stringResource(R.string.permission_row_home),
+                    subtitle = if (homeOk) stringResource(R.string.settings_home_forward_hint) else null,
+                    checked = homeOk,
+                    onCheckedChange = { onSetHome() },
                 )
             }
         }
+
+        SectionLabel(stringResource(R.string.settings_password_label))
+        PasswordCard(partnerName = partnerName, onChangePassword = onChangePassword)
 
         SectionLabel(stringResource(R.string.settings_permissions_label))
         // Prima delle impostazioni di sistema, l'informativa sull'accessibilità.
@@ -409,9 +410,6 @@ internal fun settingsSwitchColors(): SwitchColors = SwitchDefaults.colors(
 private fun PasswordCard(
     partnerName: String?,
     onChangePassword: () -> Unit,
-    onManageApps: () -> Unit,
-    slowExitValue: String,
-    onSlowExit: () -> Unit,
 ) {
     Surface(
         shape = RoundedCornerShape(20.dp),
@@ -419,62 +417,59 @@ private fun PasswordCard(
         modifier = Modifier.fillMaxWidth(),
     ) {
         Column(modifier = Modifier.padding(horizontal = 16.dp)) {
-            if (!partnerName.isNullOrEmpty()) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = 12.dp),
-                ) {
-                    Text(
-                        text = stringResource(R.string.settings_password_set_by, partnerName),
-                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
-                    )
-                }
-                HorizontalDivider(color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.08f))
-            }
             SettingsActionRow(
                 label = stringResource(R.string.change_password),
+                // Chi ha scelto la password, come valore della riga invece
+                // che come riga a sé senza icona.
+                value = partnerName?.takeIf { it.isNotEmpty() }?.let {
+                    stringResource(R.string.settings_password_set_by, it)
+                },
                 onClick = onChangePassword,
-                icon = {
-                    Icon(
-                        imageVector = Icons.Default.Lock,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.size(18.dp),
-                    )
-                },
-            )
-            HorizontalDivider(color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.08f))
-            SettingsActionRow(
-                label = stringResource(R.string.manage_allowed_apps),
-                onClick = onManageApps,
-                icon = {
-                    Icon(
-                        imageVector = Icons.Default.List,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.size(18.dp),
-                    )
-                },
-            )
-            HorizontalDivider(color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.08f))
-            // Uscita lenta (specs/slow-exit/): sta qui perché fa parte del
-            // patto della password, e come le altre righe si cambia solo
-            // dopo averla inserita.
-            SettingsActionRow(
-                label = stringResource(R.string.settings_slow_exit_label),
-                value = slowExitValue,
-                onClick = onSlowExit,
-                icon = {
-                    Icon(
-                        painter = painterResource(R.drawable.ic_hourglass),
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.size(18.dp),
-                    )
-                },
+                icon = { RowIcon(Icons.Default.Lock) },
             )
         }
+    }
+}
+
+@Composable
+private fun RowIcon(icon: ImageVector) = Icon(
+    imageVector = icon,
+    contentDescription = null,
+    tint = MaterialTheme.colorScheme.primary,
+    modifier = Modifier.size(18.dp),
+)
+
+@Composable
+private fun RowDivider() = HorizontalDivider(color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.08f))
+
+/** Riga con interruttore, stessa forma di [SettingsActionRow]; [subtitle] facoltativo sotto l'etichetta. */
+@Composable
+private fun SettingsSwitchRow(
+    icon: @Composable () -> Unit,
+    label: String,
+    checked: Boolean,
+    onCheckedChange: (Boolean) -> Unit,
+    subtitle: String? = null,
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable { onCheckedChange(!checked) }
+            .padding(vertical = 12.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        SettingsRowIcon { icon() }
+        Column(modifier = Modifier.weight(1f).padding(end = 12.dp)) {
+            Text(label, color = MaterialTheme.colorScheme.onSurface)
+            if (subtitle != null) {
+                Text(
+                    subtitle,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
+                )
+            }
+        }
+        Switch(checked = checked, onCheckedChange = onCheckedChange, colors = settingsSwitchColors())
     }
 }
 
@@ -512,36 +507,6 @@ internal fun SettingsActionRow(
             color = MaterialTheme.colorScheme.primary,
             fontWeight = FontWeight.SemiBold,
         )
-    }
-}
-
-/** Frasi riflessive durante la pausa: un solo toggle, stessa card delle altre sezioni invece del vecchio Checkbox isolato. */
-@Composable
-private fun PhrasesCard(checked: Boolean, onCheckedChange: (Boolean) -> Unit) {
-    Surface(
-        shape = RoundedCornerShape(20.dp),
-        color = MaterialTheme.colorScheme.primary.copy(alpha = 0.06f),
-        modifier = Modifier.fillMaxWidth(),
-    ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 12.dp),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            SettingsRowIcon { SprigMark(markSize = 16.dp) }
-            Text(
-                text = stringResource(R.string.phrases_toggle_label),
-                color = MaterialTheme.colorScheme.onSurface,
-                modifier = Modifier.weight(1f),
-            )
-            Switch(
-                checked = checked,
-                onCheckedChange = onCheckedChange,
-                colors = settingsSwitchColors(),
-            )
-        }
     }
 }
 

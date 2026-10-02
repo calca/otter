@@ -1015,3 +1015,22 @@ proprio dispositivo, non solo a lettura di codice:**
   al bordo.
 
 Full build/lint/test verde sul risultato finale.
+
+## Settings: sections regrouped (UI review)
+
+Order now: **Theme · The pause · Password · Permissions · About**.
+
+- **The pause** is one card with everything that shapes a pause: Manage
+  allowed apps, Scheduled pauses (count), Leave without password (short
+  value "10 min" — "After 10 min" wrapped the label onto two lines), Show
+  phrases during pause, Sunday evening note, Home app (its forwarding hint
+  is now the row's subtitle). Switch rows share `SettingsSwitchRow`.
+- Before: allowed apps and slow exit sat under *Password* only because
+  they ask for it; Scheduled pauses, Home and Pause experience were
+  one-row sections, two of which repeated their heading in the row.
+- **Password** is a single row: Change password, with "Set by Alex" as the
+  row's value (it was a plain line without icon).
+- `HomeCard` and `PhrasesCard` were removed (now rows);
+  `settings_home_label`, `settings_pause_experience_label` and
+  `settings_slow_exit_value` strings removed, `settings_pause_label` added.
+
