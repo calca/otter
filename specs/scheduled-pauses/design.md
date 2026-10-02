@@ -70,8 +70,10 @@ opened a second dialog on top of itself for the time. Now a page that
 replaces the list inside `ScheduledPausesActivity` (state `editing`; the
 ActionBar title follows it, Back/Up return to the list without saving):
 
-- Material `TimePicker` (24 h dial) inline, with colors taken from
-  `primary`/`tertiary` — its defaults use roles the palettes don't set.
+- Material `TimeInput` (two 24 h fields, typed) inline, with colors taken
+  from `primary`/`tertiary` — its defaults use roles the palettes don't
+  set. The `TimePicker` dial was tried first and dropped: it filled half
+  the page on its own.
 - Seven day circles on one row (toggleable, read by full day name), plus
   "Mon–Fri / Sat–Sun / Every day" shortcuts.
 - Duration and profile as regular `CalmPill`s in a horizontally scrolling
