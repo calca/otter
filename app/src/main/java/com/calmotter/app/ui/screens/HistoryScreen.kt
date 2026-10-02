@@ -197,14 +197,15 @@ fun HistoryScreen(
                 HistoryTab.Overview -> OverviewPage(sessions = sessions, goal = goal, onEditGoal = onEditGoal, now = now)
                 HistoryTab.Sessions -> PageColumn { MonthList(sessions = sessions, now = now) }
                 HistoryTab.Together -> PageColumn {
+                    // Stesso passo di 12dp fra le card del Riepilogo.
                     StatsBar(
                         sessions = together,
-                        modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 12.dp),
+                        modifier = Modifier.fillMaxWidth().padding(start = 16.dp, top = 12.dp, end = 16.dp),
                     )
                     TogetherCard(
                         sessions = sessions,
                         now = now,
-                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
+                        modifier = Modifier.padding(start = 16.dp, top = 12.dp, end = 16.dp),
                     )
                     MonthList(sessions = together, now = now)
                 }
@@ -229,31 +230,29 @@ private fun OverviewPage(
         pluralStringResource(R.plurals.weekly_summary_sessions, weekSessions, weekSessions, formatHistoryMinutes(weekMinutes))
     }
 
-    Column(modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState())) {
-        StatsBar(
-            sessions = sessions,
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 12.dp)
-        )
-
+    // Un solo passo fra le card, 12dp, invece del padding verticale di
+    // ciascuna (12, 4, 8, 20): gli spazi venivano 16, 12 e 28 — segnalato.
+    Column(
+        verticalArrangement = Arrangement.spacedBy(12.dp),
+        modifier = Modifier
+            .fillMaxSize()
+            .verticalScroll(rememberScrollState())
+            .padding(horizontal = 16.dp, vertical = 12.dp),
+    ) {
+        StatsBar(sessions = sessions, modifier = Modifier.fillMaxWidth())
         WeeklyGoalCard(
             goal = goal,
             weekSessions = weekSessions,
             weekMinutes = weekMinutes,
             onEditGoal = onEditGoal,
-            modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
         )
-
         WeekOverviewCard(
             streak = streak,
             minutesByDay = minutesByDay,
             summaryText = summaryText,
             now = now,
-            modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
         )
-
-        ClosingPhraseCard(now = now, modifier = Modifier.padding(horizontal = 16.dp, vertical = 20.dp))
+        ClosingPhraseCard(now = now)
     }
 }
 
