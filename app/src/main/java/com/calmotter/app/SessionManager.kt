@@ -85,9 +85,13 @@ class SessionManager internal constructor(private val context: Context) {
         // Profilo di app consentite per questa pausa (vedi
         // AllowedAppsManager); null = quello selezionato al momento.
         profileId: Int? = null,
+        // Fine fissata da fuori: "Avvicina i telefoni" (specs/nfc-quick-together/)
+        // la condivide fra i due telefoni, anche quando uno si unisce in
+        // ritardo dalla notifica. null = adesso + durata.
+        endAtMillis: Long? = null,
     ) {
         val now = System.currentTimeMillis()
-        val endTime = now + durationMinutes * 60_000L
+        val endTime = endAtMillis?.takeIf { it > now } ?: (now + durationMinutes * 60_000L)
         prefs.edit {
             putBoolean(KEY_ACTIVE, true)
             putLong(KEY_START_TIME, now)

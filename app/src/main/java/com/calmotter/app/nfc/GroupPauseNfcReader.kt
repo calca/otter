@@ -51,8 +51,71 @@ class GroupPauseNfcReader(private val activity: Activity) {
         )
     }
 
+    /**
+     * "Avvicina i telefoni" (specs/nfc-quick-together/): al tocco legge lo
+     * stato dell'altro telefono (HELLO) e, se è pronto, gli manda la
+     * proposta ([proposal], letta al momento del tocco: durata e attività
+     * possono cambiare finché si aspetta). [onOutcome] gira su un thread
+     * Binder, come [start].
+     */
+    fun startQuickTogether(
+        proposal: () -> QuickTogetherProtocol.Proposal,
+        onOutcome: (QuickTogetherOutcome) -> Unit,
+    ) {
+        val adapter = NfcAdapter.getDefaultAdapter(activity) ?: return
+        adapter.enableReaderMode(
+            activity,
+            { tag: Tag ->
+                val isoDep = IsoDep.get(tag) ?: return@enableReaderMode
+                try {
+                    isoDep.connect()
+                    isoDep.timeout = 2_000
+                    val hello = QuickTogetherProtocol.decodeHello(isoDep.transceive(SELECT_AID_APDU))
+                    when {
+                        hello == null -> onOutcome(QuickTogetherOutcome.NotReady)
+                        hello.version != QuickTogetherProtocol.VERSION ->
+                            onOutcome(QuickTogetherOutcome.Refused(QuickTogetherProtocol.State.OTHER_VERSION, hello.name))
+                        hello.state != QuickTogetherProtocol.State.READY ->
+                            onOutcome(QuickTogetherOutcome.Refused(hello.state, hello.name))
+                        else -> {
+                            val p = proposal()
+                            val result = QuickTogetherProtocol.decodeResult(
+                                isoDep.transceive(QuickTogetherProtocol.encodePropose(p))
+                            )
+                            // L'inizio di A parte da adesso, come quello di B
+                            // dalla ricezione: i due differiscono solo della
+                            // latenza dello scambio.
+                            val startAt = System.currentTimeMillis() + p.startDelayMillis
+                            when (result) {
+                                QuickTogetherProtocol.State.READY -> onOutcome(QuickTogetherOutcome.Accepted(hello.name, startAt))
+                                null -> onOutcome(QuickTogetherOutcome.NotReady)
+                                else -> onOutcome(QuickTogetherOutcome.Refused(result, hello.name))
+                            }
+                        }
+                    }
+                } catch (e: IOException) {
+                    // Telefoni allontanati durante lo scambio: si riavvicinano.
+                } finally {
+                    runCatching { isoDep.close() }
+                }
+            },
+            NfcAdapter.FLAG_READER_NFC_A or NfcAdapter.FLAG_READER_SKIP_NDEF_CHECK,
+            null,
+        )
+    }
+
     fun stop() {
         val adapter = NfcAdapter.getDefaultAdapter(activity) ?: return
         runCatching { adapter.disableReaderMode(activity) }
     }
+}
+
+/** Com'è andato un tocco di "Avvicina i telefoni", visto da chi propone. */
+sealed class QuickTogetherOutcome {
+    /** L'altro ha accettato: si parte insieme a [startAt]. */
+    data class Accepted(val companion: String, val startAt: Long) : QuickTogetherOutcome()
+    /** L'altro non può: già in pausa, configurazione da finire, altra versione. */
+    data class Refused(val state: QuickTogetherProtocol.State, val companion: String) : QuickTogetherOutcome()
+    /** L'altro telefono non ha risposto come Calm Otter (o era in un'altra pagina di Tempo insieme). */
+    data object NotReady : QuickTogetherOutcome()
 }

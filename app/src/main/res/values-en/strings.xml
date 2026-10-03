@@ -463,4 +463,17 @@ Whenever you feel the need for a break, just open the app, choose how long — &
     <string name="closing_share">Share this pause</string>
     <string name="group_pause_invite_link">Your friend doesn\'t have Calm Otter? Invite them</string>
     <string name="settings_info_recommend">Recommend Calm Otter</string>
+
+    <!-- "Avvicina i telefoni" (specs/nfc-quick-together/). -->
+    <string name="quick_together_button">Phones together</string>
+    <string name="quick_together_title">Hold your friend\'s phone near</string>
+    <string name="quick_together_subtitle">A pause together, %1$s</string>
+    <string name="quick_together_with">Pause together with %1$s</string>
+    <string name="quick_together_refused_in_pause">%1$s is already on a pause.</string>
+    <string name="quick_together_refused_setup">%1$s needs to finish setting up Calm Otter first.</string>
+    <string name="quick_together_not_ready">The other phone didn\'t answer. Hold the phones together a moment longer.</string>
+    <string name="quick_together_channel">Pauses together</string>
+    <string name="quick_together_notification">%1$s proposes a pause together · %2$s</string>
+    <string name="quick_together_join">Join</string>
+    <string name="quick_together_nfc_off">Turn on NFC to start a pause together with one tap.</string>
 </resources>

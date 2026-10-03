@@ -1,6 +1,6 @@
 # Quick Time Together by NFC — Design
 
-> **Status: Proposed** (2026-10-03). Nothing below is built yet.
+> **Status: Implemented** (2026-10-03), **not yet verified on two real phones** (the emulator has no NFC).
 
 ## Roles
 
@@ -50,11 +50,16 @@ B → A   OK  |  REFUSED(state)
 
 ## A's side
 
-`QuickTogetherScreen` replaces the Create / Join chooser **when NFC is on**:
-otter with a "hold near" illustration, the proposed duration (pills, Home's
-selection), the activity with ↻, and "Other ways ›" (the current chooser).
-On `OK` it shows the same countdown as B. Without NFC, "Time together" opens
-the current chooser as today, plus a line to turn NFC on.
+Home has two buttons on a phone with NFC (`MainScreen.onQuickTogether`,
+null without NFC): **"Phones together"** opens `QuickTogetherActivity` in
+reader mode, **"Time together"** the existing chooser. Same permission
+check as the otter tap. NFC off → NFC settings + a toast.
+`QuickTogetherReaderScreen` is a page (back arrow, otter-tap illustration
+pulsing, "Hold your friend's phone near", "A pause together, 1 h", the
+activity with ↻, an error line when the other phone refuses); reader mode
+only between `onResume` and `onPause`. On `Accepted` the same activity
+shows `QuickTogetherCountdownScreen` (the existing countdown with "Pause
+together with <name>" and the activity).
 
 ## Cancel
 
@@ -77,14 +82,27 @@ The Bluetooth lobby, QR and code paths stay as they are, reachable from
 "Other ways ›" and when NFC is off. No new permission: NFC is already
 declared; no Bluetooth on this path.
 
-## Decisioni aperte
+## Decisions
 
-1. **Durata proposta:** quella scelta da chi tocca (A), mostrata e
-   modificabile sulla schermata, *oppure* la più corta tra quella di A e
-   quella selezionata in Home su B? (Proposta: quella di A — è chi propone,
-   e B la vede prima di confermare.)
-2. **Countdown di 5 secondi** anche su A, o su A parte subito? (Proposta:
-   5 secondi su entrambi, stesso momento.)
-3. **App chiusa su B**: notifica con "Unisciti" (proposta) oppure niente,
-   e serve aprire l'app — più semplice ma meno magico.
-4. **Annulla**: accettiamo che annulli solo sul proprio telefono?
+1. Duration: the proposer's (Home's selection).
+2. 5-second countdown with Cancel on both phones.
+3. App closed on B: notification with "Join" (`QuickTogetherInbox`,
+   channel "Pauses together", high importance, expires at the shared end).
+4. Cancel stops only one's own phone.
+5. Two buttons on Home rather than a single entry with "Other ways ›"
+   (which hid Bluetooth and QR too much), and a page rather than a bottom
+   sheet.
+
+## Implementation notes
+
+- `QuickTogetherProtocol` (pure, `QuickTogetherProtocolTest`): HELLO
+  `"QT" v state name`, PROPOSE `80 10 00 00 Lc v dur(2) act tag(2)
+  delay(2) name`, result byte. Names ≤ 40 UTF-8 bytes, cut on a character.
+- `GroupPauseHceService`: PROPOSE → `QuickTogetherInbox.deliver`; SELECT
+  answers the lobby/release marker if one is set (unchanged), else HELLO.
+  A Bluetooth-lobby joiner reading an idle phone now gets a HELLO instead
+  of "not found": it's not a lobby name, so nothing matches — harmless.
+- `AppForeground` (activity-lifecycle counter registered by the
+  Application) decides activity vs notification on B.
+- `SessionManager.startSession(endAtMillis = …)`: B's pause ends at the
+  shared end even when it joins late from the notification.

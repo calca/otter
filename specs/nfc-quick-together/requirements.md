@@ -1,6 +1,6 @@
 # Quick Time Together by NFC — Requirements
 
-> **Status: Proposed** (2026-10-03). Not built yet; see "Decisioni aperte" in design.md.
+> **Status: Implemented** (2026-10-03), **not yet verified on two real phones** (the emulator has no NFC).
 
 ## Context
 
@@ -30,20 +30,23 @@ zero.
 
 ### Acceptance Criteria
 
-1. WHEN the user taps "Time together" on Home AND the device has NFC turned
-   on THEN the system SHALL go straight to a "Hold your friend's phone
-   near" screen in reader mode — no Create / Join choice, no Bluetooth
-   dialog, no Bluetooth permission.
-2. The screen SHALL show the duration that will be proposed (the one
-   selected on Home) and let it be changed there, plus the suggested
-   activity with its "another one" icon.
-3. WHEN the two phones touch AND the other phone can join (see Story 3)
+1. Home SHALL show two buttons on a phone with NFC: **"Phones together"**
+   (this flow) and **"Time together"** (the full flow: Create / Join,
+   Bluetooth, QR, code). Without NFC only "Time together".
+2. WHEN the user taps "Phones together" AND NFC is on THEN the system SHALL
+   open a "Hold your friend's phone near" **page** (not a bottom sheet:
+   consistent with the other Time together pages) in reader mode — no
+   Create / Join choice, no Bluetooth dialog, no Bluetooth permission. WHEN
+   NFC is off THEN it SHALL open the NFC settings with a short explanation.
+3. The page SHALL show the duration selected on Home (decided: the
+   proposer's duration) and the suggested activity with its ↻ icon.
+4. WHEN the two phones touch AND the other phone can join (see Story 3)
    THEN both phones SHALL show "Pause together with <name> · <duration>",
    the activity, and "Starts in 5…" with a Cancel action, and SHALL start
    the pause together when the countdown ends.
-4. The pause SHALL end at the same moment on both phones, regardless of a
+5. The pause SHALL end at the same moment on both phones, regardless of a
    small difference between the two phones' clocks.
-5. Each phone's history SHALL record the other person's name and the
+6. Each phone's history SHALL record the other person's name and the
    activity, as group pauses do today.
 
 ## User Story 2: My friend's app is closed
@@ -73,11 +76,8 @@ phone, so we don't have to coordinate before touching phones.
    and start nothing.
 3. WHEN the two phones run different, incompatible versions THEN both
    SHALL say to update the app, as the code/QR path does today.
-4. WHEN the device has no NFC or NFC is off THEN "Time together" SHALL open
-   the current flow (Create / Join, Bluetooth, QR, code), with a short line
-   offering to turn NFC on.
-5. The reader screen SHALL keep a "Other ways ›" link to the current
-   Bluetooth / QR / code flow, for people who aren't side by side.
+4. Bluetooth, QR and code stay one tap away through Home's "Time
+   together" button, for people who aren't side by side or have no NFC.
 
 ## User Story 4: Nothing starts by accident
 

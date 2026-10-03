@@ -115,6 +115,12 @@
             android:exported="false"
             android:theme="@style/Theme.CalmOtter" />
 
+        <!-- "Avvicina i telefoni" (specs/nfc-quick-together/). -->
+        <activity
+            android:name=".QuickTogetherActivity"
+            android:exported="false"
+            android:theme="@style/Theme.CalmOtter" />
+
         <activity
             android:name=".GroupPauseChooserActivity"
             android:exported="false"

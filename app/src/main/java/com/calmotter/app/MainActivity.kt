@@ -1,5 +1,7 @@
 package com.calmotter.app
 
+import android.widget.Toast
+import android.nfc.NfcAdapter
 import android.Manifest
 import android.content.Intent
 import android.content.pm.PackageManager
@@ -248,6 +250,15 @@ class MainActivity : BaseActivity() {
                                 onHistory = { startActivity(Intent(this@MainActivity, HistoryActivity::class.java)) },
                                 onHistorySessions = { startActivity(HistoryActivity.intent(this@MainActivity, HistoryTab.Sessions)) },
                                 onSettings = { startActivity(Intent(this@MainActivity, SettingsActivity::class.java)) },
+                                onQuickTogether = if (NfcAdapter.getDefaultAdapter(this@MainActivity) == null) null else { durationMinutes ->
+                                    // NFC spento: le impostazioni dell'NFC, con due parole sul perché.
+                                    if (NfcAdapter.getDefaultAdapter(this@MainActivity)?.isEnabled == true) {
+                                        startActivity(QuickTogetherActivity.readerIntent(this@MainActivity, durationMinutes))
+                                    } else {
+                                        Toast.makeText(this@MainActivity, R.string.quick_together_nfc_off, Toast.LENGTH_LONG).show()
+                                        runCatching { startActivity(Intent(Settings.ACTION_NFC_SETTINGS)) }
+                                    }
+                                },
                                 onGroupPause = { durationMinutes ->
                                     startActivity(
                                         Intent(this@MainActivity, GroupPauseChooserActivity::class.java)

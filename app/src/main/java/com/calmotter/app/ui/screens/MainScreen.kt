@@ -1,5 +1,6 @@
 package com.calmotter.app.ui.screens
 
+import com.calmotter.app.ui.mascot.OtterTapMark
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -166,6 +167,9 @@ fun MainScreen(
     // selettore, invece di ripartire sempre da un default indipendente — vedi
     // GroupPauseBluetoothLobbyHostScreen.
     onGroupPause: (durationMinutes: Int) -> Unit = {},
+    // "Avvicina i telefoni" (specs/nfc-quick-together/); null = il telefono
+    // non ha l'NFC, e il bottone non compare.
+    onQuickTogether: ((durationMinutes: Int) -> Unit)? = null,
     // **false quando l'otter lo disegna il chiamante**, sopra la dissolvenza
     // fra questa schermata e quella di blocco (vedi [PersistentOtter]): qui
     // lo slot resta riservato ma vuoto, così il contenuto attorno si dispone
@@ -369,6 +373,23 @@ fun MainScreen(
             // contenitore tinto, senza questo spazio le due pastiglie si
             // sfioravano e si leggevano come un blocco unico invece che
             // come due destinazioni diverse.
+            // Il percorso veloce, un tocco fra i telefoni, sopra a quello
+            // completo (Crea / Unisciti, Bluetooth, QR, codice). Stesso
+            // controllo dei permessi del tap sull'otter.
+            if (onQuickTogether != null) {
+                CalmSecondaryButton(
+                    text = stringResource(R.string.quick_together_button),
+                    onClick = {
+                        if (BuildConfig.DEBUG || (accessibilityOk && dndOk)) {
+                            onQuickTogether(selectedDurationMinutes)
+                        } else {
+                            onOtterTap()
+                        }
+                    },
+                    leadingIcon = { OtterTapMark(markSize = 22.dp) },
+                    modifier = Modifier.padding(top = 20.dp).fillMaxWidth(HOME_PILL_WIDTH_FRACTION),
+                )
+            }
             CalmSecondaryButton(
                 text = stringResource(R.string.group_pause_entry_button),
                 // **Stesso controllo del tap sull'otter, bypass DEBUG
@@ -397,7 +418,9 @@ fun MainScreen(
                 // 22dp e non 18: le due impronte hanno otto polpastrelli fra
                 // loro, e sotto i 20dp si impastavano in una macchia sola.
                 leadingIcon = { TogetherMark(markSize = 22.dp) },
-                modifier = Modifier.padding(top = 20.dp).fillMaxWidth(HOME_PILL_WIDTH_FRACTION),
+                modifier = Modifier
+                    .padding(top = if (onQuickTogether != null) 10.dp else 20.dp)
+                    .fillMaxWidth(HOME_PILL_WIDTH_FRACTION),
             )
         }
     }

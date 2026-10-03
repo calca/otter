@@ -8,6 +8,11 @@ import android.content.Context
  */
 class CalmOtterApplication : Application() {
     val graph: AppGraph by lazy { AppGraph(this) }
+
+    override fun onCreate() {
+        super.onCreate()
+        registerActivityLifecycleCallbacks(AppForeground)
+    }
 }
 
 /**

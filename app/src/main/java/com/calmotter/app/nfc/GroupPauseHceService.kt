@@ -2,6 +2,7 @@ package com.calmotter.app.nfc
 
 import android.nfc.cardemulation.HostApduService
 import android.os.Bundle
+import com.calmotter.app.bluetooth.localBluetoothDisplayName
 import java.nio.charset.StandardCharsets
 
 /**
@@ -22,6 +23,10 @@ import java.nio.charset.StandardCharsets
 class GroupPauseHceService : HostApduService() {
 
     override fun processCommandApdu(commandApdu: ByteArray?, extras: Bundle?): ByteArray {
+        val command = commandApdu ?: return STATUS_NOT_FOUND
+        // "Avvicina i telefoni" (specs/nfc-quick-together/): la proposta di A.
+        if (QuickTogetherProtocol.isPropose(command)) return onPropose(command)
+
         val marker = pendingMarker
         return if (marker != null) {
             // L'altro telefono ha appena letto il marker: segnale diretto e
@@ -32,8 +37,25 @@ class GroupPauseHceService : HostApduService() {
             onTapRead?.invoke()
             marker.toByteArray(StandardCharsets.UTF_8) + STATUS_OK
         } else {
-            STATUS_NOT_FOUND
+            // Nessuna lobby né rilascio in corso: questo telefono è la "carta"
+            // di "Avvicina i telefoni", anche con l'app chiusa.
+            QuickTogetherProtocol.encodeHello(
+                QuickTogetherInbox.state(applicationContext),
+                localBluetoothDisplayName(applicationContext),
+            )
         }
+    }
+
+    private fun onPropose(command: ByteArray): ByteArray {
+        val proposal = QuickTogetherProtocol.decodePropose(command) ?: return STATUS_NOT_FOUND
+        if (proposal.version != QuickTogetherProtocol.VERSION) {
+            return QuickTogetherProtocol.encodeResult(QuickTogetherProtocol.State.OTHER_VERSION)
+        }
+        val state = QuickTogetherInbox.state(applicationContext)
+        if (state == QuickTogetherProtocol.State.READY) {
+            QuickTogetherInbox.deliver(applicationContext, proposal)
+        }
+        return QuickTogetherProtocol.encodeResult(state)
     }
 
     override fun onDeactivated(reason: Int) {

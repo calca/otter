@@ -27,6 +27,7 @@ import com.calmotter.app.ui.screens.ClosingMomentScreen
 import com.calmotter.app.ui.screens.HistoryScreen
 import com.calmotter.app.ui.screens.HistoryTab
 import com.calmotter.app.ui.screens.MainScreen
+import com.calmotter.app.ui.screens.QuickTogetherReaderScreen
 import com.calmotter.app.ui.screens.ScheduleEditorScreen
 import com.calmotter.app.ui.screens.ScheduledPausesScreen
 import com.calmotter.app.ui.screens.SettingsScreen
@@ -115,6 +116,8 @@ class PaletteScreenshotTest(private val theme: AppTheme, private val night: Bool
             onGrantDnd = {},
             onHistory = {},
             onSettings = {},
+            // Come su un telefono con l'NFC: i due bottoni in fondo.
+            onQuickTogether = {},
             selectedDurationMinutes = 60,
             onSelectDuration = {},
             showPermissionDialog = false,
@@ -194,6 +197,17 @@ class ScreenScreenshotTest(private val night: Boolean) {
     @Test
     fun historyTogether() = capture("history-together") {
         HistoryScreen(sessions = history, goal = null, onEditGoal = {}, now = NOW, initialTab = HistoryTab.Together)
+    }
+
+    @Test
+    fun quickTogether() = capture("quick-together") {
+        QuickTogetherReaderScreen(
+            durationMinutes = 60,
+            activityId = 16,
+            message = null,
+            onAnotherActivity = {},
+            onBack = {},
+        )
     }
 
     @Test

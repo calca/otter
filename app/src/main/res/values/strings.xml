@@ -471,4 +471,17 @@ Quando sentirai il bisogno di una pausa, basterà aprire l\'app, scegliere quant
     <string name="closing_share">Condividi questa pausa</string>
     <string name="group_pause_invite_link">Il tuo amico non ha Calm Otter? Invitalo</string>
     <string name="settings_info_recommend">Consiglia Calm Otter</string>
+
+    <!-- "Avvicina i telefoni" (specs/nfc-quick-together/). -->
+    <string name="quick_together_button">Avvicina i telefoni</string>
+    <string name="quick_together_title">Avvicina il telefono di chi è con te</string>
+    <string name="quick_together_subtitle">Una pausa insieme di %1$s</string>
+    <string name="quick_together_with">Pausa insieme con %1$s</string>
+    <string name="quick_together_refused_in_pause">%1$s è già in pausa.</string>
+    <string name="quick_together_refused_setup">%1$s deve prima finire di configurare Calm Otter.</string>
+    <string name="quick_together_not_ready">L\'altro telefono non ha risposto. Tieni i telefoni vicini un momento in più.</string>
+    <string name="quick_together_channel">Pause insieme</string>
+    <string name="quick_together_notification">%1$s ti propone una pausa insieme · %2$s</string>
+    <string name="quick_together_join">Unisciti</string>
+    <string name="quick_together_nfc_off">Attiva l\'NFC per avviare una pausa insieme con un tocco.</string>
 </resources>

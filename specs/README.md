@@ -29,6 +29,7 @@ everything described is live in `main` today.
 - [`allowed-app-profiles/`](allowed-app-profiles/requirements.md) — named allowed-apps lists, chosen per pause
 - [`weekly-summary/`](weekly-summary/requirements.md) — one quiet note on Sunday evening
 - [`history-by-month/`](history-by-month/requirements.md) — History grouped by month, older months on request
+- [`nfc-quick-together/`](nfc-quick-together/requirements.md) — "Phones together": one tap by one person starts a pause together, the recipe carried over NFC, no Bluetooth
 
 Each feature has:
 - `requirements.md` — user stories with EARS-style acceptance criteria (WHEN/THE SYSTEM SHALL), matching current behavior
@@ -36,9 +37,7 @@ Each feature has:
 
 ## Proposed (not built yet)
 
-- [`nfc-quick-together/`](nfc-quick-together/requirements.md) — one tap by one person starts a pause together, the recipe carried over NFC, no Bluetooth
-
-New proposals are written before the code and
+Nothing open right now. New proposals are written before the code and
 marked **Status: Proposed** at the top of each file, with "Decisioni
 aperte" at the end of `design.md`; when a feature ships its pair is marked
 **Implemented** and moves to the list above.
