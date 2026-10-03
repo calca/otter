@@ -1,15 +1,19 @@
 package com.calmotter.app.ui.screens
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -21,11 +25,11 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.em
 import androidx.compose.ui.unit.sp
 import com.calmotter.app.R
 import com.calmotter.app.TogetherActivities
@@ -68,10 +72,9 @@ fun rememberActivitySuggestion(durationMinutes: Int, initialId: Int = TogetherAc
 }
 
 /**
- * "Cosa facciamo?" e la frase dell'attività. Con [onAnother] (solo l'host)
- * accanto all'etichetta compare un'icona per cambiarla: prima era un
- * bottone di testo "Un'altra" sotto la frase, che allungava la lobby di una
- * riga. Niente se [activityId] è 0.
+ * "Cosa facciamo?" e la frase dell'attività. Con [onAnother] (solo chi
+ * propone) "Cosa facciamo?" diventa un bottone con ↻ a sinistra che cambia
+ * proposta. Niente se [activityId] è 0.
  */
 @Composable
 fun TogetherActivityCard(
@@ -84,24 +87,34 @@ fun TogetherActivityCard(
         if (onAnother == null) {
             SetupLabel(stringResource(R.string.together_activity_label), topPadding = 20.dp)
         } else {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.padding(top = 8.dp),
+            // Un solo bottone, icona a sinistra e "Cosa facciamo?": prima
+            // erano l'etichetta in maiuscoletto e un'icona ↻ separata
+            // accanto, due cose da capire invece di una (segnalato). Tocca e
+            // cambia proposta; TalkBack annuncia l'azione "Un'altra".
+            val anotherLabel = stringResource(R.string.together_activity_another)
+            Surface(
+                shape = RoundedCornerShape(50),
+                color = MaterialTheme.colorScheme.primary.copy(alpha = 0.08f),
+                modifier = Modifier
+                    .padding(top = 16.dp, bottom = 10.dp)
+                    .clip(RoundedCornerShape(50))
+                    .clickable(onClickLabel = anotherLabel, onClick = onAnother),
             ) {
-                // Stesso stile di [SetupLabel], che però occupa tutta la
-                // riga e qui deve stare accanto all'icona.
-                Text(
-                    text = stringResource(R.string.together_activity_label).uppercase(),
-                    style = MaterialTheme.typography.labelSmall,
-                    letterSpacing = 0.12.em,
-                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.55f),
-                )
-                IconButton(onClick = onAnother) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.padding(horizontal = 14.dp, vertical = 8.dp),
+                ) {
                     Icon(
                         imageVector = Icons.Filled.Refresh,
-                        contentDescription = stringResource(R.string.together_activity_another),
+                        contentDescription = null,
                         tint = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.size(18.dp),
+                        modifier = Modifier.size(16.dp),
+                    )
+                    Spacer(modifier = Modifier.width(6.dp))
+                    Text(
+                        text = stringResource(R.string.together_activity_label),
+                        style = MaterialTheme.typography.labelLarge,
+                        color = MaterialTheme.colorScheme.primary,
                     )
                 }
             }

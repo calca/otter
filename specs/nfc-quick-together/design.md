@@ -59,7 +59,7 @@ wrapped: **"One tap"** ("Con un tocco") opens `QuickTogetherActivity` in
 reader mode, **"Time together"** the existing chooser. Same permission
 check as the otter tap. NFC off → NFC settings + a toast.
 `QuickTogetherReaderScreen` is a page (back arrow, otter-tap illustration
-pulsing, "Hold your friend's phone near", "A pause together, 1 h", the
+pulsing, "Hold your phones together" (was "Hold your friend's phone near", which wrapped badly in Italian), "A pause together, 1 h", the
 activity with ↻, an error line when the other phone refuses); reader mode
 only between `onResume` and `onPause`. On `Accepted` the same activity
 shows `QuickTogetherCountdownScreen` (the existing countdown with "Pause

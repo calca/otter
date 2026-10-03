@@ -467,7 +467,7 @@ Whenever you feel the need for a break, just open the app, choose how long — &
 
     <!-- "Avvicina i telefoni" (specs/nfc-quick-together/). -->
     <string name="quick_together_button">One tap</string>
-    <string name="quick_together_title">Hold your friend\'s phone near</string>
+    <string name="quick_together_title">Hold your phones together</string>
     <string name="quick_together_subtitle">A pause together, %1$s</string>
     <string name="quick_together_with">Pause together with %1$s</string>
     <string name="quick_together_refused_in_pause">%1$s is already on a pause.</string>

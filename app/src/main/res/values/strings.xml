@@ -475,7 +475,7 @@ Quando sentirai il bisogno di una pausa, basterà aprire l\'app, scegliere quant
 
     <!-- "Avvicina i telefoni" (specs/nfc-quick-together/). -->
     <string name="quick_together_button">Con un tocco</string>
-    <string name="quick_together_title">Avvicina il telefono di chi è con te</string>
+    <string name="quick_together_title">Avvicina i telefoni</string>
     <string name="quick_together_subtitle">Una pausa insieme di %1$s</string>
     <string name="quick_together_with">Pausa insieme con %1$s</string>
     <string name="quick_together_refused_in_pause">%1$s è già in pausa.</string>
