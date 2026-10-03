@@ -1,5 +1,6 @@
 package com.calmotter.app.ui.screens
 
+import com.calmotter.app.OtterHint
 import com.calmotter.app.ui.mascot.OtterTapMark
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
@@ -213,6 +214,7 @@ fun MainScreen(
     val allowedAppsManager = remember { AllowedAppsManager.getInstance(context) }
     var profiles by remember { mutableStateOf(allowedAppsManager.profiles()) }
     var selectedProfileId by remember { mutableIntStateOf(allowedAppsManager.selectedProfileId()) }
+    var showOtterHint by remember { mutableStateOf(false) }
 
     fun refreshDerivedState() {
         accessibilityOk = isAccessibilityServiceEnabled()
@@ -223,6 +225,7 @@ fun MainScreen(
         val history = sessionHistoryManager.getAll()
         streakDays = SessionStreak.currentStreakDays(history)
         weekSummary = weekSummaryOf(history)
+        showOtterHint = !sessionActive && OtterHint.shouldShow(context, hasHistory = history.isNotEmpty())
         pendingSummary = sessionManager.consumePendingBackgroundSummary() ?: pendingSummary
         profiles = allowedAppsManager.profiles()
         selectedProfileId = allowedAppsManager.selectedProfileId()
@@ -288,6 +291,14 @@ fun MainScreen(
             // avanzamento: fa parte di *questa* schermata, compare con lei e
             // sfuma con lei. Il marchio no — quello è uno solo e non si
             // scambia.
+            OtterHintBubble(
+                visible = showOtterHint,
+                onDismiss = {
+                    OtterHint.markDone(context)
+                    showOtterHint = false
+                },
+                modifier = Modifier.align(Alignment.TopCenter),
+            )
             PondOtter(
                 restartKey = resumeSignal,
                 sessionActive = sessionActive,

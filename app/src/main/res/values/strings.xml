@@ -32,6 +32,7 @@
     <string name="passwords_dont_match">Le due password non coincidono</string>
 
     <string name="home_start_hint">Tocca &lt;b&gt;Otter&lt;/b&gt; per iniziare</string>
+    <string name="otter_hint">Toccami quando vuoi una pausa</string>
     <string name="home_active_label">In pausa</string>
     <string name="home_time_remaining">%1$d min rimasti</string>
     <string name="weekly_chart_today">oggi</string>

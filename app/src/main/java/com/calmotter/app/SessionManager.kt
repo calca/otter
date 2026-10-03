@@ -110,6 +110,8 @@ class SessionManager internal constructor(private val context: Context) {
         alarms.scheduleExpiry(endTime)
         SessionForegroundService.start(context)
         if (rememberDuration) LastDuration.save(context, durationMinutes)
+        // La prima pausa, comunque partita: il fumetto sopra l'otter non serve più.
+        OtterHint.markDone(context)
         PauseWidgetProvider.updateAllWidgets(context)
         PauseTileService.requestRefresh(context)
     }

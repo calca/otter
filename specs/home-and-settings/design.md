@@ -1034,3 +1034,16 @@ Order now: **Theme · The pause · Password · Permissions · About**.
   `settings_home_label`, `settings_pause_experience_label` and
   `settings_slow_exit_value` strings removed, `settings_pause_label` added.
 
+## "Tap me whenever you want a pause"
+
+The "Tap Otter to start" line alone might not be enough the first time
+(reported). A bubble above the otter, pointing at it ("Tap me whenever you
+want a pause", `OtterHintBubble`), fades in two seconds after Home appears
+— so it doesn't land on top of the arrival from onboarding — and only
+while no pause has ever been done (`OtterHint`: empty history and no "done"
+flag). It disappears for good at the first pause, however it starts
+(`SessionManager.startSession` marks it done: otter, widget, tile,
+schedule, together), or when tapped. Only the bubble: an animated ripple
+and a coach-mark overlay were considered and dropped as louder than needed.
+Screenshot tests capture Home at 1 s, before the bubble appears.
+
