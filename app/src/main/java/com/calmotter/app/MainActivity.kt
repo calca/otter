@@ -129,6 +129,7 @@ class MainActivity : BaseActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        if (intent.getBooleanExtra(EXTRA_SHOW_PERMISSIONS, false)) showPermissionDialog = true
 
         passwordManager = PasswordManager.getInstance(applicationContext)
         sessionManager = SessionManager.getInstance(applicationContext)
@@ -186,7 +187,6 @@ class MainActivity : BaseActivity() {
                 // nodo solo che non esce mai di scena — vedi
                 // [PersistentOtter] per perché non è più un elemento
                 // condiviso.
-                var showPermissionDialog by remember { mutableStateOf(false) }
 
                 // Condivisa fra il tap sull'otter e il fallback "senza
                 // permessi" del bottone Tempo Insieme (vedi il commento su
@@ -324,7 +324,15 @@ class MainActivity : BaseActivity() {
         super.onNewIntent(intent)
         setIntent(intent)
         handleIntent(intent)
+        if (intent.getBooleanExtra(EXTRA_SHOW_PERMISSIONS, false)) showPermissionDialog = true
     }
+
+    /**
+     * La spiegazione dei permessi mancanti (stessa del tocco sull'otter).
+     * Un campo dell'Activity e non uno stato Compose locale, così la può
+     * aprire anche chi arriva da fuori: il widget, se i permessi mancano.
+     */
+    private var showPermissionDialog by mutableStateOf(false)
 
     /**
      * Decide se questa istanza deve mostrare BlockScreen (sessione attiva,
@@ -555,5 +563,10 @@ class MainActivity : BaseActivity() {
             .map { it.activityInfo.packageName }
             .filter { it != packageName && it !in LauncherManager.EXCLUDED_PACKAGES }
             .distinct()
+    }
+
+    companion object {
+        /** Dal widget, con i permessi mancanti: apre la Home sulla spiegazione. */
+        const val EXTRA_SHOW_PERMISSIONS = "com.calmotter.app.extra.SHOW_PERMISSIONS"
     }
 }

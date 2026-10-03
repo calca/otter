@@ -112,3 +112,12 @@ don't need to hunt for the app to end a pause early.
 - A real widget-picker preview (`providePreview()`) showing any of the
   three actual layouts — the picker still shows the original 1×1
   placeholder scaled up.
+
+## Update: shortcut only
+
+The widget is now only a shortcut to start a pause (1×1 and 2×1), showing
+the duration that will start; during a pause it shows a still "On pause".
+WHEN Accessibility or Do Not Disturb are missing THEN a tap SHALL open the
+app on the permission explanation instead of starting a pause. See
+design.md, "Simplified".
+

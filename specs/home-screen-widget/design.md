@@ -230,3 +230,27 @@ label alongside says the same thing, echoing it would be a second,
 redundant announcement, not a fix), `textSize` bumped to `11sp` on both.
 Verified by lint (`ContentDescription`/`SmallSp`, both gone from the
 report).
+
+## Simplified: a shortcut to start a pause
+
+During a pause the launcher is covered by the pause screen (it isn't one
+of the apps that stay), so the widget's whole "in pause" state — the
+progress ring, the time left, the rotating phrase, the lock, and the 2×2
+and 4×2 sizes that existed to show them — was almost never seen, yet it
+was refreshed every minute by `SessionForegroundService`. Reported and
+removed. Now:
+
+- **Two sizes**, 1×1 (40dp: otter + the duration that will start, "1 h")
+  and 2×1 (110×40dp: otter, "Pause", the duration). Default 2×1.
+- **In a pause**: a still "On pause", no per-minute updates. Redrawn only on
+  start/end and when Home's duration changes (`LastDuration.save` →
+  `updateAllWidgets`).
+- **Tap**: no pause → starts one with that duration, **only if
+  Accessibility and Do Not Disturb are granted**; otherwise opens Home on
+  the permission explanation (`MainActivity.EXTRA_SHOW_PERMISSIONS`), like
+  the otter tap. Before, the widget started a pause that blocked and
+  silenced nothing. Pause running → the pause screen, as before.
+- Removed: `buildRingBitmap`, `ic_widget_unlock`, `widget_reflective_phrases`
+  and the per-size time strings. The XML `initialLayout` stays (platform
+  requirement).
+

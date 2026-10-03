@@ -56,5 +56,7 @@ object LastDuration {
     fun save(context: Context, minutes: Int) {
         context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
             .edit { putInt(KEY, minutes) }
+        // Il widget mostra la durata che partirà: va ridisegnato.
+        PauseWidgetProvider.updateAllWidgets(context)
     }
 }
