@@ -73,8 +73,8 @@ fun rememberActivitySuggestion(durationMinutes: Int, initialId: Int = TogetherAc
 
 /**
  * "Cosa facciamo?" e la frase dell'attività. Con [onAnother] (solo chi
- * propone) "Cosa facciamo?" diventa un bottone con ↻ a sinistra che cambia
- * proposta. Niente se [activityId] è 0.
+ * propone) sotto la frase c'è il bottone "↻ Un'altra idea". Niente se
+ * [activityId] è 0.
  */
 @Composable
 fun TogetherActivityCard(
@@ -84,21 +84,28 @@ fun TogetherActivityCard(
 ) {
     val activity = TogetherActivities.byId(activityId) ?: return
     Column(modifier = modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
-        if (onAnother == null) {
-            SetupLabel(stringResource(R.string.together_activity_label), topPadding = 20.dp)
-        } else {
-            // Un solo bottone, icona a sinistra e "Cosa facciamo?": prima
-            // erano l'etichetta in maiuscoletto e un'icona ↻ separata
-            // accanto, due cose da capire invece di una (segnalato). Tocca e
-            // cambia proposta; TalkBack annuncia l'azione "Un'altra".
-            val anotherLabel = stringResource(R.string.together_activity_another)
+        SetupLabel(stringResource(R.string.together_activity_label), topPadding = 20.dp)
+        Text(
+            text = stringResource(activity.text),
+            color = MaterialTheme.colorScheme.primary,
+            fontSize = 16.sp,
+            fontStyle = FontStyle.Italic,
+            textAlign = TextAlign.Center,
+            modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp),
+        )
+        // Etichetta e azione separate: "COSA FACCIAMO?" resta un'etichetta,
+        // uguale su tutte le pagine; chi propone ha sotto la frase un
+        // bottone "↻ Un'altra idea". Provati prima un'icona ↻ accanto
+        // all'etichetta e poi l'etichetta stessa come bottone: in entrambi
+        // i casi non si capiva cosa fosse da toccare (segnalato).
+        if (onAnother != null) {
             Surface(
                 shape = RoundedCornerShape(50),
                 color = MaterialTheme.colorScheme.primary.copy(alpha = 0.08f),
                 modifier = Modifier
-                    .padding(top = 16.dp, bottom = 10.dp)
+                    .padding(top = 10.dp)
                     .clip(RoundedCornerShape(50))
-                    .clickable(onClickLabel = anotherLabel, onClick = onAnother),
+                    .clickable(onClick = onAnother),
             ) {
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
@@ -112,20 +119,12 @@ fun TogetherActivityCard(
                     )
                     Spacer(modifier = Modifier.width(6.dp))
                     Text(
-                        text = stringResource(R.string.together_activity_label),
+                        text = stringResource(R.string.together_activity_another),
                         style = MaterialTheme.typography.labelLarge,
                         color = MaterialTheme.colorScheme.primary,
                     )
                 }
             }
         }
-        Text(
-            text = stringResource(activity.text),
-            color = MaterialTheme.colorScheme.primary,
-            fontSize = 16.sp,
-            fontStyle = FontStyle.Italic,
-            textAlign = TextAlign.Center,
-            modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp),
-        )
     }
 }

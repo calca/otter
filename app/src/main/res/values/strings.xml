@@ -369,7 +369,7 @@ Quando sentirai il bisogno di una pausa, basterà aprire l\'app, scegliere quant
     <string name="together_category_games">Giochi</string>
     <string name="together_category_slow">Con calma</string>
     <string name="together_activity_label">Cosa facciamo?</string>
-    <string name="together_activity_another">Un\'altra</string>
+    <string name="together_activity_another">Un\'altra idea</string>
     <!-- Cronologia: uscita lenta e momento di chiusura -->
     <string name="history_item_slow_exit">Finita senza password</string>
     <string name="mood_calm">Calma</string>

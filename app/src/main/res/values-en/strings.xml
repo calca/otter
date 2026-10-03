@@ -361,7 +361,7 @@ Whenever you feel the need for a break, just open the app, choose how long — &
     <string name="together_category_games">Games</string>
     <string name="together_category_slow">Slow</string>
     <string name="together_activity_label">What shall we do?</string>
-    <string name="together_activity_another">Another one</string>
+    <string name="together_activity_another">Another idea</string>
     <!-- Cronologia: uscita lenta e momento di chiusura -->
     <string name="history_item_slow_exit">Ended without the password</string>
     <string name="mood_calm">Calm</string>
