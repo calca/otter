@@ -29,7 +29,7 @@ everything described is live in `main` today.
 - [`allowed-app-profiles/`](allowed-app-profiles/requirements.md) — named allowed-apps lists, chosen per pause
 - [`weekly-summary/`](weekly-summary/requirements.md) — one quiet note on Sunday evening
 - [`history-by-month/`](history-by-month/requirements.md) — History grouped by month, older months on request
-- [`nfc-quick-together/`](nfc-quick-together/requirements.md) — "Phones together": one tap by one person starts a pause together, the recipe carried over NFC, no Bluetooth
+- [`nfc-quick-together/`](nfc-quick-together/requirements.md) — "One tap": one tap by one person starts a pause together, the recipe carried over NFC, no Bluetooth
 
 Each feature has:
 - `requirements.md` — user stories with EARS-style acceptance criteria (WHEN/THE SYSTEM SHALL), matching current behavior

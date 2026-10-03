@@ -30,10 +30,10 @@ zero.
 
 ### Acceptance Criteria
 
-1. Home SHALL show two buttons on a phone with NFC: **"Phones together"**
+1. Home SHALL show two buttons on a phone with NFC: **"One tap"** ("Con un tocco")
    (this flow) and **"Time together"** (the full flow: Create / Join,
    Bluetooth, QR, code). Without NFC only "Time together".
-2. WHEN the user taps "Phones together" AND NFC is on THEN the system SHALL
+2. WHEN the user taps "One tap" AND NFC is on THEN the system SHALL
    open a "Hold your friend's phone near" **page** (not a bottom sheet:
    consistent with the other Time together pages) in reader mode — no
    Create / Join choice, no Bluetooth dialog, no Bluetooth permission. WHEN

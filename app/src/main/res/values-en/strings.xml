@@ -466,7 +466,7 @@ Whenever you feel the need for a break, just open the app, choose how long — &
     <string name="settings_info_recommend">Recommend Calm Otter</string>
 
     <!-- "Avvicina i telefoni" (specs/nfc-quick-together/). -->
-    <string name="quick_together_button">Phones together</string>
+    <string name="quick_together_button">One tap</string>
     <string name="quick_together_title">Hold your friend\'s phone near</string>
     <string name="quick_together_subtitle">A pause together, %1$s</string>
     <string name="quick_together_with">Pause together with %1$s</string>
