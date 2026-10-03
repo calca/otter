@@ -1,18 +1,21 @@
 package com.calmotter.app.nfc
 
 import android.app.Activity
+import com.calmotter.app.BuildConfig
 import android.nfc.NfcAdapter
 import android.nfc.Tag
 import android.nfc.tech.IsoDep
 import java.io.IOException
 import java.nio.charset.StandardCharsets
 
-// SELECT AID: CLA INS P1 P2 Lc <AID da 7 byte, stesso di apduservice.xml> Le
-private val SELECT_AID_APDU = byteArrayOf(
-    0x00, 0xA4.toByte(), 0x04, 0x00, 0x07,
-    0xF0.toByte(), 0x01, 0x02, 0x03, 0x04, 0x05, 0x06,
-    0x00,
-)
+// SELECT AID: CLA INS P1 P2 Lc <AID da 7 byte, quello di apduservice.xml
+// del proprio flavor> Le. Stable e beta hanno AID diversi: con le due app
+// sullo stesso telefono, un AID registrato due volte faceva comparire il
+// selettore NFC di sistema a ogni tocco.
+private val SELECT_AID_APDU: ByteArray = run {
+    val aid = BuildConfig.NFC_AID.chunked(2).map { it.toInt(16).toByte() }.toByteArray()
+    byteArrayOf(0x00, 0xA4.toByte(), 0x04, 0x00, aid.size.toByte()) + aid + byteArrayOf(0x00)
+}
 
 /**
  * Lato "reader" dello scambio NFC opzionale della lobby Bluetooth

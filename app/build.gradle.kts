@@ -82,6 +82,9 @@ android {
     productFlavors {
         create("stable") {
             dimension = "channel"
+            // AID NFC di Tempo insieme: uno per flavor, vedi
+            // app/src/beta/res/xml/apduservice.xml per il perché.
+            buildConfigField("String", "NFC_AID", "\"F0010203040506\"")
             // Nessun suffisso: resta com.calmotter.app, l'applicationId già
             // in uso — questa è la build "reale", non quella di test.
         }
@@ -89,6 +92,7 @@ android {
             dimension = "channel"
             applicationIdSuffix = ".beta"
             versionNameSuffix = "-beta"
+            buildConfigField("String", "NFC_AID", "\"F0010203040507\"")
             // Nome diverso in app/src/beta/res/values{,-en}/strings.xml
             // (sovrascrive solo app_name) — altrimenti due icone identiche
             // "Calm Otter" nel drawer sarebbero indistinguibili, vanificando

@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-    AID inventato nell'intervallo proprietario (0xF0-0xFE), non un AID
-    registrato reale — vedi GroupPauseHceService.kt e
-    specs/group-pause/design.md. La beta ne ha uno suo
-    (app/src/beta/res/xml/apduservice.xml); deve coincidere con NFC_AID in
+    Versione beta: un AID diverso dalla stable (…506). Con le due app
+    installate sullo stesso telefono, lo stesso AID registrato due volte
+    faceva comparire il selettore di sistema "Completa azione con" a ogni
+    tocco NFC (segnalato su Samsung). Deve coincidere con NFC_AID in
     app/build.gradle.kts.
 -->
 <host-apdu-service xmlns:android="http://schemas.android.com/apk/res/android"
@@ -12,6 +12,6 @@
     <aid-group
         android:description="@string/group_pause_nfc_service_description"
         android:category="other">
-        <aid-filter android:name="F0010203040506" />
+        <aid-filter android:name="F0010203040507" />
     </aid-group>
 </host-apdu-service>

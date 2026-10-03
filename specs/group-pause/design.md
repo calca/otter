@@ -2257,3 +2257,20 @@ zero and the page scrolls when it doesn't. Reproduced and verified on the
 emulator at 1080×2220 / 450 dpi. The QR is also `min(220dp, ¼ of screen
 height)`, and the countdown line says "Duration: 4 h", not "240 min".
 
+### The Samsung chooser, root cause: two apps, one AID
+
+Still reported after `NfcTapGuard` and the quick-together work. The
+actual cause: the user has **both flavors installed** (stable and beta,
+side by side by design), and both registered the same "other" AID
+`F0010203040506`. With two services for one AID, Android asks which one to
+use on every tap — the "Complete action with" chooser. The preferred
+service (`NfcTapGuard`) only helps while the app is in the foreground, and
+"One tap" makes the card side answer with the app closed, so it showed up
+more.
+
+Fix: one AID per flavor — stable `F0010203040506` (`main/res/xml/
+apduservice.xml`), beta `F0010203040507` (`beta/res/xml/apduservice.xml`
+overrides it); `BuildConfig.NFC_AID` (per-flavor `buildConfigField`) builds
+the reader's SELECT. Consequence, accepted: a beta phone and a stable phone
+don't talk over NFC — test with the same flavor on both.
+
