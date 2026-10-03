@@ -36,7 +36,9 @@ Each feature has:
 
 ## Proposed (not built yet)
 
-Nothing open right now. New proposals are written before the code and
+- [`nfc-quick-together/`](nfc-quick-together/requirements.md) — one tap by one person starts a pause together, the recipe carried over NFC, no Bluetooth
+
+New proposals are written before the code and
 marked **Status: Proposed** at the top of each file, with "Decisioni
 aperte" at the end of `design.md`; when a feature ships its pair is marked
 **Implemented** and moves to the list above.
