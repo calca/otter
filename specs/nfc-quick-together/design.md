@@ -51,7 +51,10 @@ B → A   OK  |  REFUSED(state)
 ## A's side
 
 Home has two buttons on a phone with NFC (`MainScreen.onQuickTogether`,
-null without NFC): **"Phones together"** opens `QuickTogetherActivity` in
+null without NFC), **side by side** in one row — stacked, Home overflowed
+on a Samsung and the buttons went off screen; side by side it fits even
+in Italian at 115% font scale (narrower content padding, the Italian
+label wraps onto two lines): **"Phones together"** opens `QuickTogetherActivity` in
 reader mode, **"Time together"** the existing chooser. Same permission
 check as the otter tap. NFC off → NFC settings + a toast.
 `QuickTogetherReaderScreen` is a page (back arrow, otter-tap illustration

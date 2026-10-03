@@ -1,5 +1,6 @@
 package com.calmotter.app.ui.screens
 
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.animation.core.withInfiniteAnimationFrameMillis
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
@@ -220,10 +221,14 @@ fun CalmSecondaryButton(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
     leadingIcon: @Composable (() -> Unit)? = null,
+    // Più stretto per due bottoni affiancati (Home): il padding di default
+    // di M3 (24dp per lato) lasciava poco posto all'etichetta.
+    contentPadding: PaddingValues = ButtonDefaults.ContentPadding,
 ) {
     FilledTonalButton(
         onClick = onClick,
         modifier = modifier,
+        contentPadding = contentPadding,
         colors = ButtonDefaults.filledTonalButtonColors(
             containerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.14f),
             contentColor = MaterialTheme.colorScheme.primary,
@@ -233,7 +238,7 @@ fun CalmSecondaryButton(
             leadingIcon()
             Spacer(modifier = Modifier.width(8.dp))
         }
-        Text(text = text)
+        Text(text = text, textAlign = TextAlign.Center)
     }
 }
 
