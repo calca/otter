@@ -108,7 +108,10 @@ class ScheduledPauseReceiver : BroadcastReceiver() {
                     at <= schedule.skipUntil -> manager.save(schedule.copy(skipUntil = 0L))
                     sessionManager.isSessionActive() -> Unit // mai una seconda pausa, mai allungare quella in corso
                     !permissionsGranted(context) ->
-                        notify(context, START_FAILED_NOTIFICATION_ID, context.getString(R.string.schedule_missing_permissions))
+                        // Il tocco apre la Home sulla spiegazione dei permessi
+                        // (come il widget), non una Home qualunque.
+                        notify(context, START_FAILED_NOTIFICATION_ID, context.getString(R.string.schedule_missing_permissions),
+                            showPermissions = true)
                     else -> sessionManager.startSession(
                         schedule.durationMinutes,
                         // Nessuno l'ha scelta adesso: non cambia la durata proposta in Home.
@@ -124,7 +127,7 @@ class ScheduledPauseReceiver : BroadcastReceiver() {
     private fun permissionsGranted(context: Context): Boolean =
         BuildConfig.DEBUG || (isAccessibilityServiceEnabled(context) && isDndAccessGranted(context))
 
-    private fun notify(context: Context, id: Int, text: String, timeoutMillis: Long? = null) {
+    private fun notify(context: Context, id: Int, text: String, timeoutMillis: Long? = null, showPermissions: Boolean = false) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
             ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED
         ) return
@@ -133,7 +136,11 @@ class ScheduledPauseReceiver : BroadcastReceiver() {
             NotificationChannel(CHANNEL_ID, context.getString(R.string.schedule_channel_name), NotificationManager.IMPORTANCE_LOW)
         )
         val open = PendingIntent.getActivity(
-            context, 0, Intent(context, MainActivity::class.java), PendingIntent.FLAG_IMMUTABLE,
+            context, if (showPermissions) 1 else 0,
+            Intent(context, MainActivity::class.java)
+                .putExtra(MainActivity.EXTRA_SHOW_PERMISSIONS, showPermissions)
+                .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK),
+            PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT,
         )
         val notification = NotificationCompat.Builder(context, CHANNEL_ID)
             .setSmallIcon(R.drawable.ic_tile_otter)
