@@ -260,3 +260,4 @@ Feedback after trying it on a phone: the background is now 85% opaque
 opens the pause screen right away, like the Quick Settings tile — before,
 the launcher stayed as it was and it wasn't clear the pause had started.
 
+**Verified on a real phone (2026-10-04):** look and tap behaviour as above.
