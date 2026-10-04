@@ -154,3 +154,12 @@ summary sentence above Save (the page read as cluttered).
 1. **Spostare l'orario:** richiede la password (è un allentamento).
 2. **Avviso 5 minuti prima:** sì, notifica silenziosa, nessuna azione.
 3. **Permessi mancanti all'ora prevista:** una notifica una tantum.
+
+## The heads-up goes away at the start
+
+Reported once scheduled pauses started reliably: the "Your scheduled pause
+starts at 21:00" notification stayed in the shade after the pause began.
+Now the start alarm cancels it, and it carries `setTimeoutAfter` up to the
+start time, so it also disappears when the pause doesn't start (skipped,
+permissions missing — that case has its own notification).
+

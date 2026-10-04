@@ -94,10 +94,15 @@ class ScheduledPauseReceiver : BroadcastReceiver() {
             ACTION_HEADS_UP -> {
                 if (schedule.enabled && at > schedule.skipUntil && !sessionManager.isSessionActive()) {
                     notify(context, HEADS_UP_NOTIFICATION_ID + schedule.id,
-                        context.getString(R.string.schedule_heads_up, DateFormat.getTimeInstance(DateFormat.SHORT).format(Date(at))))
+                        context.getString(R.string.schedule_heads_up, DateFormat.getTimeInstance(DateFormat.SHORT).format(Date(at))),
+                        // L'avviso vale fino alla partenza: dopo non dice più nulla.
+                        timeoutMillis = (at - System.currentTimeMillis()).coerceAtLeast(1L))
                 }
             }
             ACTION_START -> {
+                // L'avviso "alle 21:00 inizia…" non serve più, comunque vada:
+                // restava nella tendina anche a pausa partita (segnalato).
+                NotificationManagerCompat.from(context).cancel(HEADS_UP_NOTIFICATION_ID + schedule.id)
                 when {
                     !schedule.enabled -> Unit
                     at <= schedule.skipUntil -> manager.save(schedule.copy(skipUntil = 0L))
@@ -119,7 +124,7 @@ class ScheduledPauseReceiver : BroadcastReceiver() {
     private fun permissionsGranted(context: Context): Boolean =
         BuildConfig.DEBUG || (isAccessibilityServiceEnabled(context) && isDndAccessGranted(context))
 
-    private fun notify(context: Context, id: Int, text: String) {
+    private fun notify(context: Context, id: Int, text: String, timeoutMillis: Long? = null) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
             ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED
         ) return
@@ -136,6 +141,7 @@ class ScheduledPauseReceiver : BroadcastReceiver() {
             .setContentText(text)
             .setContentIntent(open)
             .setAutoCancel(true)
+            .apply { if (timeoutMillis != null) setTimeoutAfter(timeoutMillis) }
             .build()
         NotificationManagerCompat.from(context).notify(id, notification)
     }
