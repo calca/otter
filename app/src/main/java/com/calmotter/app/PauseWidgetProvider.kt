@@ -41,7 +41,8 @@ import kotlinx.coroutines.launch
 
 // Le due tinte già in uso dal widget (vedi ic_otter_widget.xml e la nota
 // "static hex literals" in specs/home-screen-widget/design.md).
-private const val WIDGET_BG = 0xFFEAF0E8
+// Sfondo all'85%: un velo sopra lo sfondo del launcher, non una piastra piena.
+private const val WIDGET_BG = 0xD9EAF0E8
 private const val IDLE_TINT = 0xFF2C4A3E.toInt()
 private const val ACTIVE_TINT = 0xFF3D7A5C.toInt()
 
@@ -63,7 +64,7 @@ private val SIZE_WIDE = DpSize(110.dp, 40.dp)
  * quando cambia la durata scelta in Home.
  *
  * Al tocco ([PauseWidgetTapAction]): nessuna pausa → la avvia con la durata
- * mostrata, ma solo con Accessibilità e Non disturbare concessi (altrimenti
+ * mostrata e apre la schermata della pausa, ma solo con Accessibilità e Non disturbare concessi (altrimenti
  * apre l'app sulla spiegazione, come il tocco sull'otter: prima partiva una
  * pausa che non bloccava né silenziava nulla); pausa in corso → la schermata
  * della pausa.
@@ -104,7 +105,7 @@ private fun SmallWidgetContent(context: Context, active: Boolean, duration: Stri
         Image(
             provider = ImageProvider(R.drawable.ic_otter_widget),
             contentDescription = null,
-            modifier = GlanceModifier.size(26.dp)
+            modifier = GlanceModifier.size(30.dp)
         )
         Text(
             text = if (active) context.getString(R.string.widget_label_active) else duration,
@@ -122,12 +123,14 @@ private fun WideWidgetContent(context: Context, active: Boolean, duration: Strin
             .background(Color(WIDGET_BG))
             .cornerRadius(16.dp)
             .clickable(actionRunCallback<PauseWidgetTapAction>()),
+        // Otter e testo centrati nella larghezza, non attaccati a sinistra.
+        horizontalAlignment = Alignment.Horizontal.CenterHorizontally,
         verticalAlignment = Alignment.Vertical.CenterVertically,
     ) {
         Image(
             provider = ImageProvider(R.drawable.ic_otter_widget),
             contentDescription = null,
-            modifier = GlanceModifier.size(30.dp),
+            modifier = GlanceModifier.size(36.dp),
         )
         Spacer(modifier = GlanceModifier.width(10.dp))
         Column {
@@ -163,8 +166,18 @@ class PauseWidgetTapAction : ActionCallback {
                     .putExtra(MainActivity.EXTRA_SHOW_PERMISSIONS, true)
                     .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
             )
-            // startSession() salva già la durata e aggiorna il widget.
-            else -> sessionManager.startSession(LastDuration.get(context))
+            // startSession() salva già la durata e aggiorna il widget. Poi la
+            // schermata della pausa, come il riquadro rapido: senza, il tocco
+            // lasciava il launcher com'era e non si capiva se fosse partita
+            // (segnalato).
+            else -> {
+                sessionManager.startSession(LastDuration.get(context))
+                context.startActivity(
+                    Intent(context, BlockOverlayActivity::class.java).apply {
+                        flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
+                    }
+                )
+            }
         }
     }
 }

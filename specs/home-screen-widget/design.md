@@ -254,3 +254,9 @@ removed. Now:
   and the per-size time strings. The XML `initialLayout` stays (platform
   requirement).
 
+Feedback after trying it on a phone: the background is now 85% opaque
+(`0xD9EAF0E8`), the otter is larger (30dp in 1×1, 36dp in 2×1) and the
+2×1 content is centred horizontally; starting a pause from the widget now
+opens the pause screen right away, like the Quick Settings tile — before,
+the launcher stayed as it was and it wasn't clear the pause had started.
+
