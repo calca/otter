@@ -33,7 +33,7 @@ PAUSE CHE PARTONO DA SOLE
 "Nei giorni feriali alle 21:00 per un'ora", "la domenica mattina, due ore": le imposti una volta e partono da sole, con un avviso cinque minuti prima. Quelle che ti metti da solo le cambi quando vuoi; quelle protette da password, un patto con chi ti vuole bene, si allentano solo con la password.
 
 TEMPO INSIEME
-Una pausa condivisa con chi hai accanto: il partner, la famiglia, i colleghi. Un QR o un codice, oppure avvicinando i telefoni. L'app propone anche qualcosa da fare insieme — una passeggiata, una partita a carte, o niente, solo stare insieme.
+Una pausa condivisa con chi hai accanto: il partner, la famiglia, i colleghi. Basta avvicinare i telefoni: un tocco e partite insieme. Per chi è lontano, un QR o un codice. L'app propone anche qualcosa da fare insieme — una passeggiata, una partita a carte, o niente, solo stare insieme.
 
 PICCOLI RITUALI
 - Una pausa respiro di dieci minuti, con l'anello che si allarga e si stringe.
@@ -64,7 +64,7 @@ PAUSES THAT START BY THEMSELVES
 "Weekdays at 9pm for an hour", "Sunday morning, two hours": set them once and they start on their own, with a heads-up five minutes before. The ones you set for yourself are yours to change; a password-protected one, a pact with someone who cares about you, can only be loosened with the password.
 
 TIME TOGETHER
-A pause shared with whoever is next to you: your partner, your family, your colleagues. A QR or a code, or just tap the phones together. The app even suggests something to do together — a walk, a game of cards, or nothing at all, just being together.
+A pause shared with whoever is next to you: your partner, your family, your colleagues. Just hold your phones together: one tap and you start at the same moment. For anyone further away, a QR or a code. The app even suggests something to do together — a walk, a game of cards, or nothing at all, just being together.
 
 SMALL RITUALS
 - A 10-minute breathing pause, with a ring that slowly expands and contracts.

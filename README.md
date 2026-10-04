@@ -81,12 +81,17 @@ Some pauses are better together. "Time together" lets two or more people
 start the *same* pause at the *same* moment, each on their own phone —
 made for a couple, a family, or a team that wants to disconnect as one:
 
+- **One tap (NFC)** — side by side, one person taps "One tap" and holds
+  their phone to the other's: that single tap carries the whole pause
+  (duration, start, activity), no Bluetooth, no pairing. Both phones count
+  down five seconds and start together. The other phone answers even with
+  Calm Otter closed, with a "Join" notification.
 - **QR / manual code** — fully offline. The host shares a code (or a QR)
   with the duration and an agreed start time baked in; everyone else
   scans or types it in. The phones never actually talk to each other —
   they just agree in advance and start together.
-- **Live lobby (Bluetooth, with NFC as a shortcut)** — the host opens a
-  lobby, everyone else joins with a tap (NFC) or a quick search, and the
+- **Live lobby (Bluetooth)** — for more than two, or without NFC: the host
+  opens a lobby, everyone else joins with a tap or a quick search, and the
   host starts once people are in. The phones connect just long enough to
   agree on a start time, then disconnect the moment the pause begins.
 
