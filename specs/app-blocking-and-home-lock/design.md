@@ -1272,6 +1272,6 @@ also lets through any package ending in `.incallui`; they are part of
 `allowedPackages()` even without a default dialer. Calls getting through
 is the pause's one declared exception. Checked on the emulator (incoming
 call via `adb emu gsm call`, answered: the in-call activity stays on top,
-the block comes back when the call ends); the Samsung case itself needs a
-real Samsung phone.
+the block comes back when the call ends). **Verified on a real Samsung
+(2026-10-04):** a call during a pause is no longer covered.
 
