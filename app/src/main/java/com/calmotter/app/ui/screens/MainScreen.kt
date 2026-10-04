@@ -435,6 +435,28 @@ fun MainScreen(
             }
         }
     }
+    // Il dialogo dei permessi mancanti, aperto dal tocco sull'otter, da "Con
+    // un tocco", da "Tempo insieme" o dal widget. Era sparito per errore il
+    // 2026-10-02 (spostando la scelta del profilo in AllowedProfileLine) e
+    // da allora, senza permessi, quei tocchi non facevano nulla — segnalato
+    // su un'installazione pulita. Ora lo protegge MainScreenPermissionDialogTest.
+    // Prima delle impostazioni di sistema, l'informativa sull'accessibilità.
+    val grantAccessibility = rememberAccessibilityDisclosure(onGrantAccessibility)
+    if (showPermissionDialog) {
+        PermissionExplainerDialog(
+            accessibilityOk = accessibilityOk,
+            dndOk = dndOk,
+            onGrantAccessibility = {
+                onDismissPermissionDialog()
+                grantAccessibility()
+            },
+            onGrantDnd = {
+                onDismissPermissionDialog()
+                onGrantDnd()
+            },
+            onDismiss = onDismissPermissionDialog,
+        )
+    }
 }
 
 /**
