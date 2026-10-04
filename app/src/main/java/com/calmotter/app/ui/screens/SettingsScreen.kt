@@ -107,6 +107,7 @@ fun SettingsScreen(
     onOpenGitHub: () -> Unit,
     onOpenLicense: () -> Unit,
     onOpenDeveloper: () -> Unit,
+    onFeedback: () -> Unit = {},
 ) {
     var accessibilityOk by remember { mutableStateOf(false) }
     var dndOk by remember { mutableStateOf(false) }
@@ -260,6 +261,7 @@ fun SettingsScreen(
             onOpenLicense = onOpenLicense,
             onOpenDeveloper = onOpenDeveloper,
             onRecommend = { Share.invite(context) },
+            onFeedback = onFeedback,
         )
 
         // Versione in chiusura di pagina (redesign). Non è decorazione: da
@@ -523,6 +525,7 @@ private fun InfoCard(
     onOpenLicense: () -> Unit,
     onOpenDeveloper: () -> Unit,
     onRecommend: () -> Unit,
+    onFeedback: () -> Unit,
 ) {
     Surface(
         shape = RoundedCornerShape(20.dp),
@@ -535,6 +538,9 @@ private fun InfoCard(
             InfoLinkRow(label = stringResource(R.string.settings_info_license), onClick = onOpenLicense)
             HorizontalDivider(color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.08f))
             InfoLinkRow(label = stringResource(R.string.settings_info_developer), onClick = onOpenDeveloper)
+            HorizontalDivider(color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.08f))
+            // Apre una segnalazione su GitHub già compilata (SettingsActivity.feedbackUrl).
+            InfoLinkRow(label = stringResource(R.string.settings_info_feedback), onClick = onFeedback)
             HorizontalDivider(color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.08f))
             // Non un link esterno: apre il menu di condivisione (vedi Share).
             InfoLinkRow(label = stringResource(R.string.settings_info_recommend), onClick = onRecommend)

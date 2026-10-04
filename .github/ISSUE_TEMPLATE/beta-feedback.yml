@@ -1,0 +1,39 @@
+name: Feedback dalla beta / Beta feedback
+description: Qualcosa non va, o un'idea, mentre provi Calm Otter. / Something's off, or an idea, while trying Calm Otter.
+labels: ["beta"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Grazie per provare Calm Otter. Versione e telefono sono già compilati dall'app.
+        Thanks for trying Calm Otter. Version and phone are already filled in by the app.
+  - type: dropdown
+    id: kind
+    attributes:
+      label: Che cos'è / What is it
+      options:
+        - Un problema / A problem
+        - Un'idea / An idea
+        - Altro / Something else
+    validations:
+      required: true
+  - type: textarea
+    id: what
+    attributes:
+      label: Cosa è successo / What happened
+      description: Cosa ti aspettavi, cosa è successo invece. / What you expected, what happened instead.
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Come ci sei arrivato / How you got there
+      description: Facoltativo. I passi, se te li ricordi. / Optional. The steps, if you remember them.
+  - type: input
+    id: version
+    attributes:
+      label: Versione di Calm Otter / Calm Otter version
+  - type: input
+    id: device
+    attributes:
+      label: Telefono e Android / Phone and Android

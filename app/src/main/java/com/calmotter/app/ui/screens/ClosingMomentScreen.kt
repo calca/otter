@@ -1,5 +1,7 @@
 package com.calmotter.app.ui.screens
 
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.ui.Alignment
 import androidx.compose.foundation.layout.Column
@@ -41,6 +43,7 @@ const val CLOSING_NOTE_MAX = 30
  * o confronti: è un riconoscimento del tempo passato lontano dal telefono,
  * non un punteggio. "Salta" chiude e non richiede più.
  */
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun ClosingMomentScreen(
     effectiveMinutes: Int,
@@ -74,7 +77,12 @@ fun ClosingMomentScreen(
                 textAlign = TextAlign.Center,
                 modifier = Modifier.padding(top = 6.dp, bottom = 20.dp),
             )
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            // FlowRow e non Row: con i caratteri grandi "Faticosa" finiva
+            // tagliata in "Faticos" (trovato nel giro a caratteri al 130%).
+            FlowRow(
+                horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterHorizontally),
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
                 listOf(
                     Mood.CALM to R.string.mood_calm,
                     Mood.ORDINARY to R.string.mood_ordinary,

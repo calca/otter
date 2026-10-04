@@ -59,8 +59,9 @@ the Play Store link, and you choose whether and where to send it.
 
 ## Links that leave the app
 
-Settings contains links to the source code, the licence and the
-developer's page on GitHub. Tapping one opens your browser; from then on
+Settings contains links to the source code, the licence, the developer's
+page and a feedback form on GitHub (the form is pre-filled with the app
+version and phone model, which you can see and edit before sending). Tapping one opens your browser; from then on
 you are on GitHub, under GitHub's own privacy policy.
 
 ## Children
@@ -137,8 +138,10 @@ link al Play Store, e sei tu a decidere se e dove mandarlo.
 
 ## Link che escono dall'app
 
-Nelle Impostazioni ci sono link al codice sorgente, alla licenza e alla
-pagina dello sviluppatore su GitHub. Toccarli apre il browser: da lì sei su
+Nelle Impostazioni ci sono link al codice sorgente, alla licenza, alla
+pagina dello sviluppatore e a un modulo di commento su GitHub (il modulo
+arriva già compilato con versione dell'app e modello del telefono, che
+vedi e puoi modificare prima di inviare). Toccarli apre il browser: da lì sei su
 GitHub, con la sua informativa.
 
 ## Minori

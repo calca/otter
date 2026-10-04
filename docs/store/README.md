@@ -18,6 +18,9 @@ Play Console.
 - **Answers for the declarations** (data safety, Accessibility API,
   special-use foreground service, content rating, target audience):
   [`declarations.md`](declarations.md).
+- **Beta testing**: release notes (IT/EN) and a short guide for testers in
+  [`beta-testing.md`](beta-testing.md); in-app "Send feedback" opens a
+  GitHub issue form (`.github/ISSUE_TEMPLATE/beta-feedback.yml`).
 - **In-app Accessibility disclosure** with explicit consent, required for
   the Accessibility declaration.
 

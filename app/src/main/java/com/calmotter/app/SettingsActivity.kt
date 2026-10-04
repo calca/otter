@@ -93,6 +93,7 @@ class SettingsActivity : BaseActivity() {
                     onOpenGitHub = { openUrl(GITHUB_REPO_URL) },
                     onOpenLicense = { openUrl("$GITHUB_REPO_URL/blob/main/LICENSE") },
                     onOpenDeveloper = { openUrl(GITHUB_DEVELOPER_URL) },
+                    onFeedback = { openUrl(feedbackUrl()) },
                 )
             }
         }
@@ -113,6 +114,22 @@ class SettingsActivity : BaseActivity() {
         ThemeManager.setTheme(this, theme)
         // Ricrea l'activity per applicare il nuovo tema immediatamente
         recreate()
+    }
+
+    /**
+     * "Invia un commento": una issue GitHub con il modulo della beta
+     * (.github/ISSUE_TEMPLATE/beta-feedback.yml), versione e telefono già
+     * compilati. Come gli altri link di Info, è il browser che apre la
+     * pagina su un tocco dell'utente: l'app non manda nulla.
+     */
+    private fun feedbackUrl(): String {
+        val version = "${BuildConfig.VERSION_NAME} (${BuildConfig.VERSION_CODE})"
+        val device = "${Build.MANUFACTURER} ${Build.MODEL} · Android ${Build.VERSION.RELEASE}"
+        return "$GITHUB_REPO_URL/issues/new".toUri().buildUpon()
+            .appendQueryParameter("template", "beta-feedback.yml")
+            .appendQueryParameter("version", version)
+            .appendQueryParameter("device", device)
+            .build().toString()
     }
 
     private fun openUrl(url: String) {
