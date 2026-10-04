@@ -1047,3 +1047,13 @@ schedule, together), or when tapped. Only the bubble: an animated ripple
 and a coach-mark overlay were considered and dropped as louder than needed.
 Screenshot tests capture Home at 1 s, before the bubble appears.
 
+## Portrait only
+
+Every activity declares `android:screenOrientation="portrait"` (with
+`tools:ignore="LockedOrientationActivity"`): the layouts — the anchored
+otter, CTAs pinned to the bottom — aren't designed for landscape, and
+landscape isn't supported. From Android 16 the system ignores orientation
+locks on large screens (tablets, open foldables), where the app stays
+free to rotate. Checked on the emulator by forcing a landscape rotation:
+Calm Otter stays upright.
+

@@ -62,6 +62,9 @@
         </intent>
     </queries>
 
+    <!-- Solo in verticale: il layout (otter ancorato, CTA in fondo) non è
+         pensato per l'orizzontale. Da Android 16 il sistema ignora il blocco
+         sugli schermi grandi (tablet, pieghevoli aperti): lì resta libero. -->
     <application
         android:name=".CalmOtterApplication"
         android:allowBackup="true"
@@ -74,6 +77,8 @@
         android:supportsRtl="true">
 
         <activity
+            android:screenOrientation="portrait"
+            tools:ignore="LockedOrientationActivity"
             android:name=".OnboardingActivity"
             android:exported="false"
             android:theme="@style/Theme.CalmOtter.WithActionBar">
@@ -91,6 +96,8 @@
             vedi MainActivity.kt.
         -->
         <activity
+            android:screenOrientation="portrait"
+            tools:ignore="LockedOrientationActivity"
             android:name=".MainActivity"
             android:exported="true"
             android:launchMode="singleTask">
@@ -106,28 +113,38 @@
         </activity>
 
         <activity
+            android:screenOrientation="portrait"
+            tools:ignore="LockedOrientationActivity"
             android:name=".GroupPauseHostActivity"
             android:exported="false"
             android:theme="@style/Theme.CalmOtter" />
 
         <activity
+            android:screenOrientation="portrait"
+            tools:ignore="LockedOrientationActivity"
             android:name=".GroupPauseJoinActivity"
             android:exported="false"
             android:theme="@style/Theme.CalmOtter" />
 
         <!-- "Avvicina i telefoni" (specs/nfc-quick-together/). -->
         <activity
+            android:screenOrientation="portrait"
+            tools:ignore="LockedOrientationActivity"
             android:name=".QuickTogetherActivity"
             android:exported="false"
             android:theme="@style/Theme.CalmOtter" />
 
         <activity
+            android:screenOrientation="portrait"
+            tools:ignore="LockedOrientationActivity"
             android:name=".GroupPauseChooserActivity"
             android:exported="false"
             android:theme="@style/Theme.CalmOtter" />
 
         <!-- Momento di chiusura dopo una pausa completata (specs/closing-moment/). -->
         <activity
+            android:screenOrientation="portrait"
+            tools:ignore="LockedOrientationActivity"
             android:name=".ClosingMomentActivity"
             android:exported="false"
             android:excludeFromRecents="true"
@@ -135,11 +152,15 @@
 
         <!-- Pause programmate (specs/scheduled-pauses/). -->
         <activity
+            android:screenOrientation="portrait"
+            tools:ignore="LockedOrientationActivity"
             android:name=".ScheduledPausesActivity"
             android:exported="false"
             android:theme="@style/Theme.CalmOtter.WithActionBar" />
 
         <activity
+            android:screenOrientation="portrait"
+            tools:ignore="LockedOrientationActivity"
             android:name=".BlockOverlayActivity"
             android:exported="false"
             android:launchMode="singleInstance"
@@ -147,24 +168,32 @@
             android:theme="@style/Theme.CalmOtter" />
 
         <activity
+            android:screenOrientation="portrait"
+            tools:ignore="LockedOrientationActivity"
             android:name=".HistoryActivity"
             android:exported="false"
             android:label="@string/history_title"
             android:theme="@style/Theme.CalmOtter.WithActionBar" />
 
         <activity
+            android:screenOrientation="portrait"
+            tools:ignore="LockedOrientationActivity"
             android:name=".ChangePasswordActivity"
             android:exported="false"
             android:label="@string/change_password_title"
             android:theme="@style/Theme.CalmOtter.WithActionBar" />
 
         <activity
+            android:screenOrientation="portrait"
+            tools:ignore="LockedOrientationActivity"
             android:name=".AllowedAppsActivity"
             android:exported="false"
             android:label="@string/allowed_apps_title"
             android:theme="@style/Theme.CalmOtter.WithActionBar" />
 
         <activity
+            android:screenOrientation="portrait"
+            tools:ignore="LockedOrientationActivity"
             android:name=".SettingsActivity"
             android:exported="false"
             android:label="@string/settings_title"
