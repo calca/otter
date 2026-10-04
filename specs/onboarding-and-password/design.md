@@ -631,3 +631,22 @@ confirmed screen returns to Settings on success), then verified the *new*
 password through the separate `PasswordVerifyDialog` path ("Manage allowed
 apps" opened) — both async paths exercised end to end, no crash, no
 exception in `adb logcat`.
+
+## Copy review: half the words
+
+Reported: "too much" text. Each step is now a title, one sentence (with
+one bolded phrase) and at most a small line — no more note cards:
+
+1. **A real break from your phone** — "Choose how long: everything stops
+   but **the phone and a few apps you pick**." (The pact moved to step 2,
+   where it matters; `onb1_note` removed.)
+2. **Choose the password together** — "Hand the phone to someone you
+   trust: **only they can end a pause early**." + two small lines: "You
+   don't need to know it: that's the pact." and "If you can't reach each
+   other, a pause also ends by waiting 10 minutes."
+3. **All set** — "Whenever you need a break, open the app and **tap the
+   otter**." + "The rest can wait." (Introduces the gesture the Home bubble
+   points at.)
+
+`OnboardingNoteCard` was replaced by a plain `OnboardingNote` line.
+

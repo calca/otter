@@ -18,16 +18,8 @@ import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Lock
-import androidx.compose.material3.Icon
-import androidx.compose.material3.Surface
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -53,9 +45,6 @@ import androidx.compose.ui.unit.sp
 import com.calmotter.app.PasswordManager
 import com.calmotter.app.R
 import com.calmotter.app.ui.mascot.OtterZenMark
-import com.calmotter.app.ui.mascot.PactPawsMark
-import com.calmotter.app.ui.mascot.SprigMark
-import com.calmotter.app.ui.mascot.TogetherMark
 
 private const val STEP_COUNT = 3
 private const val STEP_PASSWORD = 1
@@ -145,10 +134,6 @@ fun OnboardingScreen(
                         bodyRes = R.string.onb1_body,
                         bodyBottomPadding = 16.dp
                     )
-                    OnboardingNoteCard(
-                        noteRes = R.string.onb1_note,
-                        icon = { TogetherMark(markSize = 20.dp) },
-                    )
                 }
                 STEP_PASSWORD -> {
                     StepBody(
@@ -161,27 +146,12 @@ fun OnboardingScreen(
                         bodyRes = R.string.onb4_body,
                         bodyBottomPadding = 16.dp
                     )
-                    OnboardingNoteCard(
-                        noteRes = R.string.onb4_note,
-                        icon = {
-                            Icon(
-                                imageVector = Icons.Default.Lock,
-                                contentDescription = null,
-                                tint = MaterialTheme.colorScheme.primary,
-                                modifier = Modifier.size(18.dp),
-                            )
-                        },
-                        modifier = Modifier.padding(bottom = 8.dp),
-                    )
-                    // L'uscita lenta è accesa di default (specs/slow-exit/):
-                    // chi tiene la password deve saperlo qui, non scoprirlo
-                    // dopo. Una riga, non una scelta in più da fare adesso.
-                    Text(
-                        text = stringResource(R.string.onboarding_slow_exit_note),
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.65f),
-                        modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp),
-                    )
+                    // Due righe piccole invece della card con icona: il patto
+                    // e l'uscita lenta (accesa di default, specs/slow-exit/ —
+                    // chi tiene la password deve saperlo qui). Testi
+                    // accorciati nella review dell'onboarding ("troppe frasi").
+                    OnboardingNote(R.string.onb4_note)
+                    OnboardingNote(R.string.onboarding_slow_exit_note, bottom = 16.dp)
 
                     CalmTextField(
                         value = partnerName,
@@ -244,12 +214,9 @@ fun OnboardingScreen(
                         illustration = { OtterZenMark(markSize = 120.dp) },
                         titleRes = R.string.onb5_title,
                         bodyRes = R.string.onb5_body,
-                        bodyBottomPadding = 16.dp
+                        bodyBottomPadding = 12.dp
                     )
-                    OnboardingNoteCard(
-                        noteRes = R.string.onb5_note,
-                        icon = { SprigMark(markSize = 20.dp) },
-                    )
+                    OnboardingNote(R.string.onb5_note)
                 }
             }
         }
@@ -370,6 +337,18 @@ private fun StepIndicator(
     }
 }
 
+/** Una riga piccola sotto il testo di uno step: una nota, non un paragrafo. */
+@Composable
+private fun OnboardingNote(textRes: Int, bottom: Dp = 6.dp) {
+    Text(
+        text = boldAnnotatedString(stringResource(textRes)),
+        style = MaterialTheme.typography.bodySmall,
+        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.65f),
+        textAlign = TextAlign.Center,
+        modifier = Modifier.fillMaxWidth().padding(bottom = bottom),
+    )
+}
+
 @Composable
 private fun StepBody(
     titleRes: Int,
@@ -432,51 +411,3 @@ internal fun boldAnnotatedString(text: String): AnnotatedString {
 }
 
 
-/**
- * La riga che conta di ciascun passo, dentro una card tinta (redesign).
- *
- * Non è testo nuovo: è l'ultima frase del corpo di quel passo, spostata qui.
- * Erano già le frasi in grassetto — il patto, il gesto di fiducia, il
- * prenditi cura di te — cioè quelle che dicono *perché* l'app funziona così;
- * annegate in fondo a un paragrafo si leggevano come una chiusa, staccate si
- * leggono come la premessa che sono.
- */
-@Composable
-private fun OnboardingNoteCard(
-    noteRes: Int,
-    icon: @Composable () -> Unit,
-    modifier: Modifier = Modifier,
-) {
-    Surface(
-        shape = RoundedCornerShape(20.dp),
-        color = MaterialTheme.colorScheme.primary.copy(alpha = 0.06f),
-        modifier = modifier.fillMaxWidth(),
-    ) {
-        // Alignment.Top faceva sembrare l'icona "attaccata in alto" invece
-        // che affiancata al testo per le note di una sola riga (es. onb5,
-        // "Take care of yourself.") — segnalato: "la label non è centrata
-        // verticalmente nel box". CenterVertically resta corretto anche per
-        // le note più lunghe (onb1/onb4, che vanno a capo): l'icona è
-        // piccola (34dp) rispetto al blocco di testo, quindi centrarla sul
-        // blocco intero non la stacca dalla prima riga in modo percepibile.
-        Row(
-            modifier = Modifier.padding(16.dp),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Box(
-                modifier = Modifier
-                    .size(34.dp)
-                    .clip(CircleShape)
-                    .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.10f)),
-                contentAlignment = Alignment.Center,
-                content = { icon() },
-            )
-            Spacer(modifier = Modifier.width(12.dp))
-            Text(
-                text = boldAnnotatedString(stringResource(noteRes)),
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.85f),
-            )
-        }
-    }
-}
