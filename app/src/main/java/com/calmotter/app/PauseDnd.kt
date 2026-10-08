@@ -34,7 +34,15 @@ internal class PauseDnd(private val context: Context, private val prefs: SharedP
             prefs.edit { putBoolean(KEY_PREV_DND_CAPTURED, false) }
             return
         }
-        val policy = nm.notificationPolicy
+        // Mai null sui telefoni; per sicurezza, senza policy non c'è nulla da salvare.
+        val policy: NotificationManager.Policy? = nm.notificationPolicy
+        if (policy == null) {
+            prefs.edit {
+                putBoolean(KEY_PREV_DND_CAPTURED, true)
+                putInt(KEY_PREV_FILTER, nm.currentInterruptionFilter)
+            }
+            return
+        }
         prefs.edit {
             putBoolean(KEY_PREV_DND_CAPTURED, true)
             putInt(KEY_PREV_FILTER, nm.currentInterruptionFilter)
@@ -74,6 +82,11 @@ internal class PauseDnd(private val context: Context, private val prefs: SharedP
         val nm = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
         if (!nm.isNotificationPolicyAccessGranted) return // permesso non concesso: si ignora silenziosamente
 
+        nm.setNotificationPolicy(pausePolicy())
+        nm.setInterruptionFilter(NotificationManager.INTERRUPTION_FILTER_PRIORITY)
+    }
+
+    private fun pausePolicy(): NotificationManager.Policy {
         val priorityCategories: Int
         val suppressedEffects: Int
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
@@ -87,16 +100,30 @@ internal class PauseDnd(private val context: Context, private val prefs: SharedP
             priorityCategories = NotificationManager.Policy.PRIORITY_CATEGORY_CALLS
             suppressedEffects = 0
         }
-
-        nm.setNotificationPolicy(
-            NotificationManager.Policy(
-                priorityCategories,
-                NotificationManager.Policy.PRIORITY_SENDERS_ANY,
-                0,
-                suppressedEffects
-            )
+        return NotificationManager.Policy(
+            priorityCategories,
+            NotificationManager.Policy.PRIORITY_SENDERS_ANY,
+            0,
+            suppressedEffects
         )
-        nm.setInterruptionFilter(NotificationManager.INTERRUPTION_FILTER_PRIORITY)
+    }
+
+    /**
+     * Riapplica la pausa se qualcosa ha spento Non disturbare nel frattempo:
+     * una routine o modalità di Samsung che finisce, un tocco nella tendina.
+     * Chiamata ogni minuto dal servizio della pausa. Prima la pausa impostava
+     * DND una volta sola all'inizio e non lo ricontrollava più, e se veniva
+     * spento le notifiche tornavano per il resto della pausa (segnalato).
+     * Ritorna true se ha dovuto riapplicarla.
+     */
+    fun ensureApplied(): Boolean {
+        val nm = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+        if (!nm.isNotificationPolicyAccessGranted) return false
+        if (nm.currentInterruptionFilter == NotificationManager.INTERRUPTION_FILTER_PRIORITY &&
+            (nm.notificationPolicy as NotificationManager.Policy?)?.priorityCategories == pausePolicy().priorityCategories
+        ) return false
+        apply()
+        return true
     }
 
     /**

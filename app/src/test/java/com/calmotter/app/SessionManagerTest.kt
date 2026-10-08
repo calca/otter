@@ -222,6 +222,30 @@ class SessionManagerTest {
         assertEquals(usersOwnPolicy.suppressedVisualEffects, restored.suppressedVisualEffects)
     }
 
+    /**
+     * Segnalato: durante una pausa programmata arrivavano le notifiche. Se
+     * qualcosa spegne Non disturbare a pausa in corso (una routine Samsung,
+     * un tocco nella tendina), il controllo di ogni minuto lo riaccende.
+     */
+    @Test
+    fun dndSwitchedOffDuringAPauseIsSwitchedBackOn() {
+        val nm = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+        shadowOf(nm).setNotificationPolicyAccessGranted(true)
+        val manager = SessionManager.getInstance(context)
+        manager.startSession(60)
+        assertFalse(manager.ensureDndApplied()) // già a posto: niente da fare
+
+        nm.setInterruptionFilter(NotificationManager.INTERRUPTION_FILTER_ALL)
+        assertTrue(manager.ensureDndApplied())
+        assertEquals(NotificationManager.INTERRUPTION_FILTER_PRIORITY, nm.currentInterruptionFilter)
+
+        manager.endSession()
+        nm.setInterruptionFilter(NotificationManager.INTERRUPTION_FILTER_ALL)
+        // Senza pausa non tocca nulla.
+        assertFalse(manager.ensureDndApplied())
+        assertEquals(NotificationManager.INTERRUPTION_FILTER_ALL, nm.currentInterruptionFilter)
+    }
+
     // --- specs/closing-moment, specs/slow-exit, specs/together-activity ----
 
     private fun lastRecord(): SessionRecord =

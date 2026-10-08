@@ -35,6 +35,9 @@ class SessionForegroundService : Service() {
                 stopSelf()
                 return
             }
+            // Ogni minuto, insieme alla notifica: se una routine o un tocco
+            // nella tendina ha spento Non disturbare, la pausa lo riaccende.
+            sessionManager.ensureDndApplied()
             updateNotification()
             handler.postDelayed(this, UPDATE_INTERVAL_MS)
         }

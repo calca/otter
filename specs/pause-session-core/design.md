@@ -216,3 +216,19 @@ the duration as text (`%1$s`), built from the `countdown_minutes` /
 minuti" in Italian). Same text in the block screen and the ongoing
 notification. Always rounded down: never more time than is left.
 
+## Do Not Disturb is re-checked every minute
+
+Reported: notifications came through during a scheduled pause, with Do Not
+Disturb on. The pause set DND once, at the start, and never checked it
+again: anything that switched it off mid-pause — a Samsung routine or mode
+ending, a tap in the shade — let notifications back in for the rest of the
+pause. Now `SessionForegroundService`'s minute tick calls
+`SessionManager.ensureDndApplied()` → `PauseDnd.ensureApplied()`, which
+re-applies the pause's filter and policy when they're not in place
+(`SessionManagerTest.dndSwitchedOffDuringAPauseIsSwitchedBackOn`).
+Verified on the emulator that a scheduled pause started from the alarm,
+with the app closed, does enable DND and intercepts a test notification.
+Not covered by this: apps the user allowed to bypass DND in the phone's
+settings (e.g. WhatsApp "override Do Not Disturb"), and priority
+conversations — those are the user's own choices.
+

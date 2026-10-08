@@ -14,6 +14,9 @@ class SessionManager internal constructor(private val context: Context) {
     // I due pezzi che non sono "stato della pausa": Non disturbare e gli
     // allarmi di fine. SessionManager li coordina, non li implementa.
     private val dnd = PauseDnd(context, prefs)
+
+    /** Durante una pausa: riaccende Non disturbare se qualcosa l'ha spento (vedi PauseDnd.ensureApplied). */
+    fun ensureDndApplied(): Boolean = isSessionActive() && dnd.ensureApplied()
     private val alarms = SessionAlarms(context)
 
     /**
