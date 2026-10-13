@@ -1,5 +1,8 @@
 package com.calmotter.app.ui.screens
 
+import androidx.compose.ui.semantics.LiveRegionMode
+import androidx.compose.ui.semantics.liveRegion
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -111,22 +114,31 @@ fun PasswordVerifyDialog(
                     enabled = !busy,
                     modifier = Modifier.fillMaxWidth()
                 )
-                if (onNoPassword != null) {
-                    TextButton(
-                        onClick = { onDismiss(); onNoPassword() },
-                        modifier = Modifier.padding(top = 4.dp),
-                    ) {
-                        Text(stringResource(R.string.slow_exit_action))
-                    }
-                }
+                // L'errore subito sotto il campo, piccolo e allineato al suo
+                // testo (16dp, come il supporting text di M3): prima stava in
+                // fondo, sotto "Non ho la password", e non si allineava a
+                // nulla (segnalato: "brutta e non allineata"). Annunciato a
+                // TalkBack quando compare.
                 if (displayStatusText.isNotBlank()) {
                     Text(
                         text = displayStatusText,
+                        style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.error,
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(top = 6.dp)
+                            .padding(start = 16.dp, end = 16.dp, top = 6.dp)
+                            .semantics { liveRegion = LiveRegionMode.Polite }
                     )
+                }
+                if (onNoPassword != null) {
+                    // 4dp a sinistra: con i 12dp interni del TextButton il
+                    // testo cade a 16dp, come quello del campo e dell'errore.
+                    TextButton(
+                        onClick = { onDismiss(); onNoPassword() },
+                        modifier = Modifier.padding(start = 4.dp, top = 4.dp),
+                    ) {
+                        Text(stringResource(R.string.slow_exit_action))
+                    }
                 }
             }
         },
