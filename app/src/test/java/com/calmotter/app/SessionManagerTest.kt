@@ -184,42 +184,29 @@ class SessionManagerTest {
     }
 
     /**
-     * TODO.md "1.2": la policy DND dell'utente, se ce n'era una prima della
-     * pausa, va ripristinata esattamente a fine pausa — non sovrascritta con
-     * "tutte le notifiche" a prescindere. Qui l'utente aveva già acceso un
-     * DND "solo allarmi" per conto proprio prima di iniziare la pausa: deve
-     * ritrovarlo intatto, non azzerato, quando la pausa finisce.
+     * Da Android 15 (il livello su cui girano questi test) la pausa accende
+     * una modalità Non disturbare *dell'app*, separata da quella
+     * dell'utente: a fine pausa deve spegnere la propria e basta. Prima
+     * ripristinava il filtro catturato all'inizio, e se l'utente aveva già
+     * il suo DND acceso la modalità dell'app restava ACCESA dopo la pausa
+     * (segnalato). Il ripristino della policy catturata resta solo per
+     * Android 14 e precedenti, dove il Non disturbare era uno solo.
      */
     @Test
-    fun endSessionRestoresThePreviousDndPolicyInsteadOfClearingIt() {
+    fun endSessionSwitchesOffTheAppsOwnDndMode() {
         val nm = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-        val shadowNm = shadowOf(nm)
-        shadowNm.setNotificationPolicyAccessGranted(true)
+        shadowOf(nm).setNotificationPolicyAccessGranted(true)
         nm.setInterruptionFilter(NotificationManager.INTERRUPTION_FILTER_ALARMS)
-        val usersOwnPolicy = NotificationManager.Policy(
-            NotificationManager.Policy.PRIORITY_CATEGORY_ALARMS,
-            NotificationManager.Policy.PRIORITY_SENDERS_STARRED,
-            NotificationManager.Policy.PRIORITY_SENDERS_CONTACTS,
-            NotificationManager.Policy.SUPPRESSED_EFFECT_BADGE,
-        )
-        nm.setNotificationPolicy(usersOwnPolicy)
+        nm.setNotificationPolicy(NotificationManager.Policy(NotificationManager.Policy.PRIORITY_CATEGORY_ALARMS, 0, 0))
 
         val manager = SessionManager.getInstance(context)
         manager.startSession(60)
-        // La pausa ha sovrascritto sia il filtro che la policy con la
-        // propria versione "silenziosa" — verificato qui solo per rendere
-        // esplicito cosa endSession() deve poi disfare, non è lo scopo del
-        // test.
         assertEquals(NotificationManager.INTERRUPTION_FILTER_PRIORITY, nm.currentInterruptionFilter)
 
         manager.endSession()
 
-        assertEquals(NotificationManager.INTERRUPTION_FILTER_ALARMS, nm.currentInterruptionFilter)
-        val restored = nm.notificationPolicy
-        assertEquals(usersOwnPolicy.priorityCategories, restored.priorityCategories)
-        assertEquals(usersOwnPolicy.priorityCallSenders, restored.priorityCallSenders)
-        assertEquals(usersOwnPolicy.priorityMessageSenders, restored.priorityMessageSenders)
-        assertEquals(usersOwnPolicy.suppressedVisualEffects, restored.suppressedVisualEffects)
+        // La modalità dell'app spenta, non riaccesa con il filtro di prima.
+        assertEquals(NotificationManager.INTERRUPTION_FILTER_ALL, nm.currentInterruptionFilter)
     }
 
     /**

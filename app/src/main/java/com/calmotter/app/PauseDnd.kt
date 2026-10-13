@@ -138,6 +138,21 @@ internal class PauseDnd(private val context: Context, private val prefs: SharedP
         val nm = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
         if (!nm.isNotificationPolicyAccessGranted) return
 
+        // Da Android 15, per un'app con targetSdk 35+, setInterruptionFilter
+        // e setNotificationPolicy non toccano più il Non disturbare
+        // dell'utente: accendono e regolano una modalità *dell'app*, separata.
+        // Quella dell'utente resta com'era per tutta la pausa, quindi a fine
+        // pausa basta spegnere la nostra. Il ripristino "di prima" qui sotto
+        // faceva il contrario: se l'utente aveva già il suo DND acceso, la
+        // policy catturata era "priorità" e la nostra modalità veniva
+        // RIACCESA, restando attiva anche dopo che l'utente spegneva il suo
+        // (segnalato: "non viene ripristinato il non disturbare precedente").
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.VANILLA_ICE_CREAM) {
+            nm.setInterruptionFilter(NotificationManager.INTERRUPTION_FILTER_ALL)
+            clearCaptured()
+            return
+        }
+
         if (!prefs.getBoolean(KEY_PREV_DND_CAPTURED, false)) {
             nm.setInterruptionFilter(NotificationManager.INTERRUPTION_FILTER_ALL)
             return
@@ -153,6 +168,10 @@ internal class PauseDnd(private val context: Context, private val prefs: SharedP
         )
         nm.setInterruptionFilter(prefs.getInt(KEY_PREV_FILTER, NotificationManager.INTERRUPTION_FILTER_ALL))
 
+        clearCaptured()
+    }
+
+    private fun clearCaptured() {
         prefs.edit {
             remove(KEY_PREV_DND_CAPTURED)
             remove(KEY_PREV_FILTER)

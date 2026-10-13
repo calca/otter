@@ -232,3 +232,21 @@ Not covered by this: apps the user allowed to bypass DND in the phone's
 settings (e.g. WhatsApp "override Do Not Disturb"), and priority
 conversations — those are the user's own choices.
 
+## Android 15+: the pause has its own Do Not Disturb mode
+
+Reported: ending a pause early didn't give back the previous DND state.
+For an app targeting SDK 35+, on Android 15+ `setInterruptionFilter` /
+`setNotificationPolicy` no longer touch the user's DND: they activate and
+configure an *implicit mode owned by the app*. The user's own DND is never
+changed by the pause. The old `restore()` re-applied the filter captured at
+the start: when the user's DND was already on, that filter was "priority",
+so restoring it **re-activated the app's mode**, which then stayed on after
+the user switched theirs off. Now on API 35+ `restore()` only switches the
+app's mode off (`INTERRUPTION_FILTER_ALL`); the captured-policy restore is
+kept for Android 14 and below, where there was a single shared DND.
+Verified on the emulator (Android 17): user DND on → pause → end → still
+on (theirs) → user switches it off → off. `SessionManagerTest.
+endSessionSwitchesOffTheAppsOwnDndMode` covers the new path (Robolectric
+runs SDK 35); the pre-15 path has no test (no older SDK in Robolectric
+here).
+
