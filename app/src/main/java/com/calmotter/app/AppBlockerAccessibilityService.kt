@@ -98,6 +98,9 @@ class AppBlockerAccessibilityService : AccessibilityService() {
         if (event?.eventType != AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED) return
 
         val packageName = event.packageName?.toString() ?: return
+        // Anche fuori sessione: serve a [onSessionStarted]. Solo in memoria,
+        // mai salvato.
+        if (event.isFullScreen) lastFullScreenPackage = packageName
         val sessionManager = SessionManager.getInstance(applicationContext)
         // Il resto della decisione sta in [BlockPolicy.shouldBlock], valutata
         // più sotto; qui si esce subito perché fuori sessione (il caso
@@ -133,7 +136,26 @@ class AppBlockerAccessibilityService : AccessibilityService() {
         // `isFullScreen = true` (verificato su S22), quindi il filtro qui
         // sopra da solo non la coprirebbe.
         if (!BlockPolicy.shouldBlock(sessionActive, event.isFullScreen, packageName, allowedPackages())) return
+        showBlockScreen()
+    }
 
+    /**
+     * Una pausa appena partita mentre un'app è già aperta (tipicamente una
+     * pausa programmata): nessuna finestra cambia, quindi nessun evento, e
+     * il blocco compariva solo alla prossima azione fuori da quell'app
+     * (segnalato, issue #1). Si giudica subito l'ultima app a schermo intero
+     * vista: il servizio non legge il contenuto delle finestre
+     * (`canRetrieveWindowContent="false"`), quindi non può chiedere al
+     * sistema quale sia quella in primo piano.
+     */
+    private fun checkCurrentApp() {
+        val packageName = lastFullScreenPackage ?: return
+        val sessionActive = SessionManager.getInstance(applicationContext).isSessionActive()
+        if (!BlockPolicy.shouldBlock(sessionActive, true, packageName, allowedPackages())) return
+        showBlockScreen()
+    }
+
+    private fun showBlockScreen() {
         // Copre subito lo schermo dell'app non consentita, PRIMA di provare ad
         // avviare BlockOverlayActivity: su alcuni dispositivi (osservato su
         // Samsung/One UI) l'avvio di un'Activity da un servizio in background
@@ -395,6 +417,15 @@ class AppBlockerAccessibilityService : AccessibilityService() {
         // onDestroy(): non può sopravvivergli.
         @SuppressLint("StaticFieldLeak")
         @Volatile private var instance: AppBlockerAccessibilityService? = null
+
+        /** L'ultima app vista a schermo intero, per [checkCurrentApp]. */
+        @Volatile private var lastFullScreenPackage: String? = null
+
+        /** Chiamato da [SessionManager.startSession]: vedi [checkCurrentApp]. */
+        fun onSessionStarted() {
+            val service = instance ?: return
+            service.mainHandler.post { service.checkCurrentApp() }
+        }
 
         /** Chiamato da [BlockOverlayActivity.onResume]: la vera schermata di
          * blocco è visibile, la finestra-ponte non serve più. */

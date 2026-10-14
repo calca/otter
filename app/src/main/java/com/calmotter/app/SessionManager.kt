@@ -117,6 +117,7 @@ class SessionManager internal constructor(private val context: Context) {
         OtterHint.markDone(context)
         PauseWidgetProvider.updateAllWidgets(context)
         PauseTileService.requestRefresh(context)
+        AppBlockerAccessibilityService.onSessionStarted()
     }
 
     /** Vero se la sessione attiva (o appena terminata) era una pausa di gruppo. */
