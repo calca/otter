@@ -14,7 +14,8 @@ feature changes, check them again.
 
 Why "no" is correct: Play's definition of *collected* is data transmitted
 off the device. Everything Calm Otter stores (history, settings, the
-password hash) stays in the app's private storage, and the short-range
+password hash, and, only with "After long use" on, a few timestamps of
+screen-on time with no app names) stays in the app's private storage, and the short-range
 Bluetooth/NFC exchange of a shared pause goes phone-to-phone, never to the
 developer or a third party. See `docs/privacy-policy.md`.
 Android's own backup (`allowBackup`, password excluded) goes to the user's

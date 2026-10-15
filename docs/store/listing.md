@@ -31,6 +31,8 @@ La pausa la chiude prima del tempo solo chi conosce la password: tu, oppure una 
 
 PAUSE CHE PARTONO DA SOLE
 "Nei giorni feriali alle 21:00 per un'ora", "la domenica mattina, due ore": le imposti una volta e partono da sole, con un avviso cinque minuti prima. Quelle che ti metti da solo le cambi quando vuoi; quelle protette da password, un patto con chi ti vuole bene, si allentano solo con la password.
+- A sorpresa: scegli solo "non prima delle 14:00" e la pausa parte in un momento a caso nelle due ore dopo.
+- Dopo un uso lungo: quando sei al telefono da tanto senza staccare, parte da sola una pausa breve, con un avviso cinque minuti prima. Conta solo il tempo a schermo acceso, mai quali app usi, e di notte non parte.
 
 TEMPO INSIEME
 Una pausa condivisa con chi hai accanto: il partner, la famiglia, i colleghi. Basta avvicinare i telefoni: un tocco e partite insieme. Per chi è lontano, un QR o un codice. L'app propone anche qualcosa da fare insieme — una passeggiata, una partita a carte, o niente, solo stare insieme.
@@ -47,7 +49,7 @@ NIENTE DATI, NIENTE ACCOUNT
 Calm Otter non ha il permesso di usare internet. Niente registrazione, niente pubblicità, niente analisi: la cronologia resta sul telefono. Il codice è aperto, su GitHub.
 
 ONESTÀ SUI LIMITI
-È un blocco "morbido": usa il servizio di accessibilità e Non disturbare, che si possono disattivare dalle impostazioni di Android. Calm Otter non finge il contrario. Il servizio di accessibilità serve solo a sapere quale app si apre durante una pausa: non legge lo schermo né quello che scrivi.
+È un blocco "morbido": usa il servizio di accessibilità e Non disturbare, che si possono disattivare dalle impostazioni di Android. Calm Otter non finge il contrario. Il servizio di accessibilità serve solo a sapere quale app è in primo piano, per coprirla durante una pausa e, se lo attivi, per contare il tempo a schermo acceso: non legge lo schermo né quello che scrivi.
 ```
 
 ## Full description — English
@@ -62,6 +64,8 @@ Only the person who knows the password can end a pause early: you, or someone yo
 
 PAUSES THAT START BY THEMSELVES
 "Weekdays at 9pm for an hour", "Sunday morning, two hours": set them once and they start on their own, with a heads-up five minutes before. The ones you set for yourself are yours to change; a password-protected one, a pact with someone who cares about you, can only be loosened with the password.
+- Surprise: pick only "not before 2pm" and the pause starts at a random moment in the two hours after.
+- After long use: when you've been on your phone for a long time without a break, a short pause starts by itself, with a heads-up five minutes before. It counts screen-on time only, never which apps you use, and it never starts at night.
 
 TIME TOGETHER
 A pause shared with whoever is next to you: your partner, your family, your colleagues. Just hold your phones together: one tap and you start at the same moment. For anyone further away, a QR or a code. The app even suggests something to do together — a walk, a game of cards, or nothing at all, just being together.
@@ -78,7 +82,7 @@ NO DATA, NO ACCOUNT
 Calm Otter doesn't have permission to use the internet. No sign-up, no ads, no analytics: your history stays on your phone. The code is open, on GitHub.
 
 HONEST ABOUT ITS LIMITS
-It's a "soft" block: it relies on the Accessibility service and Do Not Disturb, which can be switched off in Android settings. Calm Otter doesn't pretend otherwise. The Accessibility service is used only to know which app is opening during a pause: it doesn't read the screen or what you type.
+It's a "soft" block: it relies on the Accessibility service and Do Not Disturb, which can be switched off in Android settings. Calm Otter doesn't pretend otherwise. The Accessibility service is used only to know which app is in the foreground, to cover it during a pause and, if you turn it on, to count screen-on time: it doesn't read the screen or what you type.
 ```
 
 ## Graphics

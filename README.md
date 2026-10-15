@@ -46,13 +46,24 @@ Only the password holder can create or change these lists, so they stay
 a deliberate exception, not a loophole; picking which one to use for the
 next pause is a single tap on Home.
 
-## Scheduled Pauses
+## Pauses That Start by Themselves
 
-The best moment to start a pause is the one you'd rather skip. Set it once
-— "weekdays at 21:00 for an hour", "Sunday morning, two hours" — and it
-starts by itself, with a quiet heads-up five minutes before. Adding a
-schedule or making it stricter is free; switching it off, shortening it,
-moving it later or skipping tonight needs the password. That's the pact.
+The best moment to start a pause is the one you'd rather skip.
+
+- **Scheduled.** Set it once ("weekdays at 21:00 for an hour", "Sunday
+  morning, two hours") and it starts by itself, with a heads-up five
+  minutes before. The ones you set for yourself are yours to change. Mark
+  one "Protected by password" and it becomes a pact: switching it off,
+  shortening it, moving it or skipping tonight needs the password.
+- **Surprise.** Pick only "not before 14:00": the pause starts at a random
+  moment in the next two hours, so there's no hour to plan your scrolling
+  around.
+- **After long use.** When the screen has been on for a while without a
+  break (45 minutes, say), a short pause starts by itself, with a heads-up
+  five minutes before. It counts screen-on time only, never which apps you
+  use. Calls and the apps that stay don't count, and it never starts at
+  night (23:00–7:00). "Not now" works up to three times a day, unless it's
+  protected.
 
 ## Small Rituals
 

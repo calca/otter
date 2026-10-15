@@ -34,7 +34,10 @@ Play Console.
    by CI becomes the *upload* key. Keep a backup of it outside GitHub.
 4. **Fill in App content** with [`declarations.md`](declarations.md),
    including the **Accessibility video** (record it on a real phone:
-   disclosure → enable → start a pause → open a blocked app).
+   disclosure → enable → start a pause → open a blocked app). The
+   Accessibility description changed on 2026-10-15 ("After long use"): if
+   the declaration was already filled in, paste the new text and make
+   sure the video shows the current disclosure.
 5. **Upload the AAB to Internal testing** first, install it from Play on
    your own phone, and check the things the emulator couldn't
    (scheduled-pause notification, NFC between two phones, Quick Settings

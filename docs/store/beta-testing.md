@@ -5,13 +5,13 @@
 **IT**
 
 ```
-Prima versione di prova di Calm Otter. Una pausa vera dal telefono: tocca l'otter e per il tempo che scegli si ferma tutto, tranne il telefono e poche app. Prova anche "Con un tocco" (avvicina due telefoni per una pausa insieme), le pause programmate e il widget. Qualcosa non va o hai un'idea? Impostazioni → Info → Invia un commento.
+Prima versione di prova di Calm Otter. Una pausa vera dal telefono: tocca l'otter e per il tempo che scegli si ferma tutto, tranne il telefono e poche app. Prova anche "Con un tocco" (avvicina due telefoni per una pausa insieme), le pause programmate e a sorpresa, la pausa dopo un uso lungo e il widget. Qualcosa non va o hai un'idea? Impostazioni → Info → Invia un commento.
 ```
 
 **EN**
 
 ```
-First test build of Calm Otter. A real break from your phone: tap the otter and, for as long as you choose, everything stops but the phone and a few apps. Also try "One tap" (hold two phones together for a pause together), scheduled pauses and the widget. Something off, or an idea? Settings → About → Send feedback.
+First test build of Calm Otter. A real break from your phone: tap the otter and, for as long as you choose, everything stops but the phone and a few apps. Also try "One tap" (hold two phones together for a pause together), scheduled and surprise pauses, the pause after long use and the widget. Something off, or an idea? Settings → About → Send feedback.
 ```
 
 ## A short guide for testers
@@ -37,7 +37,12 @@ it leaves your phone.
 - **Time together** without NFC: a QR or a code, or the Bluetooth lobby.
 - **Scheduled pauses**: Settings → Automatic → Scheduled pauses. Allow
   "Alarms & reminders" when asked, set one in a few minutes, lock the phone
-  and leave it.
+  and leave it. Then try one with **Surprise** on: it starts at a random
+  moment in the two hours after the time you pick.
+- **After long use**: Settings → Automatic → After long use, set "After" to
+  20 min and use the phone normally. A heads-up should come 5 minutes
+  before the pause; try "Not now" once. It doesn't start between 23:00
+  and 7:00.
 - **The widget** on your home screen, and the "Calm Otter" tile in Quick
   Settings.
 - **A phone call during a pause**: it should always get through.
