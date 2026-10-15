@@ -149,7 +149,7 @@ fun SettingsScreen(
             .fillMaxSize()
             .safeDrawingPadding()
             .verticalScroll(rememberScrollState())
-            .padding(24.dp)
+            .padding(horizontal = PageMargin, vertical = 24.dp)
     ) {
         // Ordine: Tema, Password, Home, Pausa, Permessi, Info — segnalato
         // ("riordina le sezioni"). Tema e Password in cima perché sono le

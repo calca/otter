@@ -149,7 +149,7 @@ fun GroupPauseCountdownScreen(
     // pagina intera, mentre Cancel resta l'ultima cosa in basso a
     // prescindere da quanto contenuto porta [header] (vuoto per il
     // countdown "puro" dopo una lobby dal vivo, pieno per il percorso QR).
-    CalmScreenColumn(contentPadding = PaddingValues(32.dp), verticalArrangement = Arrangement.Top) {
+    CalmScreenColumn(contentPadding = PaddingValues(horizontal = PageMargin, vertical = 32.dp), verticalArrangement = Arrangement.Top) {
         CenteredInRemainingSpace {
             OtterZenMark(markSize = 88.dp, modifier = Modifier.padding(bottom = 14.dp))
             header(minutes, seconds)

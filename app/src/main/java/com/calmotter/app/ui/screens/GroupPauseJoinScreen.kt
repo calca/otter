@@ -187,7 +187,7 @@ private fun ManualCodeScreen(
     val invalidCodeText = stringResource(R.string.group_pause_invalid_code)
     val otherVersionText = stringResource(R.string.group_pause_other_version)
 
-    CalmScreenColumn(contentPadding = PaddingValues(horizontal = 24.dp, vertical = 16.dp), verticalArrangement = Arrangement.Top) {
+    CalmScreenColumn(contentPadding = PaddingValues(horizontal = PageMargin, vertical = 16.dp), verticalArrangement = Arrangement.Top) {
         Row(modifier = Modifier.fillMaxWidth()) {
             IconButton(onClick = onCancel) {
                 Icon(
@@ -197,7 +197,7 @@ private fun ManualCodeScreen(
                 )
             }
         }
-        CenteredInRemainingSpace(modifier = Modifier.padding(horizontal = 8.dp)) {
+        CenteredInRemainingSpace {
             OtterRingIllustration(dashed = false) { OtterZenMark(markSize = 88.dp) }
             Text(
                 text = stringResource(R.string.group_pause_join_title),
@@ -330,7 +330,7 @@ private fun ScanFullScreen(
                         )
                     )
                     .safeDrawingPadding()
-                    .padding(24.dp)
+                    .padding(horizontal = PageMargin, vertical = 24.dp)
             ) {
                 Text(
                     text = stringResource(R.string.group_pause_scan_instruction),

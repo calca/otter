@@ -108,7 +108,7 @@ fun GroupPauseChooserScreen(
                 Column(
                     modifier = Modifier
                         .verticalScroll(rememberScrollState())
-                        .padding(horizontal = 24.dp)
+                        .padding(horizontal = PageMargin)
                         .padding(bottom = 24.dp),
                     horizontalAlignment = Alignment.CenterHorizontally,
                 ) {

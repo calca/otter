@@ -229,7 +229,7 @@ fun GroupPauseBluetoothLobbyHostScreen(
     // *nello spazio sopra i bottoni*, invece che nella pagina intera, mentre
     // i bottoni (e il banner sotto di loro, invariato) restano l'ultima cosa
     // in basso indipendentemente da quanto contenuto c'è sopra.
-    CalmScreenColumn(contentPadding = PaddingValues(32.dp), verticalArrangement = Arrangement.Top) {
+    CalmScreenColumn(contentPadding = PaddingValues(horizontal = PageMargin, vertical = 32.dp), verticalArrangement = Arrangement.Top) {
         CenteredInRemainingSpace {
             ParticipantRing(participantNames = participantNames, ready = allReady)
 

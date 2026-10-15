@@ -238,7 +238,7 @@ private fun OverviewPage(
         modifier = Modifier
             .fillMaxSize()
             .verticalScroll(rememberScrollState())
-            .padding(horizontal = 16.dp, vertical = 12.dp),
+            .padding(horizontal = PageMargin, vertical = 12.dp),
     ) {
         StatsBar(sessions = sessions, modifier = Modifier.fillMaxWidth())
         WeeklyGoalCard(
@@ -285,14 +285,14 @@ private fun MonthList(sessions: List<SessionRecord>, now: Long) {
             color = MaterialTheme.colorScheme.primary,
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(start = 16.dp, top = 14.dp, end = 16.dp, bottom = 4.dp),
+                .padding(start = PageMargin, top = 14.dp, end = PageMargin, bottom = 4.dp),
         )
         if (group.sessions.isEmpty()) {
             Text(
                 text = stringResource(R.string.history_month_empty),
                 fontSize = 13.sp,
                 color = MaterialTheme.colorScheme.muted(0.6f),
-                modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
+                modifier = Modifier.padding(horizontal = PageMargin, vertical = 4.dp),
             )
         }
         group.sessions.forEach { session -> SessionRow(session) }
@@ -386,7 +386,7 @@ private fun SessionRow(session: SessionRecord) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 4.dp),
+            .padding(horizontal = PageMargin, vertical = 4.dp),
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.04f)

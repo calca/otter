@@ -94,7 +94,7 @@ fun ChangePasswordScreen(
         modifier = Modifier
             .fillMaxSize()
             .safeDrawingPadding()
-            .padding(24.dp)
+            .padding(horizontal = PageMargin, vertical = 24.dp)
     ) {
         Column(
             modifier = Modifier

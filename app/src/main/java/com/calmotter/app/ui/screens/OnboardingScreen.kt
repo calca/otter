@@ -121,7 +121,7 @@ fun OnboardingScreen(
                 .fillMaxWidth()
                 .weight(1f)
                 .verticalScroll(rememberScrollState())
-                .padding(32.dp),
+                .padding(horizontal = PageMargin, vertical = 32.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             when (currentStep) {
@@ -236,7 +236,7 @@ fun OnboardingScreen(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(24.dp),
+                .padding(horizontal = PageMargin, vertical = 24.dp),
             // `spacedBy` e non `.padding(top = 8.dp)` sul secondo bottone:
             // applicato *dopo* `.height(48.dp)` nella catena di modifier, il
             // padding veniva "mangiato" dentro l'altezza già fissata invece

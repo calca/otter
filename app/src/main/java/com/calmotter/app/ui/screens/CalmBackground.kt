@@ -532,6 +532,23 @@ enum class CalmPillSize(val horizontal: Dp, val vertical: Dp, val fontSize: Text
 internal val CtaPadding = PaddingValues(horizontal = 24.dp)
 
 /**
+ * Margine laterale di ogni pagina, uno solo per tutta l'app. Prima ce
+ * n'erano quattro (16, 24, 32, 40dp) a seconda della schermata, e le CTA a
+ * fondo pagina cambiavano larghezza passando da una all'altra ("Sblocca"
+ * più stretto di "Con un tocco" nello stesso punto dello schermo). Le CTA
+ * ancorate in fondo stanno a tutta larghezza dentro questo margine.
+ */
+val PageMargin = 24.dp
+
+/**
+ * Rientro in più per il solo testo centrato di più righe (frasi, spiegazioni)
+ * sulle pagine "a otter" (blocco, lobby, chiusura): è ciò che prima davano
+ * i margini da 32-40dp, cioè righe più corte, senza stringere anche bottoni
+ * e card.
+ */
+val CenteredTextInset = 16.dp
+
+/**
  * La pillola di scelta dell'app, una sola per tutte le schermate: prima ne
  * esistevano sette copie quasi uguali (durate in Home e in lobby, minuti
  * della pagina QR, obiettivo, profili, risposte del momento di chiusura,

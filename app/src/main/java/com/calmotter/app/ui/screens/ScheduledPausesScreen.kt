@@ -125,7 +125,7 @@ fun ScheduledPausesScreen(
             modifier = Modifier
                 .weight(1f)
                 .verticalScroll(rememberScrollState())
-                .padding(horizontal = 24.dp, vertical = 16.dp),
+                .padding(horizontal = PageMargin, vertical = 16.dp),
         ) {
             Text(
                 text = stringResource(R.string.schedule_intro),
@@ -222,7 +222,7 @@ fun ScheduledPausesScreen(
             onClick = { onEdit(newScheduledPause()) },
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 24.dp, vertical = 16.dp)
+                .padding(horizontal = PageMargin, vertical = 16.dp)
                 .heightIn(min = 52.dp),
         ) {
             Text(stringResource(R.string.schedule_add))
@@ -276,7 +276,7 @@ fun ScheduleEditorScreen(
             modifier = Modifier
                 .weight(1f)
                 .verticalScroll(rememberScrollState())
-                .padding(horizontal = 24.dp, vertical = 16.dp),
+                .padding(horizontal = PageMargin, vertical = 16.dp),
         ) {
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
@@ -423,7 +423,7 @@ fun ScheduleEditorScreen(
             },
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 24.dp, vertical = 16.dp)
+                .padding(horizontal = PageMargin, vertical = 16.dp)
                 .heightIn(min = 52.dp),
         ) {
             Text(stringResource(R.string.allowed_profile_save))

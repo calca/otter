@@ -233,7 +233,7 @@ fun BlockScreen(
     // volta sola, per entrambe le schermate. `headerHeight` resta a zero:
     // un'intestazione questa schermata non ce l'ha.
     OtterAnchoredScreen(
-        horizontalPadding = 40.dp,
+        horizontalPadding = PageMargin,
         // 48dp di bottone + 12dp di distacco dal contenuto sopra + 24dp di
         // margine dal fondo vero dello schermo — stessi tre numeri usati
         // dentro [footer] qui sotto, ripetuti qui perché la colonna
@@ -425,7 +425,7 @@ fun BlockScreen(
                 textAlign = TextAlign.Center,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(bottom = 28.dp)
+                    .padding(start = CenteredTextInset, end = CenteredTextInset, bottom = 28.dp)
             )
         }
 
@@ -445,7 +445,7 @@ fun BlockScreen(
         // app consentite configurate, telefono + 3 app + sblocco erano 5
         // badge da 64dp l'uno più le spaziature, ~384dp di contenuto — più
         // largo dei ~280-300dp disponibili su un telefono reale stretto
-        // (`horizontalPadding = 40.dp` per lato tolti dalla larghezza dello
+        // (allora `horizontalPadding = 40.dp` per lato tolti dalla larghezza dello
         // schermo), quindi l'ultimo badge — lo sblocco stesso — finiva
         // tagliato fuori senza alcun modo di raggiungerlo (niente scroll
         // orizzontale, di proposito: vedi la nota storica più sotto).
@@ -593,7 +593,7 @@ private fun ReleaseOthersStep(
     // punto, quindi quello persistente (o quello disegnato qui) non salta
     // quando questo passo prende il posto del blocco.
     OtterAnchoredScreen(
-        horizontalPadding = 40.dp,
+        horizontalPadding = PageMargin,
         otter = {
             if (drawOtter) {
                 val floatOffset = otterFloatOffset ?: rememberOtterFloatOffset(periodMillis = 5200)
@@ -615,6 +615,7 @@ private fun ReleaseOthersStep(
             text = stringResource(R.string.release_others_body),
             color = MaterialTheme.colorScheme.muted(0.75f),
             textAlign = TextAlign.Center,
+            modifier = Modifier.padding(horizontal = CenteredTextInset),
         )
         TextButton(onClick = onDone, modifier = Modifier.padding(top = 24.dp)) {
             Text(stringResource(R.string.release_others_done))

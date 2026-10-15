@@ -52,7 +52,7 @@ fun QuickTogetherReaderScreen(
     onOtherWays: () -> Unit,
     onBack: () -> Unit,
 ) {
-    CalmScreenColumn(contentPadding = PaddingValues(horizontal = 24.dp, vertical = 16.dp), verticalArrangement = Arrangement.Top) {
+    CalmScreenColumn(contentPadding = PaddingValues(horizontal = PageMargin, vertical = 16.dp), verticalArrangement = Arrangement.Top) {
         Row(modifier = Modifier.fillMaxWidth()) {
             IconButton(onClick = onBack) {
                 Icon(
@@ -62,7 +62,7 @@ fun QuickTogetherReaderScreen(
                 )
             }
         }
-        CenteredInRemainingSpace(modifier = Modifier.padding(horizontal = 8.dp)) {
+        CenteredInRemainingSpace {
             // 200dp come la ricerca di "Unisciti": è la stessa attesa.
             OtterRingIllustration(dashed = true, pulsing = true, size = 200.dp) { OtterTapMark(markSize = 96.dp) }
             Text(

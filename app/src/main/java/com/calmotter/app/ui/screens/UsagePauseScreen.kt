@@ -58,7 +58,7 @@ fun UsagePauseScreen(
             .fillMaxSize()
             .safeDrawingPadding()
             .verticalScroll(rememberScrollState())
-            .padding(horizontal = 24.dp, vertical = 16.dp),
+            .padding(horizontal = PageMargin, vertical = 16.dp),
     ) {
         Text(
             text = stringResource(R.string.usage_pause_explain),

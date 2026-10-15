@@ -247,7 +247,7 @@ fun GroupPauseBluetoothLobbyJoinScreen(
     // in una Column interna con weight(1f) e la stessa `Arrangement.Center`
     // che CalmScreenColumn usava di default per tutto, Cancel resta
     // l'ultimo fratello non pesato.
-    CalmScreenColumn(contentPadding = PaddingValues(32.dp), verticalArrangement = Arrangement.Top) {
+    CalmScreenColumn(contentPadding = PaddingValues(horizontal = PageMargin, vertical = 32.dp), verticalArrangement = Arrangement.Top) {
         CenteredInRemainingSpace {
             when (val current = state) {
                 JoinLobbyState.Listening -> {

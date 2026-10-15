@@ -231,7 +231,7 @@ fun MainScreen(
     }
 
     OtterAnchoredScreen(
-        horizontalPadding = 24.dp,
+        horizontalPadding = PageMargin,
         headerHeight = HomeHeaderHeight,
         // Stessa riserva di BlockScreen: il bottone in fondo cade nello
         // stesso punto di "Sblocca", e alla partenza della pausa l'uno
@@ -266,11 +266,11 @@ fun MainScreen(
                     if (quickTogether != null) OtterTapMark(markSize = 20.dp) else TogetherMark(markSize = 20.dp)
                 },
                 contentPadding = CtaPadding,
-                // 16dp in più per lato: con i 24 della Home fanno i 40 di
-                // BlockScreen, così il bottone ha la stessa larghezza di "Sblocca".
+                // Stessa larghezza di "Sblocca": entrambe le schermate hanno
+                // [PageMargin].
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(start = 16.dp, end = 16.dp, top = 12.dp, bottom = 24.dp)
+                    .padding(top = 12.dp, bottom = 24.dp)
                     .heightIn(min = 48.dp),
             )
         },

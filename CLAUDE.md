@@ -146,7 +146,10 @@ to the bottom of the screen, full width, and the content above it scrolls
 on its own — never a button that ends up somewhere mid-page depending on
 how long the content is. Secondary/destructive actions don't share that
 spot (ActionBar menu or a quieter text button). Dialogs keep the standard
-M3 button row.
+M3 button row. Every page uses the same side margin, `PageMargin` (24dp,
+in `CalmBackground.kt`), never a literal: bottom CTAs are full width inside
+it, so they line up across pages; centered multi-line prose that should run
+narrower adds `CenteredTextInset` on the text only.
 
 **Pause logic lives outside the composables.** `BlockSessionController`
 decides who can release whom and how a pause ends (password, NFC, natural

@@ -61,7 +61,7 @@ fun ClosingMomentScreen(
     // Domanda e risposte centrate nello spazio sopra; "Salta" e "Fatto" fissi
     // in fondo (regola della CTA in CLAUDE.md) invece che a metà pagina con
     // mezza pagina vuota sotto — come nella lobby di Tempo insieme.
-    CalmScreenColumn(contentPadding = PaddingValues(32.dp), verticalArrangement = Arrangement.Top) {
+    CalmScreenColumn(contentPadding = PaddingValues(horizontal = PageMargin, vertical = 32.dp), verticalArrangement = Arrangement.Top) {
         CenteredInRemainingSpace {
             OtterZenMark(markSize = 96.dp)
             Text(
