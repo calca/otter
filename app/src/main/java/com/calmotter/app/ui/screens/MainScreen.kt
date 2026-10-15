@@ -69,17 +69,6 @@ import com.calmotter.app.ui.mascot.TogetherMark
 // ora mostrata come riga di chip invece che come NumberPicker a rotellina,
 // vedi DurationChipRow).
 /**
- * Larghezza del bottone "Tempo insieme", come frazione della pagina.
- *
- * Nasce per tenerlo allineato al riepilogo sessioni, che era una pastiglia
- * come lui. Ora quello è un link di testo e la pastiglia è rimasta una
- * sola, ma la misura resta fissa e non legata al testo: "Tempo insieme" si
- * traduce, e un bottone che cambia larghezza con la lingua sposterebbe il
- * baricentro della colonna sotto lo stagno.
- */
-private const val HOME_PILL_WIDTH_FRACTION = 0.72f
-
-/**
  * Altezza della striscia che contiene l'intestazione della Home: padding
  * superiore (24dp) + intestazione (48dp, che è l'altezza dell'IconButton
  * delle impostazioni, non quella del testo) + padding sotto (24dp).
@@ -244,6 +233,47 @@ fun MainScreen(
     OtterAnchoredScreen(
         horizontalPadding = 24.dp,
         headerHeight = HomeHeaderHeight,
+        // Stessa riserva di BlockScreen: il bottone in fondo cade nello
+        // stesso punto di "Sblocca", e alla partenza della pausa l'uno
+        // sfuma nell'altro senza spostarsi. Solo fuori pausa: durante una
+        // pausa la Home non ha azioni da offrire lì.
+        footerHeight = if (sessionActive) 0.dp else 84.dp,
+        footer = {
+            // Un solo bottone per stare insieme, ancorato al fondo come le
+            // altre CTA dell'app: sotto il riepilogo cambiava posto con la
+            // lunghezza del contenuto. Con due affiancati ("Con un tocco" e
+            // "Tempo insieme") il fondo della Home era troppo affollato. Con
+            // l'NFC è "Con un tocco", il modo più rapido; QR, codice e
+            // Bluetooth si raggiungono da lì (QuickTogetherReaderScreen).
+            // Senza NFC è "Tempo insieme". Tinto e non pieno: non compete
+            // con il tocco sull'otter, che resta l'azione primaria. Stesso
+            // controllo dei permessi.
+            val quickTogether = onQuickTogether
+            CalmSecondaryButton(
+                text = stringResource(
+                    if (quickTogether != null) R.string.quick_together_button else R.string.group_pause_entry_button
+                ),
+                onClick = {
+                    when {
+                        !BuildConfig.DEBUG && !(accessibilityOk && dndOk) -> onOtterTap()
+                        quickTogether != null -> quickTogether(selectedDurationMinutes)
+                        else -> onGroupPause(selectedDurationMinutes)
+                    }
+                },
+                // Non sotto i 20dp: le due impronte hanno otto polpastrelli
+                // fra loro, e più piccole si impastano in una macchia sola.
+                leadingIcon = {
+                    if (quickTogether != null) OtterTapMark(markSize = 20.dp) else TogetherMark(markSize = 20.dp)
+                },
+                contentPadding = CtaPadding,
+                // 16dp in più per lato: con i 24 della Home fanno i 40 di
+                // BlockScreen, così il bottone ha la stessa larghezza di "Sblocca".
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(start = 16.dp, end = 16.dp, top = 12.dp, bottom = 24.dp)
+                    .heightIn(min = 48.dp),
+            )
+        },
         background = { otterCenterY ->
             // Solo qui, non nella schermata di blocco (che non passa questo
             // slot): le increspature sono l'attesa di avviare una pausa, non
@@ -375,36 +405,6 @@ fun MainScreen(
                         !ClosingMomentActivity.startIfPending(context) -> onHistorySessions()
                     }
                 },
-            )
-
-            // Un solo bottone per stare insieme, sotto il riepilogo: con due
-            // affiancati ("Con un tocco" e "Tempo insieme") il fondo della
-            // Home era troppo affollato. Con l'NFC è "Con un tocco", il modo
-            // più rapido; QR, codice e Bluetooth si raggiungono da lì
-            // (QuickTogetherReaderScreen). Senza NFC è "Tempo insieme".
-            // Tinto e non pieno: non compete con il tocco sull'otter, che
-            // resta l'azione primaria. Stesso controllo dei permessi.
-            val quickTogether = onQuickTogether
-            CalmSecondaryButton(
-                text = stringResource(
-                    if (quickTogether != null) R.string.quick_together_button else R.string.group_pause_entry_button
-                ),
-                onClick = {
-                    when {
-                        !BuildConfig.DEBUG && !(accessibilityOk && dndOk) -> onOtterTap()
-                        quickTogether != null -> quickTogether(selectedDurationMinutes)
-                        else -> onGroupPause(selectedDurationMinutes)
-                    }
-                },
-                // Non sotto i 20dp: le due impronte hanno otto polpastrelli
-                // fra loro, e più piccole si impastano in una macchia sola.
-                leadingIcon = {
-                    if (quickTogether != null) OtterTapMark(markSize = 20.dp) else TogetherMark(markSize = 20.dp)
-                },
-                modifier = Modifier
-                    .padding(top = 20.dp)
-                    .fillMaxWidth(HOME_PILL_WIDTH_FRACTION)
-                    .heightIn(min = 48.dp),
             )
         }
     }

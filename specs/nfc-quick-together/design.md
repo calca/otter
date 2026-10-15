@@ -51,7 +51,8 @@ B → A   OK  |  REFUSED(state)
 ## A's side
 
 Home has **one** button for pausing together (`MainScreen.onQuickTogether`,
-null without NFC): **"One tap"** ("Con un tocco") with NFC, opening
+null without NFC), anchored at the bottom in the `OtterAnchoredScreen`
+footer, same slot and width as BlockScreen's "Unlock": **"One tap"** ("Con un tocco") with NFC, opening
 `QuickTogetherActivity` in reader mode; "Time together", the existing
 chooser, without. It used to show both side by side in one row (stacked,
 Home overflowed on a Samsung), but two tinted pills under the summary line
