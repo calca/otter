@@ -65,7 +65,11 @@ android {
 
     buildTypes {
         release {
-            isMinifyEnabled = false
+            // R8: Play segnalava "DEX code optimization below threshold —
+            // Obfuscation 1%". Il mapping finisce dentro l'AAB
+            // (BUNDLE-METADATA), Play lo usa da solo per deoffuscare i crash.
+            isMinifyEnabled = true
+            isShrinkResources = true
             signingConfig = signingConfigs.getByName("release")
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
         }
