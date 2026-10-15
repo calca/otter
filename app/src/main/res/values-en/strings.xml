@@ -404,6 +404,13 @@
     <string name="schedule_skip_next">Skip the next one</string>
     <string name="schedule_delete">Delete pause</string>
     <string name="schedule_summary_short">%1$s · for %2$s</string>
+    <string name="schedule_kind_fixed">At a set time</string>
+    <string name="schedule_kind_surprise">Surprise</string>
+    <string name="schedule_surprise_tag">surprise</string>
+    <string name="schedule_window_from_label">Not before</string>
+    <string name="schedule_window_to_label">Over by</string>
+    <string name="schedule_summary_surprise">%1$s · for %2$s, at a surprise time</string>
+    <string name="schedule_surprise_heads_up">A surprise pause starts in 5 minutes.</string>
     <string name="schedule_pick_a_day">Choose at least one day</string>
     <string name="schedule_every_day">Every day</string>
     <string name="schedule_weekdays">Mon–Fri</string>

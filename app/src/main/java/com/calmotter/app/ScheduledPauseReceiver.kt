@@ -44,12 +44,26 @@ object ScheduleAlarms {
         cancel(context, schedule.id)
         if (!schedule.enabled) return
         val now = System.currentTimeMillis()
-        val at = nextOccurrence(schedule, now) ?: return
+        val at = (if (schedule.isSurprise) surpriseStart(context, schedule, now) else nextOccurrence(schedule, now)) ?: return
         val am = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
         if (at - HEADS_UP_MILLIS > now) {
             set(am, at - HEADS_UP_MILLIS, pendingIntent(context, schedule.id, at, ScheduledPauseReceiver.ACTION_HEADS_UP))
         }
         set(am, at, pendingIntent(context, schedule.id, at, ScheduledPauseReceiver.ACTION_START))
+    }
+
+    /**
+     * L'estrazione già fatta se è ancora davanti, altrimenti una nuova,
+     * salvata subito: [armAll] gira a ogni apertura dell'app, e senza
+     * salvarla ogni apertura tirerebbe di nuovo i dadi
+     * (specs/surprise-pauses/).
+     */
+    private fun surpriseStart(context: Context, schedule: ScheduledPause, now: Long): Long? {
+        if (schedule.drawnAt > now && schedule.drawnAt > schedule.skipUntil) return schedule.drawnAt
+        val drawn = nextSurpriseStart(schedule, now) ?: return null
+        val manager = ScheduleManager.getInstance(context)
+        manager.byId(schedule.id)?.let { manager.save(it.copy(drawnAt = drawn)) }
+        return drawn
     }
 
     /** `true` se gli allarmi possono essere esatti (permesso "Sveglie e promemoria"). */
@@ -93,8 +107,13 @@ class ScheduledPauseReceiver : BroadcastReceiver() {
         when (intent.action) {
             ACTION_HEADS_UP -> {
                 if (schedule.enabled && at > schedule.skipUntil && !sessionManager.isSessionActive()) {
-                    notify(context, HEADS_UP_NOTIFICATION_ID + schedule.id,
-                        context.getString(R.string.schedule_heads_up, DateFormat.getTimeInstance(DateFormat.SHORT).format(Date(at))),
+                    // A sorpresa l'ora non si dice nemmeno qui: "tra 5 minuti".
+                    val text = if (schedule.isSurprise) {
+                        context.getString(R.string.schedule_surprise_heads_up)
+                    } else {
+                        context.getString(R.string.schedule_heads_up, DateFormat.getTimeInstance(DateFormat.SHORT).format(Date(at)))
+                    }
+                    notify(context, HEADS_UP_NOTIFICATION_ID + schedule.id, text,
                         // L'avviso vale fino alla partenza: dopo non dice più nulla.
                         timeoutMillis = (at - System.currentTimeMillis()).coerceAtLeast(1L))
                 }

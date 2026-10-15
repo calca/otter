@@ -221,6 +221,7 @@ class ScreenScreenshotTest(private val night: Boolean) {
             schedules = listOf(
                 ScheduledPause(id = 1, days = 0b0011111, startMinuteOfDay = 21 * 60, durationMinutes = 60),
                 ScheduledPause(id = 2, days = 0b1000000, startMinuteOfDay = 9 * 60, durationMinutes = 120, enabled = false),
+                ScheduledPause(id = 3, days = 0b0011111, startMinuteOfDay = 14 * 60, durationMinutes = 30, windowEndMinuteOfDay = 18 * 60),
             ),
             onToggle = {},
             onEdit = {},
@@ -231,6 +232,18 @@ class ScreenScreenshotTest(private val night: Boolean) {
     fun scheduleEditor() = capture("schedule-editor") {
         ScheduleEditorScreen(
             original = ScheduledPause(id = 1, days = 0b0011111, startMinuteOfDay = 21 * 60, durationMinutes = 60),
+            profiles = AllowedAppsManager.getInstance(context).profiles(),
+            onSave = {},
+            onSkipNext = {},
+        )
+    }
+
+    @Test
+    fun scheduleEditorSurprise() = capture("schedule-editor-surprise") {
+        ScheduleEditorScreen(
+            original = ScheduledPause(
+                id = 1, days = 0b0011111, startMinuteOfDay = 14 * 60, durationMinutes = 30, windowEndMinuteOfDay = 18 * 60,
+            ),
             profiles = AllowedAppsManager.getInstance(context).profiles(),
             onSave = {},
             onSkipNext = {},

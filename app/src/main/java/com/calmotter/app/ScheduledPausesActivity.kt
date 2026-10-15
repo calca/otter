@@ -85,8 +85,8 @@ class ScheduledPausesActivity : BaseActivity() {
                         onSave = { updated -> saveGuarded(updated) { editing = null } },
                         onSkipNext = {
                             guard(current.locked) {
-                                val next = nextOccurrence(current, System.currentTimeMillis()) ?: return@guard
-                                save(current.copy(skipUntil = next))
+                                val skipUntil = skipNextUntil(current) ?: return@guard
+                                save(current.copy(skipUntil = skipUntil, drawnAt = 0L))
                                 editing = null
                             }
                         },
@@ -138,8 +138,24 @@ class ScheduledPausesActivity : BaseActivity() {
         }
     }
 
+    /**
+     * Fin dove salta "salta la prossima". A sorpresa tutta la finestra di
+     * quel giorno, non solo l'istante estratto: altrimenti la nuova
+     * estrazione potrebbe cadere più tardi nella stessa finestra.
+     */
+    private fun skipNextUntil(schedule: ScheduledPause): Long? {
+        val now = System.currentTimeMillis()
+        if (!schedule.isSurprise) return nextOccurrence(schedule, now)
+        val stored = manager.byId(schedule.id) ?: schedule
+        val next = stored.drawnAt.takeIf { it > now } ?: nextSurpriseStart(stored, now) ?: return null
+        return surpriseWindowEndOn(stored, next)
+    }
+
     private fun save(schedule: ScheduledPause) {
-        val saved = manager.save(schedule)
+        // Giorni, durata o finestra cambiati: l'estrazione vecchia non vale più.
+        val old = manager.byId(schedule.id)
+        val toSave = if (old != null && schedule.drawChangedFrom(old)) schedule.copy(drawnAt = 0L) else schedule
+        val saved = manager.save(toSave)
         ScheduleAlarms.arm(this, saved)
         schedules = manager.all()
     }

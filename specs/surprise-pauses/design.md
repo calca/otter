@@ -1,6 +1,6 @@
 # Surprise Pauses — Design
 
-> **Status: Proposed** (2026-10-15).
+> **Status: Implemented** (2026-10-15).
 
 ## Shape: a field on `ScheduledPause`, not a new feature
 
@@ -75,15 +75,40 @@ with tests.
 
 Editor (`ScheduleEditorScreen`):
 
-- Under the large time, a two-option segmented row: "At a set time" /
-  "Surprise". For a surprise, the large time becomes "14:00 – 18:00",
-  two tappable times, each opening the same `TimePickerDialog`; the summary
-  line reads "Mon–Fri · 30 min, sometime in between".
-- Changing the duration may push the minimum window: "to" moves forward
-  quietly (criterion 1.2).
+- Above the large time, two `CalmPill`s: "At a set time" / "Surprise"
+  (the app's choice pills, not M3's segmented row, whose colors come from
+  roles the palettes don't set). For a surprise, the large time becomes
+  "14:00 – 18:00": two tappable times at 40 sp, each opening the same
+  `TimePickerDialog` titled "Not before" / "Over by". The summary line
+  reads "Mon–Fri · for 30 min, at a surprise time".
+- `surpriseWindow(from, to, duration)` (pure) keeps the window valid
+  without error messages (criterion 1.2): "to" rises to the minimum, and if
+  that would pass midnight "from" moves back. A later "from" carries "to"
+  along. Changing the duration re-applies it.
 
-List row: the dice/sparkle icon in place of the clock; "between 14:00 and
-18:00".
+List row: "14:00–18:00 · 30 min", with "Mon–Fri · surprise" under it. No
+icon.
+
+## As built: notes
+
+- **One draw per day.** After a surprise pause starts, `drawnAt` stays in
+  the past and marks that day as used: the next draw starts from the
+  following day, so the re-arm in the receiver doesn't put a second pause
+  in the same afternoon.
+- **"Skip the next one"** sets `skipUntil` to the end of that day's window
+  (`surpriseWindowEndOn`), not to the drawn instant. Otherwise the new draw
+  could land later in the same window. It also clears `drawnAt`.
+- **The draw is redone only when something it depends on changes**
+  (`drawChangedFrom`: days, duration, window). Saving the editor unchanged
+  keeps the draw, so a protected surprise can't be rerolled by opening and
+  saving it.
+- **Corrupted data doesn't crash.** A window outside the day (only
+  reachable by hand-editing storage) draws nothing. Before this guard it
+  crashed `MainActivity` on open, inside `armAll`. Found on the emulator.
+- **Verified on the API 37 emulator.** The draw stays the same across three
+  app opens and the heads-up is armed 5 minutes earlier. At the drawn time
+  the pause starts and the block covers the app already in front (issue
+  #1's fix), and the next draw moves to the following day.
 
 Strings (IT / EN):
 

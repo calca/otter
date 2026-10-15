@@ -55,6 +55,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.stringResource
@@ -70,7 +71,9 @@ import com.calmotter.app.DEFAULT_SESSION_DURATION_MINUTES
 import com.calmotter.app.R
 import com.calmotter.app.SESSION_DURATION_OPTIONS
 import com.calmotter.app.ScheduledPause
+import com.calmotter.app.SURPRISE_EXTRA_MINUTES
 import com.calmotter.app.durationPillLabel
+import com.calmotter.app.surpriseWindow
 import com.calmotter.app.ui.mascot.OtterZenMark
 import java.time.DayOfWeek
 import java.time.format.TextStyle
@@ -173,7 +176,7 @@ fun ScheduledPausesScreen(
                         Column(modifier = Modifier.weight(1f)) {
                             Row(verticalAlignment = Alignment.CenterVertically) {
                                 Text(
-                                    text = timeLabel(schedule.startMinuteOfDay) + " · " + durationPillLabel(schedule.durationMinutes),
+                                    text = startLabel(schedule) + " · " + durationPillLabel(schedule.durationMinutes),
                                     fontSize = 18.sp,
                                     fontWeight = FontWeight.SemiBold,
                                     color = MaterialTheme.colorScheme.primary,
@@ -188,7 +191,11 @@ fun ScheduledPausesScreen(
                                 }
                             }
                             Text(
-                                text = daysLabel(schedule.days, locale),
+                                text = if (schedule.isSurprise) {
+                                    daysLabel(schedule.days, locale) + " · " + stringResource(R.string.schedule_surprise_tag)
+                                } else {
+                                    daysLabel(schedule.days, locale)
+                                },
                                 color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.75f),
                             )
                         }
@@ -240,7 +247,23 @@ fun ScheduleEditorScreen(
     var duration by remember { mutableIntStateOf(original.durationMinutes) }
     var profileId by remember { mutableIntStateOf(original.profileId) }
     var minute by remember { mutableIntStateOf(original.startMinuteOfDay) }
-    var pickingTime by remember { mutableStateOf(false) }
+    // A sorpresa (specs/surprise-pauses/): [minute] è l'inizio della
+    // finestra, [windowEnd] la fine. La finestra si tiene valida da sola
+    // ([surpriseWindow]): niente messaggi d'errore.
+    var surprise by remember { mutableStateOf(original.isSurprise) }
+    var windowEnd by remember {
+        mutableIntStateOf(
+            if (original.isSurprise) original.windowEndMinuteOfDay
+            else original.startMinuteOfDay + original.durationMinutes + SURPRISE_EXTRA_MINUTES * 3
+        )
+    }
+    fun normalizeWindow() {
+        if (!surprise) return
+        val (from, to) = surpriseWindow(minute, windowEnd, duration)
+        minute = from
+        windowEnd = to
+    }
+    var pickingTime by remember { mutableStateOf<TimeField?>(null) }
     var locked by remember { mutableStateOf(original.locked) }
     var pickingProfile by remember { mutableStateOf(false) }
     val isNew = original.id == 0
@@ -260,24 +283,55 @@ fun ScheduleEditorScreen(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 modifier = Modifier.fillMaxWidth().padding(top = 8.dp, bottom = 8.dp),
             ) {
-                Surface(
-                    onClick = { pickingTime = true },
-                    shape = RoundedCornerShape(24.dp),
-                    color = MaterialTheme.colorScheme.tertiary.copy(alpha = 0.55f),
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    modifier = Modifier.padding(bottom = 16.dp),
                 ) {
-                    Text(
-                        text = timeLabel(minute),
+                    CalmPill(
+                        label = stringResource(R.string.schedule_kind_fixed),
+                        selected = !surprise,
+                        onClick = { surprise = false },
+                    )
+                    CalmPill(
+                        label = stringResource(R.string.schedule_kind_surprise),
+                        selected = surprise,
+                        onClick = { surprise = true; normalizeWindow() },
+                    )
+                }
+                if (surprise) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        BigTime(
+                            minute = minute,
+                            fontSize = 40.sp,
+                            description = stringResource(R.string.schedule_window_from_label),
+                            onClick = { pickingTime = TimeField.WindowStart },
+                        )
+                        Text(
+                            text = "–",
+                            fontSize = 32.sp,
+                            color = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.padding(horizontal = 8.dp),
+                        )
+                        BigTime(
+                            minute = windowEnd,
+                            fontSize = 40.sp,
+                            description = stringResource(R.string.schedule_window_to_label),
+                            onClick = { pickingTime = TimeField.WindowEnd },
+                        )
+                    }
+                } else {
+                    BigTime(
+                        minute = minute,
                         fontSize = 56.sp,
-                        fontWeight = FontWeight.SemiBold,
-                        color = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.padding(horizontal = 32.dp, vertical = 4.dp),
+                        description = stringResource(R.string.schedule_time_label),
+                        onClick = { pickingTime = TimeField.Start },
                     )
                 }
                 Text(
-                    text = if (days == 0) {
-                        stringResource(R.string.schedule_pick_a_day)
-                    } else {
-                        stringResource(R.string.schedule_summary_short, daysLabel(days, locale), durationPillLabel(duration))
+                    text = when {
+                        days == 0 -> stringResource(R.string.schedule_pick_a_day)
+                        surprise -> stringResource(R.string.schedule_summary_surprise, daysLabel(days, locale), durationPillLabel(duration))
+                        else -> stringResource(R.string.schedule_summary_short, daysLabel(days, locale), durationPillLabel(duration))
                     },
                     color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.65f),
                     modifier = Modifier.padding(top = 10.dp),
@@ -294,7 +348,7 @@ fun ScheduleEditorScreen(
                     DayCircles(days = days, locale = locale, onChange = { days = it })
                     Spacer(Modifier.height(16.dp))
                     CardDivider()
-                    DurationStepper(duration = duration, onChange = { duration = it })
+                    DurationStepper(duration = duration, onChange = { duration = it; normalizeWindow() })
                 }
             }
 
@@ -351,6 +405,7 @@ fun ScheduleEditorScreen(
                     original.copy(
                         days = days,
                         startMinuteOfDay = minute,
+                        windowEndMinuteOfDay = if (surprise) windowEnd else -1,
                         durationMinutes = duration,
                         profileId = profileId,
                         enabled = if (isNew) true else original.enabled,
@@ -375,11 +430,47 @@ fun ScheduleEditorScreen(
             onDismiss = { pickingProfile = false },
         )
     }
-    if (pickingTime) {
+    pickingTime?.let { field ->
         TimeDialog(
-            initialMinute = minute,
-            onDismiss = { pickingTime = false },
-            onConfirm = { minute = it; pickingTime = false },
+            title = stringResource(
+                when (field) {
+                    TimeField.Start -> R.string.schedule_time_label
+                    TimeField.WindowStart -> R.string.schedule_window_from_label
+                    TimeField.WindowEnd -> R.string.schedule_window_to_label
+                }
+            ),
+            initialMinute = if (field == TimeField.WindowEnd) windowEnd else minute,
+            onDismiss = { pickingTime = null },
+            onConfirm = {
+                if (field == TimeField.WindowEnd) windowEnd = it else minute = it
+                // Una fine troppo vicina all'inizio si allunga da sola; un
+                // inizio spostato in avanti si porta dietro la fine.
+                if (field == TimeField.WindowStart) windowEnd = maxOf(windowEnd, it)
+                normalizeWindow()
+                pickingTime = null
+            },
+        )
+    }
+}
+
+/** Quale ora sta scegliendo il dialogo. */
+private enum class TimeField { Start, WindowStart, WindowEnd }
+
+/** L'ora grande in cima alla pagina, da toccare per cambiarla. */
+@Composable
+private fun BigTime(minute: Int, fontSize: TextUnit, description: String, onClick: () -> Unit) {
+    Surface(
+        onClick = onClick,
+        shape = RoundedCornerShape(24.dp),
+        color = MaterialTheme.colorScheme.tertiary.copy(alpha = 0.55f),
+        modifier = Modifier.semantics { contentDescription = description + " " + timeLabel(minute) },
+    ) {
+        Text(
+            text = timeLabel(minute),
+            fontSize = fontSize,
+            fontWeight = FontWeight.SemiBold,
+            color = MaterialTheme.colorScheme.primary,
+            modifier = Modifier.padding(horizontal = if (fontSize.value > 48f) 32.dp else 18.dp, vertical = 4.dp),
         )
     }
 }
@@ -423,7 +514,7 @@ private fun RowIcon(icon: ImageVector) = Icon(
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun TimeDialog(initialMinute: Int, onDismiss: () -> Unit, onConfirm: (Int) -> Unit) {
+private fun TimeDialog(title: String, initialMinute: Int, onDismiss: () -> Unit, onConfirm: (Int) -> Unit) {
     val state = rememberTimePickerState(
         initialHour = initialMinute / 60,
         initialMinute = initialMinute % 60,
@@ -432,7 +523,7 @@ private fun TimeDialog(initialMinute: Int, onDismiss: () -> Unit, onConfirm: (In
     var mode by remember { mutableStateOf(TimePickerDisplayMode.Picker) }
     TimePickerDialog(
         onDismissRequest = onDismiss,
-        title = { Text(stringResource(R.string.schedule_time_label)) },
+        title = { Text(title) },
         confirmButton = {
             TextButton(onClick = { onConfirm(state.hour * 60 + state.minute) }) {
                 Text(stringResource(R.string.allowed_profile_save))
@@ -539,6 +630,11 @@ private fun calmTimePickerColors(): TimePickerColors {
 }
 
 private fun timeLabel(minuteOfDay: Int): String = "%02d:%02d".format(minuteOfDay / 60, minuteOfDay % 60)
+
+/** "21:00", o per una pausa a sorpresa la finestra "14:00–18:00" (mai l'ora estratta). */
+private fun startLabel(schedule: ScheduledPause): String =
+    if (schedule.isSurprise) timeLabel(schedule.startMinuteOfDay) + "–" + timeLabel(schedule.windowEndMinuteOfDay)
+    else timeLabel(schedule.startMinuteOfDay)
 
 @Composable
 private fun daysLabel(days: Int, locale: Locale): String = when (days) {

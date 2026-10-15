@@ -407,6 +407,13 @@
     <string name="schedule_skip_next">Salta la prossima</string>
     <string name="schedule_delete">Elimina pausa</string>
     <string name="schedule_summary_short">%1$s · per %2$s</string>
+    <string name="schedule_kind_fixed">A un\'ora precisa</string>
+    <string name="schedule_kind_surprise">A sorpresa</string>
+    <string name="schedule_surprise_tag">a sorpresa</string>
+    <string name="schedule_window_from_label">Non prima delle</string>
+    <string name="schedule_window_to_label">Finita entro le</string>
+    <string name="schedule_summary_surprise">%1$s · per %2$s, a un\'ora a sorpresa</string>
+    <string name="schedule_surprise_heads_up">Tra 5 minuti parte una pausa a sorpresa.</string>
     <string name="schedule_pick_a_day">Scegli almeno un giorno</string>
     <string name="schedule_every_day">Ogni giorno</string>
     <string name="schedule_weekdays">Lun–Ven</string>
