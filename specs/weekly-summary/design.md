@@ -22,8 +22,10 @@ is posted when the pause ends.
 
 The "week" is the same one the History week card uses, so the count
 always agrees with it: it comes from the same function (`weeklyChartData`),
-not a parallel computation. Only the number of pauses is shown, through a
-plural resource (`weekly_note_pauses`), never time.
+not a parallel computation. The count and the total minutes both come
+from it (`WeeklySummary.noteText`, plural `weekly_note_pauses` with the time
+as `durationPillLabel`, "2 h 30"). The time was added on 2026-10-15; see
+requirements.md.
 
 ## Decisioni prese
 

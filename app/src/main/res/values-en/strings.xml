@@ -69,14 +69,6 @@
         <item quantity="other">%1$d hours</item>
     </plurals>
     <string name="countdown_hours_minutes">%1$s %2$s</string>
-    <string-array name="notification_encouragement_phrases">
-        <item>A moment for you</item>
-        <item>The phone can wait</item>
-        <item>Slow down for a moment</item>
-        <item>It\'s okay to just be</item>
-        <item>Take care of yourself</item>
-        <item>No rush</item>
-    </string-array>
     <string name="hint_unlock_password">Password</string>
     <string name="unlock">Unlock</string>
     <string name="wrong_password">Incorrect password</string>
@@ -94,6 +86,13 @@
 
     <string name="notification_channel_name">Pause in progress</string>
     <string name="notification_channel_description">Shows the status of the pause in progress</string>
+    <string name="pause_notification_title">You\'re on a pause</string>
+    <string name="pause_notification_together">Time together with %1$s</string>
+    <string name="pause_notification_together_plain">Time together</string>
+    <string name="pause_notification_remaining">About %1$s left</string>
+    <string name="pause_notification_near_end">Almost over</string>
+    <string name="pause_not_started_title">The pause didn\'t start</string>
+    <string name="pause_not_started_text">Two permissions are needed: tap to fix them.</string>
 
     <string name="history_tab_overview">Overview</string>
     <string name="history_tab_sessions">Pauses</string>
@@ -384,8 +383,8 @@
     </plurals>
     <!-- Pause programmate (specs/scheduled-pauses/) -->
     <string name="schedule_channel_name">Scheduled pauses</string>
-    <string name="schedule_heads_up">Your scheduled pause starts at %1$s.</string>
-    <string name="schedule_missing_permissions">The scheduled pause didn\'t start: Calm Otter is missing its permissions.</string>
+    <string name="schedule_heads_up">Your pause starts at %1$s</string>
+    <string name="schedule_heads_up_text">In 5 minutes, for %1$s.</string>
     <!-- Pause programmate: schermata -->
     <string name="schedule_title">Scheduled pauses</string>
     <string name="schedule_intro">Pauses that start by themselves, on the days and at the time you choose.</string>
@@ -410,7 +409,8 @@
     <string name="schedule_window_from_label">Not before</string>
     <string name="schedule_window_to_label">Over by</string>
     <string name="schedule_summary_surprise">%1$s · for %2$s, at a surprise time</string>
-    <string name="schedule_surprise_heads_up">A surprise pause starts in 5 minutes.</string>
+    <string name="schedule_surprise_heads_up">A surprise pause in 5 minutes</string>
+    <string name="schedule_surprise_heads_up_text">For %1$s.</string>
     <string name="schedule_pick_a_day">Choose at least one day</string>
     <string name="schedule_every_day">Every day</string>
     <string name="schedule_weekdays">Mon–Fri</string>
@@ -427,6 +427,7 @@
     <string name="settings_schedule_none">None</string>
     <string name="usage_pause_title">After long use</string>
     <string name="usage_pause_channel_name">Pause after long use</string>
+    <string name="usage_pause_heads_up_title">A %1$s pause in 5 minutes</string>
     <string name="usage_pause_explain">A pause that starts by itself when you\'ve been on your phone for a long time. It counts the time with the screen on, without looking at which apps you use, and resets after 5 minutes with the screen off.</string>
     <string name="usage_pause_needs_permissions">It needs Calm Otter\'s Accessibility, the same as the pause: without it, nothing is counted.</string>
     <string name="usage_pause_after">After</string>
@@ -435,17 +436,17 @@
     <string name="usage_pause_duration">Pause</string>
     <string name="usage_pause_locked_hint">A pact: no “Not now”, and switching it off, delaying or shortening it will need the password.</string>
     <string name="usage_pause_rules">A heads-up comes 5 minutes before, with “Not now” up to 3 times a day. Calls and the apps that stay don\'t count, and at night, from 23:00 to 7:00, it doesn\'t start.</string>
-    <string name="usage_pause_heads_up">You\'ve been on your phone for %1$s. A %2$s pause starts in 5 minutes.</string>
+    <string name="usage_pause_heads_up">You\'ve been on your phone for %1$s.</string>
     <string name="usage_pause_not_now">Not now</string>
-    <string name="usage_pause_missing_permissions">The pause after long use didn\'t start: Calm Otter is missing its permissions.</string>
     <string name="usage_pause_password_prompt">This change loosens the pause after long use: the password is needed.</string>
     <string name="usage_pause_lock_prompt">Protecting the pause after long use needs the password.</string>
     <string name="usage_pause_settings_value">After %1$s</string>
     <!-- Nota della settimana (specs/weekly-summary/) -->
     <string name="weekly_note_channel">Weekly note</string>
+    <string name="weekly_note_title">Your week</string>
     <plurals name="weekly_note_pauses">
-        <item quantity="one">This week: %1$d pause of calm.</item>
-        <item quantity="other">This week: %1$d pauses of calm.</item>
+        <item quantity="one">%1$d pause, %2$s in all.</item>
+        <item quantity="other">%1$d pauses, %2$s in all.</item>
     </plurals>
     <string name="weekly_note_toggle_label">Sunday evening note</string>
     <string name="weekly_note_notifications_off">Calm Otter\'s notifications are off</string>
@@ -480,7 +481,8 @@
     <string name="quick_together_refused_setup">%1$s needs to finish setting up Calm Otter first.</string>
     <string name="quick_together_not_ready">The other phone didn\'t answer. Hold the phones together a moment longer.</string>
     <string name="quick_together_channel">Pauses together</string>
-    <string name="quick_together_notification">%1$s proposes a pause together · %2$s</string>
+    <string name="quick_together_notification">%1$s proposes a pause together</string>
+    <string name="quick_together_notification_text">%1$s, starting now.</string>
     <string name="quick_together_join">Join</string>
     <string name="quick_together_nfc_off">Turn on NFC to start a pause together with one tap.</string>
 </resources>

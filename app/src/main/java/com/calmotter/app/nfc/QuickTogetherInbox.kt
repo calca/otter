@@ -77,14 +77,11 @@ object QuickTogetherInbox {
         val open = PendingIntent.getActivity(
             context, 0, intent, PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT,
         )
-        val text = context.getString(
-            R.string.quick_together_notification,
-            proposal.name,
-            durationPillLabel(proposal.durationMinutes),
-        )
+        val title = context.getString(R.string.quick_together_notification, proposal.name)
+        val text = context.getString(R.string.quick_together_notification_text, durationPillLabel(proposal.durationMinutes))
         val notification = NotificationCompat.Builder(context, CHANNEL_ID)
             .setSmallIcon(R.drawable.ic_tile_otter)
-            .setContentTitle(context.getString(R.string.app_name))
+            .setContentTitle(title)
             .setContentText(text)
             .setPriority(NotificationCompat.PRIORITY_HIGH)
             .setCategory(NotificationCompat.CATEGORY_RECOMMENDATION)

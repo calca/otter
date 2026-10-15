@@ -41,7 +41,7 @@ class WeeklySummaryTest {
     }
 
     @Test
-    fun theAlarmPostsOneNoteWithThePauseCountOnly() {
+    fun theAlarmPostsOneNoteWithThePausesAndTheirTime() {
         val context = androidx.test.core.app.ApplicationProvider.getApplicationContext<android.content.Context>()
         org.robolectric.Shadows.shadowOf(context as android.app.Application)
             .grantPermissions(android.Manifest.permission.POST_NOTIFICATIONS)
@@ -58,7 +58,9 @@ class WeeklySummaryTest {
         val nm = context.getSystemService(android.app.NotificationManager::class.java)
         val posted = org.robolectric.Shadows.shadowOf(nm).allNotifications
         assertEquals(1, posted.size)
+        val title = posted[0].extras.getCharSequence(android.app.Notification.EXTRA_TITLE).toString()
         val text = posted[0].extras.getCharSequence(android.app.Notification.EXTRA_TEXT).toString()
-        assertEquals(context.resources.getQuantityString(R.plurals.weekly_note_pauses, 3, 3), text)
+        assertEquals(context.getString(R.string.weekly_note_title), title)
+        assertEquals(context.resources.getQuantityString(R.plurals.weekly_note_pauses, 3, 3, "3 h"), text)
     }
 }

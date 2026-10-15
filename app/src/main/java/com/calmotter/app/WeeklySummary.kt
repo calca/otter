@@ -52,6 +52,12 @@ object WeeklySummary {
     /** Le pause da contare: quelle della scheda settimanale; 0 = nessuna nota. */
     fun pauseCount(sessions: List<SessionRecord>): Int = weeklyChartData(sessions).second
 
+    /** "3 pause, 2 h 30 in tutto.": le stesse pause della scheda settimanale e il loro tempo. */
+    fun noteText(context: Context, sessions: List<SessionRecord>): String {
+        val (_, count, minutes) = weeklyChartData(sessions)
+        return context.resources.getQuantityString(R.plurals.weekly_note_pauses, count, count, durationPillLabel(minutes))
+    }
+
     /** La prossima domenica alle 20:00 dopo [now] (ora locale, ora legale compresa). */
     @VisibleForTesting
     internal fun nextSundayEvening(now: Long, zone: ZoneId = ZoneId.systemDefault()): Long {
@@ -95,8 +101,8 @@ object WeeklySummary {
     }
 
     private fun post(context: Context) {
-        val count = pauseCount(SessionHistoryManager.getInstance(context).getAll())
-        if (count == 0) return
+        val sessions = SessionHistoryManager.getInstance(context).getAll()
+        if (pauseCount(sessions) == 0) return
         // Controllo esplicito qui e non solo in notificationsAllowed(): lint
         // lo riconosce solo accanto a notify(). Il permesso non si chiede
         // mai per questa sola funzione.
@@ -114,8 +120,8 @@ object WeeklySummary {
         )
         val notification = NotificationCompat.Builder(context, CHANNEL_ID)
             .setSmallIcon(R.drawable.ic_tile_otter)
-            .setContentTitle(context.getString(R.string.app_name))
-            .setContentText(context.resources.getQuantityString(R.plurals.weekly_note_pauses, count, count))
+            .setContentTitle(context.getString(R.string.weekly_note_title))
+            .setContentText(noteText(context, sessions))
             .setContentIntent(open)
             .setAutoCancel(true)
             .build()

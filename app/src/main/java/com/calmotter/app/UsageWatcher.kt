@@ -217,10 +217,7 @@ internal class UsageWatcher(private val context: Context, private val handler: H
         cancelHeadsUp()
         manager.clearRound()
         if (!ScheduledPauseReceiver.permissionsGranted(context)) {
-            ScheduledPauseReceiver.notify(
-                context, ScheduledPauseReceiver.START_FAILED_NOTIFICATION_ID,
-                context.getString(R.string.usage_pause_missing_permissions), showPermissions = true,
-            )
+            ScheduledPauseReceiver.notifyNotStarted(context)
             counter.reset(System.currentTimeMillis())
             save()
             return
@@ -250,16 +247,12 @@ internal class UsageWatcher(private val context: Context, private val handler: H
             Intent(context, MainActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK),
             PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT,
         )
-        val text = context.getString(
-            R.string.usage_pause_heads_up,
-            durationPillLabel((usedMillis / 60_000L).toInt()),
-            durationPillLabel(rule.durationMinutes),
-        )
+        val title = context.getString(R.string.usage_pause_heads_up_title, durationPillLabel(rule.durationMinutes))
+        val text = context.getString(R.string.usage_pause_heads_up, durationPillLabel((usedMillis / 60_000L).toInt()))
         val builder = NotificationCompat.Builder(context, CHANNEL_ID)
             .setSmallIcon(R.drawable.ic_tile_otter)
-            .setContentTitle(context.getString(R.string.usage_pause_title))
+            .setContentTitle(title)
             .setContentText(text)
-            .setStyle(NotificationCompat.BigTextStyle().bigText(text))
             .setContentIntent(open)
             .setCategory(NotificationCompat.CATEGORY_REMINDER)
             .setOnlyAlertOnce(true)

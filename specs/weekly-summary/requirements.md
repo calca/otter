@@ -18,9 +18,12 @@ pauses, so I notice them without having to look.
 ### Acceptance Criteria
 
 1. WHEN Sunday at 20:00 arrives AND the week had at least one pause THEN
-   the system SHALL show one notification with the number of pauses only:
-   "This week: 7 pauses of calm." (singular "1 pause of calm"). No hours
-   or minutes: the note acknowledges the habit, it doesn't measure it.
+   the system SHALL show one notification titled "Your week" with the
+   number of pauses and their total time: "7 pauses, 4 h 30 in all."
+   (singular "1 pause, 30 min in all"). Until 2026-10-15 it showed the count
+   only ("No hours or minutes: the note acknowledges the habit, it doesn't
+   measure it"); the total was added in the notification review, decided
+   with the user. It is still a total, never a comparison or a target.
 2. WHEN the week had no pauses THEN the system SHALL NOT send anything.
 3. The notification SHALL NOT mention streaks, goals missed, comparisons
    with other weeks or other people, and SHALL NOT use urgency.

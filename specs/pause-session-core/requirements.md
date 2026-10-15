@@ -36,9 +36,12 @@ accountability partner's block takes effect for that long.
    `AlarmManager` alarm (`setAndAllowWhileIdle`) for the end time, so the
    session terminates even if the app process is not running.
 4. WHEN a session starts THEN the system SHALL start a foreground service
-   showing a persistent, low-importance notification with the remaining
-   time and a rotating encouraging subtext, updated at least once per
-   minute.
+   showing a persistent, low-importance notification with the otter icon,
+   the title "You're on a pause" ("Time together with <name>" for a pause
+   together) and the remaining time rounded as on the block screen ("About
+   45 minutes left", "Almost over" under 5 minutes), updated at least once
+   per minute. No rotating phrases: until 2026-10-15 text and subtext were
+   picked at random on every update.
 5. WHEN a session starts THEN the system SHALL remember the chosen duration
    as the widget's default for next time.
 6. IF Do Not Disturb access has not been granted, WHEN the app applies the

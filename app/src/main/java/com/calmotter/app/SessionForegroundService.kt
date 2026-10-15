@@ -76,16 +76,18 @@ class SessionForegroundService : Service() {
             ((total - remaining).toFloat() / total * 100).toInt().coerceIn(0, 100)
         } else 0
 
-        val contentText = CalmCountdown.format(remaining, this)
-        // Per una pausa di gruppo (Tempo Insieme) il sottotesto smette di
-        // ruotare tra le frasi di incoraggiamento e mostra invece lo stesso
-        // indicatore fisso già usato da BlockScreen — coerenza tra le due
-        // superfici, non un secondo modo diverso di comunicare "è di gruppo".
-        val subText = if (sessionManager.isGroupSession()) {
-            getString(R.string.block_group_indicator)
-        } else {
-            resources.getStringArray(R.array.notification_encouragement_phrases).random()
+        // Il titolo dice cosa succede, il testo quanto manca (arrotondato
+        // come sulla schermata della pausa: contare i minuti è proprio ciò
+        // che la pausa toglie). Niente frasi a caso: prima testo e sottotesto
+        // cambiavano a ogni aggiornamento, ogni minuto, e la notifica di una
+        // pausa calma era la cosa più irrequieta della tendina.
+        val companions = sessionManager.companions()
+        val title = when {
+            !sessionManager.isGroupSession() -> getString(R.string.pause_notification_title)
+            companions.size == 1 -> getString(R.string.pause_notification_together, companions.single())
+            else -> getString(R.string.pause_notification_together_plain)
         }
+        val contentText = CalmCountdown.remainingText(remaining, this)
 
         // Tap sulla notifica → apre MainActivity
         val tapIntent = PendingIntent.getActivity(
@@ -95,10 +97,9 @@ class SessionForegroundService : Service() {
         )
 
         return Notification.Builder(this, CHANNEL_ID)
-            .setSmallIcon(android.R.drawable.ic_lock_idle_alarm)
-            .setContentTitle(getString(R.string.app_name))
+            .setSmallIcon(R.drawable.ic_tile_otter)
+            .setContentTitle(title)
             .setContentText(contentText)
-            .setSubText(subText)
             .setProgress(100, progress, false)
             .setOngoing(true)          // non eliminabile con swipe
             .setOnlyAlertOnce(true)    // nessun suono/vibrazione agli aggiornamenti

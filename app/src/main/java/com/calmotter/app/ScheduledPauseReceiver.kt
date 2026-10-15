@@ -108,12 +108,15 @@ class ScheduledPauseReceiver : BroadcastReceiver() {
             ACTION_HEADS_UP -> {
                 if (schedule.enabled && at > schedule.skipUntil && !sessionManager.isSessionActive()) {
                     // A sorpresa l'ora non si dice nemmeno qui: "tra 5 minuti".
-                    val text = if (schedule.isSurprise) {
-                        context.getString(R.string.schedule_surprise_heads_up)
+                    val duration = durationPillLabel(schedule.durationMinutes)
+                    val (title, text) = if (schedule.isSurprise) {
+                        context.getString(R.string.schedule_surprise_heads_up) to
+                            context.getString(R.string.schedule_surprise_heads_up_text, duration)
                     } else {
-                        context.getString(R.string.schedule_heads_up, DateFormat.getTimeInstance(DateFormat.SHORT).format(Date(at)))
+                        context.getString(R.string.schedule_heads_up, DateFormat.getTimeInstance(DateFormat.SHORT).format(Date(at))) to
+                            context.getString(R.string.schedule_heads_up_text, duration)
                     }
-                    notify(context, HEADS_UP_NOTIFICATION_ID + schedule.id, text,
+                    notify(context, HEADS_UP_NOTIFICATION_ID + schedule.id, title, text,
                         // L'avviso vale fino alla partenza: dopo non dice più nulla.
                         timeoutMillis = (at - System.currentTimeMillis()).coerceAtLeast(1L))
                 }
@@ -129,8 +132,7 @@ class ScheduledPauseReceiver : BroadcastReceiver() {
                     !permissionsGranted(context) ->
                         // Il tocco apre la Home sulla spiegazione dei permessi
                         // (come il widget), non una Home qualunque.
-                        notify(context, START_FAILED_NOTIFICATION_ID, context.getString(R.string.schedule_missing_permissions),
-                            showPermissions = true)
+                        notifyNotStarted(context)
                     else -> sessionManager.startSession(
                         schedule.durationMinutes,
                         // Nessuno l'ha scelta adesso: non cambia la durata proposta in Home.
@@ -150,12 +152,25 @@ class ScheduledPauseReceiver : BroadcastReceiver() {
         const val EXTRA_AT = "schedule_at"
         private const val CHANNEL_ID = "calm_otter_schedules"
         private const val HEADS_UP_NOTIFICATION_ID = 4000
-        internal const val START_FAILED_NOTIFICATION_ID = 3999
+        private const val START_FAILED_NOTIFICATION_ID = 3999
 
         internal fun permissionsGranted(context: Context): Boolean =
             BuildConfig.DEBUG || (isAccessibilityServiceEnabled(context) && isDndAccessGranted(context))
 
-        internal fun notify(context: Context, id: Int, text: String, timeoutMillis: Long? = null, showPermissions: Boolean = false) {
+        /** "La pausa non è partita": per le pause programmate e per quelle dopo un uso lungo. */
+        internal fun notifyNotStarted(context: Context) = notify(
+            context, START_FAILED_NOTIFICATION_ID,
+            context.getString(R.string.pause_not_started_title),
+            context.getString(R.string.pause_not_started_text),
+            showPermissions = true,
+        )
+
+        /**
+         * Il titolo dice cosa succede, il testo aggiunge un dettaglio: il
+         * nome dell'app Android lo mostra già sopra, ripeterlo come titolo
+         * spingeva tutto il messaggio in una riga lunga.
+         */
+        private fun notify(context: Context, id: Int, title: String, text: String, timeoutMillis: Long? = null, showPermissions: Boolean = false) {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
                 ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED
             ) return
@@ -172,7 +187,7 @@ class ScheduledPauseReceiver : BroadcastReceiver() {
             )
             val notification = NotificationCompat.Builder(context, CHANNEL_ID)
                 .setSmallIcon(R.drawable.ic_tile_otter)
-                .setContentTitle(context.getString(R.string.app_name))
+                .setContentTitle(title)
                 .setContentText(text)
                 .setContentIntent(open)
                 .setAutoCancel(true)

@@ -74,14 +74,6 @@
          lingua del dispositivo (bug reale: l'unico testo dell'app rimasto fuori
          da strings.xml). Tono di incoraggiamento, diverso dalle frasi
          riflessive di BlockScreen/pause_phrases. -->
-    <string-array name="notification_encouragement_phrases">
-        <item>Un momento per te</item>
-        <item>Il telefono può aspettare</item>
-        <item>Rallenta un attimo</item>
-        <item>Va tutto bene così</item>
-        <item>Prenditi cura di te</item>
-        <item>Nessuna fretta</item>
-    </string-array>
     <string name="hint_unlock_password">Password</string>
     <string name="unlock">Sblocca</string>
     <string name="wrong_password">Password non corretta</string>
@@ -99,6 +91,13 @@
 
     <string name="notification_channel_name">Pausa in corso</string>
     <string name="notification_channel_description">Mostra lo stato della pausa in corso</string>
+    <string name="pause_notification_title">Sei in pausa</string>
+    <string name="pause_notification_together">Tempo insieme con %1$s</string>
+    <string name="pause_notification_together_plain">Tempo insieme</string>
+    <string name="pause_notification_remaining">Ancora circa %1$s</string>
+    <string name="pause_notification_near_end">Quasi finita</string>
+    <string name="pause_not_started_title">La pausa non è partita</string>
+    <string name="pause_not_started_text">Servono due permessi: tocca per sistemarli.</string>
 
     <string name="history_tab_overview">Riepilogo</string>
     <string name="history_tab_sessions">Pause</string>
@@ -387,8 +386,8 @@
     </plurals>
     <!-- Pause programmate (specs/scheduled-pauses/) -->
     <string name="schedule_channel_name">Pause programmate</string>
-    <string name="schedule_heads_up">Alle %1$s inizia la pausa programmata.</string>
-    <string name="schedule_missing_permissions">La pausa programmata non è partita: mancano i permessi di Calm Otter.</string>
+    <string name="schedule_heads_up">Alle %1$s inizia la tua pausa</string>
+    <string name="schedule_heads_up_text">Tra 5 minuti, per %1$s.</string>
     <!-- Pause programmate: schermata -->
     <string name="schedule_title">Pause programmate</string>
     <string name="schedule_intro">Pause che partono da sole, nei giorni e all\'ora che scegli.</string>
@@ -413,7 +412,8 @@
     <string name="schedule_window_from_label">Non prima delle</string>
     <string name="schedule_window_to_label">Finita entro le</string>
     <string name="schedule_summary_surprise">%1$s · per %2$s, a un\'ora a sorpresa</string>
-    <string name="schedule_surprise_heads_up">Tra 5 minuti parte una pausa a sorpresa.</string>
+    <string name="schedule_surprise_heads_up">Tra 5 minuti, una pausa a sorpresa</string>
+    <string name="schedule_surprise_heads_up_text">Per %1$s.</string>
     <string name="schedule_pick_a_day">Scegli almeno un giorno</string>
     <string name="schedule_every_day">Ogni giorno</string>
     <string name="schedule_weekdays">Lun–Ven</string>
@@ -430,6 +430,7 @@
     <string name="settings_schedule_none">Nessuna</string>
     <string name="usage_pause_title">Dopo un uso lungo</string>
     <string name="usage_pause_channel_name">Pausa dopo un uso lungo</string>
+    <string name="usage_pause_heads_up_title">Tra 5 minuti, una pausa di %1$s</string>
     <string name="usage_pause_explain">Una pausa che parte da sola quando sei al telefono da tanto. Conta il tempo con lo schermo acceso, senza guardare quali app usi, e si azzera dopo 5 minuti a schermo spento.</string>
     <string name="usage_pause_needs_permissions">Serve l\'accessibilità di Calm Otter, la stessa della pausa: senza, il tempo non si conta.</string>
     <string name="usage_pause_after">Dopo</string>
@@ -438,17 +439,17 @@
     <string name="usage_pause_duration">Pausa</string>
     <string name="usage_pause_locked_hint">Un patto: niente “Non ora”, e per spegnerla, rimandarla o accorciarla servirà la password.</string>
     <string name="usage_pause_rules">Arriva un avviso 5 minuti prima, con “Non ora” al massimo 3 volte al giorno. Chiamate e app che restano non contano, e di notte, dalle 23 alle 7, non parte.</string>
-    <string name="usage_pause_heads_up">Sei al telefono da %1$s. Tra 5 minuti parte una pausa di %2$s.</string>
+    <string name="usage_pause_heads_up">Sei al telefono da %1$s.</string>
     <string name="usage_pause_not_now">Non ora</string>
-    <string name="usage_pause_missing_permissions">La pausa dopo un uso lungo non è partita: mancano i permessi di Calm Otter.</string>
     <string name="usage_pause_password_prompt">Questa modifica allenta la pausa dopo un uso lungo: serve la password.</string>
     <string name="usage_pause_lock_prompt">Proteggere la pausa dopo un uso lungo richiede la password.</string>
     <string name="usage_pause_settings_value">Dopo %1$s</string>
     <!-- Nota della settimana (specs/weekly-summary/) -->
     <string name="weekly_note_channel">Nota della settimana</string>
+    <string name="weekly_note_title">La tua settimana</string>
     <plurals name="weekly_note_pauses">
-        <item quantity="one">Questa settimana: %1$d pausa di calma.</item>
-        <item quantity="other">Questa settimana: %1$d pause di calma.</item>
+        <item quantity="one">%1$d pausa, %2$s in tutto.</item>
+        <item quantity="other">%1$d pause, %2$s in tutto.</item>
     </plurals>
     <string name="weekly_note_toggle_label">Nota della domenica sera</string>
     <string name="weekly_note_notifications_off">Le notifiche di Calm Otter sono spente</string>
@@ -483,7 +484,8 @@
     <string name="quick_together_refused_setup">%1$s deve prima finire di configurare Calm Otter.</string>
     <string name="quick_together_not_ready">L\'altro telefono non ha risposto. Tieni i telefoni vicini un momento in più.</string>
     <string name="quick_together_channel">Pause insieme</string>
-    <string name="quick_together_notification">%1$s ti propone una pausa insieme · %2$s</string>
+    <string name="quick_together_notification">%1$s ti propone una pausa insieme</string>
+    <string name="quick_together_notification_text">%1$s, da adesso.</string>
     <string name="quick_together_join">Unisciti</string>
     <string name="quick_together_nfc_off">Attiva l\'NFC per avviare una pausa insieme con un tocco.</string>
 </resources>

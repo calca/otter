@@ -63,9 +63,9 @@ moving it later or skipping tonight needs the password. That's the pact.
   calm, ordinary or hard, plus a few words if you like ("walk by the
   lake"). It ends up in History next to that pause. Never after a pause
   cut short — it's a nod to time well spent, not a reproach.
-- **A Sunday evening note.** Once a week, "This week: 7 pauses of calm."
-  Only the count, never hours, streaks, goals or comparisons, and nothing
-  at all if there were no pauses. One switch in Settings turns it off.
+- **A Sunday evening note.** Once a week, "Your week: 7 pauses, 4 h 30 in
+  all." Never streaks, goals or comparisons, and nothing at all if there
+  were no pauses. One switch in Settings turns it off.
 
 ## Home App
 

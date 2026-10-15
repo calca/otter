@@ -53,6 +53,17 @@ object CalmCountdown {
             .format(durationText(totalMinutes, context))
     }
 
+    /**
+     * Per la notifica della pausa in corso: sempre la stessa forma ("Ancora
+     * circa 45 minuti", sotto i 5 minuti "Quasi finita"), senza frasi a caso
+     * che cambierebbero a ogni aggiornamento.
+     */
+    fun remainingText(remainingMillis: Long, context: Context): String {
+        val totalMinutes = (remainingMillis / 60_000L).toInt()
+        if (totalMinutes < 5) return context.getString(R.string.pause_notification_near_end)
+        return context.getString(R.string.pause_notification_remaining, durationText(totalMinutes, context))
+    }
+
     /** "55 minuti", "1 ora", "3 ore e 45 minuti": vedi la doc dell'oggetto per gli arrotondamenti. */
     @VisibleForTesting
     internal fun durationText(totalMinutes: Int, context: Context): String {
