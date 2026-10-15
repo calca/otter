@@ -55,7 +55,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.Dp
-import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.stringResource
@@ -71,9 +70,8 @@ import com.calmotter.app.DEFAULT_SESSION_DURATION_MINUTES
 import com.calmotter.app.R
 import com.calmotter.app.SESSION_DURATION_OPTIONS
 import com.calmotter.app.ScheduledPause
-import com.calmotter.app.SURPRISE_EXTRA_MINUTES
 import com.calmotter.app.durationPillLabel
-import com.calmotter.app.surpriseWindow
+import com.calmotter.app.surpriseWindowFrom
 import com.calmotter.app.ui.mascot.OtterZenMark
 import java.time.DayOfWeek
 import java.time.format.TextStyle
@@ -247,23 +245,12 @@ fun ScheduleEditorScreen(
     var duration by remember { mutableIntStateOf(original.durationMinutes) }
     var profileId by remember { mutableIntStateOf(original.profileId) }
     var minute by remember { mutableIntStateOf(original.startMinuteOfDay) }
-    // A sorpresa (specs/surprise-pauses/): [minute] è l'inizio della
-    // finestra, [windowEnd] la fine. La finestra si tiene valida da sola
-    // ([surpriseWindow]): niente messaggi d'errore.
+    // A sorpresa (specs/surprise-pauses/): si sceglie solo "non prima
+    // delle" ([minute]); la fascia la calcola [surpriseWindowFrom], due ore
+    // per partire. Vicino a mezzanotte l'inizio può scendere da solo.
     var surprise by remember { mutableStateOf(original.isSurprise) }
-    var windowEnd by remember {
-        mutableIntStateOf(
-            if (original.isSurprise) original.windowEndMinuteOfDay
-            else original.startMinuteOfDay + original.durationMinutes + SURPRISE_EXTRA_MINUTES * 3
-        )
-    }
-    fun normalizeWindow() {
-        if (!surprise) return
-        val (from, to) = surpriseWindow(minute, windowEnd, duration)
-        minute = from
-        windowEnd = to
-    }
-    var pickingTime by remember { mutableStateOf<TimeField?>(null) }
+    val window = surpriseWindowFrom(minute, duration)
+    var pickingTime by remember { mutableStateOf(false) }
     var locked by remember { mutableStateOf(original.locked) }
     var pickingProfile by remember { mutableStateOf(false) }
     val isNew = original.id == 0
@@ -283,42 +270,22 @@ fun ScheduleEditorScreen(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 modifier = Modifier.fillMaxWidth().padding(top = 8.dp, bottom = 8.dp),
             ) {
-                if (surprise) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        BigTime(
-                            minute = minute,
-                            fontSize = 40.sp,
-                            description = stringResource(R.string.schedule_window_from_label),
-                            onClick = { pickingTime = TimeField.WindowStart },
-                        )
-                        Text(
-                            text = "–",
-                            fontSize = 32.sp,
-                            color = MaterialTheme.colorScheme.primary,
-                            modifier = Modifier.padding(horizontal = 8.dp),
-                        )
-                        BigTime(
-                            minute = windowEnd,
-                            fontSize = 40.sp,
-                            description = stringResource(R.string.schedule_window_to_label),
-                            onClick = { pickingTime = TimeField.WindowEnd },
-                        )
-                    }
-                } else {
-                    BigTime(
-                        minute = minute,
-                        fontSize = 56.sp,
-                        description = stringResource(R.string.schedule_time_label),
-                        onClick = { pickingTime = TimeField.Start },
-                    )
-                }
+                BigTime(
+                    minute = if (surprise) window.first else minute,
+                    description = stringResource(if (surprise) R.string.schedule_window_from_label else R.string.schedule_time_label),
+                    onClick = { pickingTime = true },
+                )
                 Text(
                     text = when {
                         days == 0 -> stringResource(R.string.schedule_pick_a_day)
-                        surprise -> stringResource(R.string.schedule_summary_surprise, daysLabel(days, locale), durationPillLabel(duration))
+                        // Due righe centrate: quando e quanto, poi la fascia
+                        // in cui può partire (su una riga sola andava a capo).
+                        surprise -> stringResource(R.string.schedule_summary_short, daysLabel(days, locale), durationPillLabel(duration)) +
+                            "\n" + stringResource(R.string.schedule_summary_surprise, timeLabel(window.first), timeLabel(window.second - duration))
                         else -> stringResource(R.string.schedule_summary_short, daysLabel(days, locale), durationPillLabel(duration))
                     },
                     color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.65f),
+                    textAlign = TextAlign.Center,
                     modifier = Modifier.padding(top = 10.dp),
                 )
             }
@@ -333,13 +300,13 @@ fun ScheduleEditorScreen(
                     DayCircles(days = days, locale = locale, onChange = { days = it })
                     Spacer(Modifier.height(16.dp))
                     CardDivider()
-                    DurationStepper(duration = duration, onChange = { duration = it; normalizeWindow() })
+                    DurationStepper(duration = duration, onChange = { duration = it })
                     CardDivider()
                     // A sorpresa (specs/surprise-pauses/): un interruttore
                     // come "Protetta da password", non due pillole in cima
                     // (scartate nella review: pesavano più dell'ora stessa).
                     // Acceso, in cima l'ora diventa una fascia.
-                    val toggleSurprise = { on: Boolean -> surprise = on; normalizeWindow() }
+                    val toggleSurprise = { on: Boolean -> surprise = on }
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
                         modifier = Modifier
@@ -420,8 +387,8 @@ fun ScheduleEditorScreen(
                 onSave(
                     original.copy(
                         days = days,
-                        startMinuteOfDay = minute,
-                        windowEndMinuteOfDay = if (surprise) windowEnd else -1,
+                        startMinuteOfDay = if (surprise) window.first else minute,
+                        windowEndMinuteOfDay = if (surprise) window.second else -1,
                         durationMinutes = duration,
                         profileId = profileId,
                         enabled = if (isNew) true else original.enabled,
@@ -446,35 +413,19 @@ fun ScheduleEditorScreen(
             onDismiss = { pickingProfile = false },
         )
     }
-    pickingTime?.let { field ->
+    if (pickingTime) {
         TimeDialog(
-            title = stringResource(
-                when (field) {
-                    TimeField.Start -> R.string.schedule_time_label
-                    TimeField.WindowStart -> R.string.schedule_window_from_label
-                    TimeField.WindowEnd -> R.string.schedule_window_to_label
-                }
-            ),
-            initialMinute = if (field == TimeField.WindowEnd) windowEnd else minute,
-            onDismiss = { pickingTime = null },
-            onConfirm = {
-                if (field == TimeField.WindowEnd) windowEnd = it else minute = it
-                // Una fine troppo vicina all'inizio si allunga da sola; un
-                // inizio spostato in avanti si porta dietro la fine.
-                if (field == TimeField.WindowStart) windowEnd = maxOf(windowEnd, it)
-                normalizeWindow()
-                pickingTime = null
-            },
+            title = stringResource(if (surprise) R.string.schedule_window_from_label else R.string.schedule_time_label),
+            initialMinute = if (surprise) window.first else minute,
+            onDismiss = { pickingTime = false },
+            onConfirm = { minute = it; pickingTime = false },
         )
     }
 }
 
-/** Quale ora sta scegliendo il dialogo. */
-private enum class TimeField { Start, WindowStart, WindowEnd }
-
 /** L'ora grande in cima alla pagina, da toccare per cambiarla. */
 @Composable
-private fun BigTime(minute: Int, fontSize: TextUnit, description: String, onClick: () -> Unit) {
+private fun BigTime(minute: Int, description: String, onClick: () -> Unit) {
     Surface(
         onClick = onClick,
         shape = RoundedCornerShape(24.dp),
@@ -483,10 +434,10 @@ private fun BigTime(minute: Int, fontSize: TextUnit, description: String, onClic
     ) {
         Text(
             text = timeLabel(minute),
-            fontSize = fontSize,
+            fontSize = 56.sp,
             fontWeight = FontWeight.SemiBold,
             color = MaterialTheme.colorScheme.primary,
-            modifier = Modifier.padding(horizontal = if (fontSize.value > 48f) 32.dp else 18.dp, vertical = 4.dp),
+            modifier = Modifier.padding(horizontal = 32.dp, vertical = 4.dp),
         )
     }
 }
@@ -647,9 +598,9 @@ private fun calmTimePickerColors(): TimePickerColors {
 
 private fun timeLabel(minuteOfDay: Int): String = "%02d:%02d".format(minuteOfDay / 60, minuteOfDay % 60)
 
-/** "21:00", o per una pausa a sorpresa la finestra "14:00–18:00" (mai l'ora estratta). */
+/** "21:00", o per una pausa a sorpresa quando può partire, "14:00–16:00" (mai l'ora estratta). */
 private fun startLabel(schedule: ScheduledPause): String =
-    if (schedule.isSurprise) timeLabel(schedule.startMinuteOfDay) + "–" + timeLabel(schedule.windowEndMinuteOfDay)
+    if (schedule.isSurprise) timeLabel(schedule.startMinuteOfDay) + "–" + timeLabel(schedule.windowEndMinuteOfDay - schedule.durationMinutes)
     else timeLabel(schedule.startMinuteOfDay)
 
 @Composable

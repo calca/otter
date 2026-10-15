@@ -90,6 +90,22 @@ const val LAST_MINUTE_OF_DAY = 24 * 60 - 1
 const val SURPRISE_EXTRA_MINUTES = 60
 
 /**
+ * Quanto può tardare una pausa a sorpresa rispetto a "non prima delle":
+ * si sceglie solo l'inizio, e la partenza cade a caso nelle due ore dopo
+ * (deciso con l'utente: un orario solo da scegliere, la fascia la calcola
+ * l'app). Due ore stanno sopra il minimo di [SURPRISE_EXTRA_MINUTES].
+ */
+const val SURPRISE_START_RANGE_MINUTES = 120
+
+/**
+ * La finestra di una pausa a sorpresa che non parte prima di [from]: fino a
+ * [SURPRISE_START_RANGE_MINUTES] di ritardo più la durata, accorciata (mai
+ * sotto il minimo) se sforerebbe la mezzanotte. Pura, per i test.
+ */
+fun surpriseWindowFrom(from: Int, duration: Int): Pair<Int, Int> =
+    surpriseWindow(from, from + SURPRISE_START_RANGE_MINUTES + duration, duration)
+
+/**
  * La finestra [from]–[to] resa valida per una pausa di [duration] minuti,
  * senza messaggi d'errore: "to" sale fino al minimo, e se il minimo
  * sforerebbe la mezzanotte scende "from". Pura, per i test.

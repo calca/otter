@@ -407,11 +407,10 @@
     <string name="schedule_delete">Elimina pausa</string>
     <string name="schedule_summary_short">%1$s · per %2$s</string>
     <string name="schedule_surprise_label">A sorpresa</string>
-    <string name="schedule_surprise_hint">Parte in un momento a caso dentro una fascia oraria.</string>
+    <string name="schedule_surprise_hint">Parte in un momento a caso nelle 2 ore dopo l\'orario scelto.</string>
     <string name="schedule_surprise_tag">a sorpresa</string>
     <string name="schedule_window_from_label">Non prima delle</string>
-    <string name="schedule_window_to_label">Finita entro le</string>
-    <string name="schedule_summary_surprise">%1$s · per %2$s, a un\'ora a sorpresa</string>
+    <string name="schedule_summary_surprise">Parte tra le %1$s e le %2$s</string>
     <string name="schedule_surprise_heads_up">Tra 5 minuti, una pausa a sorpresa</string>
     <string name="schedule_surprise_heads_up_text">Per %1$s.</string>
     <string name="schedule_pick_a_day">Scegli almeno un giorno</string>

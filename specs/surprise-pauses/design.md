@@ -79,17 +79,21 @@ Editor (`ScheduleEditorScreen`):
   and a one-line hint ("Starts at a random moment within a time window"),
   styled like "Protected by password". It started as two `CalmPill`s above
   the time ("At a set time" / "Surprise"), dropped in review because they
-  weighed more than the time itself. For a surprise, the large time becomes
-  "14:00 – 18:00": two tappable times at 40 sp, each opening the same
-  `TimePickerDialog` titled "Not before" / "Over by". The summary line
-  reads "Mon–Fri · for 30 min, at a surprise time".
-- `surpriseWindow(from, to, duration)` (pure) keeps the window valid
-  without error messages (criterion 1.2): "to" rises to the minimum, and if
-  that would pass midnight "from" moves back. A later "from" carries "to"
-  along. Changing the duration re-applies it.
+  weighed more than the time itself. For a surprise, the large time is
+  still a single time, "not before", opening the same `TimePickerDialog`
+  titled "Not before". Two centered lines sit under it: "Mon–Fri · for 30
+  min" and "Starts between 14:00 and 16:00".
+- `surpriseWindowFrom(from, duration)` (pure) computes the window:
+  `SURPRISE_START_RANGE_MINUTES` (120) to start, plus the duration.
+  `surpriseWindow` keeps it valid near midnight (criterion 1.2). Storage is
+  unchanged (`startMinuteOfDay` + `windowEndMinuteOfDay`), so surprises
+  saved with a hand-picked window keep working. Opening and saving one
+  recomputes its window, which counts as a change for the password rules.
+  First built with two times ("14:00 – 18:00", both tappable),
+  simplified at the user's request.
 
-List row: "14:00–18:00 · 30 min", with "Mon–Fri · surprise" under it. No
-icon.
+List row: the range in which it can start, "14:00–16:00 · 30 min", with
+"Mon–Fri · surprise" under it. No icon.
 
 ## As built: notes
 

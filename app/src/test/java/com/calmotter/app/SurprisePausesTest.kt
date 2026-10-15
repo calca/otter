@@ -109,6 +109,15 @@ class SurprisePausesTest {
     }
 
     @Test
+    fun onlyTheStartIsChosenAndTheWindowGivesTwoHoursToStart() {
+        assertEquals(14 * 60 to 16 * 60 + 30, surpriseWindowFrom(14 * 60, 30)) // parte fra le 14 e le 16
+        assertEquals(9 * 60 to 13 * 60, surpriseWindowFrom(9 * 60, 120))
+        // Vicino a mezzanotte la fascia si accorcia, mai sotto un'ora per partire.
+        assertEquals(22 * 60 to LAST_MINUTE_OF_DAY, surpriseWindowFrom(22 * 60, 30))
+        assertEquals(LAST_MINUTE_OF_DAY - 90 to LAST_MINUTE_OF_DAY, surpriseWindowFrom(23 * 60 + 30, 30))
+    }
+
+    @Test
     fun loosenedSurprisesNeedThePasswordWiderDoNot() {
         assertFalse(afternoon.copy(startMinuteOfDay = 13 * 60).isLooserThan(afternoon)) // più larga
         assertFalse(afternoon.copy(windowEndMinuteOfDay = 19 * 60).isLooserThan(afternoon))

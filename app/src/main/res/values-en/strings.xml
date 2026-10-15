@@ -404,11 +404,10 @@
     <string name="schedule_delete">Delete pause</string>
     <string name="schedule_summary_short">%1$s · for %2$s</string>
     <string name="schedule_surprise_label">Surprise</string>
-    <string name="schedule_surprise_hint">Starts at a random moment within a time window.</string>
+    <string name="schedule_surprise_hint">Starts at a random moment in the 2 hours after the time you pick.</string>
     <string name="schedule_surprise_tag">surprise</string>
     <string name="schedule_window_from_label">Not before</string>
-    <string name="schedule_window_to_label">Over by</string>
-    <string name="schedule_summary_surprise">%1$s · for %2$s, at a surprise time</string>
+    <string name="schedule_summary_surprise">Starts between %1$s and %2$s</string>
     <string name="schedule_surprise_heads_up">A surprise pause in 5 minutes</string>
     <string name="schedule_surprise_heads_up_text">For %1$s.</string>
     <string name="schedule_pick_a_day">Choose at least one day</string>

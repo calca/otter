@@ -24,12 +24,15 @@ inside a window I choose, so I can't arrange my phone use around it.
 
 1. WHEN the user adds or edits a scheduled pause THEN the editor SHALL
    offer a **"Surprise"** switch (off = at a set time, today's behavior;
-   on = a window "between <from> and <to>").
-2. The window SHALL be at least the pause's duration plus 1 hour (a 1 h
-   pause needs at least 2 h, e.g. 14:00–16:00), so the start can't be
-   guessed. It SHALL fit inside one day: no window across midnight. The
-   editor SHALL keep "to" from going below that minimum, with no error
-   message.
+   on = the user picks only "not before <time>").
+2. The window SHALL be computed by the app: the pause starts at a random
+   moment in the **2 hours** after "not before" (e.g. 14:00 → between
+   14:00 and 16:00), and ends inside the window. Near midnight the window
+   shortens, never below 1 hour to start (minimum: the duration plus 1
+   hour), moving "not before" earlier if needed, with no error message. It
+   SHALL fit inside one day: no window across midnight. (First built with
+   both ends chosen by the user; simplified on 2026-10-15 at the user's
+   request.)
 3. WHEN a surprise pause runs on a day THEN the system SHALL draw one start
    time, uniformly at random, between "from" and "to" minus the duration,
    so the pause ends inside the window.
