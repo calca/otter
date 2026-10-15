@@ -104,12 +104,13 @@ Strings (IT / EN):
 - Receiver: after the start, `drawnAt` is cleared and the next draw is in
   the future.
 
+## Decisions (2026-10-15)
+
+1. **Name**: "A sorpresa" / "Surprise" (decided). "Casuale" sounded like a bug.
+2. **Heads-up**: 5 minutes before, as for scheduled pauses (decided).
+
 ## Decisioni aperte
 
-1. **Name in the UI**: "A sorpresa" / "Surprise", or "Casuale" /
-   "Random"? Proposal: *sorpresa*. "Casuale" sounds like a bug.
-2. **Heads-up**: keep the 5 minutes (consistent with scheduled pauses,
-   kinder) or no warning (a truer surprise)? Proposal: keep it.
-3. **Minimum window**: duration + 30 min, or a fixed minimum of 1 h?
-4. **Windows across midnight** (22:00–01:00): left out to keep
+1. **Minimum window**: duration + 30 min, or a fixed minimum of 1 h?
+2. **Windows across midnight** (22:00–01:00): left out to keep
    `nextOccurrence` simple. Do we need them?

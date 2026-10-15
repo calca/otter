@@ -52,28 +52,39 @@ than 5 min, an allowed app in the middle, a call, reset after a pause.
 
 ## The trigger
 
-The service keeps one `Handler` callback aimed at "limit − used". It
-re-aims it on every event that changes the clock, and cancels it while
-the clock is stopped. Nothing ticks every minute. When it fires:
+The service keeps one `Handler` callback aimed at the next threshold.
+That is "limit − 5 min − used" before the heads-up, and "limit − used"
+after it. It re-aims the callback on every event that changes the clock
+and cancels it while the clock is stopped. Nothing ticks every minute.
+Both thresholds are in minutes **of use**, so a `Handler` is enough: the
+clock only runs with the screen on, and the bound Accessibility service
+keeps the process alive. No alarm is needed.
 
-1. Checks again: rule on, no pause active, no scheduled pause within
-   15 min (`nextOccurrence` over `ScheduleManager.all()`).
-2. Posts the heads-up (channel of the scheduled heads-up, high importance
-   so it peeks, `timeoutAfter` 1 min). It has a "Not now" action only for
-   an unprotected rule, a `PendingIntent` to `UsagePauseReceiver`.
-3. Arms the start with `AlarmManager.setExactAndAllowWhileIdle` if allowed,
-   otherwise a `Handler` with the screen on. One minute, screen almost
-   surely on, process alive thanks to the service, so the Handler alone
-   would do. The alarm is a guard for a process killed in between.
-4. The start goes through the same path as `ScheduledPauseReceiver`'s
-   `ACTION_START` (factor out `startScheduledLike(profileId, minutes)`):
-   `startSession(rememberDuration = false, profileId = …)`. Then
+At "limit − 5 min":
+
+1. Checks: rule on, no pause active, no scheduled pause within 15 min
+   (`nextOccurrence` over `ScheduleManager.all()`).
+2. Posts the heads-up on the scheduled heads-up's channel. It has "Not
+   now" only when the rule is unprotected **and** fewer than 3 "Not now"
+   have been used today. The action is a `PendingIntent` to
+   `UsagePauseReceiver`.
+
+At "limit":
+
+3. Removes the heads-up and starts the pause through the same path as
+   `ScheduledPauseReceiver`'s `ACTION_START` (factor out
+   `startScheduledLike(profileId, minutes)`): `startSession(rememberDuration
+   = false, profileId = …)`. Then
    `AppBlockerAccessibilityService.onSessionStarted()` covers the app in
    front at once (issue #1's fix).
 
-"Not now" cancels the start and sets the next trigger to `used + 15 min`.
+A reset of the count (a 5-minute break) in between removes the heads-up:
+the break has happened.
 
-A new request code in `AlarmIds` for the start alarm.
+"Not now" removes the heads-up and moves the limit 15 minutes later
+(`limit = used + 15 min`, so the next heads-up arrives after 10 more
+minutes of use). It also increments `notNowCount` for today, saved as
+`notNowDay` (epoch day) plus `notNowCount`. On a new day the count reads as 0.
 
 ## Storage and password
 
@@ -101,7 +112,7 @@ Strings (IT / EN):
 |---|---|---|
 | `usage_pause_title` | Dopo un uso lungo | After long use |
 | `usage_pause_after` | Dopo | After |
-| `usage_pause_heads_up` | Sei al telefono da %1$s. Tra un minuto parte una pausa di %2$s | You've been on your phone for %1$s. A %2$s pause starts in a minute |
+| `usage_pause_heads_up` | Sei al telefono da %1$s. Tra 5 minuti parte una pausa di %2$s | You've been on your phone for %1$s. A %2$s pause starts in 5 minutes |
 | `usage_pause_not_now` | Non ora | Not now |
 | `usage_pause_explain` | Conta il tempo con lo schermo acceso, senza guardare quali app usi. Si azzera dopo 5 minuti a schermo spento. | Counts the time with the screen on, without looking at which apps you use. It resets after 5 minutes with the screen off. |
 
@@ -112,20 +123,21 @@ the foreground package is the yes/no "is this a call or an app that
 stays", decided on the spot. The state is three timestamps. This goes in
 `docs/privacy-policy.md` in one sentence when it ships.
 
+## Decisions (2026-10-15)
+
+1. **Automatic start**, with a heads-up 5 minutes before (in minutes of
+   use), as for scheduled pauses. An invitation that starts nothing unless
+   tapped would be easy to ignore, and ignoring it is the problem this
+   feature exists for.
+2. **Apps that stay don't count**, including a feed if someone puts one
+   there: it's a pact of trust.
+3. **"Not now" at most 3 times a day**, only on an unprotected rule.
+
 ## Decisioni aperte
 
-1. **Proposal or automatic start?** Proposal: an automatic start after one
-   minute, with "Not now" only if unprotected. The alternative, a
-   notification "Take a pause?" that starts nothing unless tapped, is
-   kinder but easy to ignore, which is the problem it is meant to solve.
-2. **Allowed apps don't count**: right for Maps and calls, but if
-   someone puts Instagram among the apps that stay, it never counts. OK
-   (it's their choice), or count everything except calls?
-3. **Quiet hours**: don't propose at night (e.g. 23:00–07:00), when the
+1. **Quiet hours**: don't propose at night (e.g. 23:00–07:00), when the
    phone in bed is the problem but a forced pause at 1:00 isn't
    welcome? Or is that exactly when it helps?
-4. **Per-app limits** (a v2 with `UsageStats`): worth the extra permission
+2. **Per-app limits** (a v2 with `UsageStats`): worth the extra permission
    and Play declaration, or does it go against "it doesn't look at what you
    use"?
-5. **"Not now" limit**: unlimited every 15 min, or at most once per
-   count (the second time it starts without asking)?

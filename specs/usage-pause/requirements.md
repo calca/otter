@@ -33,14 +33,19 @@ don't notice it.
    not reset it.
 3. Time in a phone call, and time in an app that stays during a pause
    (the profile chosen for these pauses), SHALL NOT count. Maps while
-   driving or a call with a friend is not the long scroll.
-4. WHEN the count reaches the limit THEN the system SHALL show a heads-up
-   notification "You've been on your phone for 45 min. A 10-minute pause
-   starts in 1 minute" and SHALL start the pause one minute later, exactly
-   as a tap on the otter would (same permission checks, same "couldn't
-   start" notification as a scheduled pause).
-5. WHEN the screen turns off during that minute THEN the pause SHALL still
-   start: the user has already taken the hint, and the pause keeps it.
+   driving or a call with a friend is not the long scroll. The apps that
+   stay are a pact of trust: if someone puts a feed among them, that's
+   their choice (decided).
+4. WHEN the count is 5 minutes from the limit THEN the system SHALL show
+   a heads-up notification "You've been on your phone for 40 min. A
+   10-minute pause starts in 5 minutes", the same 5 minutes as a
+   scheduled pause.
+5. WHEN the count reaches the limit THEN the system SHALL start the pause
+   by itself, exactly as a tap on the otter would (same permission checks,
+   same "couldn't start" notification as a scheduled pause). The 5
+   minutes are minutes of use: a short screen-off stops them, a real break
+   (5 min off) resets the count and removes the heads-up, because the
+   break the pause was for has happened.
 6. WHEN a pause (of any kind) ends THEN the count SHALL restart from zero.
 
 ## User Story 2: "Not now", when it's mine to say
@@ -50,12 +55,15 @@ don't notice it.
 1. WHEN the rule is not protected THEN the heads-up SHALL offer **"Not
    now"**, which cancels this pause and moves the next proposal 15 minutes
    later. Not 45: the person is still on the phone.
-2. WHEN the rule is protected THEN the heads-up SHALL NOT offer "Not now",
+2. "Not now" SHALL be usable at most 3 times a day.
+   After the third time in a day, the heads-up SHALL NOT offer it any
+   more that day. The count restarts at midnight.
+3. WHEN the rule is protected THEN the heads-up SHALL NOT offer "Not now",
    and switching the rule off, raising the limit, shortening the pause or
    changing its profile SHALL require the password (same rules and dialog
    as scheduled pauses). Lowering the limit or lengthening the pause SHALL
    NOT.
-3. Ending the pause early SHALL need the password like any other pause.
+4. Ending the pause early SHALL need the password like any other pause.
 
 ## User Story 3: Never at the wrong moment
 
