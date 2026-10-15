@@ -89,6 +89,7 @@ class SettingsActivity : BaseActivity() {
                     onPickTheme = { theme -> pickTheme(theme) },
                     onManageAppsVerified = { startActivity(Intent(this, AllowedAppsActivity::class.java)) },
                     onScheduledPauses = { startActivity(Intent(this, ScheduledPausesActivity::class.java)) },
+                    onUsagePause = { startActivity(Intent(this, UsagePauseActivity::class.java)) },
                     onChangePassword = { startActivity(Intent(this, ChangePasswordActivity::class.java)) },
                     onOpenGitHub = { openUrl(GITHUB_REPO_URL) },
                     onOpenLicense = { openUrl("$GITHUB_REPO_URL/blob/main/LICENSE") },

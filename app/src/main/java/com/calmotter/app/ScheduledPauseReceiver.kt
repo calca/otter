@@ -143,35 +143,6 @@ class ScheduledPauseReceiver : BroadcastReceiver() {
         }
     }
 
-    private fun permissionsGranted(context: Context): Boolean =
-        BuildConfig.DEBUG || (isAccessibilityServiceEnabled(context) && isDndAccessGranted(context))
-
-    private fun notify(context: Context, id: Int, text: String, timeoutMillis: Long? = null, showPermissions: Boolean = false) {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
-            ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED
-        ) return
-        val nm = context.getSystemService(NotificationManager::class.java)
-        nm.createNotificationChannel(
-            NotificationChannel(CHANNEL_ID, context.getString(R.string.schedule_channel_name), NotificationManager.IMPORTANCE_LOW)
-        )
-        val open = PendingIntent.getActivity(
-            context, if (showPermissions) 1 else 0,
-            Intent(context, MainActivity::class.java)
-                .putExtra(MainActivity.EXTRA_SHOW_PERMISSIONS, showPermissions)
-                .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK),
-            PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT,
-        )
-        val notification = NotificationCompat.Builder(context, CHANNEL_ID)
-            .setSmallIcon(R.drawable.ic_tile_otter)
-            .setContentTitle(context.getString(R.string.app_name))
-            .setContentText(text)
-            .setContentIntent(open)
-            .setAutoCancel(true)
-            .apply { if (timeoutMillis != null) setTimeoutAfter(timeoutMillis) }
-            .build()
-        NotificationManagerCompat.from(context).notify(id, notification)
-    }
-
     companion object {
         const val ACTION_HEADS_UP = "com.calmotter.app.action.SCHEDULE_HEADS_UP"
         const val ACTION_START = "com.calmotter.app.action.SCHEDULE_START"
@@ -179,6 +150,35 @@ class ScheduledPauseReceiver : BroadcastReceiver() {
         const val EXTRA_AT = "schedule_at"
         private const val CHANNEL_ID = "calm_otter_schedules"
         private const val HEADS_UP_NOTIFICATION_ID = 4000
-        private const val START_FAILED_NOTIFICATION_ID = 3999
+        internal const val START_FAILED_NOTIFICATION_ID = 3999
+
+        internal fun permissionsGranted(context: Context): Boolean =
+            BuildConfig.DEBUG || (isAccessibilityServiceEnabled(context) && isDndAccessGranted(context))
+
+        internal fun notify(context: Context, id: Int, text: String, timeoutMillis: Long? = null, showPermissions: Boolean = false) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
+                ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED
+            ) return
+            val nm = context.getSystemService(NotificationManager::class.java)
+            nm.createNotificationChannel(
+                NotificationChannel(CHANNEL_ID, context.getString(R.string.schedule_channel_name), NotificationManager.IMPORTANCE_LOW)
+            )
+            val open = PendingIntent.getActivity(
+                context, if (showPermissions) 1 else 0,
+                Intent(context, MainActivity::class.java)
+                    .putExtra(MainActivity.EXTRA_SHOW_PERMISSIONS, showPermissions)
+                    .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK),
+                PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT,
+            )
+            val notification = NotificationCompat.Builder(context, CHANNEL_ID)
+                .setSmallIcon(R.drawable.ic_tile_otter)
+                .setContentTitle(context.getString(R.string.app_name))
+                .setContentText(text)
+                .setContentIntent(open)
+                .setAutoCancel(true)
+                .apply { if (timeoutMillis != null) setTimeoutAfter(timeoutMillis) }
+                .build()
+            NotificationManagerCompat.from(context).notify(id, notification)
+        }
     }
 }

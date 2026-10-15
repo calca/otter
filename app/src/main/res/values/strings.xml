@@ -428,6 +428,22 @@
         <item quantity="other">%1$d attive</item>
     </plurals>
     <string name="settings_schedule_none">Nessuna</string>
+    <string name="usage_pause_title">Dopo un uso lungo</string>
+    <string name="usage_pause_channel_name">Pausa dopo un uso lungo</string>
+    <string name="usage_pause_explain">Una pausa che parte da sola quando sei al telefono da tanto. Conta il tempo con lo schermo acceso, senza guardare quali app usi, e si azzera dopo 5 minuti a schermo spento.</string>
+    <string name="usage_pause_needs_permissions">Serve l\'accessibilità di Calm Otter, la stessa della pausa: senza, il tempo non si conta.</string>
+    <string name="usage_pause_after">Dopo</string>
+    <string name="usage_pause_after_less">Prima</string>
+    <string name="usage_pause_after_more">Più tardi</string>
+    <string name="usage_pause_duration">Pausa</string>
+    <string name="usage_pause_locked_hint">Un patto: niente “Non ora”, e per spegnerla, rimandarla o accorciarla servirà la password.</string>
+    <string name="usage_pause_rules">Arriva un avviso 5 minuti prima, con “Non ora” al massimo 3 volte al giorno. Chiamate e app che restano non contano, e di notte, dalle 23 alle 7, non parte.</string>
+    <string name="usage_pause_heads_up">Sei al telefono da %1$s. Tra 5 minuti parte una pausa di %2$s.</string>
+    <string name="usage_pause_not_now">Non ora</string>
+    <string name="usage_pause_missing_permissions">La pausa dopo un uso lungo non è partita: mancano i permessi di Calm Otter.</string>
+    <string name="usage_pause_password_prompt">Questa modifica allenta la pausa dopo un uso lungo: serve la password.</string>
+    <string name="usage_pause_lock_prompt">Proteggere la pausa dopo un uso lungo richiede la password.</string>
+    <string name="usage_pause_settings_value">Dopo %1$s</string>
     <!-- Nota della settimana (specs/weekly-summary/) -->
     <string name="weekly_note_channel">Nota della settimana</string>
     <plurals name="weekly_note_pauses">
@@ -444,7 +460,7 @@
     <string name="group_pause_other_version_lobby">L\'altro telefono ha un\'altra versione di Calm Otter: aggiorna l\'app su entrambi.</string>
     <!-- Informativa sull'accessibilità prima delle impostazioni di sistema (richiesta da Google Play) -->
     <string name="a11y_disclosure_title">Come Calm Otter usa l\'accessibilità</string>
-    <string name="a11y_disclosure_what">Durante una pausa, Calm Otter usa il servizio di accessibilità di Android solo per sapere quale app si sta aprendo, così da coprirla con la schermata della pausa.</string>
+    <string name="a11y_disclosure_what">Calm Otter usa il servizio di accessibilità di Android solo per sapere quale app è in primo piano: per coprirla con la schermata della pausa e, se attivi “Dopo un uso lungo”, per contare il tempo a schermo acceso.</string>
     <string name="a11y_disclosure_not">Non legge il contenuto dello schermo né quello che scrivi. Non raccoglie, non salva e non invia questa informazione da nessuna parte: l\'app non usa internet.</string>
     <string name="a11y_disclosure_off">Puoi disattivarlo quando vuoi dalle impostazioni di Accessibilità.</string>
     <string name="a11y_disclosure_accept">Accetta e continua</string>

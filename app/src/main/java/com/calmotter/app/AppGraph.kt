@@ -41,6 +41,7 @@ class AppGraph(private val app: Application) {
     val weeklyGoalManager: WeeklyGoalManager by lazy { WeeklyGoalManager(app) }
     val scheduleManager: ScheduleManager by lazy { ScheduleManager(app) }
     val slowExitManager: SlowExitManager by lazy { SlowExitManager(app) }
+    val usagePauseManager: UsagePauseManager by lazy { UsagePauseManager(app) }
 }
 
 /** Il contenitore dell'app, da qualunque Context (Activity, Service, receiver). */

@@ -18,6 +18,7 @@ import com.calmotter.app.Mood
 import com.calmotter.app.PasswordManager
 import com.calmotter.app.PhraseManager
 import com.calmotter.app.ScheduledPause
+import com.calmotter.app.UsagePauseRule
 import com.calmotter.app.SessionHistoryManager
 import com.calmotter.app.SessionManager
 import com.calmotter.app.SessionRecord
@@ -30,6 +31,7 @@ import com.calmotter.app.ui.screens.MainScreen
 import com.calmotter.app.ui.screens.QuickTogetherReaderScreen
 import com.calmotter.app.ui.screens.ScheduleEditorScreen
 import com.calmotter.app.ui.screens.ScheduledPausesScreen
+import com.calmotter.app.ui.screens.UsagePauseScreen
 import com.calmotter.app.ui.screens.SettingsScreen
 import com.calmotter.app.ui.theme.CalmOtterTheme
 import org.junit.Before
@@ -247,6 +249,16 @@ class ScreenScreenshotTest(private val night: Boolean) {
             profiles = AllowedAppsManager.getInstance(context).profiles(),
             onSave = {},
             onSkipNext = {},
+        )
+    }
+
+    @Test
+    fun usagePause() = capture("usage-pause") {
+        UsagePauseScreen(
+            rule = UsagePauseRule(enabled = true),
+            profiles = AllowedAppsManager.getInstance(context).profiles(),
+            accessibilityOn = true,
+            onChange = {},
         )
     }
 

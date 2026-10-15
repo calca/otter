@@ -158,6 +158,14 @@
             android:exported="false"
             android:theme="@style/Theme.CalmOtter.WithActionBar" />
 
+        <!-- Pausa dopo un uso lungo (specs/usage-pause/). -->
+        <activity
+            android:screenOrientation="portrait"
+            tools:ignore="LockedOrientationActivity"
+            android:name=".UsagePauseActivity"
+            android:exported="false"
+            android:theme="@style/Theme.CalmOtter.WithActionBar" />
+
         <activity
             android:screenOrientation="portrait"
             tools:ignore="LockedOrientationActivity"
@@ -222,6 +230,11 @@
         <!-- Pause programmate: avviso e partenza (specs/scheduled-pauses/). -->
         <receiver
             android:name=".ScheduledPauseReceiver"
+            android:exported="false" />
+
+        <!-- "Non ora" della pausa dopo un uso lungo (specs/usage-pause/). -->
+        <receiver
+            android:name=".UsagePauseReceiver"
             android:exported="false" />
 
         <!-- Nota della domenica sera (specs/weekly-summary/). -->

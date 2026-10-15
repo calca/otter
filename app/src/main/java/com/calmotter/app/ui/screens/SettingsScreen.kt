@@ -65,6 +65,8 @@ import com.calmotter.app.AppTheme
 import com.calmotter.app.PasswordManager
 import com.calmotter.app.PhraseManager
 import com.calmotter.app.R
+import com.calmotter.app.durationPillLabel
+import com.calmotter.app.UsagePauseManager
 
 /**
  * Configurazione, in quest'ordine — Tema, Password, Home, Pausa, Permessi,
@@ -103,6 +105,7 @@ fun SettingsScreen(
     onPickTheme: (AppTheme) -> Unit,
     onManageAppsVerified: () -> Unit,
     onScheduledPauses: () -> Unit = {},
+    onUsagePause: () -> Unit = {},
     onChangePassword: () -> Unit,
     onOpenGitHub: () -> Unit,
     onOpenLicense: () -> Unit,
@@ -188,6 +191,27 @@ fun SettingsScreen(
                     },
                     onClick = onScheduledPauses,
                     icon = { RowIcon(Icons.Default.DateRange) },
+                )
+                RowDivider()
+                // Pausa dopo un uso lungo (specs/usage-pause/). Valore corto,
+                // come l'uscita lenta: "Dopo 45 min" sta su una riga.
+                val usageRule = remember(resumeSignal) { UsagePauseManager.getInstance(context).rule() }
+                SettingsActionRow(
+                    label = stringResource(R.string.usage_pause_title),
+                    value = if (usageRule.enabled) {
+                        stringResource(R.string.usage_pause_settings_value, durationPillLabel(usageRule.afterMinutes))
+                    } else {
+                        stringResource(R.string.settings_slow_exit_off)
+                    },
+                    onClick = onUsagePause,
+                    icon = {
+                        Icon(
+                            painter = painterResource(R.drawable.ic_phone_time),
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.size(18.dp),
+                        )
+                    },
                 )
                 RowDivider()
                 // Uscita lenta (specs/slow-exit/): si cambia solo dopo la
@@ -435,13 +459,6 @@ private fun PasswordCard(
     }
 }
 
-@Composable
-private fun RowIcon(icon: ImageVector) = Icon(
-    imageVector = icon,
-    contentDescription = null,
-    tint = MaterialTheme.colorScheme.primary,
-    modifier = Modifier.size(18.dp),
-)
 
 @Composable
 private fun RowDivider() = HorizontalDivider(color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.08f))

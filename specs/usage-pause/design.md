@@ -1,6 +1,6 @@
 # Pause After Long Use — Design
 
-> **Status: Proposed** (2026-10-15).
+> **Status: Implemented** (2026-10-15).
 
 ## How to measure "in use": screen events, not UsageStats
 
@@ -137,6 +137,38 @@ stays", decided on the spot. The state is three timestamps. This goes in
    window. A threshold that falls inside it is re-aimed at 07:00, so the
    count is still running when the night ends. Anyone who wants pauses at
    night uses a scheduled pause.
+
+## As built: notes
+
+- **Files.** `UsagePause.kt` holds the pure parts: `UsageCounter`,
+  `UsagePauseRule`, `usagePasswordNeededToSave`, the night helpers and
+  `nextScheduledStart`. It also holds `UsagePauseManager` (in `AppGraph`).
+  `UsageWatcher.kt` holds the wiring inside the Accessibility service and
+  `UsagePauseReceiver` ("Not now"). The page is `UsagePauseActivity` /
+  `UsagePauseScreen`, with a row in Settings → The pause (`ic_phone_time`).
+- **Off means nothing is counted.** With the rule off, the watcher ignores
+  screen and app events, and switching it off clears the count. The
+  Accessibility disclosure, `docs/privacy-policy.md` and the Play
+  declaration text (`docs/store/declarations.md`) now say the service also
+  serves this feature.
+- **The thresholds** run on one `Handler` callback and no alarm, since the
+  clock only runs with the screen on. The page saves on every change,
+  shares the editor's `OptionStepper`/`EditorCard`, and has no Save CTA.
+- **The heads-up channel** is `calm_otter_usage_pause` at high importance,
+  so it shows on top of the app in use. "Not now" appears only when the
+  rule is unprotected and there are uses left today.
+- **Verified on the API 37 emulator** (Europe/Rome, daytime), with the
+  count seeded at 14.5 min and the limit at 20. The heads-up arrived at 15
+  min ("Sei al telefono da 15 min…", with "Non ora"). "Non ora" removed it,
+  moved the limit 15 minutes of use later and recorded 1 of 3. Seeded at
+  19.5 min with the heads-up already shown, the pause started by itself at
+  20 min, lasting 10 min, and the count reset. Changing app then showed
+  the block every time.
+- **Known gap.** When the process has just restarted and the app in front
+  hasn't changed since, the service doesn't know that app yet. A pause
+  starting at that moment covers it at the next app change, not
+  immediately: the same limit as issue #1's fix. With Accessibility on, the
+  process normally lives on, so this needs a crash or a kill.
 
 ## Decisioni aperte
 

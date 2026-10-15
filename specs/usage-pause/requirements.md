@@ -1,6 +1,6 @@
 # Pause After Long Use — Requirements
 
-> **Status: Proposed** (2026-10-15). Not built yet; see "Decisioni aperte" in design.md.
+> **Status: Implemented** (2026-10-15).
 
 ## Context
 

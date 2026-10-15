@@ -1,6 +1,6 @@
 # Calm Otter — Privacy Policy
 
-*Last updated: 2 October 2026*
+*Last updated: 15 October 2026*
 
 **Short version: Calm Otter collects nothing. Everything stays on your phone.**
 
@@ -39,15 +39,19 @@ the Play Store link, and you choose whether and where to send it.
 
 ## Permissions, and why
 
-- **Accessibility service**: during a pause, to know which app is being
-  opened so it can be covered with the pause screen. It does not read what
-  is on the screen or what you type (`canRetrieveWindowContent` is off),
-  and the information is used on the spot, never stored or sent. The app
-  explains this and asks for your consent before you enable it.
+- **Accessibility service**: to know which app is in the foreground, so it
+  can be covered with the pause screen during a pause. If you turn on
+  "After long use", it also counts how long the screen has been on without
+  a break; that count is a few timestamps on the phone, with no record of
+  which apps you used. It does not read what is on the screen or what you
+  type (`canRetrieveWindowContent` is off), and the app in the foreground
+  is used on the spot, never stored or sent. The app explains this and asks
+  for your consent before you enable it.
 - **Do Not Disturb access**: to silence notifications during a pause, and
   to restore your own settings afterwards.
 - **Notifications**: the ongoing notification of a pause, the heads-up
-  before a scheduled pause, and the optional Sunday note.
+  before a scheduled pause or a pause after long use, and the optional
+  Sunday note.
 - **Camera** (only if you scan a QR to join a shared pause): the image is
   read on the device to decode the code and is not saved.
 - **Bluetooth and NFC** (only for shared pauses): to let two phones in the
@@ -78,7 +82,7 @@ address with a new date. Questions: open an issue at
 
 # Calm Otter — Informativa sulla privacy
 
-*Ultimo aggiornamento: 2 ottobre 2026*
+*Ultimo aggiornamento: 15 ottobre 2026*
 
 **In breve: Calm Otter non raccoglie nulla. Tutto resta sul tuo telefono.**
 
@@ -117,15 +121,18 @@ link al Play Store, e sei tu a decidere se e dove mandarlo.
 
 ## Permessi, e perché
 
-- **Servizio di accessibilità**: durante una pausa, per sapere quale app si
-  sta aprendo e coprirla con la schermata della pausa. Non legge il
-  contenuto dello schermo né quello che scrivi, e l'informazione si usa sul
-  momento, senza salvarla né inviarla. L'app lo spiega e chiede il consenso
-  prima dell'attivazione.
+- **Servizio di accessibilità**: per sapere quale app è in primo piano e
+  coprirla con la schermata della pausa durante una pausa. Se attivi "Dopo
+  un uso lungo", conta anche da quanto lo schermo è acceso senza una pausa:
+  pochi orari salvati sul telefono, senza traccia di quali app hai usato.
+  Non legge il contenuto dello schermo né quello che scrivi, e l'app in
+  primo piano si usa sul momento, senza salvarla né inviarla. L'app lo
+  spiega e chiede il consenso prima dell'attivazione.
 - **Accesso a Non disturbare**: per silenziare le notifiche durante una
   pausa e ripristinare le tue impostazioni alla fine.
 - **Notifiche**: la notifica della pausa in corso, l'avviso prima di una
-  pausa programmata e la nota facoltativa della domenica.
+  pausa programmata o di una pausa dopo un uso lungo, e la nota facoltativa
+  della domenica.
 - **Fotocamera** (solo se scansioni un QR per unirti a una pausa di
   gruppo): l'immagine si legge sul telefono per decifrare il codice e non
   viene salvata.

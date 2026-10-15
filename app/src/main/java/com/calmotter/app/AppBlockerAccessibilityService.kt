@@ -64,6 +64,8 @@ class AppBlockerAccessibilityService : AccessibilityService() {
     private var bridgeOverlay: View? = null
     private var bridgeOwner: BridgeOverlayOwner? = null
     private val dismissBridgeOverlayRunnable = Runnable { dismissBridgeOverlay() }
+    /** Pausa dopo un uso lungo (specs/usage-pause/): vive finché vive il servizio. */
+    private var usageWatcher: UsageWatcher? = null
 
     override fun onServiceConnected() {
         super.onServiceConnected()
@@ -92,6 +94,7 @@ class AppBlockerAccessibilityService : AccessibilityService() {
             feedbackType = AccessibilityServiceInfo.FEEDBACK_GENERIC
             notificationTimeout = EVENT_NOTIFICATION_TIMEOUT_MS
         }
+        usageWatcher = UsageWatcher(applicationContext, mainHandler).also { it.start() }
     }
 
     override fun onAccessibilityEvent(event: AccessibilityEvent?) {
@@ -101,6 +104,12 @@ class AppBlockerAccessibilityService : AccessibilityService() {
         // Anche fuori sessione: serve a [onSessionStarted]. Solo in memoria,
         // mai salvato.
         if (event.isFullScreen) lastFullScreenPackage = packageName
+        // Tastiere e barre di sistema si aprono *sopra* l'app: non la cambiano.
+        if (event.isFullScreen && packageName !in keyboardPackages() &&
+            packageName != BlockPolicy.SYSTEM_UI_PACKAGE && packageName != BlockPolicy.ANDROID_PACKAGE
+        ) {
+            usageWatcher?.onForegroundApp(packageName)
+        }
         val sessionManager = SessionManager.getInstance(applicationContext)
         // Il resto della decisione sta in [BlockPolicy.shouldBlock], valutata
         // più sotto; qui si esce subito perché fuori sessione (il caso
@@ -397,6 +406,8 @@ class AppBlockerAccessibilityService : AccessibilityService() {
     }
 
     override fun onDestroy() {
+        usageWatcher?.stop()
+        usageWatcher = null
         dismissBridgeOverlay()
         if (instance === this) instance = null
         super.onDestroy()
@@ -424,7 +435,28 @@ class AppBlockerAccessibilityService : AccessibilityService() {
         /** Chiamato da [SessionManager.startSession]: vedi [checkCurrentApp]. */
         fun onSessionStarted() {
             val service = instance ?: return
-            service.mainHandler.post { service.checkCurrentApp() }
+            service.mainHandler.post {
+                service.checkCurrentApp()
+                service.usageWatcher?.onSessionChanged()
+            }
+        }
+
+        /** Chiamato da [SessionManager.endSession]: il conto dell'uso riparte da zero. */
+        fun onSessionEnded() {
+            val service = instance ?: return
+            service.mainHandler.post { service.usageWatcher?.onSessionChanged() }
+        }
+
+        /** "Non ora" dalla notifica: vedi [UsageWatcher.onNotNow]. */
+        fun onUsageNotNow() {
+            val service = instance ?: return
+            service.mainHandler.post { service.usageWatcher?.onNotNow() }
+        }
+
+        /** La regola è cambiata in Impostazioni. */
+        fun onUsageRuleChanged() {
+            val service = instance ?: return
+            service.mainHandler.post { service.usageWatcher?.onRuleChanged() }
         }
 
         /** Chiamato da [BlockOverlayActivity.onResume]: la vera schermata di

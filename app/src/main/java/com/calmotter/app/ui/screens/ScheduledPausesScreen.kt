@@ -488,7 +488,7 @@ private fun FieldLabel(text: String, topPadding: Dp = 20.dp) {
 
 /** La card delle sezioni di Impostazioni, qui per i due blocchi della pagina. */
 @Composable
-private fun EditorCard(modifier: Modifier = Modifier, content: @Composable () -> Unit) {
+internal fun EditorCard(modifier: Modifier = Modifier, content: @Composable () -> Unit) {
     Surface(
         shape = RoundedCornerShape(20.dp),
         color = MaterialTheme.colorScheme.primary.copy(alpha = 0.06f),
@@ -498,10 +498,10 @@ private fun EditorCard(modifier: Modifier = Modifier, content: @Composable () ->
 }
 
 @Composable
-private fun CardDivider() = HorizontalDivider(color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.08f))
+internal fun CardDivider() = HorizontalDivider(color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.08f))
 
 @Composable
-private fun RowIcon(icon: ImageVector) = Icon(
+internal fun RowIcon(icon: ImageVector) = Icon(
     imageVector = icon,
     contentDescription = null,
     tint = MaterialTheme.colorScheme.primary,
@@ -673,33 +673,55 @@ internal fun compactDays(days: Int, name: (DayOfWeek) -> String): String {
  * spesso, e così si regola senza aprire nulla.
  */
 @Composable
-private fun DurationStepper(duration: Int, onChange: (Int) -> Unit) {
-    val index = SESSION_DURATION_OPTIONS.indexOf(duration).coerceAtLeast(0)
+private fun DurationStepper(duration: Int, onChange: (Int) -> Unit) = OptionStepper(
+    label = stringResource(R.string.schedule_duration_label),
+    options = SESSION_DURATION_OPTIONS,
+    value = duration,
+    lessDescription = stringResource(R.string.schedule_duration_shorter),
+    moreDescription = stringResource(R.string.schedule_duration_longer),
+    onChange = onChange,
+)
+
+/**
+ * Una riga con "–" / "+" che scorrono [options]: la durata qui, e le soglie
+ * della pausa dopo un uso lungo. Un valore fuori elenco vale il primo.
+ */
+@Composable
+internal fun OptionStepper(
+    label: String,
+    options: List<Int>,
+    value: Int,
+    lessDescription: String,
+    moreDescription: String,
+    onChange: (Int) -> Unit,
+    icon: @Composable () -> Unit = {
+        Icon(
+            painter = painterResource(R.drawable.ic_hourglass),
+            contentDescription = null,
+            tint = MaterialTheme.colorScheme.primary,
+            modifier = Modifier.size(18.dp),
+        )
+    },
+) {
+    val index = options.indexOf(value).coerceAtLeast(0)
     Row(
         verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier.fillMaxWidth().padding(vertical = 10.dp),
     ) {
-        SettingsRowIcon {
-            Icon(
-                painter = painterResource(R.drawable.ic_hourglass),
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.primary,
-                modifier = Modifier.size(18.dp),
-            )
-        }
+        SettingsRowIcon { icon() }
         Text(
-            text = stringResource(R.string.schedule_duration_label),
+            text = label,
             color = MaterialTheme.colorScheme.onSurface,
             modifier = Modifier.weight(1f),
         )
         StepButton(
             plus = false,
-            description = stringResource(R.string.schedule_duration_shorter),
+            description = lessDescription,
             enabled = index > 0,
-            onClick = { onChange(SESSION_DURATION_OPTIONS[index - 1]) },
+            onClick = { onChange(options[index - 1]) },
         )
         Text(
-            text = durationPillLabel(SESSION_DURATION_OPTIONS[index]),
+            text = durationPillLabel(options[index]),
             fontWeight = FontWeight.SemiBold,
             color = MaterialTheme.colorScheme.primary,
             textAlign = TextAlign.Center,
@@ -707,9 +729,9 @@ private fun DurationStepper(duration: Int, onChange: (Int) -> Unit) {
         )
         StepButton(
             plus = true,
-            description = stringResource(R.string.schedule_duration_longer),
-            enabled = index < SESSION_DURATION_OPTIONS.lastIndex,
-            onClick = { onChange(SESSION_DURATION_OPTIONS[index + 1]) },
+            description = moreDescription,
+            enabled = index < options.lastIndex,
+            onClick = { onChange(options[index + 1]) },
         )
     }
 }

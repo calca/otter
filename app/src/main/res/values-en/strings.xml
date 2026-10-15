@@ -85,7 +85,7 @@
         <item quantity="other">Too many wrong attempts. Try again in %1$d seconds.</item>
     </plurals>
 
-    <string name="accessibility_service_description">Allows Calm Otter to know which app is in the foreground, to cover it with the pause screen during a pause.</string>
+    <string name="accessibility_service_description">Allows Calm Otter to know which app is in the foreground, to cover it with the pause screen.</string>
 
     <string name="theme_sage">Sage</string>
     <string name="theme_dusk_sand">Dusk Sand</string>
@@ -425,6 +425,22 @@
         <item quantity="other">%1$d active</item>
     </plurals>
     <string name="settings_schedule_none">None</string>
+    <string name="usage_pause_title">After long use</string>
+    <string name="usage_pause_channel_name">Pause after long use</string>
+    <string name="usage_pause_explain">A pause that starts by itself when you\'ve been on your phone for a long time. It counts the time with the screen on, without looking at which apps you use, and resets after 5 minutes with the screen off.</string>
+    <string name="usage_pause_needs_permissions">It needs Calm Otter\'s Accessibility, the same as the pause: without it, nothing is counted.</string>
+    <string name="usage_pause_after">After</string>
+    <string name="usage_pause_after_less">Sooner</string>
+    <string name="usage_pause_after_more">Later</string>
+    <string name="usage_pause_duration">Pause</string>
+    <string name="usage_pause_locked_hint">A pact: no “Not now”, and switching it off, delaying or shortening it will need the password.</string>
+    <string name="usage_pause_rules">A heads-up comes 5 minutes before, with “Not now” up to 3 times a day. Calls and the apps that stay don\'t count, and at night, from 23:00 to 7:00, it doesn\'t start.</string>
+    <string name="usage_pause_heads_up">You\'ve been on your phone for %1$s. A %2$s pause starts in 5 minutes.</string>
+    <string name="usage_pause_not_now">Not now</string>
+    <string name="usage_pause_missing_permissions">The pause after long use didn\'t start: Calm Otter is missing its permissions.</string>
+    <string name="usage_pause_password_prompt">This change loosens the pause after long use: the password is needed.</string>
+    <string name="usage_pause_lock_prompt">Protecting the pause after long use needs the password.</string>
+    <string name="usage_pause_settings_value">After %1$s</string>
     <!-- Nota della settimana (specs/weekly-summary/) -->
     <string name="weekly_note_channel">Weekly note</string>
     <plurals name="weekly_note_pauses">
@@ -441,7 +457,7 @@
     <string name="group_pause_other_version_lobby">The other phone has a different version of Calm Otter: update the app on both.</string>
     <!-- Informativa sull'accessibilità prima delle impostazioni di sistema (richiesta da Google Play) -->
     <string name="a11y_disclosure_title">How Calm Otter uses Accessibility</string>
-    <string name="a11y_disclosure_what">During a pause, Calm Otter uses Android\'s Accessibility service only to know which app is being opened, so it can cover it with the pause screen.</string>
+    <string name="a11y_disclosure_what">Calm Otter uses Android\'s Accessibility service only to know which app is in the foreground: to cover it with the pause screen and, if you turn on “After long use”, to count the time with the screen on.</string>
     <string name="a11y_disclosure_not">It doesn\'t read what\'s on the screen or what you type. It doesn\'t collect, store or send this information anywhere: the app doesn\'t use the internet.</string>
     <string name="a11y_disclosure_off">You can turn it off at any time in Accessibility settings.</string>
     <string name="a11y_disclosure_accept">Agree and continue</string>
