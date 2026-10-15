@@ -1,0 +1,1 @@
+First test build of Calm Otter. A real break from your phone: tap the otter and, for as long as you choose, everything stops but the phone and a few apps. Also try "One tap" (hold two phones together for a pause together), scheduled and surprise pauses, the pause after long use and the widget. Something off, or an idea? Settings → About → Send feedback.

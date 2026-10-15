@@ -10,6 +10,16 @@ Play Console.
   `app-stable-release-aab`), with `versionCode` = the run number, so every
   upload is higher than the previous one. Needs the `KEYSTORE_*` secrets
   already described in that workflow.
+- **Automatic upload to Play**: the `publish-internal` job in the same
+  workflow uploads that AAB to the **internal** track on every push to
+  `main`, with the notes in [`whatsnew/`](whatsnew) (update them before a
+  release; only languages the store listing has are sent). Promote by
+  hand with `gh workflow run play-promote.yml -f from=internal -f to=alpha`
+  (closed testing), later `-f from=alpha -f to=production [-f rollout=0.2]`.
+  Needs the `PLAY_SERVICE_ACCOUNT_JSON` secret: a Google Cloud service
+  account with the Google Play Android Developer API enabled, invited in
+  Play Console → Users and permissions with release rights for this app.
+  Without it the job is skipped with a warning.
 - **Store listing texts** (IT/EN): [`listing.md`](listing.md).
 - **Graphics**: icon 512 × 512, feature graphic 1024 × 500, five phone
   screenshots — in [`graphics/`](graphics) and [`screenshots/`](screenshots).

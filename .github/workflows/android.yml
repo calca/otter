@@ -91,3 +91,48 @@ jobs:
       with:
         name: app-beta-prerelease-apk
         path: app/build/outputs/apk/beta/release/app-beta-release.apk
+
+  # Ogni push su main finisce sul track "internal" di Play: disponibile
+  # subito ai tester interni, senza revisione. Da lì si promuove a mano
+  # (closed testing, poi produzione) con play-promote.yml.
+  # Job separato con concurrency: due push ravvicinati aprirebbero due edit
+  # Play in parallelo, e il secondo commit fallirebbe.
+  publish-internal:
+    needs: build
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+    concurrency: play-publish
+    steps:
+    - uses: actions/checkout@v7
+
+    - name: Check Play secret
+      id: play
+      env:
+        PLAY_SERVICE_ACCOUNT_JSON: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON }}
+      run: |
+        if [ -n "$PLAY_SERVICE_ACCOUNT_JSON" ]; then
+          echo "available=true" >> "$GITHUB_OUTPUT"
+        else
+          echo "available=false" >> "$GITHUB_OUTPUT"
+          echo "::warning title=Play upload skipped::No PLAY_SERVICE_ACCOUNT_JSON secret configured."
+        fi
+
+    - uses: actions/download-artifact@v7
+      if: steps.play.outputs.available == 'true'
+      with:
+        name: app-stable-release-aab
+
+    - uses: actions/setup-python@v6
+      if: steps.play.outputs.available == 'true'
+      with:
+        python-version: '3.12'
+
+    - name: Upload to Play (internal)
+      if: steps.play.outputs.available == 'true'
+      env:
+        PLAY_SERVICE_ACCOUNT_JSON: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON }}
+      run: |
+        pip install --quiet google-auth requests
+        python .github/scripts/play_publish.py upload \
+          --aab app-stable-release.aab --track internal \
+          --notes-dir docs/store/whatsnew

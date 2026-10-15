@@ -1,0 +1,44 @@
+name: Play promote
+
+# Promuove la release attiva di un track Play a un altro, con le stesse
+# note. Solo a mano: `gh workflow run play-promote.yml -f from=internal -f to=alpha`.
+# "alpha" è il closed testing (lista Testing); closed testing e produzione
+# passano dalla revisione di Google, che parte da sola al commit.
+on:
+  workflow_dispatch:
+    inputs:
+      from:
+        description: Track di partenza
+        type: choice
+        options: [internal, alpha]
+        default: internal
+      to:
+        description: Track di arrivo
+        type: choice
+        options: [alpha, production]
+        default: alpha
+      rollout:
+        description: Frazione di utenti (solo produzione, 1 = tutti)
+        type: string
+        default: '1'
+
+concurrency: play-publish
+
+jobs:
+  promote:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v7
+
+    - uses: actions/setup-python@v6
+      with:
+        python-version: '3.12'
+
+    - name: Promote
+      env:
+        PLAY_SERVICE_ACCOUNT_JSON: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON }}
+      run: |
+        pip install --quiet google-auth requests
+        python .github/scripts/play_publish.py promote \
+          --from "${{ inputs.from }}" --to "${{ inputs.to }}" \
+          --rollout "${{ inputs.rollout }}"
