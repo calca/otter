@@ -1,5 +1,6 @@
 package com.calmotter.app.ui.screens
 
+import com.calmotter.app.ui.theme.muted
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.runtime.mutableFloatStateOf
@@ -612,7 +613,7 @@ private fun ReleaseOthersStep(
         )
         Text(
             text = stringResource(R.string.release_others_body),
-            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.75f),
+            color = MaterialTheme.colorScheme.muted(0.75f),
             textAlign = TextAlign.Center,
         )
         TextButton(onClick = onDone, modifier = Modifier.padding(top = 24.dp)) {
@@ -662,7 +663,7 @@ private fun BlockActionBadge(
         Text(
             text = label,
             style = MaterialTheme.typography.labelSmall,
-            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
+            color = MaterialTheme.colorScheme.muted(0.6f),
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
             textAlign = TextAlign.Center,

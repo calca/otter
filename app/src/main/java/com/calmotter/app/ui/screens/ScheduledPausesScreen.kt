@@ -1,5 +1,6 @@
 package com.calmotter.app.ui.screens
 
+import com.calmotter.app.ui.theme.muted
 import androidx.compose.material3.minimumInteractiveComponentSize
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.foundation.text.TextAutoSize
@@ -128,7 +129,7 @@ fun ScheduledPausesScreen(
         ) {
             Text(
                 text = stringResource(R.string.schedule_intro),
-                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.75f),
+                color = MaterialTheme.colorScheme.muted(0.75f),
                 modifier = Modifier.padding(bottom = 16.dp),
             )
             if (schedules.isNotEmpty() && !exactAlarmsAllowed) {
@@ -159,7 +160,7 @@ fun ScheduledPausesScreen(
                     OtterZenMark(markSize = 96.dp)
                     Text(
                         text = stringResource(R.string.schedule_empty),
-                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.65f),
+                        color = MaterialTheme.colorScheme.muted(0.65f),
                         textAlign = TextAlign.Center,
                         modifier = Modifier.padding(top = 16.dp),
                     )
@@ -200,7 +201,7 @@ fun ScheduledPausesScreen(
                                 } else {
                                     daysLabel(schedule.days, locale)
                                 },
-                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.75f),
+                                color = MaterialTheme.colorScheme.muted(0.75f),
                             )
                         }
                         // Fuori dalla riga (che apre l'editor), quindi con un
@@ -295,7 +296,7 @@ fun ScheduleEditorScreen(
                             "\n" + stringResource(R.string.schedule_summary_surprise, timeLabel(window.first), timeLabel(window.second - duration))
                         else -> stringResource(R.string.schedule_summary_short, daysLabel(days, locale), durationPillLabel(duration))
                     },
-                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.65f),
+                    color = MaterialTheme.colorScheme.muted(0.65f),
                     textAlign = TextAlign.Center,
                     modifier = Modifier.padding(top = 10.dp),
                 )
@@ -338,7 +339,7 @@ fun ScheduleEditorScreen(
                             Text(
                                 text = stringResource(R.string.schedule_surprise_hint),
                                 style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.65f),
+                                color = MaterialTheme.colorScheme.muted(0.65f),
                             )
                         }
                         Switch(
@@ -381,7 +382,7 @@ fun ScheduleEditorScreen(
                             Text(
                                 text = stringResource(R.string.schedule_locked_hint),
                                 style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.65f),
+                                color = MaterialTheme.colorScheme.muted(0.65f),
                             )
                         }
                         Switch(
@@ -472,7 +473,7 @@ private fun FieldLabel(text: String, topPadding: Dp = 20.dp) {
     Text(
         text = text,
         style = MaterialTheme.typography.titleSmall,
-        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
+        color = MaterialTheme.colorScheme.muted(0.7f),
         modifier = Modifier.padding(top = topPadding, bottom = 10.dp),
     )
 }
@@ -577,7 +578,7 @@ private fun DayCircles(days: Int, locale: Locale, onChange: (Int) -> Unit) {
                         // Letto già col nome intero (sopra): "lunedì lun" no.
                         modifier = Modifier.clearAndSetSemantics {},
                         fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Normal,
-                        color = if (selected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.65f),
+                        color = if (selected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.muted(0.65f),
                     )
                 }
             }
@@ -604,8 +605,8 @@ private fun calmTimeInputColors(): TimeInputColors {
             cursorColor = scheme.primary,
             focusedIndicatorColor = scheme.primary,
             unfocusedIndicatorColor = Color.Transparent,
-            focusedSupportingTextColor = scheme.onSurface.copy(alpha = 0.6f),
-            unfocusedSupportingTextColor = scheme.onSurface.copy(alpha = 0.6f),
+            focusedSupportingTextColor = scheme.muted(0.6f),
+            unfocusedSupportingTextColor = scheme.muted(0.6f),
         ),
     )
 }

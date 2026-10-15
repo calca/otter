@@ -1,5 +1,6 @@
 package com.calmotter.app.ui.screens
 
+import com.calmotter.app.ui.theme.muted
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -321,7 +322,7 @@ fun MainScreen(
             Text(
                 text = stringResource(R.string.home_active_label),
                 style = MaterialTheme.typography.labelMedium,
-                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
+                color = MaterialTheme.colorScheme.muted(0.6f),
             )
             Text(
                 text = stringResource(R.string.home_time_remaining, remainingMin),
@@ -339,7 +340,7 @@ fun MainScreen(
                 // "l'otter" generico — stesso parser <b> dell'onboarding.
                 text = boldAnnotatedString(stringResource(R.string.home_start_hint)),
                 style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.55f),
+                color = MaterialTheme.colorScheme.muted(0.55f),
                 // La stessa frase è già il nome dell'otter per TalkBack (vedi
                 // HomePond.kt): letta anche qui arrivava due volte di fila.
                 modifier = Modifier.clearAndSetSemantics {},

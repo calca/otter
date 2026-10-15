@@ -1,5 +1,6 @@
 package com.calmotter.app.ui.screens
 
+import com.calmotter.app.ui.theme.muted
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.semantics.role
@@ -502,8 +503,8 @@ fun CalmTextField(
             disabledBorderColor = primary.copy(alpha = 0.10f),
             focusedTextColor = onSurface,
             unfocusedTextColor = onSurface,
-            focusedPlaceholderColor = onSurface.copy(alpha = 0.45f),
-            unfocusedPlaceholderColor = onSurface.copy(alpha = 0.45f),
+            focusedPlaceholderColor = MaterialTheme.colorScheme.muted(0.45f),
+            unfocusedPlaceholderColor = MaterialTheme.colorScheme.muted(0.45f),
             focusedLeadingIconColor = primary,
             unfocusedLeadingIconColor = onSurface.copy(alpha = 0.55f),
             focusedTrailingIconColor = primary,
@@ -552,7 +553,7 @@ fun CalmPill(
     isChoice: Boolean = true,
     onClick: () -> Unit,
 ) {
-    val contentColor = if (selected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.65f)
+    val contentColor = if (selected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.muted(0.65f)
     // Una pillola è quasi sempre una scelta fra alternative (durata, umore,
     // periodo): TalkBack deve dire quale è selezionata, non solo il nome.
     // isChoice = false per le poche che sono un'azione ("Nuovo profilo").

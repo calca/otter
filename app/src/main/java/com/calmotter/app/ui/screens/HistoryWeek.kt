@@ -1,5 +1,6 @@
 package com.calmotter.app.ui.screens
 
+import com.calmotter.app.ui.theme.muted
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.material3.Icon
@@ -177,7 +178,7 @@ internal fun WeeklyGoalCard(
                             null -> stringResource(R.string.weekly_goal_none)
                         },
                         style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.65f),
+                        color = MaterialTheme.colorScheme.muted(0.65f),
                     )
                 }
                 Text(

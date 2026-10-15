@@ -1,5 +1,6 @@
 package com.calmotter.app.ui.screens
 
+import com.calmotter.app.ui.theme.muted
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -346,7 +347,7 @@ private fun OnboardingNote(textRes: Int, bottom: Dp = 6.dp) {
     Text(
         text = boldAnnotatedString(stringResource(textRes)),
         style = MaterialTheme.typography.bodySmall,
-        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.65f),
+        color = MaterialTheme.colorScheme.muted(0.65f),
         textAlign = TextAlign.Center,
         modifier = Modifier.fillMaxWidth().padding(bottom = bottom),
     )

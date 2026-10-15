@@ -43,6 +43,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.calmotter.app.AppTheme
 import com.calmotter.app.R
+import com.calmotter.app.ui.theme.muted
 import com.calmotter.app.ui.theme.paletteFor
 
 // Le carte più grandi delle Impostazioni: permessi, app Home e tema.
@@ -141,7 +142,7 @@ private fun PermissionStatusRow(
         SettingsRowIcon { icon() }
         Text(
             text = label,
-            color = if (done) MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f) else MaterialTheme.colorScheme.onSurface,
+            color = if (done) MaterialTheme.colorScheme.muted(0.6f) else MaterialTheme.colorScheme.onSurface,
             modifier = Modifier
                 .weight(1f)
                 .padding(start = 12.dp)
@@ -149,7 +150,7 @@ private fun PermissionStatusRow(
         if (done) {
             Text(
                 text = stringResource(R.string.permission_action_done),
-                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
+                color = MaterialTheme.colorScheme.muted(0.5f),
             )
         } else {
             Text(

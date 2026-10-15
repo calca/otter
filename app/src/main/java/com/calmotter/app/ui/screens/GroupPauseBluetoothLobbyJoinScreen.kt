@@ -9,6 +9,7 @@ import android.os.Build
 import android.os.Handler
 import android.os.Looper
 import android.provider.Settings
+import com.calmotter.app.ui.theme.muted
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
@@ -284,7 +285,7 @@ fun GroupPauseBluetoothLobbyJoinScreen(
                                 if (nfcAvailable) R.string.group_pause_join_listening_subtitle
                                 else R.string.group_pause_join_searching
                             ),
-                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.75f),
+                            color = MaterialTheme.colorScheme.muted(0.75f),
                             textAlign = TextAlign.Center,
                             modifier = Modifier.padding(top = 6.dp)
                         )
@@ -296,7 +297,7 @@ fun GroupPauseBluetoothLobbyJoinScreen(
                         // arrivati qui la scelta è sempre "tocca il nome".
                         Text(
                             text = stringResource(R.string.group_pause_join_pick_hint),
-                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.75f),
+                            color = MaterialTheme.colorScheme.muted(0.75f),
                             textAlign = TextAlign.Center,
                             modifier = Modifier.padding(top = 6.dp)
                         )
@@ -326,7 +327,7 @@ fun GroupPauseBluetoothLobbyJoinScreen(
                     // non un valore diverso da tenere sincronizzato a mano.
                     Text(
                         text = stringResource(R.string.group_pause_join_your_name, localName),
-                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.55f),
+                        color = MaterialTheme.colorScheme.muted(0.55f),
                         fontSize = 13.sp,
                         textAlign = TextAlign.Center,
                         modifier = Modifier.padding(top = 14.dp)
@@ -382,7 +383,7 @@ fun GroupPauseBluetoothLobbyJoinScreen(
                     TogetherActivityCard(activityId = hostActivityId)
                     Text(
                         text = stringResource(R.string.group_pause_join_waiting_host),
-                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
+                        color = MaterialTheme.colorScheme.muted(0.7f),
                         textAlign = TextAlign.Center,
                         modifier = Modifier.padding(top = if (name != null || minutes != null) 12.dp else 14.dp)
                     )

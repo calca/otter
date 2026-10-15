@@ -3,6 +3,7 @@ package com.calmotter.app.ui.theme
 import android.content.Context
 import android.content.res.Configuration
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.compositeOver
 import androidx.compose.ui.graphics.luminance
 import androidx.core.content.ContextCompat
 import androidx.test.core.app.ApplicationProvider
@@ -145,5 +146,32 @@ class CalmOtterPaletteTest {
     private fun hueDistance(a: Double, b: Double): Double {
         val d = kotlin.math.abs(a - b) % 360.0
         return if (d > 180.0) 360.0 - d else d
+    }
+
+    /**
+     * Il testo tenue ([muted]) al suo minimo deve restare leggibile su ogni
+     * sfondo su cui compare: pagina, card tinte di primary (6% e 12%) e
+     * pillole non scelte (tertiary al 55%).
+     */
+    @Test
+    fun mutedTextKeepsAaContrastOnEveryBackground() {
+        for (night in listOf(false, true)) {
+            val color = colorsIn(night)
+            for (theme in AppTheme.entries) {
+                val p = paletteFor(theme)
+                val page = color(p.background)
+                val text = color(p.onSurface).copy(alpha = mutedMinAlpha(isDark = night))
+                val backgrounds = mapOf(
+                    "pagina" to page,
+                    "card" to color(p.primary).copy(alpha = 0.06f).compositeOver(page),
+                    "card scelta" to color(p.primary).copy(alpha = 0.12f).compositeOver(page),
+                    "pillola" to color(p.veil).copy(alpha = 0.55f).compositeOver(page),
+                )
+                for ((name, bg) in backgrounds) {
+                    val ratio = contrast(text.compositeOver(bg), bg)
+                    assertTrue("$theme ${if (night) "scuro" else "chiaro"}, testo tenue su $name: %.2f".format(ratio), ratio >= 4.5)
+                }
+            }
+        }
     }
 }

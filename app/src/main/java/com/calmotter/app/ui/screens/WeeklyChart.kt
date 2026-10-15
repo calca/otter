@@ -1,5 +1,6 @@
 package com.calmotter.app.ui.screens
 
+import com.calmotter.app.ui.theme.muted
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -83,7 +84,7 @@ fun WeeklyChart(
     // prendono `secondary`, piena e non sbiadita, come nel mockup.
     val primaryColor = MaterialTheme.colorScheme.primary
     val secondaryColor = MaterialTheme.colorScheme.secondary
-    val mutedColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+    val mutedColor = MaterialTheme.colorScheme.muted(0.6f)
 
     // Risolte qui (scope @Composable) e non dentro Canvas{}, stesso motivo dei
     // colori sopra — vale anche per stringResource()/stringArrayResource().

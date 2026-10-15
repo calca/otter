@@ -196,6 +196,19 @@ renders), and `ui/theme/CalmOtterTheme.kt`, which builds the Compose
 text/CTA contrast is >= 4.5:1, and that no two palettes share a hue. A new
 palette means: nine colors in each of the two files, an overlay in
 `themes.xml`, an `AppTheme` entry, a `PaletteColors` entry, and a string.
+Secondary text (subtitles, hints, section labels, unselected pills) uses
+`MaterialTheme.colorScheme.muted(alpha)`, never `onSurface.copy(alpha = …)`:
+it clamps the alpha so the text keeps 4.5:1 on every app background in
+both modes (a plain 0.6 dropped to 3.4:1 in dark mode).
+
+**Accessibility** is checked by `AccessibilityAuditTest` on the semantics
+tree TalkBack reads (Google's Accessibility Test Framework does nothing
+under Robolectric): every clickable element needs a name and a 48dp touch
+area. Rows with a Switch are one `toggleable(role = Role.Switch)` element
+with `Switch(onCheckedChange = null)`; choices expose `selected`; decorative
+arrows (→ › ↗) are hidden with `clearAndSetSemantics {}`; primary buttons
+use `heightIn(min = 48.dp)` + `CtaPadding`, not a fixed height, so large
+system text grows them instead of clipping the label.
 
 ## Specs
 

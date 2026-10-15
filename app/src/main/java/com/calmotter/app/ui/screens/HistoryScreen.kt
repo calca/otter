@@ -1,5 +1,6 @@
 package com.calmotter.app.ui.screens
 
+import com.calmotter.app.ui.theme.muted
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -176,7 +177,7 @@ fun HistoryScreen(
                     selected = pager.currentPage == tab.ordinal,
                     onClick = { scope.launch { pager.animateScrollToPage(tab.ordinal) } },
                     selectedContentColor = MaterialTheme.colorScheme.primary,
-                    unselectedContentColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
+                    unselectedContentColor = MaterialTheme.colorScheme.muted(0.6f),
                     text = {
                         Text(
                             stringResource(
@@ -290,7 +291,7 @@ private fun MonthList(sessions: List<SessionRecord>, now: Long) {
             Text(
                 text = stringResource(R.string.history_month_empty),
                 fontSize = 13.sp,
-                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
+                color = MaterialTheme.colorScheme.muted(0.6f),
                 modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
             )
         }
@@ -476,7 +477,7 @@ private fun SessionRow(session: SessionRecord) {
                         text = reflection.joinToString(" · "),
                         fontSize = 13.sp,
                         fontStyle = FontStyle.Italic,
-                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
+                        color = MaterialTheme.colorScheme.muted(0.7f),
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
                         modifier = Modifier.padding(top = 2.dp)
@@ -584,7 +585,7 @@ private fun EmptyHistory() {
                 fontSize = 15.sp,
                 lineHeight = 23.sp,
                 fontStyle = FontStyle.Italic,
-                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.75f),
+                color = MaterialTheme.colorScheme.muted(0.75f),
                 textAlign = TextAlign.Center,
             )
         }
@@ -677,7 +678,7 @@ private fun ClosingPhraseCard(now: Long, modifier: Modifier = Modifier) {
                 fontSize = 15.sp,
                 lineHeight = 23.sp,
                 fontStyle = FontStyle.Italic,
-                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.75f),
+                color = MaterialTheme.colorScheme.muted(0.75f),
                 textAlign = TextAlign.Center,
                 modifier = Modifier.padding(top = 8.dp),
             )

@@ -1,5 +1,6 @@
 package com.calmotter.app.ui.screens
 
+import com.calmotter.app.ui.theme.muted
 import androidx.compose.material3.minimumInteractiveComponentSize
 import androidx.compose.ui.semantics.Role
 import androidx.compose.foundation.selection.toggleable
@@ -61,7 +62,7 @@ fun UsagePauseScreen(
     ) {
         Text(
             text = stringResource(R.string.usage_pause_explain),
-            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.75f),
+            color = MaterialTheme.colorScheme.muted(0.75f),
             modifier = Modifier.padding(bottom = 16.dp),
         )
         if (!accessibilityOn) {
@@ -145,7 +146,7 @@ fun UsagePauseScreen(
         Text(
             text = stringResource(R.string.usage_pause_rules),
             style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.65f),
+            color = MaterialTheme.colorScheme.muted(0.65f),
             modifier = Modifier.padding(top = 16.dp, start = 4.dp, end = 4.dp),
         )
     }
@@ -184,7 +185,7 @@ private fun SwitchRow(
                 Text(
                     text = hint,
                     style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.65f),
+                    color = MaterialTheme.colorScheme.muted(0.65f),
                 )
             }
         }

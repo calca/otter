@@ -6,6 +6,7 @@ import android.content.Intent
 import android.nfc.NfcAdapter
 import android.os.Handler
 import android.os.Looper
+import com.calmotter.app.ui.theme.muted
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Canvas
@@ -255,7 +256,7 @@ fun GroupPauseBluetoothLobbyHostScreen(
                     if (participantNames.isEmpty()) R.string.group_pause_lobby_waiting_subtitle
                     else R.string.group_pause_lobby_ready_subtitle
                 ),
-                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.75f),
+                color = MaterialTheme.colorScheme.muted(0.75f),
                 textAlign = TextAlign.Center,
                 modifier = Modifier.padding(top = 6.dp)
             )

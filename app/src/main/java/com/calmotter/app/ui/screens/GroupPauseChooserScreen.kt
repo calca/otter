@@ -1,5 +1,6 @@
 package com.calmotter.app.ui.screens
 
+import com.calmotter.app.ui.theme.muted
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.platform.LocalContext
 import com.calmotter.app.Share
@@ -127,7 +128,7 @@ fun GroupPauseChooserScreen(
                         Text(
                             text = stringResource(R.string.group_pause_chooser_subtitle),
                             style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
+                            color = MaterialTheme.colorScheme.muted(0.6f),
                             textAlign = TextAlign.Center,
                             modifier = Modifier.padding(top = 8.dp),
                         )
@@ -292,7 +293,7 @@ private fun GroupPauseChoiceCard(
                 Text(
                     text = description,
                     style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
+                    color = MaterialTheme.colorScheme.muted(0.7f),
                     modifier = Modifier.padding(top = 4.dp),
                 )
             }
@@ -338,7 +339,7 @@ private fun GroupPauseChooserFooter(modifier: Modifier = Modifier) {
         Text(
             text = stringResource(R.string.group_pause_chooser_footer),
             style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.55f),
+            color = MaterialTheme.colorScheme.muted(0.55f),
             textAlign = TextAlign.Center,
         )
     }

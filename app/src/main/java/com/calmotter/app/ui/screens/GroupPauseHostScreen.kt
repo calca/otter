@@ -1,5 +1,6 @@
 package com.calmotter.app.ui.screens
 
+import com.calmotter.app.ui.theme.muted
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
@@ -232,7 +233,7 @@ internal fun SetupLabel(text: String, topPadding: androidx.compose.ui.unit.Dp = 
         text = text.uppercase(),
         style = MaterialTheme.typography.labelSmall,
         letterSpacing = 0.12.em,
-        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.55f),
+        color = MaterialTheme.colorScheme.muted(0.55f),
         modifier = Modifier
             .fillMaxWidth()
             .padding(top = topPadding, bottom = 8.dp),

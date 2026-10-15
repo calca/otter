@@ -1,5 +1,6 @@
 package com.calmotter.app.ui.screens
 
+import com.calmotter.app.ui.theme.muted
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
@@ -52,7 +53,7 @@ internal fun AllowedProfileLine(
     // chiamato chi lo usa. TalkBack legge ancora la frase intera
     // ("Consentite: Standard").
     val description = stringResource(R.string.home_profile_line, selectedName)
-    val muted = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+    val muted = MaterialTheme.colorScheme.muted(0.6f)
     TextButton(
         onClick = { picking = true },
         modifier = modifier.semantics(mergeDescendants = true) { contentDescription = description },

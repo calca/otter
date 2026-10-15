@@ -1,5 +1,6 @@
 package com.calmotter.app.ui.screens
 
+import com.calmotter.app.ui.theme.muted
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -59,7 +60,7 @@ fun QuickTogetherReaderScreen(
             )
             Text(
                 text = stringResource(R.string.quick_together_subtitle, durationPillLabel(durationMinutes)),
-                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.75f),
+                color = MaterialTheme.colorScheme.muted(0.75f),
                 textAlign = TextAlign.Center,
                 modifier = Modifier.padding(top = 6.dp),
             )

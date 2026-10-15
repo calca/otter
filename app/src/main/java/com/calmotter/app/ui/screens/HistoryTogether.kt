@@ -1,5 +1,6 @@
 package com.calmotter.app.ui.screens
 
+import com.calmotter.app.ui.theme.muted
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -79,7 +80,7 @@ internal fun TogetherCard(sessions: List<SessionRecord>, modifier: Modifier = Mo
                 Text(
                     text = stringResource(R.string.together_none_month),
                     fontSize = 14.sp,
-                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
+                    color = MaterialTheme.colorScheme.muted(0.7f),
                     modifier = Modifier.padding(top = 12.dp),
                 )
             }
@@ -100,7 +101,7 @@ internal fun TogetherCard(sessions: List<SessionRecord>, modifier: Modifier = Mo
                             formatHistoryMinutes(total.minutes),
                             total.pauses,
                         ),
-                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.75f),
+                        color = MaterialTheme.colorScheme.muted(0.75f),
                         modifier = Modifier.weight(1f),
                     )
                     total.topCategories.forEach { category ->

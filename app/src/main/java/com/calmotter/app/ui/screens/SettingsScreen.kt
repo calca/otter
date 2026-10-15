@@ -1,6 +1,7 @@
 package com.calmotter.app.ui.screens
 
 import com.calmotter.app.Share
+import com.calmotter.app.ui.theme.muted
 import androidx.compose.material3.minimumInteractiveComponentSize
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.heading
@@ -317,7 +318,7 @@ fun SettingsScreen(
                 BuildConfig.VERSION_CODE,
             ),
             style = MaterialTheme.typography.labelSmall,
-            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.45f),
+            color = MaterialTheme.colorScheme.muted(0.45f),
             textAlign = TextAlign.Center,
             modifier = Modifier
                 .fillMaxWidth()
@@ -406,7 +407,7 @@ private fun SectionLabel(text: String, topPadding: Dp = 32.dp) {
         text = text.uppercase(),
         style = MaterialTheme.typography.labelSmall,
         letterSpacing = 0.12.em,
-        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.55f),
+        color = MaterialTheme.colorScheme.muted(0.55f),
         modifier = Modifier
             .fillMaxWidth()
             .padding(top = topPadding, bottom = 8.dp)
@@ -506,7 +507,7 @@ private fun SettingsSwitchRow(
                 Text(
                     subtitle,
                     style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
+                    color = MaterialTheme.colorScheme.muted(0.6f),
                 )
             }
         }
@@ -545,7 +546,7 @@ internal fun SettingsActionRow(
         if (value != null) {
             Text(
                 text = value,
-                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
+                color = MaterialTheme.colorScheme.muted(0.6f),
                 modifier = Modifier.padding(end = 10.dp),
             )
         }
