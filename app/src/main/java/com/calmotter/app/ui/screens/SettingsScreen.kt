@@ -1,6 +1,12 @@
 package com.calmotter.app.ui.screens
 
 import com.calmotter.app.Share
+import androidx.compose.material3.minimumInteractiveComponentSize
+import androidx.compose.ui.semantics.clearAndSetSemantics
+import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.Role
+import androidx.compose.foundation.selection.toggleable
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -404,6 +410,8 @@ private fun SectionLabel(text: String, topPadding: Dp = 32.dp) {
         modifier = Modifier
             .fillMaxWidth()
             .padding(top = topPadding, bottom = 8.dp)
+            // Intestazione per TalkBack: si salta di sezione in sezione.
+            .semantics { heading() }
     )
 }
 
@@ -485,7 +493,9 @@ private fun SettingsSwitchRow(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .clickable { onCheckedChange(!checked) }
+            // Tutta la riga è l'interruttore: TalkBack la legge una volta
+            // sola, con nome e stato ("Mostra le frasi, attivato").
+            .toggleable(value = checked, role = Role.Switch, onValueChange = onCheckedChange)
             .padding(vertical = 12.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
@@ -500,7 +510,13 @@ private fun SettingsSwitchRow(
                 )
             }
         }
-        Switch(checked = checked, onCheckedChange = onCheckedChange, colors = settingsSwitchColors())
+        Switch(
+            checked = checked,
+            onCheckedChange = null,
+            colors = settingsSwitchColors(),
+            // Senza azione propria perderebbe i 48dp e la riga si accorcerebbe.
+            modifier = Modifier.minimumInteractiveComponentSize(),
+        )
     }
 }
 
@@ -537,6 +553,7 @@ internal fun SettingsActionRow(
             text = "→",
             color = MaterialTheme.colorScheme.primary,
             fontWeight = FontWeight.SemiBold,
+            modifier = Modifier.clearAndSetSemantics {},
         )
     }
 }
@@ -594,6 +611,7 @@ private fun InfoLinkRow(label: String, onClick: () -> Unit) {
             text = "↗",
             color = MaterialTheme.colorScheme.primary,
             fontWeight = FontWeight.SemiBold,
+            modifier = Modifier.clearAndSetSemantics {},
         )
     }
 }

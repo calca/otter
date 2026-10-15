@@ -1,5 +1,8 @@
 package com.calmotter.app.ui.screens
 
+import androidx.compose.material3.minimumInteractiveComponentSize
+import androidx.compose.ui.semantics.Role
+import androidx.compose.foundation.selection.toggleable
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -169,7 +172,9 @@ private fun SwitchRow(
         verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier
             .fillMaxWidth()
-            .clickable { onCheckedChange(!checked) }
+            // Tutta la riga è l'interruttore: TalkBack la legge una volta
+            // sola, con nome e stato ("Mostra le frasi, attivato").
+            .toggleable(value = checked, role = Role.Switch, onValueChange = onCheckedChange)
             .padding(vertical = 14.dp),
     ) {
         SettingsRowIcon { icon() }
@@ -183,6 +188,12 @@ private fun SwitchRow(
                 )
             }
         }
-        Switch(checked = checked, onCheckedChange = onCheckedChange, colors = settingsSwitchColors())
+        Switch(
+            checked = checked,
+            onCheckedChange = null,
+            colors = settingsSwitchColors(),
+            // Senza azione propria perderebbe i 48dp e la riga si accorcerebbe.
+            modifier = Modifier.minimumInteractiveComponentSize(),
+        )
     }
 }

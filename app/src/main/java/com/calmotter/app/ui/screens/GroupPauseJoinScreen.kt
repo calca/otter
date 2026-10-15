@@ -22,6 +22,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.layout.size
@@ -227,6 +228,7 @@ private fun ManualCodeScreen(
             )
         }
         Button(
+            contentPadding = CtaPadding,
             onClick = {
                 errorText = when (val result = decodeGroupPauseRecipeResult(code)) {
                     is RecipeDecodeResult.Ok -> { onRecipeReady(result.recipe); "" }
@@ -235,7 +237,7 @@ private fun ManualCodeScreen(
                 }
             },
             enabled = code.isNotBlank(),
-            modifier = Modifier.fillMaxWidth().padding(top = 16.dp, start = 8.dp, end = 8.dp).height(52.dp),
+            modifier = Modifier.fillMaxWidth().padding(top = 16.dp, start = 8.dp, end = 8.dp).heightIn(min = 52.dp),
         ) {
             Text(stringResource(R.string.group_pause_manual_code_join_button))
         }
@@ -379,8 +381,9 @@ private fun ScanFullScreen(
                     )
                 }
                 Button(
+                    contentPadding = CtaPadding,
                     onClick = { permissionLauncher.launch(Manifest.permission.CAMERA) },
-                    modifier = Modifier.fillMaxWidth().height(48.dp),
+                    modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp),
                 ) {
                     Text(stringResource(R.string.permission_action_grant))
                 }

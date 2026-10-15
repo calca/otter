@@ -1,5 +1,6 @@
 package com.calmotter.app.ui.screens
 
+import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.IntrinsicSize
@@ -339,6 +340,9 @@ fun MainScreen(
                 text = boldAnnotatedString(stringResource(R.string.home_start_hint)),
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.55f),
+                // La stessa frase è già il nome dell'otter per TalkBack (vedi
+                // HomePond.kt): letta anche qui arrivava due volte di fila.
+                modifier = Modifier.clearAndSetSemantics {},
             )
             Spacer(modifier = Modifier.height(10.dp))
             DurationChipRow(

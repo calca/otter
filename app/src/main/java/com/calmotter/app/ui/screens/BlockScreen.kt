@@ -27,6 +27,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
@@ -298,6 +299,7 @@ fun BlockScreen(
         footer = {
             if (slowExitDeadline > 0L) {
                 OutlinedButton(
+                    contentPadding = CtaPadding,
                     onClick = {
                         controller.cancelSlowExit()
                         slowExitDeadline = 0L
@@ -306,17 +308,18 @@ fun BlockScreen(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(top = 12.dp, bottom = 24.dp)
-                        .height(48.dp),
+                        .heightIn(min = 48.dp),
                 ) {
                     Text(stringResource(R.string.slow_exit_stay))
                 }
             } else if (!showUnlockDialog) {
                 Button(
+                    contentPadding = CtaPadding,
                     onClick = { showUnlockDialog = true },
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(top = 12.dp, bottom = 24.dp)
-                        .height(48.dp),
+                        .heightIn(min = 48.dp),
                 ) {
                     Icon(
                         imageVector = Icons.Default.Lock,

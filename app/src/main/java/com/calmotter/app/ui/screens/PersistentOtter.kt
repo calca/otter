@@ -1,5 +1,7 @@
 package com.calmotter.app.ui.screens
 
+import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.Role
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.Spring
@@ -151,7 +153,7 @@ fun PersistentOtter(
                 .clickable(enabled = enabled && !isStarting, onClick = { isStarting = true })
                 .then(
                     if (otterContentDescription != null) {
-                        Modifier.semantics { contentDescription = otterContentDescription }
+                        Modifier.semantics { contentDescription = otterContentDescription; role = Role.Button }
                     } else {
                         Modifier
                     }

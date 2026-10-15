@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.layout.size
@@ -156,6 +157,7 @@ fun ChangePasswordScreen(
         val passwordChangedText = stringResource(R.string.password_changed)
 
         Button(
+            contentPadding = CtaPadding,
             onClick = {
                 if (passwordManager.isLockedOut()) {
                     isLockedOut = true
@@ -206,7 +208,7 @@ fun ChangePasswordScreen(
                 }
             },
             enabled = !busy,
-            modifier = Modifier.fillMaxWidth().height(48.dp)
+            modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)
         ) {
             if (isChanging) {
                 CircularProgressIndicator(modifier = Modifier.size(18.dp))

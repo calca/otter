@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.material3.MaterialTheme
@@ -235,11 +236,12 @@ fun GroupPauseCountdownScreen(
         // explicit"): il default M3 misura 40dp, sotto il target minimo di
         // tocco raccomandato (48dp, Material Design/WCAG 2.5.5).
         OutlinedButton(
+            contentPadding = CtaPadding,
             onClick = onCancel,
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(top = 24.dp)
-                .height(48.dp),
+                .heightIn(min = 48.dp),
         ) {
             Text(stringResource(android.R.string.cancel))
         }

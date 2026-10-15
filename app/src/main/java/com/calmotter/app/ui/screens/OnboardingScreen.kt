@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawingPadding
@@ -249,16 +250,18 @@ fun OnboardingScreen(
 
             if (currentStep > 0) {
                 OutlinedButton(
+                    contentPadding = CtaPadding,
                     onClick = { currentStep -= 1 },
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(48.dp)
+                        .heightIn(min = 48.dp)
                 ) {
                     Text(stringResource(R.string.onb_back))
                 }
             }
 
             Button(
+                contentPadding = CtaPadding,
                 onClick = {
                     // Step password: validazione obbligatoria solo all'uscita
                     // dallo step, non a ogni carattere digitato.
@@ -284,7 +287,7 @@ fun OnboardingScreen(
                 },
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(48.dp)
+                    .heightIn(min = 48.dp)
             ) {
                 Text(
                     stringResource(

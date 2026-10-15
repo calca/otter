@@ -1,5 +1,9 @@
 package com.calmotter.app.ui.screens
 
+import androidx.compose.ui.semantics.clearAndSetSemantics
+import androidx.compose.ui.semantics.selected
+import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.animation.core.withInfiniteAnimationFrameMillis
 import androidx.compose.foundation.Canvas
@@ -277,7 +281,7 @@ fun CalmLinkRow(text: String, onClick: () -> Unit, modifier: Modifier = Modifier
             style = MaterialTheme.typography.labelMedium,
             fontWeight = FontWeight.Medium,
             color = linkColor,
-            modifier = Modifier.padding(start = 6.dp),
+            modifier = Modifier.padding(start = 6.dp).clearAndSetSemantics {},
         )
     }
 }
@@ -517,6 +521,16 @@ enum class CalmPillSize(val horizontal: Dp, val vertical: Dp, val fontSize: Text
 }
 
 /**
+ * Padding dei bottoni principali alti 48dp: niente padding verticale, il
+ * testo è centrato dall'altezza minima. Prima l'altezza era fissa (48dp) e
+ * il padding di default (che li porterebbe a 52dp) veniva schiacciato; col
+ * testo grande di sistema la scritta usciva tagliata ("Sblocca" al 200%).
+ * Con `heightIn(min = 48.dp)` e questo padding restano 48dp a testo
+ * normale e crescono quando serve.
+ */
+internal val CtaPadding = PaddingValues(horizontal = 24.dp)
+
+/**
  * La pillola di scelta dell'app, una sola per tutte le schermate: prima ne
  * esistevano sette copie quasi uguali (durate in Home e in lobby, minuti
  * della pagina QR, obiettivo, profili, risposte del momento di chiusura,
@@ -535,14 +549,23 @@ fun CalmPill(
     size: CalmPillSize = CalmPillSize.Regular,
     trailingIcon: ImageVector? = null,
     trailingIconDescription: String? = null,
+    isChoice: Boolean = true,
     onClick: () -> Unit,
 ) {
     val contentColor = if (selected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.65f)
+    // Una pillola è quasi sempre una scelta fra alternative (durata, umore,
+    // periodo): TalkBack deve dire quale è selezionata, non solo il nome.
+    // isChoice = false per le poche che sono un'azione ("Nuovo profilo").
+    val semantics = if (isChoice) {
+        Modifier.semantics { role = Role.RadioButton; this.selected = selected }
+    } else {
+        Modifier.semantics { role = Role.Button }
+    }
     Surface(
         onClick = onClick,
         shape = RoundedCornerShape(50),
         color = if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.tertiary.copy(alpha = 0.55f),
-        modifier = modifier,
+        modifier = modifier.then(semantics),
     ) {
         Row(
             verticalAlignment = Alignment.CenterVertically,

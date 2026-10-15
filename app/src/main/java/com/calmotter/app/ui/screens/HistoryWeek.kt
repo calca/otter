@@ -1,5 +1,6 @@
 package com.calmotter.app.ui.screens
 
+import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.material3.Icon
 import androidx.compose.material.icons.filled.Star
@@ -183,6 +184,7 @@ internal fun WeeklyGoalCard(
                     text = "→",
                     color = MaterialTheme.colorScheme.primary,
                     fontWeight = FontWeight.SemiBold,
+                    modifier = Modifier.clearAndSetSemantics {},
                 )
             }
             if (goal != null) {

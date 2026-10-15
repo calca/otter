@@ -1,5 +1,6 @@
 package com.calmotter.app.ui.screens
 
+import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
@@ -112,7 +113,7 @@ internal fun SessionsSummaryLink(
             style = MaterialTheme.typography.bodyMedium,
             fontWeight = FontWeight.Medium,
             color = linkColor,
-            modifier = Modifier.padding(start = 6.dp),
+            modifier = Modifier.padding(start = 6.dp).clearAndSetSemantics {},
         )
     }
 }

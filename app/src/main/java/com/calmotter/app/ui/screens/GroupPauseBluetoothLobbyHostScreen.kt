@@ -20,6 +20,7 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
@@ -310,15 +311,17 @@ fun GroupPauseBluetoothLobbyHostScreen(
                 modifier = Modifier.align(Alignment.CenterHorizontally),
             )
             OutlinedButton(
+                contentPadding = CtaPadding,
                 onClick = onCancel,
-                modifier = Modifier.fillMaxWidth().height(48.dp)
+                modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)
             ) {
                 Text(stringResource(android.R.string.cancel))
             }
             Button(
+                contentPadding = CtaPadding,
                 onClick = { startSession() },
                 enabled = participantNames.isNotEmpty(),
-                modifier = Modifier.fillMaxWidth().height(48.dp)
+                modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)
             ) {
                 Text(stringResource(R.string.group_pause_start_button))
             }

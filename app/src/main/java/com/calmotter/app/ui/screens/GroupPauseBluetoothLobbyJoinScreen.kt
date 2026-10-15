@@ -19,6 +19,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.layout.size
@@ -418,11 +419,12 @@ fun GroupPauseBluetoothLobbyJoinScreen(
         // specs/onboarding-and-password/design.md, "CTA height made
         // explicit").
         OutlinedButton(
+            contentPadding = CtaPadding,
             onClick = onCancel,
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(top = 20.dp)
-                .height(48.dp),
+                .heightIn(min = 48.dp),
         ) {
             Text(stringResource(android.R.string.cancel))
         }

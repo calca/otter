@@ -140,6 +140,8 @@ android {
             all { test ->
                 test.systemProperty("screenshots.record", project.findProperty("screenshots.record") ?: "false")
                 test.systemProperty("store.graphics", project.findProperty("store.graphics") ?: "false")
+                project.findProperty("a11y.fontscale")?.let { test.systemProperty("a11y.fontscale", it) }
+                project.findProperty("a11y.report")?.let { test.systemProperty("a11y.report", it) }
                 test.inputs.files(project.fileTree("src/test/screenshots"))
                     .withPropertyName("screenshotGoldens")
                     .optional()

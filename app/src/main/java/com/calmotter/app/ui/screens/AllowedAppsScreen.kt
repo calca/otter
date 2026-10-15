@@ -1,6 +1,11 @@
 package com.calmotter.app.ui.screens
 
 import android.graphics.Bitmap
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.toggleableState
+import androidx.compose.ui.state.ToggleableState
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -212,7 +217,10 @@ private fun AppRow(
         onClick = { onToggle(item) },
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 12.dp, vertical = 4.dp),
+            .padding(horizontal = 12.dp, vertical = 4.dp)
+            // La card è l'interruttore (lo Switch sotto solo lo mostra):
+            // senza questo TalkBack diceva "YouTube" senza dire se resta.
+            .semantics { role = Role.Switch; toggleableState = ToggleableState(item.isAllowed) },
         shape = RoundedCornerShape(12.dp),
         colors = CardDefaults.cardColors(
             // Tinta di primary anche per le righe non consentite, non
@@ -329,6 +337,7 @@ private fun ProfileBar(
                 CalmPill(
                     label = stringResource(R.string.allowed_profile_new),
                     selected = false,
+                    isChoice = false,
                     onClick = { naming = "" },
                 )
             }

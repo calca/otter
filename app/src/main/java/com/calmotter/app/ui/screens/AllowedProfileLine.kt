@@ -1,5 +1,6 @@
 package com.calmotter.app.ui.screens
 
+import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -60,6 +61,8 @@ internal fun AllowedProfileLine(
             text = "$selectedName ›",
             style = MaterialTheme.typography.bodyMedium,
             color = muted,
+            // Il nome sì, la freccia no ("freccia destra" era rumore).
+            modifier = Modifier.clearAndSetSemantics { contentDescription = selectedName },
         )
     }
 

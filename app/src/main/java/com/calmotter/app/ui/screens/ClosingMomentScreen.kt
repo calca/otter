@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
@@ -112,13 +113,14 @@ fun ClosingMomentScreen(
             modifier = Modifier.fillMaxWidth().padding(top = 20.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
-            TextButton(onClick = onSkip, modifier = Modifier.fillMaxWidth().height(48.dp)) {
+            TextButton(onClick = onSkip, contentPadding = CtaPadding, modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)) {
                 Text(stringResource(R.string.closing_skip))
             }
             Button(
+                contentPadding = CtaPadding,
                 onClick = { onDone(mood, note.trim()) },
                 enabled = mood != null || note.isNotBlank(),
-                modifier = Modifier.fillMaxWidth().height(48.dp),
+                modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp),
             ) {
                 Text(stringResource(R.string.closing_done))
             }

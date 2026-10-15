@@ -1,5 +1,10 @@
 package com.calmotter.app.ui.screens
 
+import androidx.compose.material3.minimumInteractiveComponentSize
+import androidx.compose.ui.semantics.clearAndSetSemantics
+import androidx.compose.foundation.text.TextAutoSize
+import androidx.compose.ui.semantics.Role
+import androidx.compose.foundation.selection.toggleable
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -13,6 +18,7 @@ import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.layout.size
@@ -197,21 +203,26 @@ fun ScheduledPausesScreen(
                                 color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.75f),
                             )
                         }
+                        // Fuori dalla riga (che apre l'editor), quindi con un
+                        // nome suo: da solo TalkBack diceva "Attivato" e basta.
+                        val switchLabel = startLabel(schedule) + ", " + daysLabel(schedule.days, locale)
                         Switch(
                             checked = schedule.enabled,
                             onCheckedChange = { onToggle(schedule.copy(enabled = it)) },
                             colors = settingsSwitchColors(),
+                            modifier = Modifier.semantics { contentDescription = switchLabel },
                         )
                     }
                 }
             }
         }
         Button(
+            contentPadding = CtaPadding,
             onClick = { onEdit(newScheduledPause()) },
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = 24.dp, vertical = 16.dp)
-                .height(52.dp),
+                .heightIn(min = 52.dp),
         ) {
             Text(stringResource(R.string.schedule_add))
         }
@@ -311,7 +322,7 @@ fun ScheduleEditorScreen(
                         verticalAlignment = Alignment.CenterVertically,
                         modifier = Modifier
                             .fillMaxWidth()
-                            .clickable { toggleSurprise(!surprise) }
+                            .toggleable(value = surprise, role = Role.Switch, onValueChange = toggleSurprise)
                             .padding(vertical = 14.dp),
                     ) {
                         SettingsRowIcon {
@@ -330,7 +341,13 @@ fun ScheduleEditorScreen(
                                 color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.65f),
                             )
                         }
-                        Switch(checked = surprise, onCheckedChange = toggleSurprise, colors = settingsSwitchColors())
+                        Switch(
+            checked = surprise,
+            onCheckedChange = null,
+            colors = settingsSwitchColors(),
+            // Senza azione propria perderebbe i 48dp e la riga si accorcerebbe.
+            modifier = Modifier.minimumInteractiveComponentSize(),
+        )
                     }
                 }
             }
@@ -355,7 +372,7 @@ fun ScheduleEditorScreen(
                         verticalAlignment = Alignment.CenterVertically,
                         modifier = Modifier
                             .fillMaxWidth()
-                            .clickable { locked = !locked }
+                            .toggleable(value = locked, role = Role.Switch, onValueChange = { locked = it })
                             .padding(vertical = 14.dp),
                     ) {
                         SettingsRowIcon { RowIcon(Icons.Filled.Lock) }
@@ -367,7 +384,13 @@ fun ScheduleEditorScreen(
                                 color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.65f),
                             )
                         }
-                        Switch(checked = locked, onCheckedChange = { locked = it }, colors = settingsSwitchColors())
+                        Switch(
+            checked = locked,
+            onCheckedChange = null,
+            colors = settingsSwitchColors(),
+            // Senza azione propria perderebbe i 48dp e la riga si accorcerebbe.
+            modifier = Modifier.minimumInteractiveComponentSize(),
+        )
                     }
                     if (!isNew && original.enabled) {
                         CardDivider()
@@ -382,6 +405,7 @@ fun ScheduleEditorScreen(
         }
 
         Button(
+            contentPadding = CtaPadding,
             enabled = days != 0,
             onClick = {
                 onSave(
@@ -399,7 +423,7 @@ fun ScheduleEditorScreen(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = 24.dp, vertical = 16.dp)
-                .height(52.dp),
+                .heightIn(min = 52.dp),
         ) {
             Text(stringResource(R.string.allowed_profile_save))
         }
@@ -544,8 +568,14 @@ private fun DayCircles(days: Int, locale: Locale, onChange: (Int) -> Unit) {
                 Box(contentAlignment = Alignment.Center) {
                     Text(
                         text = day.getDisplayName(TextStyle.SHORT, locale).trimEnd('.'),
-                        fontSize = 13.sp,
                         maxLines = 1,
+                        // Il tondo non può crescere (sette su una riga): col
+                        // testo grande di sistema l'etichetta si riduce fino a
+                        // starci invece di uscire dal bordo. Il nome intero
+                        // per TalkBack resta nella contentDescription.
+                        autoSize = TextAutoSize.StepBased(minFontSize = 8.sp, maxFontSize = 13.sp),
+                        // Letto già col nome intero (sopra): "lunedì lun" no.
+                        modifier = Modifier.clearAndSetSemantics {},
                         fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Normal,
                         color = if (selected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.65f),
                     )

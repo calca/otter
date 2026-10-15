@@ -1,5 +1,6 @@
 package com.calmotter.app.ui.screens
 
+import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.platform.LocalContext
 import com.calmotter.app.Share
 import androidx.compose.foundation.background
@@ -299,7 +300,7 @@ private fun GroupPauseChoiceCard(
                 text = "›",
                 color = MaterialTheme.colorScheme.primary,
                 fontWeight = FontWeight.SemiBold,
-                modifier = Modifier.padding(start = 8.dp),
+                modifier = Modifier.padding(start = 8.dp).clearAndSetSemantics {},
             )
         }
     }

@@ -1,5 +1,9 @@
 package com.calmotter.app.ui.screens
 
+import androidx.compose.ui.semantics.selected
+import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -118,6 +122,9 @@ private fun PermissionStatusRow(
     Row(
         modifier = Modifier
             .fillMaxWidth()
+            // "Accessibilità, Fatto" in una sola lettura: erano due voci
+            // separate, e "Fatto" da solo non diceva di cosa.
+            .semantics(mergeDescendants = true) {}
             .padding(vertical = 12.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
@@ -240,7 +247,8 @@ private fun ThemeGridCell(
         } else {
             null
         },
-        modifier = modifier,
+        // Il bordo dice qual è il tema attivo solo a chi lo vede.
+        modifier = modifier.semantics { role = Role.RadioButton; this.selected = selected },
     ) {
         Row(
             modifier = Modifier.padding(horizontal = 14.dp, vertical = 16.dp),
