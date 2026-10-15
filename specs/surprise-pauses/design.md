@@ -108,9 +108,9 @@ Strings (IT / EN):
 
 1. **Name**: "A sorpresa" / "Surprise" (decided). "Casuale" sounded like a bug.
 2. **Heads-up**: 5 minutes before, as for scheduled pauses (decided).
+3. **Minimum window**: duration + 1 h (decided). With + 30 min the
+   start falls inside half an hour and is nearly predictable.
+4. **No windows across midnight** (decided): `nextOccurrence` stays
+   simple, and pauses at night aren't wanted (see usage-pause).
 
-## Decisioni aperte
-
-1. **Minimum window**: duration + 30 min, or a fixed minimum of 1 h?
-2. **Windows across midnight** (22:00–01:00): left out to keep
-   `nextOccurrence` simple. Do we need them?
+No open decisions left.
