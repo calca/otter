@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -26,6 +27,7 @@ import androidx.compose.ui.unit.sp
 import com.calmotter.app.R
 import com.calmotter.app.durationPillLabel
 import com.calmotter.app.ui.mascot.OtterTapMark
+import com.calmotter.app.ui.mascot.TogetherMark
 
 /**
  * "Avvicina i telefoni" (specs/nfc-quick-together/), lato di chi propone:
@@ -38,7 +40,8 @@ import com.calmotter.app.ui.mascot.OtterTapMark
  * all'altro telefono, che di solito ha l'app chiusa), la proposta che
  * partirà col tocco (durata e attività, in una card), e in fondo, sempre
  * nello stesso punto, il link agli altri modi di Tempo insieme (QR,
- * codice, Bluetooth): dalla Home, con l'NFC, si arriva solo da qui.
+ * codice, Bluetooth, bottone tinto): dalla Home, con l'NFC, si arriva
+ * solo da qui.
  */
 @Composable
 fun QuickTogetherReaderScreen(
@@ -111,10 +114,19 @@ fun QuickTogetherReaderScreen(
                 }
             }
         }
-        CalmLinkRow(
+        // Un bottone tinto a tutta larghezza, non un link: come link nudo
+        // si perdeva (segnalato), ed è l'unica strada dalla Home verso QR,
+        // codice e Bluetooth. Il fondo pagina è libero perché qui l'azione
+        // principale è il tocco fra i telefoni, non un bottone.
+        CalmSecondaryButton(
             text = stringResource(R.string.quick_together_other_ways),
             onClick = onOtherWays,
-            modifier = Modifier.padding(top = 16.dp),
+            leadingIcon = { TogetherMark(markSize = 20.dp) },
+            contentPadding = CtaPadding,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(top = 16.dp)
+                .heightIn(min = 48.dp),
         )
     }
 }

@@ -77,7 +77,7 @@ phone, so we don't have to coordinate before touching phones.
 3. WHEN the two phones run different, incompatible versions THEN both
    SHALL say to update the app, as the code/QR path does today.
 4. Bluetooth, QR and code stay reachable for people who aren't side by
-   side: through a "Prefer a QR code, a code or Bluetooth?" link on the
+   side: through a "QR, code or Bluetooth" button on the
    "One tap" page, or through Home's "Time together" button without NFC.
 
 ## User Story 4: Nothing starts by accident

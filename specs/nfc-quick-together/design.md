@@ -56,8 +56,8 @@ null without NFC): **"One tap"** ("Con un tocco") with NFC, opening
 chooser, without. It used to show both side by side in one row (stacked,
 Home overflowed on a Samsung), but two tinted pills under the summary line
 made the bottom of Home too busy — decided with the user, 2026-10-15. With
-NFC the full flow is one link away on the reader page ("Prefer a QR code,
-a code or Bluetooth?", which opens the chooser with the same duration and
+NFC the full flow is one button away on the reader page ("QR, code or
+Bluetooth", which opens the chooser with the same duration and
 closes the reader). The label stays "One tap" / "Con un tocco": "Avvicina
 i telefoni" wrapped. Same permission
 check as the otter tap. NFC off → NFC settings + a toast.
@@ -66,8 +66,9 @@ arrow, otter-tap illustration pulsing at 200dp like Join's search, "Hold
 your phones together" (was "Hold your friend's phone near", which wrapped
 badly in Italian), one line on what the other phone needs: screen on,
 app may be closed); the proposal in a tinted card ("A pause together,
-1 h", the activity with ↻); and, pinned at the bottom, the "Prefer a QR
-code, a code or Bluetooth?" link. A refusal shows in an error-tinted box
+1 h", the activity with ↻); and, pinned at the bottom, a "QR, code or
+Bluetooth" button (tinted, full width: as a bare link it was too easy to
+miss). A refusal shows in an error-tinted box
 between the two; reader mode
 only between `onResume` and `onPause`. On `Accepted` the same activity
 shows `QuickTogetherCountdownScreen` (the existing countdown with "Pause
