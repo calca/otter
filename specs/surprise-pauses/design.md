@@ -75,9 +75,11 @@ with tests.
 
 Editor (`ScheduleEditorScreen`):
 
-- Above the large time, two `CalmPill`s: "At a set time" / "Surprise"
-  (the app's choice pills, not M3's segmented row, whose colors come from
-  roles the palettes don't set). For a surprise, the large time becomes
+- In the "When" card, under Duration, a **"Surprise"** row with a switch
+  and a one-line hint ("Starts at a random moment within a time window"),
+  styled like "Protected by password". It started as two `CalmPill`s above
+  the time ("At a set time" / "Surprise"), dropped in review because they
+  weighed more than the time itself. For a surprise, the large time becomes
   "14:00 – 18:00": two tappable times at 40 sp, each opening the same
   `TimePickerDialog` titled "Not before" / "Over by". The summary line
   reads "Mon–Fri · for 30 min, at a surprise time".

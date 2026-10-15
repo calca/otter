@@ -23,8 +23,8 @@ inside a window I choose, so I can't arrange my phone use around it.
 ### Acceptance Criteria
 
 1. WHEN the user adds or edits a scheduled pause THEN the editor SHALL
-   offer two kinds of start: **"At a set time"** (today's behavior) and
-   **"Surprise"**, with a window "between <from> and <to>".
+   offer a **"Surprise"** switch (off = at a set time, today's behavior;
+   on = a window "between <from> and <to>").
 2. The window SHALL be at least the pause's duration plus 1 hour (a 1 h
    pause needs at least 2 h, e.g. 14:00–16:00), so the start can't be
    guessed. It SHALL fit inside one day: no window across midnight. The

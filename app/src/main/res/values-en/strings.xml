@@ -403,8 +403,8 @@
     <string name="schedule_skip_next">Skip the next one</string>
     <string name="schedule_delete">Delete pause</string>
     <string name="schedule_summary_short">%1$s · for %2$s</string>
-    <string name="schedule_kind_fixed">At a set time</string>
-    <string name="schedule_kind_surprise">Surprise</string>
+    <string name="schedule_surprise_label">Surprise</string>
+    <string name="schedule_surprise_hint">Starts at a random moment within a time window.</string>
     <string name="schedule_surprise_tag">surprise</string>
     <string name="schedule_window_from_label">Not before</string>
     <string name="schedule_window_to_label">Over by</string>

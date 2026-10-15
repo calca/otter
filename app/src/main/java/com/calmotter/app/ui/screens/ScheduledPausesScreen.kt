@@ -283,21 +283,6 @@ fun ScheduleEditorScreen(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 modifier = Modifier.fillMaxWidth().padding(top = 8.dp, bottom = 8.dp),
             ) {
-                Row(
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    modifier = Modifier.padding(bottom = 16.dp),
-                ) {
-                    CalmPill(
-                        label = stringResource(R.string.schedule_kind_fixed),
-                        selected = !surprise,
-                        onClick = { surprise = false },
-                    )
-                    CalmPill(
-                        label = stringResource(R.string.schedule_kind_surprise),
-                        selected = surprise,
-                        onClick = { surprise = true; normalizeWindow() },
-                    )
-                }
                 if (surprise) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         BigTime(
@@ -349,6 +334,37 @@ fun ScheduleEditorScreen(
                     Spacer(Modifier.height(16.dp))
                     CardDivider()
                     DurationStepper(duration = duration, onChange = { duration = it; normalizeWindow() })
+                    CardDivider()
+                    // A sorpresa (specs/surprise-pauses/): un interruttore
+                    // come "Protetta da password", non due pillole in cima
+                    // (scartate nella review: pesavano più dell'ora stessa).
+                    // Acceso, in cima l'ora diventa una fascia.
+                    val toggleSurprise = { on: Boolean -> surprise = on; normalizeWindow() }
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable { toggleSurprise(!surprise) }
+                            .padding(vertical = 14.dp),
+                    ) {
+                        SettingsRowIcon {
+                            Icon(
+                                painter = painterResource(R.drawable.ic_surprise),
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.primary,
+                                modifier = Modifier.size(18.dp),
+                            )
+                        }
+                        Column(modifier = Modifier.weight(1f).padding(end = 12.dp)) {
+                            Text(stringResource(R.string.schedule_surprise_label), color = MaterialTheme.colorScheme.onSurface)
+                            Text(
+                                text = stringResource(R.string.schedule_surprise_hint),
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.65f),
+                            )
+                        }
+                        Switch(checked = surprise, onCheckedChange = toggleSurprise, colors = settingsSwitchColors())
+                    }
                 }
             }
 
