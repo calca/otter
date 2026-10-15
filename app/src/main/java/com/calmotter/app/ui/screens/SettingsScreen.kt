@@ -155,21 +155,14 @@ fun SettingsScreen(
         SectionLabel(stringResource(R.string.settings_theme_label), topPadding = 0.dp)
         ThemeListCard(currentTheme = currentTheme, onPickTheme = onPickTheme)
 
-        // "La pausa": tutto ciò che decide com'è una pausa, in una card sola.
-        // Prima "Gestisci app consentite" e "Uscita senza password" stavano
-        // sotto Password (solo perché la chiedono), e Pause programmate,
-        // Home ed Esperienza di pausa erano sezioni da una riga, due delle
-        // quali ripetevano il titolo nella riga ("PAUSE PROGRAMMATE →
-        // Pause programmate", "HOME → App Home") — segnalato nella review UI.
+        // Le opzioni della pausa divise per significato (review: erano sette
+        // righe in una card sola). "Durante la pausa": com'è una pausa.
+        // "In automatico": quello che Calm Otter fa da sola, senza toccare
+        // l'otter. L'app Home, impostazione di sistema come i permessi, sta
+        // con loro. Prima ancora "Gestisci app consentite" e "Uscita senza
+        // password" stavano sotto Password, e Pause programmate e Home erano
+        // sezioni da una riga che ripetevano il titolo.
         SectionLabel(stringResource(R.string.settings_pause_label))
-        val activeSchedules = remember(resumeSignal) {
-            ScheduleManager.getInstance(context).all().count { it.enabled }
-        }
-        // La nota della domenica sera (specs/weekly-summary/): niente
-        // password, è solo una notifica. Se le notifiche dell'app sono
-        // spente lo dice, senza chiedere il permesso solo per questo.
-        var weeklyNote by remember { mutableStateOf(WeeklySummary.isEnabled(context)) }
-        val notificationsOn = remember(resumeSignal) { WeeklySummary.notificationsAllowed(context) }
         Surface(
             shape = RoundedCornerShape(20.dp),
             color = MaterialTheme.colorScheme.primary.copy(alpha = 0.06f),
@@ -180,38 +173,6 @@ fun SettingsScreen(
                     label = stringResource(R.string.manage_allowed_apps),
                     onClick = { showManageAppsDialog = true },
                     icon = { RowIcon(Icons.Default.List) },
-                )
-                RowDivider()
-                SettingsActionRow(
-                    label = stringResource(R.string.settings_schedule_label),
-                    value = if (activeSchedules == 0) {
-                        stringResource(R.string.settings_schedule_none)
-                    } else {
-                        pluralStringResource(R.plurals.settings_schedule_count, activeSchedules, activeSchedules)
-                    },
-                    onClick = onScheduledPauses,
-                    icon = { RowIcon(Icons.Default.DateRange) },
-                )
-                RowDivider()
-                // Pausa dopo un uso lungo (specs/usage-pause/). Valore corto,
-                // come l'uscita lenta: "Dopo 45 min" sta su una riga.
-                val usageRule = remember(resumeSignal) { UsagePauseManager.getInstance(context).rule() }
-                SettingsActionRow(
-                    label = stringResource(R.string.usage_pause_title),
-                    value = if (usageRule.enabled) {
-                        stringResource(R.string.usage_pause_settings_value, durationPillLabel(usageRule.afterMinutes))
-                    } else {
-                        stringResource(R.string.settings_slow_exit_off)
-                    },
-                    onClick = onUsagePause,
-                    icon = {
-                        Icon(
-                            painter = painterResource(R.drawable.ic_phone_time),
-                            contentDescription = null,
-                            tint = MaterialTheme.colorScheme.primary,
-                            modifier = Modifier.size(18.dp),
-                        )
-                    },
                 )
                 RowDivider()
                 // Uscita lenta (specs/slow-exit/): si cambia solo dopo la
@@ -244,6 +205,55 @@ fun SettingsScreen(
                         phraseManager.setEnabled(checked)
                     },
                 )
+            }
+        }
+
+        SectionLabel(stringResource(R.string.settings_auto_label))
+        val activeSchedules = remember(resumeSignal) {
+            ScheduleManager.getInstance(context).all().count { it.enabled }
+        }
+        // La nota della domenica sera (specs/weekly-summary/): niente
+        // password, è solo una notifica. Se le notifiche dell'app sono
+        // spente lo dice, senza chiedere il permesso solo per questo.
+        var weeklyNote by remember { mutableStateOf(WeeklySummary.isEnabled(context)) }
+        val notificationsOn = remember(resumeSignal) { WeeklySummary.notificationsAllowed(context) }
+        Surface(
+            shape = RoundedCornerShape(20.dp),
+            color = MaterialTheme.colorScheme.primary.copy(alpha = 0.06f),
+            modifier = Modifier.fillMaxWidth(),
+        ) {
+            Column(modifier = Modifier.padding(horizontal = 16.dp)) {
+                SettingsActionRow(
+                    label = stringResource(R.string.settings_schedule_label),
+                    value = if (activeSchedules == 0) {
+                        stringResource(R.string.settings_schedule_none)
+                    } else {
+                        pluralStringResource(R.plurals.settings_schedule_count, activeSchedules, activeSchedules)
+                    },
+                    onClick = onScheduledPauses,
+                    icon = { RowIcon(Icons.Default.DateRange) },
+                )
+                RowDivider()
+                // Pausa dopo un uso lungo (specs/usage-pause/). Valore corto,
+                // come l'uscita lenta: "Dopo 45 min" sta su una riga.
+                val usageRule = remember(resumeSignal) { UsagePauseManager.getInstance(context).rule() }
+                SettingsActionRow(
+                    label = stringResource(R.string.usage_pause_title),
+                    value = if (usageRule.enabled) {
+                        stringResource(R.string.usage_pause_settings_value, durationPillLabel(usageRule.afterMinutes))
+                    } else {
+                        stringResource(R.string.settings_slow_exit_off)
+                    },
+                    onClick = onUsagePause,
+                    icon = {
+                        Icon(
+                            painter = painterResource(R.drawable.ic_phone_time),
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.size(18.dp),
+                        )
+                    },
+                )
                 RowDivider()
                 SettingsSwitchRow(
                     icon = { RowIcon(Icons.Default.Notifications) },
@@ -254,14 +264,6 @@ fun SettingsScreen(
                         weeklyNote = it
                         WeeklySummary.setEnabled(context, it)
                     },
-                )
-                RowDivider()
-                SettingsSwitchRow(
-                    icon = { RowIcon(Icons.Default.Home) },
-                    label = stringResource(R.string.permission_row_home),
-                    subtitle = if (homeOk) stringResource(R.string.settings_home_forward_hint) else null,
-                    checked = homeOk,
-                    onCheckedChange = { onSetHome() },
                 )
             }
         }
@@ -277,7 +279,15 @@ fun SettingsScreen(
             dndOk = dndOk,
             onGrantAccessibility = grantAccessibility,
             onGrantDnd = onGrantDnd,
-        )
+        ) {
+            SettingsSwitchRow(
+                icon = { RowIcon(Icons.Default.Home) },
+                label = stringResource(R.string.permission_row_home),
+                subtitle = if (homeOk) stringResource(R.string.settings_home_forward_hint) else null,
+                checked = homeOk,
+                onCheckedChange = { onSetHome() },
+            )
+        }
 
         SectionLabel(stringResource(R.string.settings_info_label))
         InfoCard(

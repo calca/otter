@@ -35,7 +35,7 @@ it leaves your phone.
   one person taps "One tap", then hold the phones back to back. Try it also
   with the other phone's app closed.
 - **Time together** without NFC: a QR or a code, or the Bluetooth lobby.
-- **Scheduled pauses**: Settings → The pause → Scheduled pauses. Allow
+- **Scheduled pauses**: Settings → Automatic → Scheduled pauses. Allow
   "Alarms & reminders" when asked, set one in a few minutes, lock the phone
   and leave it.
 - **The widget** on your home screen, and the "Calm Otter" tile in Quick

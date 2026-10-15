@@ -23,7 +23,7 @@ don't notice it.
 
 ### Acceptance Criteria
 
-1. Settings → "The pause" SHALL have a **"After long use"** row, off by
+1. Settings → "Automatic" SHALL have a **"After long use"** row, off by
    default, opening a page with: on/off, "after" (20, 30, 45, 60, 90
    minutes of use; default 45), the pause's duration (10, 30, 60 minutes;
    default 10, the breathing pause), and "Protected by password".

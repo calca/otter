@@ -3,7 +3,8 @@
     <string name="settings_title">Impostazioni</string>
     <string name="settings_permissions_label">Permessi</string>
     <string name="settings_theme_label">Tema</string>
-    <string name="settings_pause_label">La pausa</string>
+    <string name="settings_pause_label">Durante la pausa</string>
+    <string name="settings_auto_label">In automatico</string>
     <string name="settings_password_label">Password</string>
     <string name="settings_password_set_by">Impostata da %1$s</string>
     <string name="permission_row_accessibility">Accessibilità</string>
@@ -169,7 +170,7 @@
     <string name="hint_current_password">Password attuale</string>
     <string name="wrong_current_password">Password attuale non corretta</string>
     <string name="password_changed">Password aggiornata</string>
-    <string name="phrases_toggle_label">Mostra frasi durante la pausa</string>
+    <string name="phrases_toggle_label">Mostra le frasi</string>
     <string name="manage_allowed_apps_password_prompt">Inserisci la password per modificare l\'elenco</string>
     <string name="confirm">Conferma</string>
     <string name="allowed_apps_title">App che restano durante la pausa</string>

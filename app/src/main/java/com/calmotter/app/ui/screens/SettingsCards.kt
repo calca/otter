@@ -61,6 +61,9 @@ internal fun PermissionStatusCard(
     dndOk: Boolean,
     onGrantAccessibility: () -> Unit,
     onGrantDnd: () -> Unit,
+    // Una riga in più sotto i due permessi: l'app Home, che è
+    // un'impostazione di sistema come loro.
+    extra: (@Composable () -> Unit)? = null,
 ) {
     Surface(
         shape = RoundedCornerShape(20.dp),
@@ -96,6 +99,10 @@ internal fun PermissionStatusCard(
                     )
                 },
             )
+            if (extra != null) {
+                HorizontalDivider(color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.08f))
+                extra()
+            }
         }
     }
 }

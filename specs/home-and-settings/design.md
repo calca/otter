@@ -1034,6 +1034,22 @@ Order now: **Theme · The pause · Password · Permissions · About**.
   `settings_home_label`, `settings_pause_experience_label` and
   `settings_slow_exit_value` strings removed, `settings_pause_label` added.
 
+### Split again (2026-10-15)
+
+With "After long use" the single card reached seven rows of four different
+kinds (reported: "troppe opzioni"). Order now: **Theme · During a pause ·
+Automatic · Password · Permissions · About**.
+
+- **During a pause** (`settings_pause_label`, "Durante la pausa"): Apps
+  that stay, Leave without password, Show phrases (shortened from "Show
+  phrases during pause", which repeated the heading).
+- **Automatic** (`settings_auto_label`, "In automatico"): what Calm Otter
+  does on its own, without a tap on the otter. Scheduled pauses, After
+  long use, Sunday evening note.
+- **Home app** moved into the Permissions card (`PermissionStatusCard`'s
+  `extra` slot): a system setting the block relies on, like Accessibility
+  and Do Not Disturb, not an option of the pause.
+
 ## "Tap me whenever you want a pause"
 
 The "Tap Otter to start" line alone might not be enough the first time

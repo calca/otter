@@ -97,7 +97,7 @@ tests, shaped like the scheduled pauses one, using the same
 
 ## UI
 
-Settings → "The pause": new row "After long use" / "Dopo un uso lungo"
+Settings → "Automatic" (was "The pause"): new row "After long use" / "Dopo un uso lungo"
 with a subtitle showing the state ("Off" / "After 45 min · 10 min pause").
 Page `UsagePauseActivity`, laid out like the schedule editor: one card with
 "After" (stepper over 20/30/45/60/90) and "Pause" (stepper over 10/30/60),
@@ -145,7 +145,7 @@ stays", decided on the spot. The state is three timestamps. This goes in
   `nextScheduledStart`. It also holds `UsagePauseManager` (in `AppGraph`).
   `UsageWatcher.kt` holds the wiring inside the Accessibility service and
   `UsagePauseReceiver` ("Not now"). The page is `UsagePauseActivity` /
-  `UsagePauseScreen`, with a row in Settings → The pause (`ic_phone_time`).
+  `UsagePauseScreen`, with a row in Settings → Automatic (`ic_phone_time`).
 - **Off means nothing is counted.** With the rule off, the watcher ignores
   screen and app events, and switching it off clears the count. The
   Accessibility disclosure, `docs/privacy-policy.md` and the Play
