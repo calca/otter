@@ -41,6 +41,16 @@ kotlin {
 val otterBuildNumber: Int =
     System.getenv("OTTER_BUILD_NUMBER")?.toIntOrNull()?.takeIf { it > 0 } ?: 1
 
+/**
+ * Su un tag di rilascio (`v0.2.0`) `android.yml` passa il nome del tag in
+ * `OTTER_VERSION_NAME`, e la versione mostrata diventa "0.2.0". Il
+ * `versionCode` resta il numero di run: è quello che Play pretende
+ * crescente, e un tag non lo garantisce.
+ */
+val otterVersionName: String =
+    System.getenv("OTTER_VERSION_NAME")?.removePrefix("v")?.takeIf { it.isNotBlank() }
+        ?: "0.1.$otterBuildNumber"
+
 android {
     namespace = "com.calmotter.app"
     compileSdk = 37
@@ -51,7 +61,7 @@ android {
         minSdk = 26
         targetSdk = 37
         versionCode = otterBuildNumber
-        versionName = "0.1.$otterBuildNumber"
+        versionName = otterVersionName
     }
 
     signingConfigs {

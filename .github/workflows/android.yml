@@ -75,6 +75,8 @@ jobs:
       if: steps.signing.outputs.available == 'true'
       env:
         OTTER_BUILD_NUMBER: ${{ github.run_number }}
+        # Su un tag v* il versionName è il tag stesso (v0.2.0 → 0.2.0).
+        OTTER_VERSION_NAME: ${{ github.ref_type == 'tag' && github.ref_name || '' }}
         KEYSTORE_PATH: ../release.jks
         KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
         KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
@@ -140,4 +142,5 @@ jobs:
         pip install --quiet google-auth requests
         python .github/scripts/play_publish.py upload \
           --aab app-stable-release.aab --track internal \
+          --name "${GITHUB_REF_NAME#v}" \
           --notes-dir docs/store/whatsnew

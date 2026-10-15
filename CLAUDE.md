@@ -65,6 +65,10 @@ for the Play Store, and a signed `beta` `.apk` as a pre-release build.
 Those signed artifacts are **version-stamped per run**: `android.yml` passes
 `OTTER_BUILD_NUMBER=${{ github.run_number }}`, and `app/build.gradle.kts`
 derives `versionCode` and the patch of `versionName` ("0.1.<n>") from it.
+On a release tag `v*` the `versionName` is the tag instead (`v0.2.0` →
+"0.2.0", via `OTTER_VERSION_NAME`), and the `publish-internal` job uploads
+the AAB to Play's internal track; promotion to closed testing/production
+is manual (`play-promote.yml`, see `docs/store/README.md`).
 Local builds have no such variable and always come out as `0.1.1 (1)`, so a
 local APK will not install over a CI one — pass the variable by hand
 (`OTTER_BUILD_NUMBER=999 ./gradlew assembleBetaDebug`) when you need it to.
