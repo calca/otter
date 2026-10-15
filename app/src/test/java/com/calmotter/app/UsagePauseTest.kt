@@ -112,13 +112,13 @@ class UsagePauseTest {
     fun theNextScheduledPauseIsSeen() {
         val now = at(2026, 10, 15, 20, 50) // giovedì
         val evening = ScheduledPause(id = 1, days = 0b0011111, startMinuteOfDay = 21 * 60, durationMinutes = 60)
-        assertEquals(at(2026, 10, 15, 21, 0), nextScheduledStart(listOf(evening), now))
-        assertNull(nextScheduledStart(listOf(evening.copy(enabled = false)), now))
+        assertEquals(at(2026, 10, 15, 21, 0), nextScheduledStart(listOf(evening), now, rome))
+        assertNull(nextScheduledStart(listOf(evening.copy(enabled = false)), now, rome))
         val surprise = ScheduledPause(
             id = 2, days = 0b1111111, startMinuteOfDay = 14 * 60, durationMinutes = 30,
             windowEndMinuteOfDay = 18 * 60, drawnAt = at(2026, 10, 15, 20, 55),
         )
-        assertEquals(at(2026, 10, 15, 20, 55), nextScheduledStart(listOf(evening, surprise), now))
+        assertEquals(at(2026, 10, 15, 20, 55), nextScheduledStart(listOf(evening, surprise), now, rome))
     }
 
     @Test

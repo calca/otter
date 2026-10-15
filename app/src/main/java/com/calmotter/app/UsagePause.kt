@@ -136,9 +136,9 @@ fun millisToNextQuietChange(at: Long, zone: ZoneId = ZoneId.systemDefault()): Lo
 }
 
 /** La prossima pausa programmata (a ora fissa o a sorpresa già estratta), dopo [now]; null se nessuna. */
-fun nextScheduledStart(schedules: List<ScheduledPause>, now: Long): Long? =
+fun nextScheduledStart(schedules: List<ScheduledPause>, now: Long, zone: ZoneId = ZoneId.systemDefault()): Long? =
     schedules.filter { it.enabled }.mapNotNull { s ->
-        if (s.isSurprise) s.drawnAt.takeIf { it > now && it > s.skipUntil } else nextOccurrence(s, now)
+        if (s.isSurprise) s.drawnAt.takeIf { it > now && it > s.skipUntil } else nextOccurrence(s, now, zone)
     }.minOrNull()
 
 /**
