@@ -27,8 +27,9 @@ inside a window I choose, so I can't arrange my phone use around it.
    **"Surprise"**, with a window "between <from> and <to>".
 2. The window SHALL be at least the pause's duration plus 1 hour (a 1 h
    pause needs at least 2 h, e.g. 14:00–16:00), so the start can't be
-   guessed. It SHALL fit inside one day: no window across midnight. The editor SHALL keep "to" from going below that
-   minimum, with no error message.
+   guessed. It SHALL fit inside one day: no window across midnight. The
+   editor SHALL keep "to" from going below that minimum, with no error
+   message.
 3. WHEN a surprise pause runs on a day THEN the system SHALL draw one start
    time, uniformly at random, between "from" and "to" minus the duration,
    so the pause ends inside the window.
