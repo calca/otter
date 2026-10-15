@@ -3,6 +3,9 @@ name: Android CI
 on:
   push:
     branches: [ "main", "master" ]
+    # Un tag v* (es. v0.2.0) è un rilascio: oltre alle build firmate,
+    # carica l'AAB su Play (job publish-internal).
+    tags: [ "v*" ]
   pull_request:
     branches: [ "main", "master" ]
   # Consente di lanciarlo a mano (`gh workflow run android.yml`) senza dover
@@ -92,14 +95,16 @@ jobs:
         name: app-beta-prerelease-apk
         path: app/build/outputs/apk/beta/release/app-beta-release.apk
 
-  # Ogni push su main finisce sul track "internal" di Play: disponibile
-  # subito ai tester interni, senza revisione. Da lì si promuove a mano
+  # Solo un tag di rilascio (v*) finisce sul track "internal" di Play: su
+  # main si lavora, e non ogni push è una versione da dare ai tester.
+  # `git tag v0.2.0 && git push origin v0.2.0` → internal, disponibile
+  # subito ai tester interni senza revisione. Da lì si promuove a mano
   # (closed testing, poi produzione) con play-promote.yml.
   # Job separato con concurrency: due push ravvicinati aprirebbero due edit
   # Play in parallelo, e il secondo commit fallirebbe.
   publish-internal:
     needs: build
-    if: github.event_name == 'push'
+    if: startsWith(github.ref, 'refs/tags/v')
     runs-on: ubuntu-latest
     concurrency: play-publish
     steps:

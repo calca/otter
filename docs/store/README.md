@@ -11,8 +11,9 @@ Play Console.
   upload is higher than the previous one. Needs the `KEYSTORE_*` secrets
   already described in that workflow.
 - **Automatic upload to Play**: the `publish-internal` job in the same
-  workflow uploads that AAB to the **internal** track on every push to
-  `main`, with the notes in [`whatsnew/`](whatsnew) (update them before a
+  workflow uploads that AAB to the **internal** track only for a release
+  tag (`git tag v0.2.0 && git push origin v0.2.0`; plain pushes to `main`
+  just build), with the notes in [`whatsnew/`](whatsnew) (update them before a
   release; only languages the store listing has are sent). Promote by
   hand with `gh workflow run play-promote.yml -f from=internal -f to=alpha`
   (closed testing), later `-f from=alpha -f to=production [-f rollout=0.2]`.
