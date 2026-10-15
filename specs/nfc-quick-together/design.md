@@ -61,9 +61,14 @@ a code or Bluetooth?", which opens the chooser with the same duration and
 closes the reader). The label stays "One tap" / "Con un tocco": "Avvicina
 i telefoni" wrapped. Same permission
 check as the otter tap. NFC off → NFC settings + a toast.
-`QuickTogetherReaderScreen` is a page (back arrow, otter-tap illustration
-pulsing, "Hold your phones together" (was "Hold your friend's phone near", which wrapped badly in Italian), "A pause together, 1 h", the
-activity with ↻, an error line when the other phone refuses); reader mode
+`QuickTogetherReaderScreen` is a page in three blocks: the gesture (back
+arrow, otter-tap illustration pulsing at 200dp like Join's search, "Hold
+your phones together" (was "Hold your friend's phone near", which wrapped
+badly in Italian), one line on what the other phone needs: screen on,
+app may be closed); the proposal in a tinted card ("A pause together,
+1 h", the activity with ↻); and, pinned at the bottom, the "Prefer a QR
+code, a code or Bluetooth?" link. A refusal shows in an error-tinted box
+between the two; reader mode
 only between `onResume` and `onPause`. On `Accepted` the same activity
 shows `QuickTogetherCountdownScreen` (the existing countdown with "Pause
 together with <name>" and the activity).
@@ -96,9 +101,9 @@ declared; no Bluetooth on this path.
 3. App closed on B: notification with "Join" (`QuickTogetherInbox`,
    channel "Pauses together", high importance, expires at the shared end).
 4. Cancel stops only one's own phone.
-5. Two buttons on Home rather than a single entry with "Other ways ›"
-   (which hid Bluetooth and QR too much), and a page rather than a bottom
-   sheet.
+5. A page rather than a bottom sheet. On Home, first two buttons side by
+   side; since 2026-10-15 a single entry, with the other ways linked from
+   the reader page (two pills made Home too busy).
 
 ## Implementation notes
 
