@@ -3,6 +3,11 @@ package com.calmotter.app.screenshots
 import android.content.Context
 import android.graphics.Bitmap
 import androidx.compose.foundation.background
+import androidx.compose.ui.graphics.lerp
+import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -13,6 +18,7 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.requiredSize
 import androidx.compose.foundation.layout.size
@@ -256,65 +262,71 @@ class StoreScreenshotsTest(private val lang: String) {
         HistoryScreen(sessions = history, goal = null, onEditGoal = {}, now = System.currentTimeMillis())
     }
 
-    /** Immagine in evidenza 1024x500: frase a sinistra, la pausa in corso a destra. */
+    /**
+     * Immagine in evidenza 1024x500: l'otter nello stagno della Home, con la
+     * frase della scheda. Niente telefono né schermate (quelle stanno negli
+     * screenshot): Play la mostra piccola e a volte ritagliata, quindi poco
+     * testo e il soggetto lontano dai bordi.
+     */
     @Test
     fun featureGraphic() {
         RuntimeEnvironment.setQualifiers("$lang-w1024dp-h500dp-mdpi")
-        SessionManager.getInstance(context).startSession(60)
         compose.setContent {
-            CalmOtterTheme(appTheme = AppTheme.SAGE) {
-                val colors = MaterialTheme.colorScheme
-                Row(
-                    modifier = Modifier.fillMaxSize().background(colors.primary).padding(start = 72.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    Column(modifier = Modifier.width(540.dp)) {
-                        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(14.dp)) {
-                            Box(
-                                modifier = Modifier.size(64.dp).clip(RoundedCornerShape(32.dp)).background(colors.background),
-                                contentAlignment = Alignment.Center,
-                            ) { OtterZenMark(markSize = 48.dp) }
-                            Text("Calm Otter", fontSize = 34.sp, fontWeight = FontWeight.Bold, color = colors.onPrimary)
-                        }
-                        Spacer(Modifier.height(28.dp))
-                        Text(
-                            t("Metti giù il telefono,\ndi proposito.", "Put the phone down,\non purpose."),
-                            fontSize = 50.sp,
-                            lineHeight = 58.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = colors.onPrimary,
-                        )
-                        Spacer(Modifier.height(16.dp))
-                        Text(
-                            t("Da soli o insieme. Niente account, niente internet.",
-                                "Alone or together. No account, no internet."),
-                            fontSize = 20.sp,
-                            color = colors.onPrimary.copy(alpha = 0.8f),
-                        )
-                    }
-                    Spacer(Modifier.width(76.dp))
-                    // Il telefono esce dal bordo in basso: si vede solo la parte alta.
-                    Box(
-                        modifier = Modifier
-                            .fillMaxHeight()
-                            .wrapContentHeight(Alignment.Top, unbounded = true)
-                            .padding(top = 64.dp),
-                    ) {
-                        Phone(scale = 0.86f) {
-                            BlockScreen(
-                                sessionManager = SessionManager.getInstance(context),
-                                passwordManager = PasswordManager.getInstance(context),
-                                phraseText = t("“Guarda fuori dalla finestra. Il mondo è ancora lì.”",
-                                    "“Look out the window. The world is still there.”"),
-                                onExpiredImmediately = {},
-                                onExpiredNaturally = {},
-                                onUnlocked = {},
-                            )
-                        }
-                    }
-                }
-            }
+            CalmOtterTheme(appTheme = AppTheme.SAGE) { FeatureGraphic() }
         }
         save("feature-$lang.png", File("../docs/store/graphics"))
+    }
+
+    /**
+     * Chiara di proposito: gli screenshot sono su verde scuro, e accanto a
+     * loro un'immagine chiara si distingue invece di confondersi.
+     */
+    @Composable
+    private fun FeatureGraphic() {
+        val colors = MaterialTheme.colorScheme
+        // Centro dello stagno, in dp sull'immagine 1024x500.
+        val pondX = 748.dp
+        val pondY = 250.dp
+        val otter = 190.dp
+
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(Brush.linearGradient(listOf(colors.background, lerp(colors.background, colors.secondary, 0.28f)))),
+        ) {
+            Canvas(modifier = Modifier.fillMaxSize()) {
+                val c = Offset(pondX.toPx(), pondY.toPx())
+                val unit = otter.toPx()
+                // Anelli larghi e tenui, come lo stagno della Home a riposo.
+                listOf(2.6f to 0.025f, 2.0f to 0.035f, 1.5f to 0.045f, 1.1f to 0.06f).forEach { (r, a) ->
+                    drawCircle(colors.primary.copy(alpha = a), radius = unit * r, center = c)
+                }
+                listOf(3.3f, 2.3f).forEach { r ->
+                    drawCircle(colors.primary.copy(alpha = 0.12f), radius = unit * r, center = c, style = Stroke(1.5.dp.toPx()))
+                }
+                drawCircle(Color.White, radius = unit * 0.7f, center = c)
+            }
+            // Il disegno dell'otter occupa circa metà del suo riquadro: lo si
+            // fa più grande dello stagno e lo si centra sul punto esatto.
+            val mark = otter * 1.15f
+            OtterZenMark(markSize = mark, modifier = Modifier.offset(x = pondX - mark / 2, y = pondY - mark / 2))
+            Column(modifier = Modifier.align(Alignment.CenterStart).padding(start = 80.dp).width(470.dp)) {
+                Text(
+                    "CALM OTTER",
+                    fontSize = 20.sp,
+                    letterSpacing = 4.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = colors.primary.copy(alpha = 0.7f),
+                )
+                Spacer(Modifier.height(18.dp))
+                Text(
+                    t("Metti giù\nil telefono,\ndi proposito.", "Put the\nphone down,\non purpose."),
+                    fontSize = 56.sp,
+                    lineHeight = 62.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = colors.primary,
+                )
+            }
+        }
     }
 }
