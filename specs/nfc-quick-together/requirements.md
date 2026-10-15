@@ -30,9 +30,9 @@ zero.
 
 ### Acceptance Criteria
 
-1. Home SHALL show two buttons on a phone with NFC: **"One tap"** ("Con un tocco")
-   (this flow) and **"Time together"** (the full flow: Create / Join,
-   Bluetooth, QR, code). Without NFC only "Time together".
+1. Home SHALL show one button for pausing together: on a phone with NFC
+   it is **"One tap"** ("Con un tocco", this flow); without NFC it is
+   **"Time together"** (the full flow: Create / Join, Bluetooth, QR, code).
 2. WHEN the user taps "One tap" AND NFC is on THEN the system SHALL
    open a "Hold your friend's phone near" **page** (not a bottom sheet:
    consistent with the other Time together pages) in reader mode — no
@@ -76,8 +76,9 @@ phone, so we don't have to coordinate before touching phones.
    and start nothing.
 3. WHEN the two phones run different, incompatible versions THEN both
    SHALL say to update the app, as the code/QR path does today.
-4. Bluetooth, QR and code stay one tap away through Home's "Time
-   together" button, for people who aren't side by side or have no NFC.
+4. Bluetooth, QR and code stay reachable for people who aren't side by
+   side: through a "Prefer a QR code, a code or Bluetooth?" link on the
+   "One tap" page, or through Home's "Time together" button without NFC.
 
 ## User Story 4: Nothing starts by accident
 

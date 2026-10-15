@@ -50,13 +50,16 @@ B → A   OK  |  REFUSED(state)
 
 ## A's side
 
-Home has two buttons on a phone with NFC (`MainScreen.onQuickTogether`,
-null without NFC), **side by side** in one row — stacked, Home overflowed
-on a Samsung and the buttons went off screen; side by side it fits even
-in Italian at 115% font scale (narrower content padding). The label is
-"One tap" / "Con un tocco" so it stays on one line: "Avvicina i telefoni"
-wrapped: **"One tap"** ("Con un tocco") opens `QuickTogetherActivity` in
-reader mode, **"Time together"** the existing chooser. Same permission
+Home has **one** button for pausing together (`MainScreen.onQuickTogether`,
+null without NFC): **"One tap"** ("Con un tocco") with NFC, opening
+`QuickTogetherActivity` in reader mode; "Time together", the existing
+chooser, without. It used to show both side by side in one row (stacked,
+Home overflowed on a Samsung), but two tinted pills under the summary line
+made the bottom of Home too busy — decided with the user, 2026-10-15. With
+NFC the full flow is one link away on the reader page ("Prefer a QR code,
+a code or Bluetooth?", which opens the chooser with the same duration and
+closes the reader). The label stays "One tap" / "Con un tocco": "Avvicina
+i telefoni" wrapped. Same permission
 check as the otter tap. NFC off → NFC settings + a toast.
 `QuickTogetherReaderScreen` is a page (back arrow, otter-tap illustration
 pulsing, "Hold your phones together" (was "Hold your friend's phone near", which wrapped badly in Italian), "A pause together, 1 h", the

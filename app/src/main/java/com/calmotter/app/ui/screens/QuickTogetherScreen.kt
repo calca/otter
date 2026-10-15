@@ -28,7 +28,8 @@ import com.calmotter.app.ui.mascot.OtterTapMark
  * il telefono è in ascolto finché questa pagina è a schermo. Una pagina e
  * non un pannello dal basso, per coerenza con il resto di Tempo insieme
  * (freccia in alto, contenuto centrato). Nessun bottone: l'azione è il
- * tocco fra i telefoni.
+ * tocco fra i telefoni. In fondo, il link agli altri modi di Tempo insieme
+ * (QR, codice, Bluetooth): dalla Home si arriva solo da qui, con l'NFC.
  */
 @Composable
 fun QuickTogetherReaderScreen(
@@ -36,6 +37,7 @@ fun QuickTogetherReaderScreen(
     activityId: Int,
     message: String?,
     onAnotherActivity: () -> Unit,
+    onOtherWays: () -> Unit,
     onBack: () -> Unit,
 ) {
     CalmScreenColumn(contentPadding = PaddingValues(horizontal = 24.dp, vertical = 16.dp), verticalArrangement = Arrangement.Top) {
@@ -73,6 +75,11 @@ fun QuickTogetherReaderScreen(
                 )
             }
             TogetherActivityCard(activityId = activityId, onAnother = onAnotherActivity)
+            CalmLinkRow(
+                text = stringResource(R.string.quick_together_other_ways),
+                onClick = onOtherWays,
+                modifier = Modifier.padding(top = 20.dp),
+            )
         }
     }
 }

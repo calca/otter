@@ -208,6 +208,7 @@ class ScreenScreenshotTest(private val night: Boolean) {
             activityId = 16,
             message = null,
             onAnotherActivity = {},
+            onOtherWays = {},
             onBack = {},
         )
     }

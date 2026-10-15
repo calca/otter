@@ -476,6 +476,7 @@
     <string name="quick_together_button">One tap</string>
     <string name="quick_together_title">Hold your phones together</string>
     <string name="quick_together_subtitle">A pause together, %1$s</string>
+    <string name="quick_together_other_ways">Prefer a QR code, a code or Bluetooth?</string>
     <string name="quick_together_with">Pause together with %1$s</string>
     <string name="quick_together_refused_in_pause">%1$s is already on a pause.</string>
     <string name="quick_together_refused_setup">%1$s needs to finish setting up Calm Otter first.</string>

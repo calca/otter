@@ -179,7 +179,7 @@ class AccessibilityAuditTest(private val night: Boolean) {
     @Test fun history() = audit("history") { HistoryScreen(sessions = emptyList(), goal = null, onEditGoal = {}) }
 
     @Test fun quickTogether() = audit("quick-together") {
-        QuickTogetherReaderScreen(durationMinutes = 60, activityId = 16, message = null, onAnotherActivity = {}, onBack = {})
+        QuickTogetherReaderScreen(durationMinutes = 60, activityId = 16, message = null, onAnotherActivity = {}, onOtherWays = {}, onBack = {})
     }
 
     @Test fun closing() = audit("closing") { ClosingMomentScreen(effectiveMinutes = 60, onDone = { _, _ -> }, onSkip = {}) }

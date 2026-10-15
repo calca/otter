@@ -2,9 +2,7 @@ package com.calmotter.app.ui.screens
 
 import com.calmotter.app.ui.theme.muted
 import androidx.compose.ui.semantics.clearAndSetSemantics
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.foundation.layout.fillMaxHeight
-import androidx.compose.foundation.layout.IntrinsicSize
+import androidx.compose.foundation.layout.heightIn
 import com.calmotter.app.OtterHint
 import com.calmotter.app.ui.mascot.OtterTapMark
 import androidx.compose.foundation.horizontalScroll
@@ -379,65 +377,35 @@ fun MainScreen(
                 },
             )
 
-            // Non compete con il tap sull'otter, che resta l'azione
-            // primaria (vedi specs/group-pause/design.md) — ma come
-            // `TextButton` nudo non si leggeva affatto come qualcosa da
-            // toccare ("anche in home non sono chiari"): [CalmSecondaryButton]
-            // gli dà un contenitore tinto senza farne un bottone pieno.
-            // TogetherMark (le due zampe di PactPawsMark senza il badge
-            // circolare) resta l'icona leading, su richiesta precedente
-            // ("un po' anonima"): rende il bottone riconoscibile a colpo
-            // d'occhio invece di solo testo.
-            // 20dp sotto la riga di riepilogo: da quando entrambe hanno un
-            // contenitore tinto, senza questo spazio le due pastiglie si
-            // sfioravano e si leggevano come un blocco unico invece che
-            // come due destinazioni diverse.
-            // I due modi di fare una pausa insieme, **affiancati**: uno sotto
-            // l'altro la Home sforava sui telefoni più bassi (segnalato su un
-            // Samsung, i bottoni finivano fuori schermo). "Avvicina i
-            // telefoni" (un tocco NFC) c'è solo con l'NFC; senza, "Tempo
-            // insieme" resta da solo, centrato come prima. Stesso controllo
-            // dei permessi del tap sull'otter per entrambi.
-            val narrowPadding = PaddingValues(horizontal = 12.dp, vertical = 8.dp)
-            Row(
-                horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterHorizontally),
-                verticalAlignment = Alignment.CenterVertically,
+            // Un solo bottone per stare insieme, sotto il riepilogo: con due
+            // affiancati ("Con un tocco" e "Tempo insieme") il fondo della
+            // Home era troppo affollato. Con l'NFC è "Con un tocco", il modo
+            // più rapido; QR, codice e Bluetooth si raggiungono da lì
+            // (QuickTogetherReaderScreen). Senza NFC è "Tempo insieme".
+            // Tinto e non pieno: non compete con il tocco sull'otter, che
+            // resta l'azione primaria. Stesso controllo dei permessi.
+            val quickTogether = onQuickTogether
+            CalmSecondaryButton(
+                text = stringResource(
+                    if (quickTogether != null) R.string.quick_together_button else R.string.group_pause_entry_button
+                ),
+                onClick = {
+                    when {
+                        !BuildConfig.DEBUG && !(accessibilityOk && dndOk) -> onOtterTap()
+                        quickTogether != null -> quickTogether(selectedDurationMinutes)
+                        else -> onGroupPause(selectedDurationMinutes)
+                    }
+                },
+                // Non sotto i 20dp: le due impronte hanno otto polpastrelli
+                // fra loro, e più piccole si impastano in una macchia sola.
+                leadingIcon = {
+                    if (quickTogether != null) OtterTapMark(markSize = 20.dp) else TogetherMark(markSize = 20.dp)
+                },
                 modifier = Modifier
                     .padding(top = 20.dp)
-                    .fillMaxWidth(if (onQuickTogether != null) 1f else HOME_PILL_WIDTH_FRACTION)
-                    .height(IntrinsicSize.Min),
-            ) {
-                if (onQuickTogether != null) {
-                    CalmSecondaryButton(
-                        text = stringResource(R.string.quick_together_button),
-                        onClick = {
-                            if (BuildConfig.DEBUG || (accessibilityOk && dndOk)) {
-                                onQuickTogether(selectedDurationMinutes)
-                            } else {
-                                onOtterTap()
-                            }
-                        },
-                        leadingIcon = { OtterTapMark(markSize = 20.dp) },
-                        contentPadding = narrowPadding,
-                        modifier = Modifier.weight(1f).fillMaxHeight(),
-                    )
-                }
-                CalmSecondaryButton(
-                    text = stringResource(R.string.group_pause_entry_button),
-                    onClick = {
-                        if (BuildConfig.DEBUG || (accessibilityOk && dndOk)) {
-                            onGroupPause(selectedDurationMinutes)
-                        } else {
-                            onOtterTap()
-                        }
-                    },
-                    // Non sotto i 20dp: le due impronte hanno otto polpastrelli
-                    // fra loro, e più piccole si impastano in una macchia sola.
-                    leadingIcon = { TogetherMark(markSize = 20.dp) },
-                    contentPadding = if (onQuickTogether != null) narrowPadding else ButtonDefaults.ContentPadding,
-                    modifier = Modifier.weight(1f).fillMaxHeight(),
-                )
-            }
+                    .fillMaxWidth(HOME_PILL_WIDTH_FRACTION)
+                    .heightIn(min = 48.dp),
+            )
         }
     }
     // Il dialogo dei permessi mancanti, aperto dal tocco sull'otter, da "Con

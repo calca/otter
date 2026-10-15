@@ -24,7 +24,9 @@ import kotlin.random.Random
 /**
  * "Avvicina i telefoni" (specs/nfc-quick-together/). Due ingressi:
  * - **lettore** (dalla Home): in ascolto finché la pagina è a schermo; al
- *   tocco propone la pausa all'altro telefono e passa al conto alla rovescia;
+ *   tocco propone la pausa all'altro telefono e passa al conto alla rovescia.
+ *   Da qui si passa anche agli altri modi di Tempo insieme, che in Home non
+ *   hanno più un bottone loro quando c'è l'NFC;
  * - **carta** ([cardIntent], dal servizio NFC o dalla notifica): la proposta
  *   ricevuta, con lo stesso conto alla rovescia; se si arriva dopo l'inizio
  *   (notifica aperta tardi) la pausa parte subito, con la stessa fine.
@@ -70,6 +72,13 @@ class QuickTogetherActivity : BaseActivity() {
                         activityId = suggestion.activityId,
                         message = message,
                         onAnotherActivity = { suggestion.another(durationMinutes) },
+                        onOtherWays = {
+                            startActivity(
+                                Intent(this, GroupPauseChooserActivity::class.java)
+                                    .putExtra(GroupPauseChooserActivity.EXTRA_DURATION_MINUTES, durationMinutes)
+                            )
+                            finish()
+                        },
                         onBack = { finish() },
                     )
                 } else {

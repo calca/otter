@@ -236,7 +236,7 @@ class StoreScreenshotsTest(private val lang: String) {
 
     @Test
     fun s3Together() = storeShot("03-together.png", t("Una pausa insieme,\ncon un tocco", "Pause together,\nwith one tap")) {
-        QuickTogetherReaderScreen(durationMinutes = 60, activityId = 16, message = null, onAnotherActivity = {}, onBack = {})
+        QuickTogetherReaderScreen(durationMinutes = 60, activityId = 16, message = null, onAnotherActivity = {}, onOtherWays = {}, onBack = {})
     }
 
     @Test
