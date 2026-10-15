@@ -75,6 +75,10 @@ don't notice it.
    another.
 3. WHEN Accessibility is off THEN nothing SHALL be counted. The page
    SHALL say that the feature needs the same permissions as the pause.
+4. Between 23:00 and 07:00 no long-use pause SHALL be proposed or
+   started, and a heads-up already shown SHALL be removed at 23:00
+   (decided: no pauses at night). The count keeps running, so a long
+   scroll that goes on past 07:00 is caught right after.
 
 ## Out of scope
 

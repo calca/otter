@@ -132,12 +132,14 @@ stays", decided on the spot. The state is three timestamps. This goes in
 2. **Apps that stay don't count**, including a feed if someone puts one
    there: it's a pact of trust.
 3. **"Not now" at most 3 times a day**, only on an unprotected rule.
+4. **Nothing at night**, 23:00–07:00, fixed in this version (not a
+   setting). The checks at "limit − 5 min" and "limit" skip that time
+   window. A threshold that falls inside it is re-aimed at 07:00, so the
+   count is still running when the night ends. Anyone who wants pauses at
+   night uses a scheduled pause.
 
 ## Decisioni aperte
 
-1. **Quiet hours**: don't propose at night (e.g. 23:00–07:00), when the
-   phone in bed is the problem but a forced pause at 1:00 isn't
-   welcome? Or is that exactly when it helps?
-2. **Per-app limits** (a v2 with `UsageStats`): worth the extra permission
+1. **Per-app limits** (a v2 with `UsageStats`): worth the extra permission
    and Play declaration, or does it go against "it doesn't look at what you
    use"?
