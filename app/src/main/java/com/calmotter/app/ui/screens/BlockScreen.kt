@@ -403,7 +403,8 @@ fun BlockScreen(
             color = MaterialTheme.colorScheme.primary,
             fontSize = 18.sp,
             fontWeight = FontWeight.SemiBold,
-            fontStyle = FontStyle.Italic,
+            // Dritto, non corsivo: il corsivo resta solo alla frase sotto,
+            // e due corsivi di fila si facevano concorrenza.
             textAlign = TextAlign.Center,
             modifier = Modifier
                 .fillMaxWidth()

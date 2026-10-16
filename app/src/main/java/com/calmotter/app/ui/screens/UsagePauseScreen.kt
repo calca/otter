@@ -147,7 +147,8 @@ fun UsagePauseScreen(
             text = stringResource(R.string.usage_pause_rules),
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.muted(0.65f),
-            modifier = Modifier.padding(top = 16.dp, start = 4.dp, end = 4.dp),
+            // Allineata alle schede e al testo sopra: i 4dp in più la spostavano.
+            modifier = Modifier.padding(top = 16.dp),
         )
     }
 

@@ -259,8 +259,11 @@ Two changes from the Stitch redesign.
 **The outcome badge is round.** It used to be a rounded square; the session
 row is the only place on the page with a small filled shape, and a circle
 ties it to the pause screen's action badges rather than to the cards around
-it. Colours are unchanged — `primary` tint for a session that ran its course,
-`error` tint for one ended early — and so is the group arc on the otter mark.
+it. Colours: `primary` tint for a session that ran its course, `muted` grey for
+one ended early — and the group arc on the otter mark is unchanged. Until
+2026-10-16 the early one was `error` red: the only bright colour in the app,
+it read as "wrong" for a choice the app does not judge (the row's text
+already says how it ended).
 
 **A reflective line closes the list.** The mockup ends the page with a quote
 card; it is picked at random from `pause_phrases` on every opening, the same

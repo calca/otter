@@ -26,6 +26,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontStyle
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -121,6 +122,12 @@ fun ClosingMomentScreen(
                 contentPadding = CtaPadding,
                 onClick = { onDone(mood, note.trim()) },
                 enabled = mood != null || note.isNotBlank(),
+                // Spento, nel tono tenue della tavolozza e non nel grigio
+                // pieno di default, che sembrava un bottone rotto.
+                colors = ButtonDefaults.buttonColors(
+                    disabledContainerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.10f),
+                    disabledContentColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.45f),
+                ),
                 modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp),
             ) {
                 Text(stringResource(R.string.closing_done))

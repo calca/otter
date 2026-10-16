@@ -77,7 +77,8 @@ fun QuickTogetherReaderScreen(
                 text = stringResource(R.string.quick_together_hint),
                 color = MaterialTheme.colorScheme.muted(0.75f),
                 textAlign = TextAlign.Center,
-                modifier = Modifier.padding(top = 6.dp),
+                // Prosa centrata su più righe: più stretta, vedi [CenteredTextInset].
+                modifier = Modifier.padding(start = CenteredTextInset, end = CenteredTextInset, top = 6.dp),
             )
             if (message != null) {
                 Surface(

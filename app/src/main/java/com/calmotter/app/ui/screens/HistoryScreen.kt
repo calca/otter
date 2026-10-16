@@ -497,8 +497,8 @@ private fun SessionRow(session: SessionRecord) {
 
 /**
  * Sostituisce il vecchio pallino verde/rosso + etichetta testuale "Pausa di
- * gruppo": un solo chip colorato (tinta "primary" se completata, tinta
- * "error" se interrotta prima — stesso linguaggio a card tinte già usato in
+ * gruppo": un solo chip colorato (tinta "primary" se completata, grigio
+ * tenue se interrotta prima — stesso linguaggio a card tinte già usato in
  * questa schermata e in "Gestisci app consentite", non un terzo modo di
  * comunicare stato) che ospita [OtterHistoryIcon] — sagoma da sola per una
  * pausa singola, con gli archi "segnale" sopra la testa se
@@ -507,7 +507,10 @@ private fun SessionRow(session: SessionRecord) {
  */
 @Composable
 private fun SessionOutcomeIcon(isGroupSession: Boolean, completedNaturally: Boolean) {
-    val tint = if (completedNaturally) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.error
+    // Interrotta prima: grigio tenue, non `error`. Il rosso era l'unico
+    // colore acceso dell'app e diceva "sbagliato" a una scelta che questa
+    // app non giudica; la riga lo dice già a parole.
+    val tint = if (completedNaturally) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.muted(0.6f)
     // Tonda, non quadrata arrotondata (redesign): la riga della sessione è
     // l'unico punto della pagina con una forma piena piccola, e il cerchio la
     // lega alle pastiglie di azione della pausa invece che alle card.
