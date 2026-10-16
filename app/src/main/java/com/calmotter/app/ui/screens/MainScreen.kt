@@ -49,6 +49,7 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -591,10 +592,19 @@ private fun DurationChipRow(selectedMinutes: Int, onSelect: (Int) -> Unit) {
 @Composable
 internal fun Modifier.scrollFadeEdges(scrollState: ScrollState, width: Dp = 24.dp): Modifier {
     val threshold = with(LocalDensity.current) { 12.dp.toPx() }
+    // In derivedStateOf: la posizione di scorrimento cambia a ogni frame, e
+    // letta qui direttamente faceva ricomporre la riga a ogni frame; così
+    // ricompone solo quando un bordo comincia o smette di sfumare.
+    val fadeEnd by remember(scrollState, threshold) {
+        derivedStateOf { scrollState.maxValue - scrollState.value > threshold }
+    }
+    val fadeStart by remember(scrollState, threshold) {
+        derivedStateOf { scrollState.value > threshold }
+    }
     return horizontalFadeEdge(
         width = width,
-        visible = scrollState.maxValue - scrollState.value > threshold,
-        fadeStart = scrollState.value > threshold,
+        visible = fadeEnd,
+        fadeStart = fadeStart,
     )
 }
 

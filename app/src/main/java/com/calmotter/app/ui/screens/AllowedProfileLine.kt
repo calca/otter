@@ -16,6 +16,7 @@ import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -44,7 +45,7 @@ internal fun AllowedProfileLine(
     onSelect: (Int) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    var picking by remember { mutableStateOf(false) }
+    var picking by rememberSaveable { mutableStateOf(false) }
     val selectedName = profiles.firstOrNull { it.id == selectedProfileId }?.name.orEmpty()
     // Solo il nome del profilo, in tono smorzato: prima era "Consentite:
     // Standard ›" in verde da link, una parola tecnica in più nel punto più

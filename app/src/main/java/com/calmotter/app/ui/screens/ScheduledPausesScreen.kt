@@ -53,6 +53,7 @@ import androidx.compose.material3.TimeInputColors
 import androidx.compose.material3.TimeInputDefaults
 import androidx.compose.material3.rememberTimePickerState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -253,18 +254,18 @@ fun ScheduleEditorScreen(
     onSkipNext: () -> Unit,
 ) {
     val locale = LocalConfiguration.current.locales[0]
-    var days by remember { mutableIntStateOf(original.days) }
-    var duration by remember { mutableIntStateOf(original.durationMinutes) }
-    var profileId by remember { mutableIntStateOf(original.profileId) }
-    var minute by remember { mutableIntStateOf(original.startMinuteOfDay) }
+    var days by rememberSaveable { mutableIntStateOf(original.days) }
+    var duration by rememberSaveable { mutableIntStateOf(original.durationMinutes) }
+    var profileId by rememberSaveable { mutableIntStateOf(original.profileId) }
+    var minute by rememberSaveable { mutableIntStateOf(original.startMinuteOfDay) }
     // A sorpresa (specs/surprise-pauses/): si sceglie solo "non prima
     // delle" ([minute]); la fascia la calcola [surpriseWindowFrom], due ore
     // per partire. Vicino a mezzanotte l'inizio può scendere da solo.
-    var surprise by remember { mutableStateOf(original.isSurprise) }
+    var surprise by rememberSaveable { mutableStateOf(original.isSurprise) }
     val window = surpriseWindowFrom(minute, duration)
-    var pickingTime by remember { mutableStateOf(false) }
-    var locked by remember { mutableStateOf(original.locked) }
-    var pickingProfile by remember { mutableStateOf(false) }
+    var pickingTime by rememberSaveable { mutableStateOf(false) }
+    var locked by rememberSaveable { mutableStateOf(original.locked) }
+    var pickingProfile by rememberSaveable { mutableStateOf(false) }
     val isNew = original.id == 0
 
     Column(

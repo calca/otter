@@ -23,6 +23,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -275,8 +276,8 @@ fun WeeklyGoalDialog(
     onDismiss: () -> Unit,
     onSave: (GoalType, Int) -> Unit,
 ) {
-    var selectedType by remember { mutableStateOf(currentGoal?.type ?: GoalType.SESSIONS) }
-    var selectedTarget by remember {
+    var selectedType by rememberSaveable { mutableStateOf(currentGoal?.type ?: GoalType.SESSIONS) }
+    var selectedTarget by rememberSaveable {
         mutableIntStateOf(currentGoal?.target?.takeIf { it in goalPresetsFor(selectedType) }
             ?: goalPresetsFor(selectedType).first())
     }

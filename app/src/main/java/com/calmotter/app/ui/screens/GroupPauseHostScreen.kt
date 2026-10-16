@@ -1,7 +1,8 @@
 package com.calmotter.app.ui.screens
 
 import com.calmotter.app.ui.theme.muted
-import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
@@ -23,6 +24,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -173,7 +175,7 @@ private fun GroupPauseQrShareScreen(
     onReady: (GroupPauseRecipe) -> Unit,
     onCancel: () -> Unit,
 ) {
-    var delayMinutes by remember { mutableIntStateOf(DEFAULT_QR_DELAY_MINUTES) }
+    var delayMinutes by rememberSaveable { mutableIntStateOf(DEFAULT_QR_DELAY_MINUTES) }
     val groupTag = remember { Random.nextInt(0, 65536) }
     // Cambiare attività rigenera il codice, come cambiare il ritardo: stesso
     // compromesso (chi ha già scansionato quello vecchio vede la proposta
@@ -483,7 +485,7 @@ private fun GroupPauseShareHeader(code: String) {
             // legge senza fatica.
             modifier = Modifier
                 .padding(16.dp)
-                .size(minOf(220.dp, LocalConfiguration.current.screenHeightDp.dp / 4))
+                .size(minOf(220.dp, with(LocalDensity.current) { LocalWindowInfo.current.containerSize.height.toDp() } / 4))
         )
     }
     // L'intera pillola è il bersaglio del tocco, non solo un bottone

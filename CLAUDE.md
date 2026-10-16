@@ -126,6 +126,15 @@ under the status bar/notch/nav bar on real hardware, though this is
 invisible on any emulator running Android ≤14. Any new top-level screen
 composable needs this modifier on its root too.
 
+**What the user typed or picked survives Activity recreation.** Every
+Activity is locked to portrait, but that is not enough: dark-mode, font-scale
+and locale changes recreate it, and from targetSdk 36 large screens ignore
+`screenOrientation`. Form fields, choices and "is this dialog open" flags use
+`rememberSaveable` (in a composable) or `onSaveInstanceState` (for an
+Activity field); state re-read from storage on resume stays `remember`.
+Plaintext passwords are the one exception: they stay `remember`, because the
+saved state is a Bundle outside our control. `StateRestorationTest` covers it.
+
 **No DI framework, one hand-written container.** State-holding classes
 (`SessionManager`, `PasswordManager`, `SessionHistoryManager`,
 `AllowedAppsManager`, `LauncherManager`, `PhraseManager`,

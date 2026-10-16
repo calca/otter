@@ -29,6 +29,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
@@ -272,7 +273,7 @@ private fun PageColumn(content: @Composable ColumnScope.() -> Unit) {
  */
 @Composable
 private fun MonthList(sessions: List<SessionRecord>, now: Long) {
-    var extraMonths by remember { mutableIntStateOf(0) }
+    var extraMonths by rememberSaveable { mutableIntStateOf(0) }
     val view = remember(sessions, extraMonths) { historyMonths(sessions, now, extraMonths) }
     val locale = LocalConfiguration.current.locales[0]
     val monthFormat = remember(locale) { DateTimeFormatter.ofPattern("LLLL yyyy", locale) }

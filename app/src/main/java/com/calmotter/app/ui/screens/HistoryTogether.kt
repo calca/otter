@@ -12,6 +12,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -41,7 +42,7 @@ import java.util.Calendar
  */
 @Composable
 internal fun TogetherCard(sessions: List<SessionRecord>, modifier: Modifier = Modifier, now: Long = System.currentTimeMillis()) {
-    var allTime by remember { mutableStateOf(false) }
+    var allTime by rememberSaveable { mutableStateOf(false) }
     val monthStart = remember {
         Calendar.getInstance().apply {
             timeInMillis = now

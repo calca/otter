@@ -22,6 +22,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -51,7 +52,7 @@ fun UsagePauseScreen(
     accessibilityOn: Boolean,
     onChange: (UsagePauseRule) -> Unit,
 ) {
-    var pickingProfile by remember { mutableStateOf(false) }
+    var pickingProfile by rememberSaveable { mutableStateOf(false) }
 
     Column(
         modifier = Modifier

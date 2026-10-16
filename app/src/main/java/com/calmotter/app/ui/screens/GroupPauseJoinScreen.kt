@@ -37,6 +37,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -149,7 +150,7 @@ fun GroupPauseJoinScreen(
 // "Unisciti", in fondo) da una regressione silenziosa.
 @VisibleForTesting
 internal fun GroupPauseCodeEntryScreen(onRecipeReady: (GroupPauseRecipe) -> Unit, onCancel: () -> Unit) {
-    var mode by remember { mutableStateOf(JoinMode.SCAN) }
+    var mode by rememberSaveable { mutableStateOf(JoinMode.SCAN) }
     // Indietro, da entrambe le modalità, fa quello che fa la freccia / "Annulla".
     BackHandler(onBack = onCancel)
 
@@ -182,7 +183,7 @@ private fun ManualCodeScreen(
     onScanInstead: () -> Unit,
     onCancel: () -> Unit,
 ) {
-    var code by remember { mutableStateOf("") }
+    var code by rememberSaveable { mutableStateOf("") }
     var errorText by remember { mutableStateOf("") }
     val invalidCodeText = stringResource(R.string.group_pause_invalid_code)
     val otherVersionText = stringResource(R.string.group_pause_other_version)

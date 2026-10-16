@@ -52,6 +52,15 @@ class HistoryActivity : BaseActivity() {
     private lateinit var uiPrefs: SharedPreferences
     private var initialTab = HistoryTab.Overview
 
+    // Lo stato a schermo sopravvive a una ricreazione dell'Activity (tema
+    // scuro, dimensione del testo, lingua; su tablet anche la rotazione, che
+    // da targetSdk 36 ignora screenOrientation): senza, si richiudeva.
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        outState.putBoolean(STATE_GOAL_DIALOG, showGoalDialog)
+        outState.putBoolean(STATE_CLEAR_DIALOG, showClearConfirmDialog)
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -65,6 +74,10 @@ class HistoryActivity : BaseActivity() {
 
         sessions = historyManager.getAll()
         goal = weeklyGoalManager.getGoal()
+        savedInstanceState?.let {
+            showGoalDialog = it.getBoolean(STATE_GOAL_DIALOG)
+            showClearConfirmDialog = it.getBoolean(STATE_CLEAR_DIALOG)
+        }
         // La scheda con cui si apre: quella chiesta da chi apre la
         // Cronologia (EXTRA_TAB), altrimenti l'ultima vista — una comodità
         // e basta, quindi in preferenze semplici e senza drammi se manca.
@@ -165,6 +178,8 @@ class HistoryActivity : BaseActivity() {
         private const val MENU_EXPORT = 2
         private const val UI_PREFS = "calm_otter_history_ui"
         private const val KEY_TAB = "tab"
+        private const val STATE_GOAL_DIALOG = "goal_dialog"
+        private const val STATE_CLEAR_DIALOG = "clear_dialog"
 
         /** Extra opzionale: il nome di una [HistoryTab] con cui aprire. */
         const val EXTRA_TAB = "com.calmotter.app.extra.HISTORY_TAB"

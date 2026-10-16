@@ -4,6 +4,7 @@ import com.calmotter.app.ui.theme.muted
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
 import com.calmotter.app.BlockSessionController
 import com.calmotter.app.SlowExitManager
 import com.calmotter.app.TogetherActivities
@@ -123,7 +124,7 @@ fun BlockScreen(
 ) {
     val context = LocalContext.current
 
-    var showUnlockDialog by remember { mutableStateOf(false) }
+    var showUnlockDialog by rememberSaveable { mutableStateOf(false) }
     // Le decisioni (chi rilascia chi, come finisce la pausa, avanzamento,
     // respiro) stanno in BlockSessionController, provato a parte; qui solo
     // lo stato di ciò che si vede. Creato una volta: legge lo stato di gruppo
@@ -141,7 +142,7 @@ fun BlockScreen(
     // Uscita lenta (specs/slow-exit/): conferma, e scadenza dell'attesa in
     // corso (0 = nessuna). La scadenza vive in SessionManager, non qui: deve
     // sopravvivere all'uscita dalla schermata e al riavvio.
-    var confirmingSlowExit by remember { mutableStateOf(false) }
+    var confirmingSlowExit by rememberSaveable { mutableStateOf(false) }
     var slowExitDeadline by remember { mutableLongStateOf(controller.slowExitDeadline()) }
     var slowExitProgress by remember { mutableFloatStateOf(0f) }
     var remainingText by remember { mutableStateOf("") }

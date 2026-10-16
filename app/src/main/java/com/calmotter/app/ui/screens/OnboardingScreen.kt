@@ -24,6 +24,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -67,10 +68,14 @@ fun OnboardingScreen(
     passwordManager: PasswordManager,
     onFinished: () -> Unit,
 ) {
-    var currentStep by remember { mutableIntStateOf(0) }
+    var currentStep by rememberSaveable { mutableIntStateOf(0) }
 
     var passwordError by remember { mutableStateOf<String?>(null) }
-    var partnerName by remember { mutableStateOf("") }
+    var partnerName by rememberSaveable { mutableStateOf("") }
+    // Le password restano `remember`, non `rememberSaveable`: lo stato
+    // salvato finisce in un Bundle fuori dal nostro controllo, e la password
+    // in chiaro non si conserva da nessuna parte. Se l'Activity viene
+    // ricreata (tema scuro, testo più grande) si riscrivono.
     var password by remember { mutableStateOf("") }
     var passwordConfirm by remember { mutableStateOf("") }
 

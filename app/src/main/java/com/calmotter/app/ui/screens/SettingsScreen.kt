@@ -33,6 +33,7 @@ import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.List
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.pluralStringResource
@@ -134,15 +135,15 @@ fun SettingsScreen(
     // sistema con un EditText — non Material, stonava nel resto di un'app
     // 100% Compose) tramite lo stesso PasswordVerifyDialog usato da
     // BlockScreen per sbloccare una sessione — vedi la sua stessa doc.
-    var showManageAppsDialog by remember { mutableStateOf(false) }
+    var showManageAppsDialog by rememberSaveable { mutableStateOf(false) }
 
     // Uscita lenta: prima la password, poi la scelta (Spenta / 5 / 10 / 15).
     val context = LocalContext.current
     val slowExitManager = remember { SlowExitManager.getInstance(context) }
     var slowExitEnabled by remember { mutableStateOf(slowExitManager.isEnabled()) }
     var slowExitWait by remember { mutableIntStateOf(slowExitManager.waitMinutes()) }
-    var showSlowExitPassword by remember { mutableStateOf(false) }
-    var showSlowExitChoice by remember { mutableStateOf(false) }
+    var showSlowExitPassword by rememberSaveable { mutableStateOf(false) }
+    var showSlowExitChoice by rememberSaveable { mutableStateOf(false) }
 
     Column(
         modifier = Modifier

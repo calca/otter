@@ -40,6 +40,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -122,7 +123,7 @@ fun AllowedAppsScreen(
     onRenameProfile: (String) -> Unit = {},
     onDeleteProfile: () -> Unit = {},
 ) {
-    var searchQuery by remember { mutableStateOf("") }
+    var searchQuery by rememberSaveable { mutableStateOf("") }
 
     val filteredApps = remember(apps, searchQuery) {
         if (searchQuery.isEmpty()) apps
@@ -313,9 +314,9 @@ private fun ProfileBar(
     onRenameProfile: (String) -> Unit,
     onDeleteProfile: () -> Unit,
 ) {
-    var naming by remember { mutableStateOf<String?>(null) } // null = nessun dialogo; "" = nuovo
-    var editingName by remember { mutableStateOf(false) }
-    var confirmingDelete by remember { mutableStateOf(false) }
+    var naming by rememberSaveable { mutableStateOf<String?>(null) } // null = nessun dialogo; "" = nuovo
+    var editingName by rememberSaveable { mutableStateOf(false) }
+    var confirmingDelete by rememberSaveable { mutableStateOf(false) }
     val editing = profiles.firstOrNull { it.id == editingProfileId } ?: profiles.first()
 
     Column(modifier = Modifier.fillMaxWidth().padding(start = 16.dp, end = 16.dp, top = 16.dp)) {
@@ -387,7 +388,7 @@ private fun ProfileNameDialog(
     title: String = stringResource(R.string.allowed_profile_name_title),
     onDelete: (() -> Unit)? = null,
 ) {
-    var name by remember { mutableStateOf(initial) }
+    var name by rememberSaveable { mutableStateOf(initial) }
     AlertDialog(
         onDismissRequest = onDismiss,
         title = { Text(title) },

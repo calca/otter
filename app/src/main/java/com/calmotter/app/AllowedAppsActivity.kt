@@ -50,6 +50,14 @@ class AllowedAppsActivity : BaseActivity() {
     private var allApps by mutableStateOf<List<AppItem>>(emptyList())
     private var loadJob: Job? = null
 
+    // Lo stato a schermo sopravvive a una ricreazione dell'Activity (tema
+    // scuro, dimensione del testo, lingua; su tablet anche la rotazione, che
+    // da targetSdk 36 ignora screenOrientation): senza, si richiudeva.
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        outState.putInt(STATE_EDITING_PROFILE, editingProfileId)
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -60,6 +68,9 @@ class AllowedAppsActivity : BaseActivity() {
 
         allowedAppsManager = AllowedAppsManager.getInstance(applicationContext)
         profiles = allowedAppsManager.profiles()
+        savedInstanceState?.getInt(STATE_EDITING_PROFILE)
+            ?.takeIf { id -> profiles.any { it.id == id } }
+            ?.let { editingProfileId = it }
 
         setContent {
             CalmOtterTheme(appTheme = ThemeManager.getTheme(this)) {
@@ -211,5 +222,9 @@ class AllowedAppsActivity : BaseActivity() {
                     isAllowed   = info.packageName in allowed
                 )
             }
+    }
+
+    private companion object {
+        const val STATE_EDITING_PROFILE = "editing_profile"
     }
 }

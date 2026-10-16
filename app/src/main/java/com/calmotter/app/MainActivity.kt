@@ -129,7 +129,10 @@ class MainActivity : BaseActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        if (intent.getBooleanExtra(EXTRA_SHOW_PERMISSIONS, false)) showPermissionDialog = true
+        // Ricreata: vale lo stato salvato, non l'Intent, che chiederebbe di
+        // nuovo il dialogo anche dopo che è stato chiuso.
+        showPermissionDialog = savedInstanceState?.getBoolean(STATE_PERMISSION_DIALOG)
+            ?: intent.getBooleanExtra(EXTRA_SHOW_PERMISSIONS, false)
 
         passwordManager = PasswordManager.getInstance(applicationContext)
         sessionManager = SessionManager.getInstance(applicationContext)
@@ -320,6 +323,11 @@ class MainActivity : BaseActivity() {
     // Composition creata in onCreate() è ancora viva, e handleIntent() già
     // muta showBlockScreen/blockPhraseText (mutableStateOf), che basta a
     // far ricomporre il contenuto giusto.
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        outState.putBoolean(STATE_PERMISSION_DIALOG, showPermissionDialog)
+    }
+
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
         setIntent(intent)
@@ -568,5 +576,6 @@ class MainActivity : BaseActivity() {
     companion object {
         /** Dal widget, con i permessi mancanti: apre la Home sulla spiegazione. */
         const val EXTRA_SHOW_PERMISSIONS = "com.calmotter.app.extra.SHOW_PERMISSIONS"
+        private const val STATE_PERMISSION_DIALOG = "permission_dialog"
     }
 }

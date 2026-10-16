@@ -2,7 +2,7 @@ package com.calmotter.app
 
 import android.annotation.SuppressLint
 import android.content.Intent
-import android.net.Uri
+import androidx.core.net.toUri
 import android.os.Build
 import android.os.Bundle
 import android.provider.Settings
@@ -12,11 +12,13 @@ import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.res.stringResource
 import com.calmotter.app.ui.screens.PasswordVerifyDialog
 import com.calmotter.app.ui.screens.ScheduleEditorScreen
+import com.calmotter.app.ui.screens.newScheduledPause
 import com.calmotter.app.ui.screens.ScheduledPausesScreen
 import com.calmotter.app.ui.theme.CalmOtterTheme
 
@@ -40,7 +42,15 @@ class ScheduledPausesActivity : BaseActivity() {
     /** Permesso "Sveglie e promemoria", riletto a ogni ripresa (si concede fuori dall'app). */
     private var exactAlarmsAllowed by mutableStateOf(true)
     /** Il messaggio del dialogo della password: proteggere o allentare. */
-    private var pendingMessage by mutableStateOf(R.string.schedule_password_prompt)
+    private var pendingMessage by mutableIntStateOf(R.string.schedule_password_prompt)
+
+    // Lo stato a schermo sopravvive a una ricreazione dell'Activity (tema
+    // scuro, dimensione del testo, lingua; su tablet anche la rotazione, che
+    // da targetSdk 36 ignora screenOrientation): senza, si richiudeva.
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        outState.putInt(STATE_EDITING_ID, editing?.id ?: NOT_EDITING)
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -50,6 +60,13 @@ class ScheduledPausesActivity : BaseActivity() {
         }
         manager = ScheduleManager.getInstance(applicationContext)
         schedules = manager.all()
+        // La pausa aperta nell'editor: per id (0 = una nuova). I campi già
+        // cambiati li ripristina l'editor stesso (rememberSaveable).
+        editing = when (val id = savedInstanceState?.getInt(STATE_EDITING_ID, NOT_EDITING) ?: NOT_EDITING) {
+            NOT_EDITING -> null
+            0 -> newScheduledPause()
+            else -> manager.byId(id)
+        }
         val passwordManager = PasswordManager.getInstance(applicationContext)
         val profiles = AllowedAppsManager.getInstance(applicationContext).profiles()
 
@@ -115,7 +132,7 @@ class ScheduledPausesActivity : BaseActivity() {
     private fun requestExactAlarms() {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S) return
         runCatching {
-            startActivity(Intent(Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM, Uri.parse("package:$packageName")))
+            startActivity(Intent(Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM, "package:$packageName".toUri()))
         }
     }
 
@@ -199,5 +216,7 @@ class ScheduledPausesActivity : BaseActivity() {
 
     private companion object {
         const val MENU_DELETE = 1
+        const val STATE_EDITING_ID = "editing_id"
+        const val NOT_EDITING = -1
     }
 }

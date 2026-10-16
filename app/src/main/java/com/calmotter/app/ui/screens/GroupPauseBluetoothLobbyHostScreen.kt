@@ -30,6 +30,7 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -105,7 +106,7 @@ fun GroupPauseBluetoothLobbyHostScreen(
     onCancel: () -> Unit,
 ) {
     val context = LocalContext.current
-    var durationMinutes by remember { mutableIntStateOf(initialDurationMinutes) }
+    var durationMinutes by rememberSaveable { mutableIntStateOf(initialDurationMinutes) }
     // La proposta di attività (specs/together-activity/): cambia da sola se
     // la durata scelta non le si adatta più.
     val suggestion = rememberActivitySuggestion(durationMinutes)

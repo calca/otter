@@ -19,6 +19,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -56,8 +57,8 @@ fun ClosingMomentScreen(
     // sotto la nota, per scelta di chi l'ha fatta. Vuoto negli screenshot.
     onShare: () -> Unit = {},
 ) {
-    var mood by remember { mutableStateOf<Int?>(null) }
-    var note by remember { mutableStateOf("") }
+    var mood by rememberSaveable { mutableStateOf<Int?>(null) }
+    var note by rememberSaveable { mutableStateOf("") }
 
     // Domanda e risposte centrate nello spazio sopra; "Salta" e "Fatto" fissi
     // in fondo (regola della CTA in CLAUDE.md) invece che a metà pagina con
