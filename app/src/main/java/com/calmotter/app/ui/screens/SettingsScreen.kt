@@ -119,6 +119,7 @@ fun SettingsScreen(
     onOpenLicense: () -> Unit,
     onOpenDeveloper: () -> Unit,
     onFeedback: () -> Unit = {},
+    onRate: () -> Unit = {},
 ) {
     var accessibilityOk by remember { mutableStateOf(false) }
     var dndOk by remember { mutableStateOf(false) }
@@ -304,6 +305,7 @@ fun SettingsScreen(
             onOpenDeveloper = onOpenDeveloper,
             onRecommend = { Share.invite(context) },
             onFeedback = onFeedback,
+            onRate = onRate,
         )
 
         // Versione in chiusura di pagina (redesign). Non è decorazione: da
@@ -572,6 +574,7 @@ private fun InfoCard(
     onOpenDeveloper: () -> Unit,
     onRecommend: () -> Unit,
     onFeedback: () -> Unit,
+    onRate: () -> Unit,
 ) {
     Surface(
         shape = RoundedCornerShape(20.dp),
@@ -587,6 +590,11 @@ private fun InfoCard(
             HorizontalDivider(color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.08f))
             // Apre una segnalazione su GitHub già compilata (SettingsActivity.feedbackUrl).
             InfoLinkRow(label = stringResource(R.string.settings_info_feedback), onClick = onFeedback)
+            HorizontalDivider(color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.08f))
+            // La scheda su Play, per chi vuole lasciare un voto. Una riga che
+            // si tocca se si vuole, non il popup di valutazione di Google: è
+            // una libreria chiusa in più, e un'interruzione decisa dall'app.
+            InfoLinkRow(label = stringResource(R.string.settings_info_rate), onClick = onRate)
             HorizontalDivider(color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.08f))
             // Non un link esterno: apre il menu di condivisione (vedi Share).
             InfoLinkRow(label = stringResource(R.string.settings_info_recommend), onClick = onRecommend)

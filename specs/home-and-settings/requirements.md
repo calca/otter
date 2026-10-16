@@ -101,6 +101,11 @@ and who made it without having to search for it outside the app.
 3. The license shown SHALL match a real `LICENSE` file committed at the
    repository root — the in-app text is not a standalone claim independent
    of the actual repository.
+4. The section SHALL also offer "Rate on Google Play" (since 2026-10-16),
+   opening Calm Otter's stable listing in the Play Store app, or on the web
+   when the Play Store is missing. It is a row the user chooses to tap: no
+   in-app review prompt (Google's In-App Review API is a closed library and
+   an interruption the app decides on, against "the app doesn't push").
 
 ## User Story 3: History stays on Home
 

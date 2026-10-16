@@ -21,6 +21,8 @@ import com.calmotter.app.ui.theme.CalmOtterTheme
 // "licenza" (file LICENSE nello stesso repo) e "sviluppatore" in Settings.
 private const val GITHUB_REPO_URL = "https://github.com/calca/otter"
 private const val GITHUB_DEVELOPER_URL = "https://github.com/calca"
+private const val STABLE_PACKAGE = "com.calmotter.app"
+private const val PLAY_STORE_PACKAGE = "com.android.vending"
 
 /**
  * Configurazione: personalizzazione (palette), stato di accessibilità/DND/
@@ -95,6 +97,7 @@ class SettingsActivity : BaseActivity() {
                     onOpenLicense = { openUrl("$GITHUB_REPO_URL/blob/main/LICENSE") },
                     onOpenDeveloper = { openUrl(GITHUB_DEVELOPER_URL) },
                     onFeedback = { openUrl(feedbackUrl()) },
+                    onRate = ::openPlayStoreListing,
                 )
             }
         }
@@ -135,6 +138,18 @@ class SettingsActivity : BaseActivity() {
 
     private fun openUrl(url: String) {
         startActivity(Intent(Intent.ACTION_VIEW, url.toUri()))
+    }
+
+    /**
+     * La scheda di Calm Otter nell'app Play Store, dove si lascia il voto;
+     * senza Play Store (o se non risponde), la stessa pagina sul web. Sempre
+     * la versione stable, anche dalla beta, come [Share.PLAY_STORE_URL].
+     */
+    private fun openPlayStoreListing() {
+        val market = Intent(Intent.ACTION_VIEW, "market://details?id=$STABLE_PACKAGE".toUri())
+            .setPackage(PLAY_STORE_PACKAGE)
+        runCatching { startActivity(market) }
+            .onFailure { openUrl(Share.PLAY_STORE_URL) }
     }
 
     private fun isDefaultHome(): Boolean {

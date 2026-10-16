@@ -471,6 +471,7 @@
     <string name="closing_share">Share this pause</string>
     <string name="group_pause_invite_link">Your friend doesn\'t have Calm Otter? Invite them</string>
     <string name="settings_info_recommend">Recommend Calm Otter</string>
+    <string name="settings_info_rate">Rate on Google Play</string>
 
     <!-- "Avvicina i telefoni" (specs/nfc-quick-together/). -->
     <string name="quick_together_title">Hold your phones together</string>
