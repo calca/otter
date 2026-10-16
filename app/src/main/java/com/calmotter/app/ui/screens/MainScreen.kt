@@ -33,7 +33,10 @@ import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
+import androidx.compose.foundation.layout.size
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.material3.IconButtonDefaults
+import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -316,20 +319,20 @@ fun MainScreen(
                 // durate la sua riga ("Nessuna pausa questa settimana ›")
                 // affollava la Home (segnalato). Lì resta solo quando c'è da
                 // dire che una pausa è finita a telefono chiuso.
-                IconButton(onClick = onHistory) {
-                    Icon(
-                        imageVector = Icons.Default.DateRange,
-                        contentDescription = stringResource(R.string.history_title),
-                        tint = MaterialTheme.colorScheme.primary
-                    )
-                }
-                IconButton(onClick = onSettings) {
-                    Icon(
-                        imageVector = Icons.Default.Settings,
-                        contentDescription = stringResource(R.string.settings_title),
-                        tint = MaterialTheme.colorScheme.primary
-                    )
-                }
+                // Contenitore tinto come le altre azioni della Home
+                // ([CalmSecondaryButton]): icone nude non si leggevano come
+                // bottoni (segnalato).
+                HeaderIconButton(
+                    icon = Icons.Default.DateRange,
+                    label = stringResource(R.string.history_title),
+                    onClick = onHistory,
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                HeaderIconButton(
+                    icon = Icons.Default.Settings,
+                    label = stringResource(R.string.settings_title),
+                    onClick = onSettings,
+                )
             }
         },
         otter = {
@@ -447,6 +450,20 @@ fun MainScreen(
             },
             onDismiss = onDismissPermissionDialog,
         )
+    }
+}
+
+/** Un'icona dell'intestazione della Home, in un cerchio tinto di `primary`. */
+@Composable
+private fun HeaderIconButton(icon: ImageVector, label: String, onClick: () -> Unit) {
+    FilledTonalIconButton(
+        onClick = onClick,
+        colors = IconButtonDefaults.filledTonalIconButtonColors(
+            containerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.14f),
+            contentColor = MaterialTheme.colorScheme.primary,
+        ),
+    ) {
+        Icon(imageVector = icon, contentDescription = label, modifier = Modifier.size(20.dp))
     }
 }
 
