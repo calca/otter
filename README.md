@@ -9,8 +9,8 @@ just you, your phone, and a bit of quiet.
   <img src="docs/screenshots/home.png" width="160" alt="Home: tap the otter, pick a duration" />
   <img src="docs/screenshots/paused.png" width="160" alt="A pause in progress" />
   <img src="docs/screenshots/closing.png" width="160" alt="How was it? The closing moment after a pause" />
-  <img src="docs/screenshots/history.png" width="160" alt="History with the weekly chart and time spent together" />
-  <img src="docs/screenshots/tempo_insieme.png" width="160" alt="Time together: the host's lobby with a suggested activity" />
+  <img src="docs/screenshots/history.png" width="160" alt="History: the week at a glance" />
+  <img src="docs/screenshots/tempo_insieme.png" width="160" alt="Time together: hold the phones back to back, with a suggested activity" />
 </p>
 
 ## How it works
