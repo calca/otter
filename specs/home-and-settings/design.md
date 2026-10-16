@@ -549,7 +549,9 @@ screen with "Riverbank Quietude" and "Water Flow" — evocative names with no
 data behind them. Two decorative labels that never change, on the most-opened
 screen, are noise; they were dropped rather than invented into something.
 
-**The app name, not a section name.** The header keeps "Calm Otter". The
+**The app name, not a section name.** The header keeps "Calm Otter", at
+22sp SemiBold in `primary` (24sp Bold until 2026-10-16 competed with the
+otter). The
 mockup's "Home" title was dropped — it would name where you are in an app
 that has one screen. An `OtterZenMark` (34dp) sat beside the name until
 2026-10-16; it was removed because it repeated the big otter just below,

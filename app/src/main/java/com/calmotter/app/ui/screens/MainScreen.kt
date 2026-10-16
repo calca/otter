@@ -307,10 +307,12 @@ fun MainScreen(
             ) {
                 // Solo il nome, senza il marchio accanto: ripeteva l'otter
                 // grande al centro, due lontre nella stessa schermata.
+                // 22sp SemiBold e non 24 Bold: così competeva con l'otter;
+                // resta `primary`, il colore della tavolozza.
                 Text(
                     text = stringResource(R.string.app_name),
-                    fontSize = 24.sp,
-                    fontWeight = FontWeight.Bold,
+                    fontSize = 22.sp,
+                    fontWeight = FontWeight.SemiBold,
                     color = MaterialTheme.colorScheme.primary,
                     modifier = Modifier.weight(1f)
                 )
