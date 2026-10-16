@@ -35,8 +35,6 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Button
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Lock
@@ -334,20 +332,25 @@ fun BlockScreen(
             }
         },
     ) {
-        // Lo stato come chip, non come riga di testo (redesign). Il mockup
-        // ne aveva due, un chip "session in progress" *e* l'etichetta
-        // "PAUSED" sotto: dicono la stessa cosa due volte, quindi qui è
-        // rimasta solo l'etichetta che c'era già, messa dentro il chip.
-        Surface(
-            shape = RoundedCornerShape(50),
-            color = MaterialTheme.colorScheme.primary.copy(alpha = 0.10f),
-        ) {
+        // Lo stato come etichetta con un puntino, non come chip: la pillola
+        // tinta di prima aveva la forma di un bottone e invitava al tocco
+        // senza fare nulla (segnalato: "è una chip ma non tappabile"). Il
+        // puntino dice "stato in corso" come un indicatore, non come
+        // un'azione. Una sola etichetta: il mockup ne aveva due, che
+        // dicevano la stessa cosa.
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Box(
+                modifier = Modifier
+                    .size(6.dp)
+                    .clip(CircleShape)
+                    .background(MaterialTheme.colorScheme.primary),
+            )
+            Spacer(modifier = Modifier.width(8.dp))
             Text(
                 text = stringResource(R.string.home_active_label).uppercase(),
                 style = MaterialTheme.typography.labelSmall,
                 letterSpacing = 0.12.em,
                 color = MaterialTheme.colorScheme.primary,
-                modifier = Modifier.padding(horizontal = 14.dp, vertical = 6.dp),
             )
         }
 

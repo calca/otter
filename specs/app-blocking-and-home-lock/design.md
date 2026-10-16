@@ -1017,9 +1017,12 @@ down. Watching a timer is what the app is trying to interrupt — the vague
 phrasing stays ("you still have about 25 minutes", from
 `calm_countdown_template_phrases`).
 
-What was taken: the status chip, which absorbs the old "In pausa" text row
+What was taken: the status label, which absorbs the old "In pausa" text row
 rather than adding to it — the mockup had both a chip *and* a "PAUSED"
-label, saying the same thing twice — and a caption under each action badge
+label, saying the same thing twice. It is no longer a chip: a tinted pill
+looked like a button and invited a tap that did nothing (reported), so it
+is now a small dot plus the uppercase label, with no background — a status
+indicator, not an action. Also taken: a caption under each action badge
 (`BlockActionBadge`). Two letters for an app ("PH" for Phone) mean nothing
 until you have worked them out once, and the padlock alone does not separate
 "unlock the pause" from "lock something". This does not contradict the row
