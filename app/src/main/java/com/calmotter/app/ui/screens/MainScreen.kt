@@ -67,7 +67,6 @@ import com.calmotter.app.SessionHistoryManager
 import com.calmotter.app.SessionManager
 import com.calmotter.app.SessionStreak
 import com.calmotter.app.durationPillLabel
-import com.calmotter.app.ui.mascot.OtterZenMark
 import com.calmotter.app.ui.mascot.TogetherMark
 
 // Indice 1 = 30 min, indice 2 = 60 min, ... fino a 4 ore, a passi di 30 minuti
@@ -272,7 +271,7 @@ fun MainScreen(
                 // Non sotto i 20dp: le due impronte hanno otto polpastrelli
                 // fra loro, e più piccole si impastano in una macchia sola.
                 leadingIcon = {
-                    if (quickTogether != null) OtterTapMark(markSize = 20.dp) else TogetherMark(markSize = 20.dp)
+                    if (quickTogether != null) OtterTapMark(markSize = 20.dp, backAlpha = 0.75f) else TogetherMark(markSize = 20.dp)
                 },
                 contentPadding = CtaPadding,
                 // Stessa larghezza di "Sblocca": entrambe le schermate hanno
@@ -306,11 +305,8 @@ fun MainScreen(
                 modifier = Modifier.fillMaxWidth().align(Alignment.Center),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                // Il marchio del redesign accanto al nome: piccolo e non
-                // toccabile, è un'insegna, non un bottone — l'unica cosa da
-                // toccare qui resta l'otter grande al centro.
-                OtterZenMark(markSize = 34.dp)
-                Spacer(modifier = Modifier.width(10.dp))
+                // Solo il nome, senza il marchio accanto: ripeteva l'otter
+                // grande al centro, due lontre nella stessa schermata.
                 Text(
                     text = stringResource(R.string.app_name),
                     fontSize = 24.sp,
@@ -322,9 +318,8 @@ fun MainScreen(
                 // durate la sua riga ("Nessuna pausa questa settimana ›")
                 // affollava la Home (segnalato). Lì resta solo quando c'è da
                 // dire che una pausa è finita a telefono chiuso.
-                // Contenitore tinto come le altre azioni della Home
-                // ([CalmSecondaryButton]): icone nude non si leggevano come
-                // bottoni (segnalato).
+                // In un cerchio bordato (vedi [HeaderIconButton]): icone nude
+                // non si leggevano come bottoni, piene pesavano troppo.
                 HeaderIconButton(
                     icon = Icons.Default.DateRange,
                     label = stringResource(R.string.history_title),
@@ -559,7 +554,10 @@ private fun DurationChipRow(selectedMinutes: Int, onSelect: (Int) -> Unit) {
         // contenuto intero (largo quanto tutte le pillole) invece che alla
         // parte visibile, e sfumava l'ultima pillola anche a fine corsa.
         modifier = Modifier
-            .scrollFadeEdges(scrollState)
+            // 48dp invece dei 24 di default: con 24 l'ultima pillola
+            // visibile restava mozzata quasi di netto ("2" tagliato) e
+            // sembrava un errore più che un invito a scorrere.
+            .scrollFadeEdges(scrollState, width = 48.dp)
             .horizontalScroll(scrollState)
             .padding(horizontal = 8.dp),
         horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -587,9 +585,10 @@ private fun DurationChipRow(selectedMinutes: Int, onSelect: (Int) -> Unit) {
  * pillola per sfumarla anche a fine corsa.
  */
 @Composable
-internal fun Modifier.scrollFadeEdges(scrollState: ScrollState): Modifier {
+internal fun Modifier.scrollFadeEdges(scrollState: ScrollState, width: Dp = 24.dp): Modifier {
     val threshold = with(LocalDensity.current) { 12.dp.toPx() }
     return horizontalFadeEdge(
+        width = width,
         visible = scrollState.maxValue - scrollState.value > threshold,
         fadeStart = scrollState.value > threshold,
     )

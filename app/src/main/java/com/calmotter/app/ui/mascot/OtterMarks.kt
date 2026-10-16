@@ -202,10 +202,14 @@ fun OtterSatelliteMark(modifier: Modifier = Modifier, markSize: Dp = 32.dp, tint
  * idea di inclinazione di [PactPawsMark], applicata a due otter interi
  * invece che a due zampe, per illustrare "avvicina i telefoni" nelle
  * schermate NFC di Tempo Insieme senza bisogno di testo per capirlo.
+ *
+ * [backAlpha] è l'opacità della lontra di sinistra: 0.4 nelle illustrazioni
+ * grandi; a 20dp dentro un bottone quel tenue faceva sembrare l'icona
+ * disattivata accanto al testo pieno, e lì si alza.
  */
 @Composable
-fun OtterTapMark(modifier: Modifier = Modifier, markSize: Dp = 96.dp) {
-    val furA = MaterialTheme.colorScheme.primary.copy(alpha = 0.4f)
+fun OtterTapMark(modifier: Modifier = Modifier, markSize: Dp = 96.dp, backAlpha: Float = 0.4f) {
+    val furA = MaterialTheme.colorScheme.primary.copy(alpha = backAlpha)
     val furB = MaterialTheme.colorScheme.primary
     val signal = MaterialTheme.colorScheme.primary
 
