@@ -30,9 +30,8 @@ buttons for things I rarely touch.
 1. WHEN the home screen is shown AND no session is active THEN the system
    SHALL display: the app name with a settings icon, ambient decorative
    ripples around the otter mark, a horizontally-scrollable row of duration
-   chips (30 min through 4h in 30-minute steps), and a single discreet
-   sessions line that doubles as the History entry point (see User Story 3)
-   — nothing about accessibility/DND/Home-app status is shown here, see
+   chips (30 min through 4h in 30-minute steps), and a History icon next
+   to the settings icon (see User Story 3) — nothing about accessibility/DND/Home-app status is shown here, see
    "Permissions off Home" below.
 2. WHEN the otter mark is tapped AND no session is active THEN the system
    SHALL, if accessibility access AND Do Not Disturb access are both
@@ -114,26 +113,23 @@ enjoy, unlike changing the password.
 1. History is NOT part of Settings — it stays reachable directly from Home,
    per an explicit choice made when this split was designed (checking
    progress is frequent and rewarding, configuration is occasional).
-2. WHEN the home screen is shown AND no session is active THEN the system
-   SHALL display exactly one line about sessions: the current streak
-   (`streak_days`) when it is ≥ 1 day, otherwise the weekly summary
-   (`weekly_summary_none`/`_one`/`_many`), followed by a "›".
-3. WHEN that line is tapped THEN the system SHALL open History — the line
-   is the CTA, and the only entry point to History from Home. Its
-   accessible action SHALL be labelled (`onClickLabel`), so the "›" does
-   not have to carry meaning for anyone who cannot see it.
+2. History SHALL open from an icon in Home's header, next to Settings
+   (labelled for TalkBack). Until 2026-10-16 the entry point was a line
+   under the duration chips (streak or weekly summary, then "›"); together
+   with the profile line it crowded Home (reported), so streak and week
+   now live in History only.
+3. WHEN a pause ended while the phone was closed THEN Home SHALL show,
+   for that opening, one line under the chips with its time and length
+   ("Pausa finita alle…"), opening the closing moment or History.
 4. The seven-day bar chart SHALL NOT appear on Home. It was removed on
    report ("il grafico e la cronologia in home creano ingombro"), but the
    deciding argument was duplication rather than space: Home said the same
    thing twice — once as this summary line, once in the card's header — and
-   the card added only the shape of the week. A screen about *not* using
+   the card added only the shape of the week (the line itself has since
+   moved off Home too, see 2). A screen about *not* using
    your phone has no reason to look like an analytics dashboard. The bars
    are one tap away in History, which computes them itself.
-5. The streak SHALL NOT be lost with the card: it is the one thing the
-   summary line did not already say, which is why the line absorbs exactly
-   the rule the card's header used. What is accepted as lost is the shape
-   of the week at a glance — a number to read instead of a silhouette to
-   see.
+5. The streak is shown in History, not on Home (see 2).
 
 ## Living Pond redesign
 

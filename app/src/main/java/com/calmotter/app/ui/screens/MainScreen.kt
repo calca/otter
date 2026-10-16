@@ -3,6 +3,7 @@ package com.calmotter.app.ui.screens
 import com.calmotter.app.ui.theme.muted
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.offset
 import com.calmotter.app.OtterHint
 import com.calmotter.app.ui.mascot.OtterTapMark
 import androidx.compose.foundation.horizontalScroll
@@ -28,6 +29,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.CompositingStrategy
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Icon
@@ -118,8 +120,9 @@ internal val OtterSlotHeight = 400.dp
  * Schermata home ("Living Pond" — vedi specs/home-and-settings): lo stagno
  * con l'otter è l'unico pulsante di avvio (si tocca l'otter stesso), un
  * anello colorato attorno a lei mostra l'avanzamento mentre una sessione è
- * attiva, e sotto una riga discreta ([SessionsSummaryLink]) riassume
- * streak/settimana ed è anche l'ingresso alla Cronologia. Tema, cambio password, gestione app consentite, frasi
+ * attiva. La Cronologia si apre dall'icona in alto; sotto le durate
+ * [SessionsSummaryLink] compare solo per dire che una pausa è finita a
+ * telefono chiuso. Tema, cambio password, gestione app consentite, frasi
  * riflessive e lo stato di accessibilità/DND/Home sono su SettingsScreen
  * (icona ingranaggio): sono azioni/controlli occasionali, non quelli
  * compiuti ogni volta che si apre l'app (vedi
@@ -309,6 +312,17 @@ fun MainScreen(
                     color = MaterialTheme.colorScheme.primary,
                     modifier = Modifier.weight(1f)
                 )
+                // La Cronologia in alto, accanto alle impostazioni: sotto le
+                // durate la sua riga ("Nessuna pausa questa settimana ›")
+                // affollava la Home (segnalato). Lì resta solo quando c'è da
+                // dire che una pausa è finita a telefono chiuso.
+                IconButton(onClick = onHistory) {
+                    Icon(
+                        imageVector = Icons.Default.DateRange,
+                        contentDescription = stringResource(R.string.history_title),
+                        tint = MaterialTheme.colorScheme.primary
+                    )
+                }
                 IconButton(onClick = onSettings) {
                     Icon(
                         imageVector = Icons.Default.Settings,
@@ -383,6 +397,9 @@ fun MainScreen(
             // è già stato approvato da chi la tiene.
             if (profiles.size > 1) {
                 AllowedProfileLine(
+                    // Un filo più su (segnalato): l'area di tocco del
+                    // TextButton lo staccava dalle pillole più del resto.
+                    modifier = Modifier.offset(y = (-6).dp),
                     profiles = profiles,
                     selectedProfileId = selectedProfileId,
                     onSelect = {
@@ -392,20 +409,21 @@ fun MainScreen(
                 )
             }
 
-            SessionsSummaryLink(
-                streakDays = streakDays,
-                weekSummary = weekSummary,
-                pendingBackgroundSummary = pendingSummary,
-                // "Pausa finita alle…" apre il momento di chiusura se quella
-                // pausa non ha ancora una risposta (specs/closing-moment/);
-                // altrimenti, come sempre, la Cronologia.
-                onHistory = {
-                    when {
-                        pendingSummary == null -> onHistory()
-                        !ClosingMomentActivity.startIfPending(context) -> onHistorySessions()
-                    }
-                },
-            )
+            // Solo per "Pausa finita alle…": streak e settimana stanno in
+            // Cronologia, raggiungibile dall'icona in alto.
+            pendingSummary?.let { pending ->
+                SessionsSummaryLink(
+                    streakDays = streakDays,
+                    weekSummary = weekSummary,
+                    pendingBackgroundSummary = pending,
+                    // "Pausa finita alle…" apre il momento di chiusura se quella
+                    // pausa non ha ancora una risposta (specs/closing-moment/);
+                    // altrimenti, come sempre, la Cronologia.
+                    onHistory = {
+                        if (!ClosingMomentActivity.startIfPending(context)) onHistorySessions()
+                    },
+                )
+            }
         }
     }
     // Il dialogo dei permessi mancanti, aperto dal tocco sull'otter, da "Con

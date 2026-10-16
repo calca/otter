@@ -186,6 +186,30 @@ class ScreenScreenshotTest(private val night: Boolean) {
             endReason = EndReason.NATURAL),
     )
 
+    /** La Home con più profili di app consentite: la riga del profilo sotto le durate. */
+    @Test
+    fun homeProfiles() {
+        AllowedAppsManager.getInstance(context).createProfile("Lavoro")
+        capture("home-profiles") {
+            MainScreen(
+                resumeSignal = 0,
+                sessionManager = SessionManager.getInstance(context),
+                sessionHistoryManager = SessionHistoryManager.getInstance(context),
+                isAccessibilityServiceEnabled = { true },
+                isDndAccessGranted = { true },
+                onGrantAccessibility = {},
+                onGrantDnd = {},
+                onHistory = {},
+                onSettings = {},
+                onQuickTogether = {},
+                selectedDurationMinutes = 60,
+                onSelectDuration = {},
+                showPermissionDialog = false,
+                onDismissPermissionDialog = {},
+            )
+        }
+    }
+
     @Test
     fun history() = capture("history") {
         HistoryScreen(sessions = history, goal = null, onEditGoal = {}, now = NOW)
