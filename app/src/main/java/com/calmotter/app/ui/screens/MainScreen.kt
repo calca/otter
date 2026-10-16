@@ -456,14 +456,16 @@ fun MainScreen(
 /**
  * Un'icona dell'intestazione della Home, in un cerchio solo bordato: si legge
  * come bottone senza pesare quanto le durate e "Tempo insieme", che sono
- * pieni. Il bordo è `primary` al 30% e non `outline`, che non è tra i ruoli
- * personalizzati per tavolozza (vedi specs/multi-theme-system/design.md).
+ * pieni. Il bordo è `tertiary`, lo stesso colore delle onde dello stagno
+ * (vedi [AmbientRipples]): con `primary` al 30% era un verde diverso e più
+ * forte, e stonava con le onde (segnalato). Non `outline`, che non è tra i
+ * ruoli personalizzati per tavolozza (vedi specs/multi-theme-system/design.md).
  */
 @Composable
 private fun HeaderIconButton(icon: ImageVector, label: String, onClick: () -> Unit) {
     OutlinedIconButton(
         onClick = onClick,
-        border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.3f)),
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.tertiary),
         colors = IconButtonDefaults.outlinedIconButtonColors(
             contentColor = MaterialTheme.colorScheme.primary,
         ),

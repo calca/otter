@@ -118,7 +118,8 @@ enjoy, unlike changing the password.
    under the duration chips (streak or weekly summary, then "›"); together
    with the profile line it crowded Home (reported), so streak and week
    now live in History only. Both header icons sit in a thin outlined
-   circle (`primary` at 30%): bare icons didn't read as buttons, and a
+   circle in `tertiary`, the pond ripples' color (`primary` at 30% clashed
+   with the ripples, reported): bare icons didn't read as buttons, and a
    tinted fill (tried first) weighed as much as the chips and the
    "Tempo insieme" button below (reported).
 3. WHEN a pause ended while the phone was closed THEN Home SHALL show,
