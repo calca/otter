@@ -30,10 +30,13 @@ zero.
 
 ### Acceptance Criteria
 
-1. Home SHALL show one button for pausing together: on a phone with NFC
-   it is **"One tap"** ("Con un tocco", this flow); without NFC it is
-   **"Time together"** (the full flow: Create / Join, Bluetooth, QR, code).
-2. WHEN the user taps "One tap" AND NFC is on THEN the system SHALL
+1. Home SHALL show one button for pausing together, labelled **"Time
+   together"** ("Tempo insieme") in both cases: on a phone with NFC it
+   opens this flow (with the otter-tap icon); without NFC the full flow
+   (Create / Join, Bluetooth, QR, code). Until 2026-10-16 the NFC label was
+   "One tap" ("Con un tocco"): it named the gesture, not what you get, and
+   meant nothing out of context (reported).
+2. WHEN the user taps "Time together" AND the phone has NFC AND it is on THEN the system SHALL
    open a "Hold your friend's phone near" **page** (not a bottom sheet:
    consistent with the other Time together pages) in reader mode — no
    Create / Join choice, no Bluetooth dialog, no Bluetooth permission. WHEN
@@ -78,7 +81,7 @@ phone, so we don't have to coordinate before touching phones.
    SHALL say to update the app, as the code/QR path does today.
 4. Bluetooth, QR and code stay reachable for people who aren't side by
    side: through a "QR, code or Bluetooth" button on the
-   "One tap" page, or through Home's "Time together" button without NFC.
+   reader page, or directly through Home's button without NFC.
 
 ## User Story 4: Nothing starts by accident
 

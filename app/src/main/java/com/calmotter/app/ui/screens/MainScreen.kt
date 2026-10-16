@@ -249,16 +249,18 @@ fun MainScreen(
             // altre CTA dell'app: sotto il riepilogo cambiava posto con la
             // lunghezza del contenuto. Con due affiancati ("Con un tocco" e
             // "Tempo insieme") il fondo della Home era troppo affollato. Con
-            // l'NFC è "Con un tocco", il modo più rapido; QR, codice e
-            // Bluetooth si raggiungono da lì (QuickTogetherReaderScreen).
-            // Senza NFC è "Tempo insieme". Tinto e non pieno: non compete
+            // l'NFC apre il tocco fra i telefoni, il modo più rapido; QR,
+            // codice e Bluetooth si raggiungono da lì
+            // (QuickTogetherReaderScreen). Senza NFC apre direttamente la
+            // scelta di Tempo insieme. Tinto e non pieno: non compete
             // con il tocco sull'otter, che resta l'azione primaria. Stesso
             // controllo dei permessi.
             val quickTogether = onQuickTogether
             CalmSecondaryButton(
-                text = stringResource(
-                    if (quickTogether != null) R.string.quick_together_button else R.string.group_pause_entry_button
-                ),
+                // "Tempo insieme" con o senza NFC: dice cosa si ottiene, non il
+                // gesto ("Con un tocco" da solo non voleva dire niente,
+                // segnalato). Cambiano solo l'icona e la pagina d'arrivo.
+                text = stringResource(R.string.group_pause_entry_button),
                 onClick = {
                     when {
                         !BuildConfig.DEBUG && !(accessibilityOk && dndOk) -> onOtterTap()

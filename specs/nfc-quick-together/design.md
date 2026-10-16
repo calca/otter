@@ -52,15 +52,16 @@ B → A   OK  |  REFUSED(state)
 
 Home has **one** button for pausing together (`MainScreen.onQuickTogether`,
 null without NFC), anchored at the bottom in the `OtterAnchoredScreen`
-footer, same slot and width as BlockScreen's "Unlock": **"One tap"** ("Con un tocco") with NFC, opening
-`QuickTogetherActivity` in reader mode; "Time together", the existing
-chooser, without. It used to show both side by side in one row (stacked,
+footer, same slot and width as BlockScreen's "Unlock", always labelled
+**"Time together"**: with NFC it opens `QuickTogetherActivity` in reader
+mode (otter-tap icon), without it the existing chooser (paws icon). It used to show both side by side in one row (stacked,
 Home overflowed on a Samsung), but two tinted pills under the summary line
 made the bottom of Home too busy — decided with the user, 2026-10-15. With
 NFC the full flow is one button away on the reader page ("QR, code or
 Bluetooth", which opens the chooser with the same duration and
-closes the reader). The label stays "One tap" / "Con un tocco": "Avvicina
-i telefoni" wrapped. Same permission
+closes the reader). The label was "One tap" / "Con un tocco" until
+2026-10-16 ("Avvicina i telefoni" wrapped at half width): replaced
+because it named the gesture rather than the outcome. Same permission
 check as the otter tap. NFC off → NFC settings + a toast.
 `QuickTogetherReaderScreen` is a page in three blocks: the gesture (back
 arrow, otter-tap illustration pulsing at 200dp like Join's search, "Hold

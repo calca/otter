@@ -535,7 +535,7 @@ internal val CtaPadding = PaddingValues(horizontal = 24.dp)
  * Margine laterale di ogni pagina, uno solo per tutta l'app. Prima ce
  * n'erano quattro (16, 24, 32, 40dp) a seconda della schermata, e le CTA a
  * fondo pagina cambiavano larghezza passando da una all'altra ("Sblocca"
- * più stretto di "Con un tocco" nello stesso punto dello schermo). Le CTA
+ * più stretto di "Tempo insieme" nello stesso punto dello schermo). Le CTA
  * ancorate in fondo stanno a tutta larghezza dentro questo margine.
  */
 val PageMargin = 24.dp

@@ -476,7 +476,6 @@
     <string name="settings_info_recommend">Consiglia Calm Otter</string>
 
     <!-- "Avvicina i telefoni" (specs/nfc-quick-together/). -->
-    <string name="quick_together_button">Con un tocco</string>
     <string name="quick_together_title">Avvicina i telefoni</string>
     <string name="quick_together_subtitle">Una pausa insieme di %1$s</string>
     <string name="quick_together_other_ways">QR, codice o Bluetooth</string>
