@@ -357,9 +357,12 @@
     <string name="closing_done">Done</string>
     <string name="closing_skip">Skip</string>
     <!-- Uscita lenta (specs/slow-exit/) -->
-    <string name="slow_exit_action">I don\'t have the password</string>
-    <string name="slow_exit_confirm_title">Leave without the password?</string>
-    <string name="slow_exit_confirm_start">Start the wait</string>
+    <plurals name="slow_exit_action">
+        <item quantity="one">Leave after %1$d minute</item>
+        <item quantity="other">Leave after %1$d minutes</item>
+    </plurals>
+    <string name="slow_exit_context_title">Can\'t reach whoever holds the password?</string>
+    <string name="slow_exit_context_body">The pause can also end with a wait. It will show in History.</string>
     <string name="slow_exit_stay">Stay in the pause</string>
     <string name="slow_exit_waiting">The pause is ending, without the password</string>
     <string name="settings_slow_exit_label">Leave without password</string>
@@ -367,11 +370,6 @@
     <string name="settings_slow_exit_pill">%1$d min</string>
     <string name="settings_slow_exit_dialog_body">Lets the pause end without the password after a wait. Weaker than the password: choose it together.</string>
     <string name="onboarding_slow_exit_note">If you can\'t reach each other, a pause also ends by waiting 10 minutes.</string>
-    <!-- Uscita lenta: conferma -->
-    <plurals name="slow_exit_confirm_body">
-        <item quantity="one">The pause will end in %1$d minute. It will show in History as ended without the password.</item>
-        <item quantity="other">The pause will end in %1$d minutes. It will show in History as ended without the password.</item>
-    </plurals>
     <!-- Time together in Cronologia (specs/together-history/) -->
     <string name="history_filter_together">Together</string>
     <string name="together_card_title">With whom</string>

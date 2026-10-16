@@ -25,13 +25,18 @@ impulsive.
    one line that the slow exit exists and can be switched off in Settings,
    so the person holding the password knows the pact has this way out.
 3. WHEN the slow exit is on THEN the unlock dialog on the block screen
-   SHALL offer a secondary action "I don't have the password".
-4. WHEN the user chooses it THEN the system SHALL explain what will
-   happen ("The pause will end in 10 minutes. It will show in History as
-   ended without password.") and ask for confirmation.
-5. WHEN confirmed THEN the system SHALL start the wait: the block screen
-   shows the otter and a ring filling over the wait, with a "Stay in the
-   pause" action that cancels it.
+   SHALL show it as a separate section under the Cancel/Unlock buttons:
+   the situation ("Can't reach whoever holds the password?"), what it
+   means ("The pause can also end with a wait. It will show in History.")
+   and the action with its cost ("Leave after 10 minutes").
+4. WHEN the user chooses it THEN the system SHALL start the wait at once,
+   with no second dialog: the wait itself is the confirmation, since it
+   can be cancelled for its whole length. Until 2026-10-16 the action was a
+   bare "I don't have the password" link that opened a confirmation
+   dialog; it read as a confession rather than a choice, and the two
+   dialogs in a row felt heavy (reported).
+5. WHEN the wait starts THEN the block screen shows the otter and a ring
+   filling over the wait, with a "Stay in the pause" action that cancels it.
 6. The wait SHALL continue if the user leaves the block screen or the
    phone sleeps; every other app stays blocked until it ends.
 7. WHEN the wait ends THEN the system SHALL end the pause and record it in

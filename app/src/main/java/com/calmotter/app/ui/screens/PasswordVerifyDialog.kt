@@ -7,7 +7,20 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.material3.AlertDialog
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.width
+import androidx.compose.material3.AlertDialogDefaults
+import androidx.compose.material3.BasicAlertDialog
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
+import androidx.compose.material3.Surface
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
+import com.calmotter.app.ui.theme.muted
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -53,6 +66,7 @@ import kotlinx.coroutines.withContext
  * dopo (terminare la sessione e fare il forward per BlockScreen, aprire
  * AllowedAppsActivity per Settings) senza doversene preoccupare.
  */
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PasswordVerifyDialog(
     passwordManager: PasswordManager,
@@ -61,10 +75,11 @@ fun PasswordVerifyDialog(
     onDismiss: () -> Unit,
     onVerified: () -> Unit,
     message: String? = null,
-    // Uscita lenta (specs/slow-exit/): se non null, sotto il campo compare
-    // "Non ho la password". Solo sullo sblocco della pausa, mai sugli altri
-    // usi di questo dialogo.
-    onNoPassword: (() -> Unit)? = null,
+    // Uscita lenta (specs/slow-exit/): se non null, sotto i bottoni c'è una
+    // sezione a parte che la spiega e la avvia ([slowExitMinutes] di attesa).
+    // Solo sullo sblocco della pausa, mai sugli altri usi di questo dialogo.
+    onSlowExit: (() -> Unit)? = null,
+    slowExitMinutes: Int = 0,
 ) {
     var password by remember { mutableStateOf("") }
     var statusText by remember { mutableStateOf("") }
@@ -99,13 +114,30 @@ fun PasswordVerifyDialog(
         pluralStringResource(R.plurals.password_locked_out, it, it)
     } ?: statusText
 
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = { Text(title) },
-        text = {
-            Column {
+    // BasicAlertDialog e non AlertDialog: AlertDialog mette sempre i bottoni
+    // in fondo, e l'uscita lenta va *sotto* "Annulla / Sblocca", come una
+    // strada a parte, non come un terzo bottone. Forma, colore e spaziature
+    // sono quelli di AlertDialog (AlertDialogDefaults, 24dp).
+    BasicAlertDialog(onDismissRequest = onDismiss) {
+        Surface(
+            shape = AlertDialogDefaults.shape,
+            color = AlertDialogDefaults.containerColor,
+            tonalElevation = AlertDialogDefaults.TonalElevation,
+        ) {
+            Column(modifier = Modifier.padding(24.dp)) {
+                Text(
+                    text = title,
+                    style = MaterialTheme.typography.headlineSmall,
+                    color = AlertDialogDefaults.titleContentColor,
+                    modifier = Modifier.padding(bottom = 16.dp),
+                )
                 if (message != null) {
-                    Text(text = message, modifier = Modifier.padding(bottom = 12.dp))
+                    Text(
+                        text = message,
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = AlertDialogDefaults.textContentColor,
+                        modifier = Modifier.padding(bottom = 12.dp),
+                    )
                 }
                 PasswordOutlinedTextField(
                     value = password,
@@ -115,9 +147,7 @@ fun PasswordVerifyDialog(
                     modifier = Modifier.fillMaxWidth()
                 )
                 // L'errore subito sotto il campo, piccolo e allineato al suo
-                // testo (16dp, come il supporting text di M3): prima stava in
-                // fondo, sotto "Non ho la password", e non si allineava a
-                // nulla (segnalato: "brutta e non allineata"). Annunciato a
+                // testo (16dp, come il supporting text di M3). Annunciato a
                 // TalkBack quando compare.
                 if (displayStatusText.isNotBlank()) {
                     Text(
@@ -130,59 +160,93 @@ fun PasswordVerifyDialog(
                             .semantics { liveRegion = LiveRegionMode.Polite }
                     )
                 }
-                if (onNoPassword != null) {
-                    // 4dp a sinistra: con i 12dp interni del TextButton il
-                    // testo cade a 16dp, come quello del campo e dell'errore.
+                Row(
+                    horizontalArrangement = Arrangement.End,
+                    modifier = Modifier.fillMaxWidth().padding(top = 16.dp),
+                ) {
+                    TextButton(onClick = onDismiss) {
+                        Text(stringResource(android.R.string.cancel))
+                    }
+                    Spacer(modifier = Modifier.width(8.dp))
                     TextButton(
-                        onClick = { onDismiss(); onNoPassword() },
-                        modifier = Modifier.padding(start = 4.dp, top = 4.dp),
-                    ) {
-                        Text(stringResource(R.string.slow_exit_action))
-                    }
-                }
-            }
-        },
-        confirmButton = {
-            TextButton(
-                enabled = !busy,
-                onClick = {
-                    if (passwordManager.isLockedOut()) {
-                        isLockedOut = true
-                        return@TextButton
-                    }
-                    scope.launch {
-                        isVerifying = true
-                        // PBKDF2 fuori dal thread principale — vedi il
-                        // commento su isVerifying qui sopra.
-                        val verified = withContext(Dispatchers.Default) {
-                            passwordManager.verify(password)
-                        }
-                        isVerifying = false
-                        if (verified) {
-                            onDismiss()
-                            onVerified()
-                        } else {
-                            password = ""
+                        enabled = !busy,
+                        onClick = {
                             if (passwordManager.isLockedOut()) {
                                 isLockedOut = true
-                            } else {
-                                statusText = wrongPasswordText
+                                return@TextButton
                             }
+                            scope.launch {
+                                isVerifying = true
+                                // PBKDF2 fuori dal thread principale — vedi il
+                                // commento su isVerifying qui sopra.
+                                val verified = withContext(Dispatchers.Default) {
+                                    passwordManager.verify(password)
+                                }
+                                isVerifying = false
+                                if (verified) {
+                                    onDismiss()
+                                    onVerified()
+                                } else {
+                                    password = ""
+                                    if (passwordManager.isLockedOut()) {
+                                        isLockedOut = true
+                                    } else {
+                                        statusText = wrongPasswordText
+                                    }
+                                }
+                            }
+                        }
+                    ) {
+                        if (isVerifying) {
+                            CircularProgressIndicator(modifier = Modifier.size(18.dp))
+                        } else {
+                            Text(confirmLabel)
                         }
                     }
                 }
-            ) {
-                if (isVerifying) {
-                    CircularProgressIndicator(modifier = Modifier.size(18.dp))
-                } else {
-                    Text(confirmLabel)
+                if (onSlowExit != null) {
+                    SlowExitSection(minutes = slowExitMinutes, onStart = { onDismiss(); onSlowExit() })
                 }
             }
-        },
-        dismissButton = {
-            TextButton(onClick = onDismiss) {
-                Text(stringResource(android.R.string.cancel))
-            }
-        },
+        }
+    }
+}
+
+/**
+ * L'uscita lenta come strada a parte, sotto la password: la situazione
+ * ("non riesci a raggiungere chi ha la password?"), cosa comporta (si
+ * aspetta, e resta in Cronologia) e l'azione con il suo prezzo ("Esci dopo
+ * 10 minuti"). Prima era un link "Non ho la password" — una confessione più
+ * che una scelta — che apriva un secondo dialogo di conferma (segnalato).
+ * Ora il tocco avvia subito l'attesa: è lei la conferma, la schermata di
+ * blocco la mostra con "Resto in pausa" per annullarla.
+ */
+@Composable
+private fun SlowExitSection(minutes: Int, onStart: () -> Unit) {
+    HorizontalDivider(
+        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.08f),
+        modifier = Modifier.padding(top = 16.dp, bottom = 16.dp),
     )
+    Text(
+        text = stringResource(R.string.slow_exit_context_title),
+        style = MaterialTheme.typography.bodyMedium,
+        fontWeight = FontWeight.SemiBold,
+        color = MaterialTheme.colorScheme.onSurface,
+    )
+    Text(
+        text = stringResource(R.string.slow_exit_context_body),
+        style = MaterialTheme.typography.bodyMedium,
+        color = MaterialTheme.colorScheme.muted(0.7f),
+        modifier = Modifier.padding(top = 2.dp),
+    )
+    // -12dp: il testo del TextButton cade allineato al paragrafo sopra.
+    TextButton(onClick = onStart, modifier = Modifier.padding(top = 4.dp).offset(x = (-12).dp)) {
+        Icon(
+            painter = painterResource(R.drawable.ic_hourglass),
+            contentDescription = null,
+            modifier = Modifier.size(18.dp),
+        )
+        Spacer(modifier = Modifier.width(8.dp))
+        Text(pluralStringResource(R.plurals.slow_exit_action, minutes, minutes))
+    }
 }

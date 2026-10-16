@@ -9,7 +9,7 @@
 | `SlowExitSettings` (in a small `SlowExitManager.kt`, new) | `enabled`, `waitMinutes`; plain `SharedPreferences`; singleton with `resetInstanceForTests()` |
 | `SessionManager.kt` | `KEY_SLOW_EXIT_DEADLINE` (epoch ms, 0 = none); `startSlowExit()`, `cancelSlowExit()`; the expiry alarm logic also fires at the deadline |
 | `SessionExpiryReceiver.kt` | Distinguishes natural expiry from slow-exit deadline (extra on the `PendingIntent`) |
-| `PasswordVerifyDialog.kt` | Optional secondary action, shown only when slow exit is on |
+| `PasswordVerifyDialog.kt` | Optional `SlowExitSection` under the buttons (context + "Leave after N minutes"), shown only when slow exit is on; a `BasicAlertDialog` styled like `AlertDialog`, since `AlertDialog` always puts its buttons last |
 | `BlockScreen.kt` | Wait state: ring = wait progress, "Stay in the pause" action |
 | `SessionRecord.kt` | New column `endReason` (see below) |
 | `SettingsScreen.kt` | Password-gated choice of Off / 5 / 10 / 15 min, as small `CalmPill`s in one row (was a radio list) |

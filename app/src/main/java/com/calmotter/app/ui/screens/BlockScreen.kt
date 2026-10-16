@@ -1,7 +1,6 @@
 package com.calmotter.app.ui.screens
 
 import com.calmotter.app.ui.theme.muted
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -142,7 +141,6 @@ fun BlockScreen(
     // Uscita lenta (specs/slow-exit/): conferma, e scadenza dell'attesa in
     // corso (0 = nessuna). La scadenza vive in SessionManager, non qui: deve
     // sopravvivere all'uscita dalla schermata e al riavvio.
-    var confirmingSlowExit by rememberSaveable { mutableStateOf(false) }
     var slowExitDeadline by remember { mutableLongStateOf(controller.slowExitDeadline()) }
     var slowExitProgress by remember { mutableFloatStateOf(0f) }
     var remainingText by remember { mutableStateOf("") }
@@ -509,37 +507,21 @@ fun BlockScreen(
             title = stringResource(R.string.unlock),
             confirmLabel = stringResource(R.string.unlock),
             onDismiss = { showUnlockDialog = false },
-            onNoPassword = if (controller.slowExitAvailable) {
-                { confirmingSlowExit = true }
+            // Il tocco avvia subito l'attesa, senza un secondo dialogo: la
+            // sezione spiega già cosa succede, e l'attesa si annulla con
+            // "Resto in pausa".
+            onSlowExit = if (controller.slowExitAvailable) {
+                { slowExitDeadline = controller.startSlowExit() }
             } else {
                 null
             },
+            slowExitMinutes = controller.slowExitWaitMinutes,
             // Il secondo modo va detto, altrimenti resta scopribile solo per
             // caso: il lettore NFC è già attivo mentre questo dialogo è aperto.
             message = if (controller.canBeReleasedByNfc) stringResource(R.string.unlock_or_tap_hint) else null,
             onVerified = {
                 showUnlockDialog = false
                 exitAfterEarlyEnd(controller.unlockWithPassword())
-            },
-        )
-    }
-
-    if (confirmingSlowExit) {
-        val wait = controller.slowExitWaitMinutes
-        AlertDialog(
-            onDismissRequest = { confirmingSlowExit = false },
-            title = { Text(stringResource(R.string.slow_exit_confirm_title)) },
-            text = { Text(pluralStringResource(R.plurals.slow_exit_confirm_body, wait, wait)) },
-            confirmButton = {
-                TextButton(onClick = {
-                    confirmingSlowExit = false
-                    slowExitDeadline = controller.startSlowExit()
-                }) { Text(stringResource(R.string.slow_exit_confirm_start)) }
-            },
-            dismissButton = {
-                TextButton(onClick = { confirmingSlowExit = false }) {
-                    Text(stringResource(R.string.slow_exit_stay))
-                }
             },
         )
     }
