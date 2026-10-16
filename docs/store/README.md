@@ -17,6 +17,8 @@ Play Console.
   release; only languages the store listing has are sent). Promote by
   hand with `gh workflow run play-promote.yml -f from=internal -f to=alpha`
   (closed testing), later `-f from=alpha -f to=production [-f rollout=0.2]`.
+  Promotion sends the notes currently in `whatsnew/`, not the ones of the
+  source track, so a fix to the notes after tagging still lands.
   Needs the `PLAY_SERVICE_ACCOUNT_JSON` secret: a Google Cloud service
   account with the Google Play Android Developer API enabled, invited in
   Play Console → Users and permissions with release rights for this app.

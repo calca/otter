@@ -41,4 +41,5 @@ jobs:
         pip install --quiet google-auth requests
         python .github/scripts/play_publish.py promote \
           --from "${{ inputs.from }}" --to "${{ inputs.to }}" \
-          --rollout "${{ inputs.rollout }}"
+          --rollout "${{ inputs.rollout }}" \
+          --notes-dir docs/store/whatsnew

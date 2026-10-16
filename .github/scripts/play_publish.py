@@ -5,9 +5,10 @@ Due comandi, usati dai workflow in .github/workflows/:
   upload   --aab <file> --track internal [--notes-dir docs/store/whatsnew]
       carica l'AAB e lo rende disponibile sul track (android.yml, a ogni
       push su main).
-  promote  --from internal --to alpha [--rollout 0.2]
+  promote  --from internal --to alpha [--rollout 0.2] [--notes-dir docs/store/whatsnew]
       prende la release attiva di un track e la mette su un altro, con le
-      stesse note (play-promote.yml, a mano).
+      note di --notes-dir se date, altrimenti le stesse (play-promote.yml,
+      a mano).
 
 Credenziali: il JSON di un service account in PLAY_SERVICE_ACCOUNT_JSON,
 invitato in Play Console con il permesso di rilasciare sui track di test
@@ -98,6 +99,13 @@ def promote(args) -> None:
         "versionCodes": src["versionCodes"],
         "releaseNotes": src.get("releaseNotes", []),
     }
+    # Le note dal repo, non quelle del track di partenza: il 2026-10-16 la
+    # 0.3.0 era salita sull'interno con le note della 0.2.0 rimaste in
+    # whatsnew/, e promuoverla le avrebbe copiate tali e quali.
+    if args.notes_dir:
+        notes = read_notes(pathlib.Path(args.notes_dir), listing_languages(s, edit))
+        if notes:
+            release["releaseNotes"] = notes
     if args.rollout < 1:
         release["status"] = "inProgress"
         release["userFraction"] = args.rollout
@@ -124,6 +132,7 @@ def main() -> None:
     pr.add_argument("--from", dest="source", required=True)
     pr.add_argument("--to", dest="target", required=True)
     pr.add_argument("--rollout", type=float, default=1.0)
+    pr.add_argument("--notes-dir")
     pr.set_defaults(func=promote)
 
     args = p.parse_args()
