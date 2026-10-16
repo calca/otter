@@ -17,8 +17,8 @@ just you, your phone, and a bit of quiet.
 
 1. **Set a password** — you, or someone you trust to hold you accountable,
    opens the app and sets it once. It's kept as a PBKDF2-HMAC-SHA256 hash
-   with a random salt inside `EncryptedSharedPreferences`, encrypted via
-   Android Keystore — the actual password is never stored anywhere.
+   with a random salt, encrypted with a key that never leaves the Android
+   Keystore — the actual password is never stored anywhere.
 2. **Grant two permissions** — Accessibility and Do Not Disturb access.
    That's the whole setup, one time only.
 3. **Pick a duration and tap the otter** — from a 10-minute breather to

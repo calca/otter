@@ -3,7 +3,7 @@ package com.calmotter.app
 /**
  * Logica pura di rate-limiting sui tentativi di password: 5 tentativi
  * falliti consecutivi -> lockout di 30 secondi. Separata da PasswordManager
- * per essere testabile senza dipendere da EncryptedSharedPreferences/Keystore.
+ * per essere testabile senza dipendere dal Keystore.
  */
 object LockoutPolicy {
     const val MAX_ATTEMPTS = 5

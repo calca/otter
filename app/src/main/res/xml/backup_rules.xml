@@ -6,4 +6,5 @@
 -->
 <full-backup-content>
     <exclude domain="sharedpref" path="calm_otter_secure_prefs.xml" />
+    <exclude domain="sharedpref" path="calm_otter_password.xml" />
 </full-backup-content>

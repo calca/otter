@@ -31,3 +31,14 @@ esecuzione in CI fallisse per differenze di piattaforma, l'artefatto
 
 Wrapper a Gradle 9.8.0 (`./gradlew wrapper --gradle-version 9.8.0`); lint
 ora senza alcun avviso.
+
+## 4. Togliere `security-crypto` dopo la migrazione della password
+
+Dal 2026-10-16 la password non usa più `EncryptedSharedPreferences`
+(deprecata): `PasswordManager.migrateLegacy()` sposta il file vecchio al
+primo avvio. La dipendenza resta solo per quella lettura. Quando nessuna
+installazione può più avere il file vecchio (qualche release dopo, o con un
+salto di versione minima), togliere `migrateLegacy()`, la dipendenza in
+`app/build.gradle.kts`, i test di migrazione in `PasswordManagerTest` e
+l'esclusione di `calm_otter_secure_prefs.xml` dai backup. **S**
+

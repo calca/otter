@@ -3,7 +3,9 @@
     API 31+ (Android 12+): sostituisce fullBackupContent.xml per il backup
     su cloud e il trasferimento diretto dispositivo-dispositivo.
 
-    calm_otter_secure_prefs (PasswordManager.kt) è escluso da entrambi: è
+    calm_otter_password (PasswordManager.kt) è escluso da entrambi, come lo
+    era il suo predecessore calm_otter_secure_prefs (EncryptedSharedPreferences,
+    migrato al primo avvio dal 2026-10-16; resta escluso finché esiste): è
     cifrato con una chiave in Android Keystore legata al dispositivo/
     installazione, che il backup non porta con sé. Un ripristino di questo
     file senza la chiave che lo ha cifrato produce un testo cifrato che non
@@ -17,8 +19,10 @@
 <data-extraction-rules>
     <cloud-backup>
         <exclude domain="sharedpref" path="calm_otter_secure_prefs.xml" />
+        <exclude domain="sharedpref" path="calm_otter_password.xml" />
     </cloud-backup>
     <device-transfer>
         <exclude domain="sharedpref" path="calm_otter_secure_prefs.xml" />
+        <exclude domain="sharedpref" path="calm_otter_password.xml" />
     </device-transfer>
 </data-extraction-rules>

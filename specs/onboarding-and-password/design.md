@@ -6,7 +6,8 @@
 |---|---|
 | `OnboardingActivity.kt` | Hosts the wizard; just wires `passwordManager` and `onFinished` into the Composable — no permission-check plumbing (removed, see below) |
 | `ui/screens/OnboardingScreen.kt` | The 3-step wizard UI (Compose) |
-| `PasswordManager.kt` | Password hashing, storage (`EncryptedSharedPreferences`), verification |
+| `PasswordManager.kt` | Password hashing, storage (values encrypted by `KeystoreCipher`), verification, migration from the old `EncryptedSharedPreferences` file |
+| `KeystoreCipher.kt` | AES-256-GCM encrypt/decrypt of strings with a non-exportable Android Keystore key |
 | `LockoutPolicy.kt` | Pure rate-limiting state machine (no Context/Keystore dependency) |
 | `ui/screens/CalmBackground.kt` | `Modifier.calmBackground()` — the same light `primary`-tinted background applied to `MainScreen.kt`'s root `Column`, applied here too; see `home-and-settings/design.md`'s "Tinted background" for why it's a low-alpha gradient and not `primary` as a solid fill |
 | `ui/screens/PasswordOutlinedTextField.kt` | Shared password field with a show/hide toggle — built on `CalmTextField`, see "Show/hide password" below |
@@ -133,7 +134,8 @@ The change stays on its own merit.
 `PasswordManager.hash()`: `PBEKeySpec(password, salt, 120_000, 256)` via
 `SecretKeyFactory.getInstance("PBKDF2WithHmacSHA256")`. Salt is 16 random
 bytes (`SecureRandom`). Both salt and hash are Base64-encoded
-(`Base64.NO_WRAP`) before being written to `EncryptedSharedPreferences`.
+(`Base64.NO_WRAP`) before being encrypted and written (see "Off
+`security-crypto`" below; it was `EncryptedSharedPreferences` until then).
 
 ### A restored backup could crash the app on every launch, forever
 
@@ -650,3 +652,30 @@ one bolded phrase) and at most a small line — no more note cards:
 
 `OnboardingNoteCard` was replaced by a plain `OnboardingNote` line.
 
+## Off `security-crypto`: our own Keystore cipher
+
+`androidx.security:security-crypto` 1.1.0 deprecated `EncryptedSharedPreferences`
+and will get no more fixes. Since 2026-10-16 the password lives in
+`calm_otter_password.xml`, plain `SharedPreferences` in which every value
+(salt, hash, partner name, lockout counters) is `KeystoreCipher.encrypt()`ed:
+AES-256-GCM, a key generated in and never leaving the Android Keystore
+(alias `calm_otter_password_key`), stored as Base64(IV ‖ ciphertext+tag),
+with the IV chosen by the Keystore. Same protection as before: without
+this installation's key the file says nothing, and nothing in it is
+readable in the clear (`PasswordManagerTest.nothingIsStoredInTheClear`).
+
+- **Migration.** On construction, if the old `calm_otter_secure_prefs.xml`
+  has anything in it and the new file has no password yet, its values are
+  read through `EncryptedSharedPreferences` and copied over, lockout
+  included (a lockout in progress must not reset by upgrading). The old
+  file is then cleared and deleted either way, even when it does not
+  decrypt. Verified on the emulator with the real Keystore: a password set
+  with the previous build unlocked an active pause after the upgrade. The
+  dependency stays only for this read; drop it, and `migrateLegacy`, once
+  no installation can still have the old file.
+- **Self-healing kept.** A file whose hash or salt no longer decrypts (a
+  restored backup without the key) is cleared at construction, exactly as
+  the `AEADBadTagException` fix above did for the old format.
+- **Backups.** Both file names are excluded in `backup_rules.xml` and
+  `data_extraction_rules.xml`; the old one stays excluded while it can
+  still exist.

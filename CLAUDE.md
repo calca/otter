@@ -169,8 +169,12 @@ request codes live in `AlarmIds`. Choice pills use the shared `CalmPill`.
 
 **Persistence is split by sensitivity:**
 - `PasswordManager` — password hash only (PBKDF2-HMAC-SHA256, 120k
-  iterations, random salt) inside `EncryptedSharedPreferences`, key-managed
-  by Android Keystore (AES256). The plaintext password is never stored.
+  iterations, random salt) in plain SharedPreferences whose every value is
+  encrypted by `KeystoreCipher` (AES-256-GCM, key in Android Keystore). The
+  plaintext password is never stored. Until 2026-10-16 this was
+  `EncryptedSharedPreferences` (security-crypto, deprecated): `PasswordManager`
+  migrates that file on first use, which is the only reason the dependency
+  is still there.
 - `CalmOtterDatabase` (Room, single entity `SessionRecord`) — session
   history, read by `SessionHistoryManager`. Uses `allowMainThreadQueries()`
   deliberately: the dataset is tiny and `SessionManager.endSession()` writes

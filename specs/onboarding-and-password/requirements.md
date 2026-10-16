@@ -107,9 +107,10 @@ early.
 1. WHEN a password is set THEN the system SHALL derive a PBKDF2-HMAC-SHA256
    hash (120,000 iterations, random 16-byte salt) and SHALL store only the
    salt and hash — never the plaintext password.
-2. WHEN storing the salt/hash THEN the system SHALL use
-   `EncryptedSharedPreferences` backed by an Android Keystore–managed
-   AES256-GCM key.
+2. WHEN storing the salt/hash THEN the system SHALL encrypt every stored
+   value with an Android Keystore–managed AES256-GCM key (`KeystoreCipher`).
+   A password stored in the earlier `EncryptedSharedPreferences` file SHALL
+   be migrated on first use, and that file deleted.
 3. WHEN a password is submitted for verification THEN the system SHALL
    recompute the hash with the stored salt and compare it to the stored
    hash; a mismatch SHALL be treated as a failed attempt.
