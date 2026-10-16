@@ -1,5 +1,14 @@
 # App Blocking & Home Lock — Design
 
+> **Since 2026-10-16 Calm Otter is no longer a Home app.** The
+> `CATEGORY_HOME` intent-filter, `LauncherManager`, the forward to the real
+> launcher (`forwardToOriginalLauncher()`, the chooser, the onboarding
+> guard) and Settings' "Home app" switch were removed; the Home button
+> during a pause is covered by `AppBlockerAccessibilityService` like any
+> other app (see requirements, User Story 3). The sections below about
+> those pieces are kept as history of why they were built the way they
+> were, not as a description of the current code.
+
 ## Key files
 
 | File | Role |
@@ -8,9 +17,8 @@
 | `AllowedAppsManager.kt` | Plain-`SharedPreferences` set of extra allowed package names |
 | `AllowedAppsActivity.kt` / `ui/screens/AllowedAppsScreen.kt` | Password-gated editor; loads all launcher-intent activities off the main thread |
 | `BlockOverlayActivity.kt` | Hosts `BlockScreen` for the "blocked app opened" case |
-| `MainActivity.kt` | Also hosts `BlockScreen`, both for "Home button pressed during an active session" and "launcher icon opened (or a session starts) during an active session" (see "One Activity, two roles" below) — a separate `HomeActivity` class used to own the Home case, merged into `MainActivity` on request |
+| `MainActivity.kt` | Also hosts `BlockScreen` when the app is opened (or a session starts) during an active session |
 | `AllowedAppLaunchItems.kt` | `loadAllowedAppLaunchItems()`/`launchAllowedApp()`, shared by `MainActivity` and `BlockOverlayActivity` so both pass the same allowed-apps row to `BlockScreen` |
-| `LauncherManager.kt` | Remembers the device's pre-CalmOtter default launcher package |
 | `ui/screens/BlockScreen.kt` | Shared Composable for all three block entry points, byte-for-byte identical in every case (see "Three block screens, one screen" below) |
 
 ## Blocking decision (`AppBlockerAccessibilityService.allowedPackages()`)

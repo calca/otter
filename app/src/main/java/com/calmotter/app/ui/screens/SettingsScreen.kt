@@ -77,11 +77,11 @@ import com.calmotter.app.durationPillLabel
 import com.calmotter.app.UsagePauseManager
 
 /**
- * Configurazione, in quest'ordine — Tema, Password, Home, Pausa, Permessi,
+ * Configurazione, in quest'ordine — Tema, Password, Pausa, Permessi,
  * Info (riordinato, vedi il commento sopra alle chiamate delle sezioni per
  * il perché): personalizzazione (palette, griglia 2×2); lo stato della
  * password (chi l'ha impostata, cambio password, elenco app consentite);
- * app Home (sezione propria, un solo toggle); le preferenze non critiche
+ * le preferenze non critiche
  * (frasi riflessive, un toggle); stato di accessibilità/DND (spostati qui
  * dalla Home, vedi MainScreen.kt e home-and-settings/requirements.md — non
  * bloccano l'avvio di una pausa in sé, quindi controllarli a ogni apertura
@@ -91,7 +91,7 @@ import com.calmotter.app.UsagePauseManager
  * visivo in tutta la schermata, niente più pulsanti pieni o un Checkbox
  * isolato.
  *
- * Diversi valori (stato accessibilità/DND/Home) dipendono da stato esterno
+ * Diversi valori (stato accessibilità/DND) dipendono da stato esterno
  * che Compose non osserva automaticamente: vanno ricalcolati manualmente a
  * ogni onResume() dell'Activity tramite [resumeSignal] (vedi
  * SettingsActivity) — stesso pattern di MainScreen/OnboardingScreen.
@@ -106,10 +106,8 @@ fun SettingsScreen(
     resumeSignal: Int,
     isAccessibilityServiceEnabled: () -> Boolean,
     isDndAccessGranted: () -> Boolean,
-    isDefaultHome: () -> Boolean,
     onGrantAccessibility: () -> Unit,
     onGrantDnd: () -> Unit,
-    onSetHome: () -> Unit,
     onPickTheme: (AppTheme) -> Unit,
     onManageAppsVerified: () -> Unit,
     onScheduledPauses: () -> Unit = {},
@@ -123,12 +121,10 @@ fun SettingsScreen(
 ) {
     var accessibilityOk by remember { mutableStateOf(false) }
     var dndOk by remember { mutableStateOf(false) }
-    var homeOk by remember { mutableStateOf(false) }
 
     LaunchedEffect(resumeSignal) {
         accessibilityOk = isAccessibilityServiceEnabled()
         dndOk = isDndAccessGranted()
-        homeOk = isDefaultHome()
     }
 
     var phrasesEnabled by remember { mutableStateOf(phraseManager.isEnabled()) }
@@ -167,10 +163,9 @@ fun SettingsScreen(
         // Le opzioni della pausa divise per significato (review: erano sette
         // righe in una card sola). "Durante la pausa": com'è una pausa.
         // "In automatico": quello che Calm Otter fa da sola, senza toccare
-        // l'otter. L'app Home, impostazione di sistema come i permessi, sta
-        // con loro. Prima ancora "Gestisci app consentite" e "Uscita senza
-        // password" stavano sotto Password, e Pause programmate e Home erano
-        // sezioni da una riga che ripetevano il titolo.
+        // l'otter. Prima ancora "Gestisci app consentite" e "Uscita senza
+        // password" stavano sotto Password, e Pause programmate era una
+        // sezione da una riga che ripeteva il titolo.
         SectionLabel(stringResource(R.string.settings_pause_label))
         Surface(
             shape = RoundedCornerShape(20.dp),
@@ -288,15 +283,7 @@ fun SettingsScreen(
             dndOk = dndOk,
             onGrantAccessibility = grantAccessibility,
             onGrantDnd = onGrantDnd,
-        ) {
-            SettingsSwitchRow(
-                icon = { RowIcon(Icons.Default.Home) },
-                label = stringResource(R.string.permission_row_home),
-                subtitle = if (homeOk) stringResource(R.string.settings_home_forward_hint) else null,
-                checked = homeOk,
-                onCheckedChange = { onSetHome() },
-            )
-        }
+        )
 
         SectionLabel(stringResource(R.string.settings_info_label))
         InfoCard(

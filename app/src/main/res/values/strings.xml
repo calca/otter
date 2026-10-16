@@ -9,12 +9,9 @@
     <string name="settings_password_set_by">Impostata da %1$s</string>
     <string name="permission_row_accessibility">Accessibilità</string>
     <string name="permission_row_dnd">Non disturbare</string>
-    <string name="permission_row_home">App Home</string>
     <string name="permission_action_grant">Concedi</string>
     <string name="permission_action_done">Fatto</string>
     <string name="home_permission_dialog_title">Permessi necessari</string>
-    <string name="home_launcher_chooser_title">Scegli la tua app Home</string>
-    <string name="settings_home_forward_hint">Se il tuo launcher mostra un avviso "impostalo come predefinito", puoi ignorarlo: Calm Otter deve restare l\'app Home per bloccare il tasto Home durante le pause.</string>
     <string name="permission_reason_accessibility">Accessibilità — per sapere quale app è aperta e mostrare la schermata della pausa.</string>
     <string name="permission_reason_dnd">Non disturbare — per silenziare le notifiche durante la pausa, lasciando passare chiamate, sveglie e musica.</string>
     <string name="close">Chiudi</string>

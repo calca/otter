@@ -137,7 +137,7 @@ saved state is a Bundle outside our control. `StateRestorationTest` covers it.
 
 **No DI framework, one hand-written container.** State-holding classes
 (`SessionManager`, `PasswordManager`, `SessionHistoryManager`,
-`AllowedAppsManager`, `LauncherManager`, `PhraseManager`,
+`AllowedAppsManager`, `PhraseManager`,
 `WeeklyGoalManager`, `ScheduleManager`, `SlowExitManager`, and the Room
 `CalmOtterDatabase`) have one instance per app, created lazily in
 `AppGraph` (`AppGraph.kt`), which lives in `CalmOtterApplication`. Callers
@@ -180,8 +180,7 @@ request codes live in `AlarmIds`. Choice pills use the shared `CalmPill`.
   deliberately: the dataset is tiny and `SessionManager.endSession()` writes
   synchronously from a `BroadcastReceiver` with no coroutine scope available.
 - Plain `SharedPreferences` — non-sensitive local state: selected theme
-  (`ThemeManager`), last widget duration, allowed-apps whitelist, saved
-  original launcher.
+  (`ThemeManager`), last widget duration, allowed-apps whitelist.
 
 **Core block/session flow** (see also README.md "How it works"):
 `SessionManager.startSession()` sets DND (`NotificationManager.Policy`, calls
@@ -190,11 +189,11 @@ change depending on `Build.VERSION.SDK_INT`), schedules an inexact
 `SessionForegroundService` (keeps the process/DND alive), and notifies the
 Glance widget. `AppBlockerAccessibilityService` watches foreground-app
 changes and launches `BlockOverlayActivity` for anything not on the allowlist
-(`AllowedAppsManager`) while a session is active. `HomeActivity` intercepts
-the Home button when Calm Otter is set as the default launcher
-(`LauncherManager` remembers the user's real launcher to forward to when no
-session is active): active session → same `BlockScreen` Composable as
-`BlockOverlayActivity`; no session → immediate forward-and-finish. `BootReceiver`
+(`AllowedAppsManager`) while a session is active — the user's launcher
+included, which is how the Home button is covered (Calm Otter is not the
+Home app: that option, with its forward to the real launcher, was removed
+on 2026-10-16). `MainActivity` shows the same `BlockScreen` when opened
+during a session. `BootReceiver`
 re-applies DND/alarm/service after reboot if a session was in progress.
 
 **Theming has one source of truth for colors.** Each of the four palettes

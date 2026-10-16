@@ -46,7 +46,7 @@ import com.calmotter.app.R
 import com.calmotter.app.ui.theme.muted
 import com.calmotter.app.ui.theme.paletteFor
 
-// Le carte più grandi delle Impostazioni: permessi, app Home e tema.
+// Le carte più grandi delle Impostazioni: permessi e tema.
 // Spostate qui da SettingsScreen.kt (spacchettato come già MainScreen.kt):
 // codice spostato, non riscritto.
 
@@ -57,8 +57,6 @@ import com.calmotter.app.ui.theme.paletteFor
  * spiegazione) al tap sull'otter se ancora mancanti, vedi
  * PondOtter/PermissionExplainerDialog in MainScreen.kt. Qui sono uno stato
  * sempre consultabile, non un promemoria a ogni apertura dell'app.
- * L'app Home ha una sua card separata sotto (ora una riga della card "La pausa" in SettingsScreen.kt): non è un
- * permesso di sistema, è solo "consigliata".
  */
 @Composable
 internal fun PermissionStatusCard(
@@ -66,9 +64,6 @@ internal fun PermissionStatusCard(
     dndOk: Boolean,
     onGrantAccessibility: () -> Unit,
     onGrantDnd: () -> Unit,
-    // Una riga in più sotto i due permessi: l'app Home, che è
-    // un'impostazione di sistema come loro.
-    extra: (@Composable () -> Unit)? = null,
 ) {
     Surface(
         shape = RoundedCornerShape(20.dp),
@@ -104,10 +99,6 @@ internal fun PermissionStatusCard(
                     )
                 },
             )
-            if (extra != null) {
-                HorizontalDivider(color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.08f))
-                extra()
-            }
         }
     }
 }
@@ -142,7 +133,7 @@ private fun PermissionStatusRow(
         SettingsRowIcon { icon() }
         // Nessun padding a sinistra: lo spazio dopo l'icona lo mette già
         // [SettingsRowIcon]. Con altri 12dp qui "Accessibilità" e "Non
-        // disturbare" partivano più a destra di "App Home" nella stessa card
+        // disturbare" partivano più a destra delle righe delle altre card
         // (segnalato). Lo controlla SettingsAlignmentTest.
         Text(
             text = label,

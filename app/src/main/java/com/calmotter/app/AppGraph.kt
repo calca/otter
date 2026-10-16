@@ -36,7 +36,6 @@ class AppGraph(private val app: Application) {
     val sessionManager: SessionManager by lazy { SessionManager(app) }
     val passwordManager: PasswordManager by lazy { PasswordManager(app) }
     val allowedAppsManager: AllowedAppsManager by lazy { AllowedAppsManager(app) }
-    val launcherManager: LauncherManager by lazy { LauncherManager(app) }
     val phraseManager: PhraseManager by lazy { PhraseManager(app) }
     val weeklyGoalManager: WeeklyGoalManager by lazy { WeeklyGoalManager(app) }
     val scheduleManager: ScheduleManager by lazy { ScheduleManager(app) }

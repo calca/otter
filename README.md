@@ -78,14 +78,6 @@ The best moment to start a pause is the one you'd rather skip.
   all." Never streaks, goals or comparisons, and nothing at all if there
   were no pauses. One switch in Settings turns it off.
 
-## Home App
-
-For an even quieter phone, set Calm Otter as your Home app. Now the Home
-button itself is part of the pause instead of a side door back to your
-app icons. It's optional, and it doesn't replace Accessibility — see
-"Known Limits" below for why the two work together rather than either
-one being enough alone.
-
 ## Time Together (Group Pause)
 
 Some pauses are better together. "Time together" lets two or more people
@@ -142,14 +134,10 @@ otherwise:
   without a password.
 - Booting in Safe Mode prevents third-party accessibility services from
   loading at all.
-- Setting Calm Otter as the Home app can always be undone from
-  Settings > Apps > Default apps > Home — same mechanism, same limit as
-  Accessibility above.
-- While idle and set as Home, Calm Otter forwards to your previous
-  launcher without handing back the Home role, which can make that
-  launcher show its own "set as default" nag or restrict some features.
-  This is an unavoidable side effect of how Android's `RoleManager` works
-  and is left as-is rather than "fixed."
+- The Home button is covered by the same Accessibility service: your
+  launcher is an app like any other, so during a pause it's covered by
+  the block screen. If Android turns that service off (some battery
+  savers do), the block stops with it — Home, other apps, everything.
 - A scheduled pause starts on time and blocks as usual, but Android may
   not let it show its ongoing notification until the app is next opened:
   a background start is only allowed for exact alarms, which need a

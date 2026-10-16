@@ -45,10 +45,8 @@ class SettingsAlignmentTest {
                 resumeSignal = 0,
                 isAccessibilityServiceEnabled = { false },
                 isDndAccessGranted = { true },
-                isDefaultHome = { false },
                 onGrantAccessibility = {},
                 onGrantDnd = {},
-                onSetHome = {},
                 onPickTheme = {},
                 onManageAppsVerified = {},
                 onChangePassword = {},
@@ -62,9 +60,8 @@ class SettingsAlignmentTest {
             .performScrollTo()
             .getUnclippedBoundsInRoot().left
 
-        val home = labelLeft(R.string.permission_row_home)
-        assertEquals(home, labelLeft(R.string.permission_row_accessibility))
-        assertEquals(home, labelLeft(R.string.permission_row_dnd))
-        assertEquals(home, labelLeft(R.string.change_password))
+        val other = labelLeft(R.string.change_password)
+        assertEquals(other, labelLeft(R.string.permission_row_accessibility))
+        assertEquals(other, labelLeft(R.string.permission_row_dnd))
     }
 }

@@ -48,18 +48,6 @@
             <action android:name="android.intent.action.MAIN" />
             <category android:name="android.intent.category.LAUNCHER" />
         </intent>
-        <!-- Stesso motivo, ma per LauncherManager/MainActivity: senza questo,
-             il vero launcher del telefono (es. com.google.android.apps.
-             nexuslauncher, che a differenza di com.android.settings NON è
-             sempre visibile di default) può risultare invisibile a
-             queryIntentActivities/resolveActivity per CATEGORY_HOME,
-             facendo fallire sia il rilevamento del "launcher originale" sia
-             il forward di sicurezza in MainActivity.findAnyOtherHomePackage()
-             — bug reale osservato e corretto. -->
-        <intent>
-            <action android:name="android.intent.action.MAIN" />
-            <category android:name="android.intent.category.HOME" />
-        </intent>
     </queries>
 
     <!-- Solo in verticale: il layout (otter ancorato, CTA in fondo) non è
@@ -85,15 +73,10 @@
         </activity>
 
         <!--
-            Due intent-filter sulla stessa Activity: icona del launcher
-            (comportamento invariato) e app Home (quando impostata da
-            Settings, vedi SettingsActivity.promptSetAsHome()) — prima erano
-            due classi separate (questa e la ormai rimossa HomeActivity),
-            unificate su richiesta esplicita per ridurre la duplicazione, a
-            parità di comportamento. launchMode="singleTask": una pressione
-            del tasto Home mentre un'istanza è già viva le riconsegna
-            l'Intent tramite onNewIntent() invece di impilarne una nuova —
-            vedi MainActivity.kt.
+            launchMode="singleTask": un nuovo Intent (widget, notifica) su
+            un'istanza già viva arriva a onNewIntent() invece di impilarne
+            una nuova — vedi MainActivity.kt. Fino al 2026-10-16 c'era anche
+            un intent-filter CATEGORY_HOME (Calm Otter come app Home), tolto.
         -->
         <activity
             android:screenOrientation="portrait"
@@ -104,11 +87,6 @@
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-                <category android:name="android.intent.category.HOME" />
-                <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
         </activity>
 

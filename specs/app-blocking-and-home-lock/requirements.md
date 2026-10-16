@@ -67,40 +67,38 @@ all-or-nothing.
    3 after phone + 5 apps + unlock, 7 badges, didn't fit one row and the
    unlock badge itself became unreachable — see that story for the fix).
 
-## User Story 3: Home-button interception
+## User Story 3: Home button during a session
 
-As the accountability partner, I want the Home button itself to lead back
-to the block screen during a session, so the normal home screen (with its
-app icons) isn't an easier escape route than switching apps.
+As the accountability partner, I want the Home button not to be an easier
+escape route than switching apps.
 
 ### Acceptance Criteria
 
-1. WHEN Calm Otter is set as the device's Home app AND the Home button is
-   pressed WHILE a session is active THEN the system SHALL show the same
-   block screen used for other blocked apps.
-2. WHEN Calm Otter is set as the device's Home app AND the Home button is
-   pressed WHILE no session is active THEN the system SHALL immediately
-   forward to the user's original launcher and close itself, so normal
-   daily use of the phone is unaffected.
-3. WHEN Calm Otter is first set as Home THEN the system SHALL have already
-   detected and remembered the previously-default launcher, so the forward
-   in the previous criterion has somewhere to go.
-4. The Home-lock back button is swallowed the same way the app-block screen's is (criterion 1's screen is the same Composable).
+1. WHEN the Home button is pressed WHILE a session is active THEN the
+   user's launcher SHALL be covered by the same block screen as any other
+   blocked app — the launcher is not on the allowed list, so
+   `AppBlockerAccessibilityService` handles it like any other app.
+2. Calm Otter SHALL NOT offer to become the device's Home app. Until
+   2026-10-16 it could (a switch in Settings), intercepting Home itself and
+   forwarding every press to the real launcher outside pauses. Removed: it
+   only avoided a brief flash of the launcher and added a fallback if
+   Accessibility was switched off, at the cost of routing every Home press
+   of the phone through the app all day, a launcher swap to explain, and a
+   delicate forwarding path that had already looped once (reported: "meno
+   opzioni e meno codice").
 
-## User Story 4: Launching an allowed app from the Home-lock block screen
+## User Story 4: Launching an allowed app from the block screen
 
 As the phone's user, I want to be able to actually open an app I'm allowed
-to use during a session, even when Calm Otter is set as Home and pressing
-Home shows the block screen instead of any launcher — otherwise being
-"allowed" only helps for an app already open, not one I want to start.
+to use during a session, even though the launcher itself is covered by the
+block screen — otherwise being "allowed" only helps for an app already
+open, not one I want to start.
 
 ### Acceptance Criteria
 
 1. WHEN the block screen is shown THEN the system SHALL display a single
-   actions row containing, WHEN Calm Otter is set as Home, a session is
-   active, and at least one package is in the allowed-apps list
-   (Home-button case only — see design.md for why not the regular
-   app-block case too), that list as 2-letter initial badges, followed
+   actions row containing, WHEN a session is active and at least one
+   package is in the allowed-apps list, that list as 2-letter initial badges, followed
    last by an Unlock control (a lock-icon badge, same round shape/fill as
    the app badges) — deliberately understated (no full-color icons, no
    vertical list, no visually distinct "primary action" styling setting
@@ -186,8 +184,9 @@ up to the moment, and a hard cut right at its peak throws that away.
   short of Device Owner provisioning (out of scope for this app).
 - Booting into Safe Mode disables third-party accessibility services
   entirely.
-- The Home app can be changed back from Settings > Apps > Default apps >
-  Home at any time.
+- The Home button is covered only through Accessibility (see User Story
+  3): if Android switches the service off, Home stops being blocked along
+  with everything else.
 - On Android 11+ (API 30+), enumerating "every launchable app" is subject to
   package-visibility restrictions unless the app declares a `<queries>`
   element or holds the (Play-Store-gated) `QUERY_ALL_PACKAGES` permission.

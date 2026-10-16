@@ -62,7 +62,7 @@ the screen I open every time I want a break.
 1. WHEN Settings is opened THEN the system SHALL show, each as its own
    labeled section with a card in the same visual style (see "Full
    list-card redesign" below): a permissions status card (see "Permissions
-   off Home"), a Home section (a single toggle for Home-app status), a
+   off Home"), a
    Theme section (a list of Sage/Lavender/Terracotta, each row showing its
    own swatch color, with the active one marked "Selected"), a Password
    section (who set it, if known; "Change password"; "Manage allowed
@@ -202,11 +202,10 @@ the three: check them only at the moment the user actually needs them
    button anywhere, ever — not even while all three are missing. The otter
    remaining tappable at all times (see User Story 1) is what replaces the
    old banner's job of surfacing the gap.
-2. "Set as Home" is NOT part of the tap-to-explain flow described below —
-   it does not block starting a session at all (only the separate
-   Home-button-interception feature needs it, see
-   `app-blocking-and-home-lock/requirements.md`), so it moved to Settings
-   as a plain status row with no explainer dialog of its own.
+2. "Set as Home" is NOT part of the tap-to-explain flow described below.
+   It first moved to Settings; since 2026-10-16 it no longer exists: the
+   Home button is covered by Accessibility (see
+   `app-blocking-and-home-lock/requirements.md`, User Story 3).
 3. WHEN the otter is tapped WHILE accessibility access or Do Not Disturb
    access (or both) are still missing THEN the system SHALL show
    `PermissionExplainerDialog`: a title ("Permissions needed") and, for
@@ -222,10 +221,8 @@ the three: check them only at the moment the user actually needs them
    a checkmark + "Done" or an empty ring + a "Grant" action that opens the
    matching system settings screen — a place to check or fix these
    deliberately, not a reminder that follows the user onto the screen they
-   open most often. "Home app" status is its own separate section (see
-   "Full list-card redesign" below), shown as a toggle rather than grouped
-   into this card, since setting it is an app-level preference, not a
-   system permission grant.
+   open most often. (A "Home app" toggle sat next to it until 2026-10-16,
+   when the option was removed.)
 
 ## Full list-card redesign
 
@@ -238,9 +235,7 @@ rest of the screen.
    "Selected"), not the earlier row of selectable colored dots.
 2. The "Show phrases during pause" preference SHALL be a Switch, not a
    checkbox.
-3. The Home-app status SHALL be a Switch in its own "Home" section (see
-   User Story 2, Acceptance Criteria 4), not a text row inside the
-   permissions card.
+3. (Removed 2026-10-16: the Home-app switch, together with the option.)
 4. The Password section SHALL show, above "Change password" and "Manage
    allowed apps", the name of the accountability partner who set the
    current password — if one was captured (see

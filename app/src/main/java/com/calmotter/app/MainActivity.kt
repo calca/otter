@@ -40,37 +40,29 @@ import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Box
 
 /**
- * Un'unica Activity per due ruoli: icona del launcher (CATEGORY_LAUNCHER) e
- * app Home (CATEGORY_HOME, quando l'utente la imposta come tale da Settings
- * — vedi SettingsActivity.promptSetAsHome()). Prima erano due classi
- * separate (questa e la ormai rimossa HomeActivity), poi unificate; in un
- * secondo momento è stata anche allineata la condizione che decide cosa
- * mostrare: con una sessione attiva, questa Activity mostra sempre
- * `BlockScreen` — non solo quando invocata come Home, ma anche dall'icona
- * del launcher — così le tre schermate di blocco possibili (icona,
- * `BlockOverlayActivity` via AccessibilityService, e questa via Home) sono
- * visivamente e comportamentalmente identiche, su richiesta esplicita:
- * prima, aperta dall'icona durante una sessione, mostrava `MainScreen` in
- * una vista "in pausa" senza alcun modo di sbloccare da lì (serviva
- * premere Home o aprire un'altra app bloccata) — un vero buco, non solo
- * un'incoerenza visiva. Conseguenza accettata: Impostazioni e Cronologia,
- * raggiungibili dall'header di `MainScreen`, non sono più raggiungibili
- * durante una sessione attiva nemmeno dall'icona del launcher — bisogna
- * prima sbloccare.
+ * La Home dell'app (icona del launcher). Con una sessione attiva mostra
+ * sempre `BlockScreen` invece di `MainScreen`, così le schermate di blocco
+ * possibili (questa e `BlockOverlayActivity` via AccessibilityService) sono
+ * identiche: aperta dall'icona durante una pausa, prima mostrava una
+ * `MainScreen` "in pausa" senza modo di sbloccare. Conseguenza accettata:
+ * Impostazioni e Cronologia non sono raggiungibili durante una pausa,
+ * bisogna prima sbloccare.
  *
- * `launchMode="singleTask"` in AndroidManifest.xml (vedi lì) evita che
- * pressioni ripetute del tasto Home impilino istanze duplicate — ogni nuovo
- * Intent su un'istanza già viva arriva a [onNewIntent], non a un nuovo
- * [onCreate]. `themeVariant` resta [ThemeVariant.BASE] sempre, quindi non
- * serve calcolarlo in modo dinamico in base a come l'Activity è stata
- * invocata.
+ * Fino al 2026-10-16 era anche l'app Home del telefono (CATEGORY_HOME,
+ * impostabile da Impostazioni), con l'inoltro al launcher vero fuori dalle
+ * pause. Tolta: il tasto Home durante una pausa lo copre già
+ * l'AccessibilityService (il launcher è un'app come le altre), e far
+ * passare da qui ogni pressione di Home del telefono costava più di quanto
+ * rendesse. Vedi specs/app-blocking-and-home-lock/.
+ *
+ * `launchMode="singleTask"` in AndroidManifest.xml: un nuovo Intent su
+ * un'istanza già viva arriva a [onNewIntent], non a un nuovo [onCreate].
  */
 class MainActivity : BaseActivity() {
 
     private lateinit var passwordManager: PasswordManager
     private lateinit var sessionManager: SessionManager
     private lateinit var sessionHistoryManager: SessionHistoryManager
-    private lateinit var launcherManager: LauncherManager
     private lateinit var phraseManager: PhraseManager
 
     // Incrementato a ogni onResume(): passato come parametro a MainScreen così
@@ -90,10 +82,8 @@ class MainActivity : BaseActivity() {
     // ricompone subito l'intero albero con lo schema colore aggiornato.
     private var currentTheme by mutableStateOf(AppTheme.SAGE)
 
-    // true quando c'è una sessione attiva: in quel caso, indipendentemente da
-    // come questa istanza è stata invocata (icona o Home), il contenuto
-    // mostrato è BlockScreen invece di MainScreen — vedi il commento di
-    // classe sul perché questo ora vale per entrambi i punti d'ingresso.
+    // true quando c'è una sessione attiva: il contenuto mostrato è
+    // BlockScreen invece di MainScreen — vedi il commento di classe.
     private var showBlockScreen by mutableStateOf(false)
 
     // La durata scelta in Home, in minuti: l'ultima usata (vedi
@@ -102,15 +92,6 @@ class MainActivity : BaseActivity() {
     // altrove nel frattempo (una pausa di gruppo con un'altra durata).
     private var selectedDurationMinutes by mutableIntStateOf(DEFAULT_SESSION_DURATION_MINUTES)
     private var blockPhraseText by mutableStateOf<String?>(null)
-
-    // true solo quando l'istanza corrente è stata invocata come Home
-    // (CATEGORY_HOME): decide cosa fare quando si esce da BlockScreen (vedi
-    // onBlockScreenExit()) — inoltrare al launcher originale se si è
-    // arrivati qui per il tasto Home (dove non c'è nessun altro launcher
-    // raggiungibile), oppure limitarsi a "chiudere" BlockScreen e tornare a
-    // MainScreen se si è arrivati qui dall'icona del launcher (dove non ha
-    // senso lasciare l'app: l'utente l'ha aperta lei stessa).
-    private var forwardOnBlockScreenExit by mutableStateOf(false)
 
     // Blocca il tasto back mentre è mostrato BlockScreen (stesso
     // comportamento di BlockOverlayActivity, per restare coerenti) — non
@@ -137,9 +118,7 @@ class MainActivity : BaseActivity() {
         passwordManager = PasswordManager.getInstance(applicationContext)
         sessionManager = SessionManager.getInstance(applicationContext)
         sessionHistoryManager = SessionHistoryManager.getInstance(applicationContext)
-        launcherManager = LauncherManager.getInstance(applicationContext)
         phraseManager = PhraseManager.getInstance(applicationContext)
-        launcherManager.refreshOriginalLauncherPackage()
         currentTheme = ThemeManager.getTheme(this)
         onBackPressedDispatcher.addCallback(this, blockBackPressedCallback)
 
@@ -152,7 +131,6 @@ class MainActivity : BaseActivity() {
         }
 
         handleIntent(intent)
-        if (isFinishing) return // handleIntent ha già inoltrato al launcher originale e chiuso
 
         setContent {
             CalmOtterTheme(appTheme = currentTheme) {
@@ -315,19 +293,15 @@ class MainActivity : BaseActivity() {
         }
     }
 
-    // launchMode="singleTask" (AndroidManifest.xml): pressioni ripetute del
-    // tasto Home riconsegnano l'Intent a un'istanza già viva tramite questo
-    // metodo, non tramite un nuovo onCreate() — senza questo override
-    // continuerebbe a mostrare il contenuto con cui era stata creata
-    // l'ultima volta, ignorando il nuovo Intent. Non serve recreate(): la
-    // Composition creata in onCreate() è ancora viva, e handleIntent() già
-    // muta showBlockScreen/blockPhraseText (mutableStateOf), che basta a
-    // far ricomporre il contenuto giusto.
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
         outState.putBoolean(STATE_PERMISSION_DIALOG, showPermissionDialog)
     }
 
+    // launchMode="singleTask" (AndroidManifest.xml): un nuovo Intent (il
+    // widget, una notifica) su un'istanza già viva arriva qui, non a un
+    // nuovo onCreate(). handleIntent() muta lo stato Compose, che basta a
+    // ricomporre il contenuto giusto.
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
         setIntent(intent)
@@ -343,35 +317,11 @@ class MainActivity : BaseActivity() {
     private var showPermissionDialog by mutableStateOf(false)
 
     /**
-     * Decide se questa istanza deve mostrare BlockScreen (sessione attiva,
-     * a prescindere da come è stata invocata — vedi il commento di classe)
-     * invece di MainScreen, oppure se deve semplicemente sparire inoltrando
-     * al launcher originale (Home + nessuna sessione).
-     *
-     * Il forward è condizionato anche a `passwordManager.isPasswordSet()`:
-     * caso limite possibile se CalmOtter viene impostata come app Home dalle
-     * Impostazioni di sistema prima di essere mai stata aperta una volta —
-     * in quel caso questo sarebbe il primissimo onCreate() in assoluto, con
-     * onboarding mai completato. Senza questo controllo, il forward
-     * chiuderebbe subito l'istanza (vedi onCreate) prima che onResume()
-     * abbia mai la possibilità di reindirizzare a OnboardingActivity, e
-     * l'utente finirebbe su un altro launcher senza aver mai impostato una
-     * password. Quando l'onboarding non è completo si salta semplicemente
-     * il forward: il normale flusso di onCreate() prosegue (mostra
-     * MainScreen), e la ridirezione già esistente in onResume() se ne
-     * occupa comunque, subito dopo.
+     * Con una sessione attiva questa Activity mostra BlockScreen invece di
+     * MainScreen, comunque sia stata aperta (icona, widget, notifica).
      */
-    private fun handleIntent(intent: Intent?) {
-        val cameViaHome = intent?.categories?.contains(Intent.CATEGORY_HOME) == true
-        val sessionActive = sessionManager.isSessionActive()
-
-        if (cameViaHome && !sessionActive && passwordManager.isPasswordSet()) {
-            forwardToOriginalLauncher()
-            return
-        }
-
-        forwardOnBlockScreenExit = cameViaHome
-        if (sessionActive) enterBlockScreen() else exitBlockScreen()
+    private fun handleIntent(@Suppress("UNUSED_PARAMETER") intent: Intent?) {
+        if (sessionManager.isSessionActive()) enterBlockScreen() else exitBlockScreen()
     }
 
     /**
@@ -394,21 +344,9 @@ class MainActivity : BaseActivity() {
         blockBackPressedCallback.isEnabled = false
     }
 
-    /**
-     * Uscita da BlockScreen (sblocco, scadenza naturale o immediata).
-     * Arrivati qui per il tasto Home ([forwardOnBlockScreenExit]), l'unico
-     * modo per l'utente di raggiungere un altro launcher è il forward
-     * esplicito. Arrivati qui invece dall'icona del launcher, forwardare
-     * altrove non avrebbe senso — è l'utente stessa ad aver aperto CalmOtter
-     * — quindi ci si limita a tornare a MainScreen nella stessa istanza,
-     * senza chiudere nulla.
-     */
+    /** Uscita da BlockScreen (sblocco, scadenza naturale o immediata): si torna a MainScreen. */
     private fun onBlockScreenExit() {
-        if (forwardOnBlockScreenExit) {
-            forwardToOriginalLauncher()
-        } else {
-            exitBlockScreen()
-        }
+        exitBlockScreen()
     }
 
     override fun onResume() {
@@ -475,102 +413,6 @@ class MainActivity : BaseActivity() {
         if (sessionManager.isSessionActive() && !showBlockScreen) {
             enterBlockScreen()
         }
-    }
-
-    /**
-     * Non deve MAI poter risolvere di nuovo su questa stessa app: se
-     * capitasse (valore salvato assente/corrotto, o il pacchetto salvato
-     * non più avviabile), un intent Home generico risolverebbe di nuovo su
-     * MainActivity stessa — dato che CalmOtter è ancora l'app Home impostata
-     * in quel momento — e ogni istanza ripeterebbe lo stesso forward,
-     * creando un loop di istanze che si rilanciano a vicenda (bug reale
-     * osservato con un valore corrotto in LauncherManager). Per questo ogni
-     * pacchetto bersaglio, incluso ciascuno di [findOtherHomePackages], viene
-     * sempre passato esplicitamente via `setPackage(...)` — mai un intent
-     * Home senza filtro pacchetto.
-     *
-     * Se il valore salvato non è utilizzabile e la ricerca fresca trova più
-     * di un candidato (più launcher installati, nessun default già scelto:
-     * [PackageManager.resolveActivity] non può dire in modo affidabile
-     * "quale sia quello giusto"), si mostra un chooser invece di sceglierne
-     * uno arbitrariamente — vedi [launchHomeChooser].
-     */
-    private fun forwardToOriginalLauncher() {
-        val originalPackage = launcherManager.getOriginalLauncherPackage()
-            ?.takeIf { it != packageName && it !in LauncherManager.EXCLUDED_PACKAGES }
-        val candidates = if (originalPackage != null) listOf(originalPackage) else findOtherHomePackages()
-
-        when (candidates.size) {
-            0 -> { /* nessun candidato utilizzabile: nessun intent, si chiude soltanto */ }
-            1 -> launchHomePackage(candidates[0])
-            else -> launchHomeChooser(candidates)
-        }
-        finish()
-    }
-
-    private fun launchHomePackage(pkg: String) {
-        val intent = Intent(Intent.ACTION_MAIN).apply {
-            addCategory(Intent.CATEGORY_HOME)
-            flags = Intent.FLAG_ACTIVITY_NEW_TASK
-            setPackage(pkg)
-        }
-        try {
-            startActivity(intent)
-        } catch (e: Exception) {
-            // Il pacchetto risolto un attimo fa non è più avviabile
-            // (disinstallato, disabilitato) — nessun secondo tentativo
-            // con un intent senza filtro pacchetto: si rischierebbe di
-            // tornare su questa stessa app. Ci si ferma qui.
-        }
-    }
-
-    /**
-     * Chooser limitato esplicitamente ai [candidates] già filtrati, tramite
-     * [Intent.EXTRA_INITIAL_INTENTS] — MAI `Intent.createChooser(intent
-     * Home generico, ...)`: un intent Home generico come bersaglio primario
-     * verrebbe ri-risolto da zero dal sistema, e CalmOtter (che dichiara
-     * anch'essa CATEGORY_HOME) ricomparirebbe come opzione nel proprio
-     * stesso chooser. L'intent bersaglio passato a createChooser qui è
-     * volutamente "vuoto" (nessuna action): non risolve nulla di suo, quindi
-     * le uniche opzioni mostrate sono i candidati elencati esplicitamente.
-     */
-    private fun launchHomeChooser(candidates: List<String>) {
-        val initialIntents = candidates.map { pkg ->
-            Intent(Intent.ACTION_MAIN).apply {
-                addCategory(Intent.CATEGORY_HOME)
-                setPackage(pkg)
-            }
-        }.toTypedArray()
-
-        val chooser = Intent.createChooser(Intent(), getString(R.string.home_launcher_chooser_title)).apply {
-            putExtra(Intent.EXTRA_INITIAL_INTENTS, initialIntents)
-            flags = Intent.FLAG_ACTIVITY_NEW_TASK
-        }
-        try {
-            startActivity(chooser)
-        } catch (e: Exception) {
-            // Nessuna azione: si preferisce non lanciare nulla piuttosto
-            // che rischiare un fallback senza filtro pacchetto.
-        }
-    }
-
-    /**
-     * Ricerca "fresca" (non fidata dal valore salvato in LauncherManager,
-     * che potrebbe essere assente o corrotto) di TUTTI gli altri pacchetti
-     * in grado di gestire l'Home — sempre escludendo sé stessa e i fallback
-     * di sistema noti (vedi LauncherManager.EXCLUDED_PACKAGES). L'elenco
-     * completo (non solo il primo trovato) serve a [forwardToOriginalLauncher]
-     * per decidere se lanciare direttamente l'unico candidato o mostrare un
-     * chooser quando ce n'è più di uno, invece di sceglierne uno a caso in
-     * base al solo ordine di enumerazione — che non riflette affatto quale
-     * sia "quello giusto".
-     */
-    private fun findOtherHomePackages(): List<String> {
-        val intent = Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_HOME)
-        return packageManager.queryIntentActivities(intent, 0)
-            .map { it.activityInfo.packageName }
-            .filter { it != packageName && it !in LauncherManager.EXCLUDED_PACKAGES }
-            .distinct()
     }
 
     companion object {

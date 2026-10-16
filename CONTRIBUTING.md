@@ -132,7 +132,6 @@ app/src/main/
 │   ├── PasswordManager.kt                # PBKDF2 hashing + encrypted storage
 │   ├── AllowedAppsManager.kt             # per-session app whitelist
 │   ├── PhraseManager.kt                  # relaxing phrases toggle
-│   ├── LauncherManager.kt                # original launcher detection
 │   └── CalmCountdown.kt                  # calm time-remaining formatter
 └── res/
     ├── values/strings.xml                # 🇮🇹 Italian (base locale)
