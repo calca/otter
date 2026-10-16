@@ -36,7 +36,8 @@ import androidx.compose.material3.Icon
 import androidx.compose.foundation.layout.size
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.material3.IconButtonDefaults
-import androidx.compose.material3.FilledTonalIconButton
+import androidx.compose.material3.OutlinedIconButton
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -455,13 +456,18 @@ fun MainScreen(
     }
 }
 
-/** Un'icona dell'intestazione della Home, in un cerchio tinto di `primary`. */
+/**
+ * Un'icona dell'intestazione della Home, in un cerchio solo bordato: si legge
+ * come bottone senza pesare quanto le durate e "Tempo insieme", che sono
+ * pieni. Il bordo è `primary` al 30% e non `outline`, che non è tra i ruoli
+ * personalizzati per tavolozza (vedi specs/multi-theme-system/design.md).
+ */
 @Composable
 private fun HeaderIconButton(icon: ImageVector, label: String, onClick: () -> Unit) {
-    FilledTonalIconButton(
+    OutlinedIconButton(
         onClick = onClick,
-        colors = IconButtonDefaults.filledTonalIconButtonColors(
-            containerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.14f),
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.3f)),
+        colors = IconButtonDefaults.outlinedIconButtonColors(
             contentColor = MaterialTheme.colorScheme.primary,
         ),
     ) {

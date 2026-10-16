@@ -117,7 +117,10 @@ enjoy, unlike changing the password.
    (labelled for TalkBack). Until 2026-10-16 the entry point was a line
    under the duration chips (streak or weekly summary, then "›"); together
    with the profile line it crowded Home (reported), so streak and week
-   now live in History only.
+   now live in History only. Both header icons sit in a thin outlined
+   circle (`primary` at 30%): bare icons didn't read as buttons, and a
+   tinted fill (tried first) weighed as much as the chips and the
+   "Tempo insieme" button below (reported).
 3. WHEN a pause ended while the phone was closed THEN Home SHALL show,
    for that opening, one line under the chips with its time and length
    ("Pausa finita alle…"), opening the closing moment or History.
