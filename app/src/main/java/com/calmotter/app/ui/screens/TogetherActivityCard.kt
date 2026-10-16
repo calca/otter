@@ -82,10 +82,14 @@ fun TogetherActivityCard(
     activityId: Int,
     modifier: Modifier = Modifier,
     onAnother: (() -> Unit)? = null,
+    // Senza "COSA FACCIAMO?" sulla pagina "Avvicina i telefoni": lì la
+    // frase sta da sola sotto il gesto, e l'etichetta era un livello di
+    // testo in più (pagina affollata, segnalato).
+    showLabel: Boolean = true,
 ) {
     val activity = TogetherActivities.byId(activityId) ?: return
     Column(modifier = modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
-        SetupLabel(stringResource(R.string.together_activity_label), topPadding = 20.dp)
+        if (showLabel) SetupLabel(stringResource(R.string.together_activity_label), topPadding = 20.dp)
         Text(
             text = stringResource(activity.text),
             color = MaterialTheme.colorScheme.primary,

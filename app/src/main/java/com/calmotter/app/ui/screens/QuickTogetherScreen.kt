@@ -2,10 +2,8 @@ package com.calmotter.app.ui.screens
 
 import com.calmotter.app.ui.theme.muted
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.ui.Alignment
 import androidx.compose.material3.Surface
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -36,12 +34,15 @@ import com.calmotter.app.ui.mascot.TogetherMark
  * (freccia in alto, contenuto centrato). Nessun bottone: l'azione è il
  * tocco fra i telefoni.
  *
- * Tre blocchi distinti: il gesto (stagno, titolo e una riga su cosa serve
- * all'altro telefono, che di solito ha l'app chiusa), la proposta che
- * partirà col tocco (durata e attività, in una card), e in fondo, sempre
- * nello stesso punto, il link agli altri modi di Tempo insieme (QR,
- * codice, Bluetooth, bottone tinto): dalla Home, con l'NFC, si arriva
- * solo da qui.
+ * Un gesto e una proposta, nient'altro: lo stagno, il titolo e una riga
+ * con la durata e cosa serve all'altro telefono (che di solito ha l'app
+ * chiusa), poi l'attività che partirà col tocco, in corsivo, con "↻ Un'altra
+ * idea". In fondo, sempre nello stesso punto, gli altri modi di Tempo
+ * insieme (QR, codice, Bluetooth, bottone tinto): dalla Home, con l'NFC,
+ * si arriva solo da qui. Fino al 2026-10-16 la proposta stava in una card
+ * con sottotitolo ("Una pausa insieme di 1 h") ed etichetta ("COSA
+ * FACCIAMO?"): tre livelli di testo in un riquadro, pagina affollata
+ * (segnalato).
  */
 @Composable
 fun QuickTogetherReaderScreen(
@@ -74,7 +75,7 @@ fun QuickTogetherReaderScreen(
                 modifier = Modifier.padding(top = 20.dp),
             )
             Text(
-                text = stringResource(R.string.quick_together_hint),
+                text = stringResource(R.string.quick_together_hint, durationPillLabel(durationMinutes)),
                 color = MaterialTheme.colorScheme.muted(0.75f),
                 textAlign = TextAlign.Center,
                 // Prosa centrata su più righe: più stretta, vedi [CenteredTextInset].
@@ -95,25 +96,12 @@ fun QuickTogetherReaderScreen(
                 }
             }
             // Cosa parte col tocco: arriva identico sull'altro telefono.
-            Surface(
-                shape = RoundedCornerShape(20.dp),
-                color = MaterialTheme.colorScheme.primary.copy(alpha = 0.08f),
-                modifier = Modifier.fillMaxWidth().padding(top = 24.dp),
-            ) {
-                Column(
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 18.dp),
-                ) {
-                    Text(
-                        text = stringResource(R.string.quick_together_subtitle, durationPillLabel(durationMinutes)),
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.SemiBold,
-                        color = MaterialTheme.colorScheme.onSurface,
-                        textAlign = TextAlign.Center,
-                    )
-                    TogetherActivityCard(activityId = activityId, onAnother = onAnotherActivity)
-                }
-            }
+            TogetherActivityCard(
+                activityId = activityId,
+                onAnother = onAnotherActivity,
+                showLabel = false,
+                modifier = Modifier.padding(top = 28.dp),
+            )
         }
         // Un bottone tinto a tutta larghezza, non un link: come link nudo
         // si perdeva (segnalato), ed è l'unica strada dalla Home verso QR,

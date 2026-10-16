@@ -478,9 +478,8 @@
 
     <!-- "Avvicina i telefoni" (specs/nfc-quick-together/). -->
     <string name="quick_together_title">Avvicina i telefoni</string>
-    <string name="quick_together_subtitle">Una pausa insieme di %1$s</string>
     <string name="quick_together_other_ways">QR, codice o Bluetooth</string>
-    <string name="quick_together_hint">Retro contro retro. All\'altro basta lo schermo acceso, anche con l\'app chiusa.</string>
+    <string name="quick_together_hint">Retro contro retro, per %1$s. All\'altro basta lo schermo acceso.</string>
     <string name="quick_together_with">Pausa insieme con %1$s</string>
     <string name="quick_together_refused_in_pause">%1$s è già in pausa.</string>
     <string name="quick_together_refused_setup">%1$s deve prima finire di configurare Calm Otter.</string>

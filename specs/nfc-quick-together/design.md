@@ -63,15 +63,18 @@ closes the reader). The label was "One tap" / "Con un tocco" until
 2026-10-16 ("Avvicina i telefoni" wrapped at half width): replaced
 because it named the gesture rather than the outcome. Same permission
 check as the otter tap. NFC off → NFC settings + a toast.
-`QuickTogetherReaderScreen` is a page in three blocks: the gesture (back
-arrow, otter-tap illustration pulsing at 200dp like Join's search, "Hold
-your phones together" (was "Hold your friend's phone near", which wrapped
-badly in Italian), one line on what the other phone needs: screen on,
-app may be closed); the proposal in a tinted card ("A pause together,
-1 h", the activity with ↻); and, pinned at the bottom, a "QR, code or
-Bluetooth" button (tinted, full width: as a bare link it was too easy to
-miss). A refusal shows in an error-tinted box
-between the two; reader mode
+`QuickTogetherReaderScreen` is a gesture and a proposal: back arrow,
+otter-tap illustration pulsing at 200dp like Join's search, "Hold your
+phones together" (was "Hold your friend's phone near", which wrapped badly
+in Italian), one line with the duration and what the other phone needs
+("Back to back, for 1 h. The other phone only needs its screen on."), then
+the activity alone in italics with "↻ Another idea" (`TogetherActivityCard`
+with `showLabel = false`); pinned at the bottom, a "QR, code or Bluetooth"
+button (tinted, full width: as a bare link it was too easy to miss). Until
+2026-10-16 the proposal sat in a tinted card with a subtitle ("A pause
+together, 1 h") and the "WHAT SHALL WE DO?" label: three levels of text in
+a box, and the page read as crowded (reported). A refusal shows in an
+error-tinted box under the hint; reader mode
 only between `onResume` and `onPause`. On `Accepted` the same activity
 shows `QuickTogetherCountdownScreen` (the existing countdown with "Pause
 together with <name>" and the activity).
