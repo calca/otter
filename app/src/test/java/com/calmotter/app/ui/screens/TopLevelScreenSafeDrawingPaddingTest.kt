@@ -61,7 +61,8 @@ class TopLevelScreenSafeDrawingPaddingTest {
             "GroupPauseHostScreen",
             listOf("GroupPauseBluetoothLobbyHostScreen.kt", "GroupPauseCountdownScreen.kt"),
         ),
-        TopLevelScreen("GroupPauseChooserScreen", listOf("GroupPauseChooserScreen.kt")),
+        // Come ClosingMomentScreen: delega a CalmScreenColumn (dal 2026-10-16).
+        TopLevelScreen("GroupPauseChooserScreen", listOf("CalmBackground.kt")),
         // Applica anche la propria copia diretta (vedi GroupPauseCodeEntryScreen
         // nello stesso file), oltre a delegare a GroupPauseBluetoothLobbyJoinScreen
         // e (tramite lo stesso router) a GroupPauseCountdownScreen.

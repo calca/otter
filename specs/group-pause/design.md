@@ -1059,6 +1059,28 @@ permissions these screens know about are the Bluetooth ones. That is by
 design now, but it means the Home gate is the *only* one, and anything that
 later opens Tempo Insieme from somewhere else has to carry it too.
 
+### A lighter chooser (2026-10-16)
+
+The page below was trimmed after it read as crowded, with the choices
+pushed into the bottom half (reported):
+
+- **No otter in the top bar**, only the back arrow, inside `PageMargin` like
+  "Hold your phones together". The mark was a sign, not a button, the same
+  reason Home's header lost it.
+- **Medallion 160dp instead of 224**, `TogetherMark` at 43% of it (the
+  mockup's proportion). The title is no longer pinned to half the page: the
+  whole block (medallion, title, subtitle, cards, invite) is centred in the
+  space under the bar (`CalmScreenColumn` + `CenteredInRemainingSpace`).
+- **No role badges.** "Crea"/"Unisciti" already say who hosts and who
+  joins; the badge repeated it as a tinted pill inside a tinted card.
+  "Scegli la durata e invita" now fits one line, like Join's.
+- **No sprig motto** ("Fermarsi insieme tiene più…"): it repeated the
+  subtitle. The invite link for friends without the app stays.
+- **Card icons larger**: the prints at 40dp and the otter at 28dp, so the
+  two read at the same weight (the prints fill about half their box).
+
+What follows describes the page as first built.
+
 ### …and then the dialog became a page
 
 `GroupPauseChooserScreen` / `GroupPauseChooserActivity` (mockup: "Time

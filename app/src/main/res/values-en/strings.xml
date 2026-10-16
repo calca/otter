@@ -202,15 +202,12 @@
 
     <!-- Time Together, formerly "Group pause" (specs/group-pause/) -->
     <string name="group_pause_entry_button">Time together</string>
-    <string name="group_pause_chooser_create_desc">Choose how long, then invite whoever you want</string>
+    <string name="group_pause_chooser_create_desc">Choose how long and invite</string>
     <string name="group_pause_chooser_join_desc">Join one that\'s already set up</string>
     <string name="group_pause_chooser_create">Create</string>
     <string name="group_pause_chooser_join">Join</string>
     <string name="action_back">Back</string>
     <string name="group_pause_chooser_subtitle">Pause together: a friend, your partner, a colleague</string>
-    <string name="group_pause_chooser_create_role">Host</string>
-    <string name="group_pause_chooser_join_role">Guest</string>
-    <string name="group_pause_chooser_footer">Stopping together holds better than stopping alone</string>
 
     <string name="group_pause_duration_label">Duration</string>
 
