@@ -19,8 +19,9 @@ any kind (see CONTRIBUTING.md).
 
 A few icons missing from `material-icons-core` are copied as their SVG path
 data instead of pulling in `material-icons-extended`: "visibility" /
-"visibility_off" (`EyeGlyph`, password field) and "history" (`HistoryIcon`,
-Home header). They come from **Material Icons** by Google
+"visibility_off" (`EyeGlyph`, password field), "history" (`HistoryIcon`,
+Home header), and the outlined "file_download" and "delete" in
+`res/drawable/ic_history_*.xml` (History's action bar). They come from **Material Icons** by Google
 (<https://github.com/google/material-design-icons>), licensed under the
 **Apache License, Version 2.0** — see
 <https://www.apache.org/licenses/LICENSE-2.0>.

@@ -187,11 +187,13 @@ the bar.
   `ClearHistoryConfirmDialog`.** The confirmation matters *more* now, not
   less: an always-visible icon is easier to hit by accident than a buried
   menu item, and the action is irreversible.
-- **Both icons tint with `?attr/colorControlNormal`**, the same attribute
-  the ActionBar's own up-arrow uses, so all three icons match on every
-  palette and in dark mode without per-theme drawables. Verified by
-  sampling pixels rather than by eye: back arrow, share and trash all
-  resolve to `#1D1B20` in light and `#A3AAAF` in dark.
+- **Both icons are outlined and tint with `?attr/colorPrimary`** (since
+  2026-10-16), so they follow the palette and dark mode without per-theme
+  drawables. Until then they were the filled glyphs in
+  `?attr/colorControlNormal`, like the up arrow: near-black, the darkest
+  things on the page, with the trash always shouting (reported). Moving
+  both into the `⋮` overflow was tried on the emulator and set aside: the
+  icons in the bar had been asked for on purpose.
 - **The `menu.add(...)` titles were kept.** They're not redundant now
   that there are icons — Android surfaces them as the long-press tooltip
   and the TalkBack label (confirmed via `uiautomator dump`: the two items

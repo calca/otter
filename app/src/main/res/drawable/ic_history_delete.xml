@@ -8,15 +8,20 @@
     l'azione non è annullabile, quindi la conferma serve ancora di più di
     prima — non è stata tolta "perché ora si vede".
 
-    Tint come ic_history_download.xml: vedi lì il perché di colorControlNormal.
+    A contorno e nel colore della tavolozza (colorPrimary), come
+    ic_history_download.xml: piene e nere (colorControlNormal) erano le cose
+    più scure della Cronologia, e il cestino sempre in vista urlava
+    (segnalato). Proposte anche nel menu "⋮": scartate, perché le icone in
+    barra erano state chieste apposta. Usata anche dall'editor delle pause
+    programmate ("Elimina").
 -->
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
     android:width="24dp"
     android:height="24dp"
     android:viewportWidth="24"
     android:viewportHeight="24"
-    android:tint="?attr/colorControlNormal">
+    android:tint="?attr/colorPrimary">
     <path
         android:fillColor="@android:color/white"
-        android:pathData="M6,19c0,1.1 0.9,2 2,2h8c1.1,0 2,-0.9 2,-2V7H6v12zM19,4h-3.5l-1,-1h-5l-1,1H5v2h14V4z" />
+        android:pathData="M16,9v10H8V9h8M14.5,3h-5l-1,1H5v2h14V4h-3.5l-1,-1zM18,7H6v12c0,1.1 0.9,2 2,2h8c1.1,0 2,-0.9 2,-2V7z" />
 </vector>

@@ -16,18 +16,17 @@
     tocca, non "ho condiviso qualcosa con qualcuno". Il comportamento non
     cambia (resta ACTION_SEND, non un file scritto), solo l'icona.
 
-    Freccia verso un vassoio — il glifo "file_download" standard di
-    Material (stessa licenza Apache-2.0 dei path riusati altrove in questa
-    app, es. EyeGlyph). Tint come ic_history_delete.xml: vedi lì il perché
-    di colorControlNormal.
+    Freccia verso un vassoio, nella versione a contorno ("file_download"
+    outlined di Material, Apache-2.0, vedi THIRD_PARTY_LICENSES.md). Tint
+    come ic_history_delete.xml: vedi lì il perché di colorPrimary.
 -->
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
     android:width="24dp"
     android:height="24dp"
     android:viewportWidth="24"
     android:viewportHeight="24"
-    android:tint="?attr/colorControlNormal">
+    android:tint="?attr/colorPrimary">
     <path
         android:fillColor="@android:color/white"
-        android:pathData="M19,9h-4V3H9v6H5l7,7l7,-7zM5,18v2h14v-2H5z" />
+        android:pathData="M18,15v3H6v-3H4v3c0,1.1 0.9,2 2,2h12c1.1,0 2,-0.9 2,-2v-3h-2zM17,11l-1.41,-1.41L13,12.17V4h-2v8.17L8.41,9.59 7,11l5,5 5,-5z" />
 </vector>
