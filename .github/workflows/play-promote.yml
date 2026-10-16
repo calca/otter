@@ -1,7 +1,9 @@
 name: Play promote
 
-# Promuove la release attiva di un track Play a un altro, con le stesse
-# note. Solo a mano: `gh workflow run play-promote.yml -f from=internal -f to=alpha`.
+# Promuove la release attiva di un track Play a un altro, con le note di
+# docs/store/whatsnew/. Solo a mano: `gh workflow run play-promote.yml -f from=internal -f to=alpha`.
+# In produzione crea anche la release su GitHub con l'APK firmato da Google
+# (github-release.yml).
 # "alpha" è il closed testing (lista Testing); closed testing e produzione
 # passano dalla revisione di Google, che parte da sola al commit.
 on:
@@ -27,6 +29,9 @@ concurrency: play-publish
 jobs:
   promote:
     runs-on: ubuntu-latest
+    outputs:
+      version_code: ${{ steps.promote.outputs.version_code }}
+      name: ${{ steps.promote.outputs.name }}
     steps:
     - uses: actions/checkout@v7
 
@@ -35,6 +40,7 @@ jobs:
         python-version: '3.12'
 
     - name: Promote
+      id: promote
       env:
         PLAY_SERVICE_ACCOUNT_JSON: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON }}
       run: |
@@ -43,3 +49,15 @@ jobs:
           --from "${{ inputs.from }}" --to "${{ inputs.to }}" \
           --rollout "${{ inputs.rollout }}" \
           --notes-dir docs/store/whatsnew
+
+  github-release:
+    needs: promote
+    if: inputs.to == 'production'
+    uses: ./.github/workflows/github-release.yml
+    permissions:
+      contents: write
+    with:
+      version_code: ${{ needs.promote.outputs.version_code }}
+      name: ${{ needs.promote.outputs.name }}
+    secrets:
+      PLAY_SERVICE_ACCOUNT_JSON: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON }}

@@ -8,7 +8,12 @@ Due comandi, usati dai workflow in .github/workflows/:
   promote  --from internal --to alpha [--rollout 0.2] [--notes-dir docs/store/whatsnew]
       prende la release attiva di un track e la mette su un altro, con le
       note di --notes-dir se date, altrimenti le stesse (play-promote.yml,
-      a mano).
+      a mano). Su GitHub Actions scrive version_code e name in GITHUB_OUTPUT.
+  universal-apk  --version-code 151 --out calm-otter.apk
+      scarica l'APK universale che Play genera dall'AAB, firmato con la
+      chiave di Google (github-release.yml). Non uno firmato da noi: quello
+      non si installerebbe sopra la versione di Play, né viceversa, e
+      cambiare fonte vorrebbe dire disinstallare e perdere la password.
 
 Credenziali: il JSON di un service account in PLAY_SERVICE_ACCOUNT_JSON,
 invitato in Play Console con il permesso di rilasciare sui track di test
@@ -115,6 +120,28 @@ def promote(args) -> None:
          json={"track": args.target, "releases": [release]})
     call(s, "POST", f"{API}/edits/{edit}:commit")
     print(f"versionCode {', '.join(src['versionCodes'])}: {args.source} -> {args.target}")
+    if "GITHUB_OUTPUT" in os.environ:
+        with open(os.environ["GITHUB_OUTPUT"], "a") as out:
+            out.write(f"version_code={src['versionCodes'][-1]}\n")
+            out.write(f"name={release['name']}\n")
+
+
+def universal_apk(args) -> None:
+    s = session()
+    generated = call(s, "GET", f"{API}/generatedApks/{args.version_code}")
+    # Una voce per chiave di firma; con la firma delle app di Play è una sola.
+    ids = [g["generatedUniversalApk"]["downloadId"]
+           for g in generated.get("generatedApks", []) if "generatedUniversalApk" in g]
+    if not ids:
+        sys.exit(f"Nessun APK universale per versionCode {args.version_code}")
+    url = f"{API}/generatedApks/{args.version_code}/downloads/{ids[0]}:download"
+    r = s.get(url, params={"alt": "media"}, stream=True, timeout=600)
+    if not r.ok:
+        sys.exit(f"GET {url} -> {r.status_code}\n{r.text}")
+    with open(args.out, "wb") as f:
+        for chunk in r.iter_content(chunk_size=1 << 20):
+            f.write(chunk)
+    print(f"versionCode {args.version_code} -> {args.out}")
 
 
 def main() -> None:
@@ -134,6 +161,11 @@ def main() -> None:
     pr.add_argument("--rollout", type=float, default=1.0)
     pr.add_argument("--notes-dir")
     pr.set_defaults(func=promote)
+
+    ua = sub.add_parser("universal-apk")
+    ua.add_argument("--version-code", required=True)
+    ua.add_argument("--out", required=True)
+    ua.set_defaults(func=universal_apk)
 
     args = p.parse_args()
     args.func(args)

@@ -1,0 +1,75 @@
+name: GitHub release
+
+# La release su GitHub di una versione andata in produzione, con l'APK
+# universale firmato da Google: la stessa build di Play, quindi si installa
+# sopra quella del Play Store e viceversa, senza disinstallare (e perdere la
+# password). La lancia play-promote.yml quando promuove in produzione; a mano
+# solo per riprovare: `gh workflow run github-release.yml -f version_code=151 -f name=0.3.0`.
+on:
+  workflow_call:
+    inputs:
+      version_code:
+        type: string
+        required: true
+      name:
+        type: string
+        required: true
+    secrets:
+      PLAY_SERVICE_ACCOUNT_JSON:
+        required: true
+  workflow_dispatch:
+    inputs:
+      version_code:
+        description: versionCode su Play
+        type: string
+        required: true
+      name:
+        description: Nome della versione (0.3.0 → tag v0.3.0)
+        type: string
+        required: true
+      draft:
+        description: Solo bozza (non pubblica), per provare il download
+        type: boolean
+        default: false
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+    - uses: actions/checkout@v7
+
+    - uses: actions/setup-python@v6
+      with:
+        python-version: '3.12'
+
+    - name: Download the Google-signed universal APK
+      env:
+        PLAY_SERVICE_ACCOUNT_JSON: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON }}
+      run: |
+        pip install --quiet google-auth requests
+        python .github/scripts/play_publish.py universal-apk \
+          --version-code "${{ inputs.version_code }}" \
+          --out "calm-otter-${{ inputs.name }}.apk"
+        sha256sum "calm-otter-${{ inputs.name }}.apk" > "calm-otter-${{ inputs.name }}.apk.sha256"
+
+    - name: Create the release
+      env:
+        GH_TOKEN: ${{ github.token }}
+      run: |
+        {
+          cat docs/store/whatsnew/it-IT.txt
+          echo
+          cat docs/store/whatsnew/en-US.txt
+          echo
+          echo "---"
+          echo "APK firmato da Google Play, lo stesso del Play Store: si aggiorna in"
+          echo "entrambe le direzioni senza disinstallare. / Signed by Google Play, the"
+          echo "same build as the Play Store: update either way without uninstalling."
+        } > notes.md
+        gh release create "v${{ inputs.name }}" \
+          "calm-otter-${{ inputs.name }}.apk" "calm-otter-${{ inputs.name }}.apk.sha256" \
+          --verify-tag ${{ inputs.draft && '--draft' || '--latest' }} \
+          --title "Calm Otter ${{ inputs.name }}" \
+          --notes-file notes.md
