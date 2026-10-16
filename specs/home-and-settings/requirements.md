@@ -118,7 +118,8 @@ enjoy, unlike changing the password.
 1. History is NOT part of Settings — it stays reachable directly from Home,
    per an explicit choice made when this split was designed (checking
    progress is frequent and rewarding, configuration is occasional).
-2. History SHALL open from an icon in Home's header, next to Settings
+2. History SHALL open from an icon in Home's header (Material's "history",
+   a clock with a back arrow; a calendar until 2026-10-16), next to Settings
    (labelled for TalkBack). Until 2026-10-16 the entry point was a line
    under the duration chips (streak or weekly summary, then "›"); together
    with the profile line it crowded Home (reported), so streak and week

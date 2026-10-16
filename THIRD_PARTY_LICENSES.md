@@ -14,3 +14,13 @@ Open Font License, Version 1.1** — see <https://openfontlicense.org>.
 The fonts are bundled inside the APK on purpose: Downloadable Fonts would
 route through Google Play Services, and this app makes no network calls of
 any kind (see CONTRIBUTING.md).
+
+## Material Icons (single paths)
+
+A few icons missing from `material-icons-core` are copied as their SVG path
+data instead of pulling in `material-icons-extended`: "visibility" /
+"visibility_off" (`EyeGlyph`, password field) and "history" (`HistoryIcon`,
+Home header). They come from **Material Icons** by Google
+(<https://github.com/google/material-design-icons>), licensed under the
+**Apache License, Version 2.0** — see
+<https://www.apache.org/licenses/LICENSE-2.0>.

@@ -29,12 +29,13 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.CompositingStrategy
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Icon
 import androidx.compose.foundation.layout.size
+import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.graphics.vector.addPathNodes
 import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.OutlinedIconButton
 import androidx.compose.foundation.BorderStroke
@@ -324,7 +325,7 @@ fun MainScreen(
                 // In un cerchio bordato (vedi [HeaderIconButton]): icone nude
                 // non si leggevano come bottoni, piene pesavano troppo.
                 HeaderIconButton(
-                    icon = Icons.Default.DateRange,
+                    icon = HistoryIcon,
                     label = stringResource(R.string.history_title),
                     onClick = onHistory,
                 )
@@ -452,6 +453,26 @@ fun MainScreen(
             onDismiss = onDismissPermissionDialog,
         )
     }
+}
+
+/**
+ * L'icona della Cronologia: l'orologio con la freccia all'indietro di
+ * Material ("history"), il simbolo che Android usa per la cronologia. Il
+ * calendario (DateRange) di prima diceva "date", non "pause passate", ed era
+ * bruttino (segnalato). Non c'è in material-icons-core e l'extended è
+ * enorme: il solo percorso, come [EyeGlyph] per l'occhio della password.
+ */
+private val HistoryIcon: ImageVector by lazy {
+    ImageVector.Builder(name = "History", defaultWidth = 24.dp, defaultHeight = 24.dp, viewportWidth = 24f, viewportHeight = 24f)
+        .addPath(
+            pathData = addPathNodes(
+                "M13 3c-4.97 0-9 4.03-9 9H1l3.89 3.89.07.14L9 12H6c0-3.87 3.13-7 7-7s7 3.13 7 7-3.13 7-7 7" +
+                    "c-1.93 0-3.68-.79-4.94-2.06l-1.42 1.42C8.27 19.99 10.51 21 13 21c4.97 0 9-4.03 9-9s-4.03-9-9-9z" +
+                    "m-1 5v5l4.28 2.54.72-1.21-3.5-2.08V8H12z"
+            ),
+            fill = SolidColor(Color.Black),
+        )
+        .build()
 }
 
 /**
