@@ -140,12 +140,14 @@ private fun PermissionStatusRow(
         // allineate") e verificato sullo schermo: il testo di questa
         // card iniziava a x=330 contro x=258 di tutte le altre.
         SettingsRowIcon { icon() }
+        // Nessun padding a sinistra: lo spazio dopo l'icona lo mette già
+        // [SettingsRowIcon]. Con altri 12dp qui "Accessibilità" e "Non
+        // disturbare" partivano più a destra di "App Home" nella stessa card
+        // (segnalato). Lo controlla SettingsAlignmentTest.
         Text(
             text = label,
             color = if (done) MaterialTheme.colorScheme.muted(0.6f) else MaterialTheme.colorScheme.onSurface,
-            modifier = Modifier
-                .weight(1f)
-                .padding(start = 12.dp)
+            modifier = Modifier.weight(1f),
         )
         if (done) {
             Text(
