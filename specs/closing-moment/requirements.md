@@ -24,10 +24,15 @@ how it went, so the time feels like something I did, not something I lost.
    closing moment for that pause.
 3. The closing moment SHALL offer three answers in words — calm,
    ordinary, hard — plus an optional note ("What did you do?", up to 30
-   characters, so it always fits one line in History).
+   characters, so it always fits one line in History). The note field
+   SHALL appear only once an answer is picked (or while it already has
+   text): at first the page shows just the three answers.
 4. The closing moment SHALL appear after shared pauses too, the same way.
 5. The system SHALL let the user skip the closing moment with one tap,
-   and SHALL NOT ask again for that pause.
+   and SHALL NOT ask again for that pause. There SHALL be a single button
+   at the bottom: "Skip" (tinted) until something is answered, "Done"
+   (filled) after. Until 2026-10-16 the note, "Skip" and a disabled "Done"
+   were all on screen from the start (reported: too rich).
 6. WHEN a pause is ended early (password, NFC release, slow exit) THEN the
    system SHALL NOT show the closing moment: it is a reward for a pause
    kept, never a reproach for one cut short.

@@ -5,7 +5,6 @@ import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.ui.Alignment
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -17,7 +16,6 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.getValue
@@ -27,12 +25,12 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontStyle
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.calmotter.app.Mood
+import androidx.compose.animation.AnimatedVisibility
 import com.calmotter.app.R
 import com.calmotter.app.durationPillLabel
 import com.calmotter.app.ui.mascot.OtterZenMark
@@ -46,6 +44,11 @@ const val CLOSING_NOTE_MAX = 30
  * e una nota facoltativa. Mai dopo un'uscita anticipata, mai serie, obiettivi
  * o confronti: è un riconoscimento del tempo passato lontano dal telefono,
  * non un punteggio. "Salta" chiude e non richiede più.
+ *
+ * Leggera di proposito (segnalato: "troppo ricca"): all'inizio solo i tre
+ * umori; il campo della nota compare dopo averne scelto uno. In fondo un
+ * solo bottone: "Salta" (tinto) finché non si è risposto, "Fatto" (pieno)
+ * dopo. Prima erano sempre visibili la nota, "Salta" e un "Fatto" spento.
  */
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
@@ -59,6 +62,7 @@ fun ClosingMomentScreen(
 ) {
     var mood by rememberSaveable { mutableStateOf<Int?>(null) }
     var note by rememberSaveable { mutableStateOf("") }
+    val answered = mood != null || note.isNotBlank()
 
     // Domanda e risposte centrate nello spazio sopra; "Salta" e "Fatto" fissi
     // in fondo (regola della CTA in CLAUDE.md) invece che a metà pagina con
@@ -100,39 +104,39 @@ fun ClosingMomentScreen(
                     )
                 }
             }
-            CalmTextField(
-                value = note,
-                onValueChange = { note = it.replace('\n', ' ').take(CLOSING_NOTE_MAX) },
-                label = stringResource(R.string.closing_note_hint),
-                modifier = Modifier.fillMaxWidth().padding(top = 20.dp),
-            )
+            // La nota solo dopo un umore (o se ha già del testo, per non
+            // farla sparire togliendo la scelta).
+            AnimatedVisibility(visible = mood != null || note.isNotEmpty()) {
+                CalmTextField(
+                    value = note,
+                    onValueChange = { note = it.replace('\n', ' ').take(CLOSING_NOTE_MAX) },
+                    label = stringResource(R.string.closing_note_hint),
+                    modifier = Modifier.fillMaxWidth().padding(top = 20.dp),
+                )
+            }
             CalmLinkRow(
                 text = stringResource(R.string.closing_share),
                 onClick = onShare,
                 modifier = Modifier.padding(top = 12.dp),
             )
         }
-        Column(
-            modifier = Modifier.fillMaxWidth().padding(top = 20.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp),
-        ) {
-            TextButton(onClick = onSkip, contentPadding = CtaPadding, modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)) {
-                Text(stringResource(R.string.closing_skip))
-            }
+        // Un solo bottone, che cambia con la risposta.
+        val buttonModifier = Modifier.fillMaxWidth().padding(top = 20.dp).heightIn(min = 48.dp)
+        if (answered) {
             Button(
                 contentPadding = CtaPadding,
                 onClick = { onDone(mood, note.trim()) },
-                enabled = mood != null || note.isNotBlank(),
-                // Spento, nel tono tenue della tavolozza e non nel grigio
-                // pieno di default, che sembrava un bottone rotto.
-                colors = ButtonDefaults.buttonColors(
-                    disabledContainerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.10f),
-                    disabledContentColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.45f),
-                ),
-                modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp),
+                modifier = buttonModifier,
             ) {
                 Text(stringResource(R.string.closing_done))
             }
+        } else {
+            CalmSecondaryButton(
+                text = stringResource(R.string.closing_skip),
+                onClick = onSkip,
+                contentPadding = CtaPadding,
+                modifier = buttonModifier,
+            )
         }
     }
 }
