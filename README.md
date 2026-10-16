@@ -31,10 +31,11 @@ just you, your phone, and a bit of quiet.
    backed by a system alarm, so it ends on time even if you never touch
    the phone again.
 4. **The pause ends itself** when time's up, or earlier if the right
-   password is entered on the block screen. If the password can't be
-   reached, there's also a slower way out: wait 10 minutes and the pause
-   ends, marked in History as ended without password. It's on by default
-   and only the password holder can switch it off.
+   password is entered on the block screen. If you can't reach whoever
+   holds the password, the same dialog offers a slower way out: "Leave
+   after 10 minutes". The wait starts right away, "Stay in the pause"
+   cancels it, and History marks the pause as ended without password.
+   It's on by default and only the password holder can switch it off.
 
 ## Apps That Stay
 
@@ -84,11 +85,13 @@ Some pauses are better together. "Time together" lets two or more people
 start the *same* pause at the *same* moment, each on their own phone —
 made for a couple, a family, or a team that wants to disconnect as one:
 
-- **One tap (NFC)** — side by side, one person taps "One tap" and holds
-  their phone to the other's: that single tap carries the whole pause
-  (duration, start, activity), no Bluetooth, no pairing. Both phones count
-  down five seconds and start together. The other phone answers even with
-  Calm Otter closed, with a "Join" notification.
+- **Phones back to back (NFC)** — side by side, one person taps "Time
+  together" and holds their phone to the other's: that single tap carries
+  the whole pause (duration, start, activity), no Bluetooth, no pairing.
+  Both phones count down five seconds and start together. The other phone
+  only needs its screen on: it answers even with Calm Otter closed, with a
+  "Join" notification. QR, code and Bluetooth are one button away on the
+  same page.
 - **QR / manual code** — fully offline. The host shares a code (or a QR)
   with the duration and an agreed start time baked in; everyone else
   scans or types it in. The phones never actually talk to each other —
@@ -157,6 +160,18 @@ proves insufficient in practice.
 - Device Admin (not Device Owner) to make uninstallation harder during an
   active session.
 - Remote unlock (would require a small backend) instead of only local.
+
+## Getting it
+
+- **Google Play** — the usual way, with updates.
+- **GitHub Releases** — every version that reaches the Play Store is also
+  published there as an APK, with its SHA-256. It's the very APK Google
+  Play delivers, signed by Google Play, so you can switch between the two
+  sources and update either way without uninstalling (uninstalling would
+  lose the password).
+
+If you like it, "Rate on Google Play" is in Settings → About. Nothing ever
+asks you for a rating.
 
 ## Privacy
 
