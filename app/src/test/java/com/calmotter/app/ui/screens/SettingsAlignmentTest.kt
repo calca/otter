@@ -50,9 +50,7 @@ class SettingsAlignmentTest {
                 onPickTheme = {},
                 onManageAppsVerified = {},
                 onChangePassword = {},
-                onOpenGitHub = {},
-                onOpenLicense = {},
-                onOpenDeveloper = {},
+                onOpenSource = {},
             )
         }
 

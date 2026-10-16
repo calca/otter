@@ -302,9 +302,7 @@ class ScreenScreenshotTest(private val night: Boolean) {
             onPickTheme = {},
             onManageAppsVerified = {},
             onChangePassword = {},
-            onOpenGitHub = {},
-            onOpenLicense = {},
-            onOpenDeveloper = {},
+            onOpenSource = {},
         )
     }
 }

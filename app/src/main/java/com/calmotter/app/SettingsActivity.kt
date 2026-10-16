@@ -16,7 +16,6 @@ import com.calmotter.app.ui.theme.CalmOtterTheme
 // Repo pubblico su GitHub — unica fonte per link "codice sorgente",
 // "licenza" (file LICENSE nello stesso repo) e "sviluppatore" in Settings.
 private const val GITHUB_REPO_URL = "https://github.com/calca/otter"
-private const val GITHUB_DEVELOPER_URL = "https://github.com/calca"
 private const val STABLE_PACKAGE = "com.calmotter.app"
 private const val PLAY_STORE_PACKAGE = "com.android.vending"
 
@@ -73,9 +72,7 @@ class SettingsActivity : BaseActivity() {
                     onScheduledPauses = { startActivity(Intent(this, ScheduledPausesActivity::class.java)) },
                     onUsagePause = { startActivity(Intent(this, UsagePauseActivity::class.java)) },
                     onChangePassword = { startActivity(Intent(this, ChangePasswordActivity::class.java)) },
-                    onOpenGitHub = { openUrl(GITHUB_REPO_URL) },
-                    onOpenLicense = { openUrl("$GITHUB_REPO_URL/blob/main/LICENSE") },
-                    onOpenDeveloper = { openUrl(GITHUB_DEVELOPER_URL) },
+                    onOpenSource = { openUrl(GITHUB_REPO_URL) },
                     onFeedback = { openUrl(feedbackUrl()) },
                     onRate = ::openPlayStoreListing,
                 )

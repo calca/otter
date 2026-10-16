@@ -113,9 +113,7 @@ fun SettingsScreen(
     onScheduledPauses: () -> Unit = {},
     onUsagePause: () -> Unit = {},
     onChangePassword: () -> Unit,
-    onOpenGitHub: () -> Unit,
-    onOpenLicense: () -> Unit,
-    onOpenDeveloper: () -> Unit,
+    onOpenSource: () -> Unit,
     onFeedback: () -> Unit = {},
     onRate: () -> Unit = {},
 ) {
@@ -287,9 +285,6 @@ fun SettingsScreen(
 
         SectionLabel(stringResource(R.string.settings_info_label))
         InfoCard(
-            onOpenGitHub = onOpenGitHub,
-            onOpenLicense = onOpenLicense,
-            onOpenDeveloper = onOpenDeveloper,
             onRecommend = { Share.invite(context) },
             onFeedback = onFeedback,
             onRate = onRate,
@@ -313,6 +308,16 @@ fun SettingsScreen(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(top = 28.dp)
+        )
+        // Codice, licenza e autore in una riga sola, sotto la versione: sono
+        // informazioni, non azioni per chi usa l'app. Erano tre righe della
+        // card Info (Codice sorgente, Licenza — MIT, Sviluppatore), che con
+        // le tre azioni arrivava a sei (segnalato: "troppe voci"). Il repo
+        // mostra licenza e autore.
+        CalmLinkRow(
+            text = stringResource(R.string.settings_info_open_source),
+            onClick = onOpenSource,
+            modifier = Modifier.align(Alignment.CenterHorizontally),
         )
     }
 
@@ -550,15 +555,12 @@ internal fun SettingsActionRow(
 }
 
 /**
- * Link esterni (repo GitHub, licenza, sviluppatore) — l'unica sezione di
- * Settings che lascia l'app. Stessa card neutra a bassa opacità delle altre
- * sezioni.
+ * Le tre azioni per chi usa l'app: valutarla, consigliarla, scrivere un
+ * commento. Codice e licenza stanno in una riga sotto la versione (vedi
+ * [SettingsScreen]). Stessa card neutra a bassa opacità delle altre sezioni.
  */
 @Composable
 private fun InfoCard(
-    onOpenGitHub: () -> Unit,
-    onOpenLicense: () -> Unit,
-    onOpenDeveloper: () -> Unit,
     onRecommend: () -> Unit,
     onFeedback: () -> Unit,
     onRate: () -> Unit,
@@ -569,15 +571,6 @@ private fun InfoCard(
         modifier = Modifier.fillMaxWidth(),
     ) {
         Column(modifier = Modifier.padding(horizontal = 16.dp)) {
-            InfoLinkRow(label = stringResource(R.string.settings_info_github), onClick = onOpenGitHub)
-            HorizontalDivider(color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.08f))
-            InfoLinkRow(label = stringResource(R.string.settings_info_license), onClick = onOpenLicense)
-            HorizontalDivider(color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.08f))
-            InfoLinkRow(label = stringResource(R.string.settings_info_developer), onClick = onOpenDeveloper)
-            HorizontalDivider(color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.08f))
-            // Apre una segnalazione su GitHub già compilata (SettingsActivity.feedbackUrl).
-            InfoLinkRow(label = stringResource(R.string.settings_info_feedback), onClick = onFeedback)
-            HorizontalDivider(color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.08f))
             // La scheda su Play, per chi vuole lasciare un voto. Una riga che
             // si tocca se si vuole, non il popup di valutazione di Google: è
             // una libreria chiusa in più, e un'interruzione decisa dall'app.
@@ -585,6 +578,9 @@ private fun InfoCard(
             HorizontalDivider(color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.08f))
             // Non un link esterno: apre il menu di condivisione (vedi Share).
             InfoLinkRow(label = stringResource(R.string.settings_info_recommend), onClick = onRecommend)
+            HorizontalDivider(color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.08f))
+            // Apre una segnalazione su GitHub già compilata (SettingsActivity.feedbackUrl).
+            InfoLinkRow(label = stringResource(R.string.settings_info_feedback), onClick = onFeedback)
         }
     }
 }

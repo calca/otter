@@ -16,9 +16,7 @@
     <string name="permission_reason_dnd">Do Not Disturb — to silence notifications during the pause, letting calls, alarms and music through.</string>
     <string name="close">Close</string>
     <string name="settings_info_label">About</string>
-    <string name="settings_info_github">Source code on GitHub</string>
-    <string name="settings_info_license">License — MIT</string>
-    <string name="settings_info_developer">Developer — @calca</string>
+    <string name="settings_info_open_source">Open source, MIT license</string>
     <string name="settings_info_feedback">Send feedback</string>
     <string name="settings_version">Calm Otter %1$s (build %2$d)</string>
 

@@ -224,9 +224,7 @@ class AccessibilityAuditTest(private val night: Boolean) {
             onPickTheme = {},
             onManageAppsVerified = {},
             onChangePassword = {},
-            onOpenGitHub = {},
-            onOpenLicense = {},
-            onOpenDeveloper = {},
+            onOpenSource = {},
         )
     }
 }

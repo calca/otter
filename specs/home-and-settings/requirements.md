@@ -90,10 +90,14 @@ and who made it without having to search for it outside the app.
 ### Acceptance Criteria
 
 1. WHEN Settings is opened THEN the system SHALL show an "Info" section
-   with three rows: a link to the project's GitHub repository, the
-   project's license (MIT), and the developer's GitHub handle.
-2. WHEN any of the three rows is tapped THEN the system SHALL open that
-   row's URL in the device's browser (or app of the user's choice for that
+   with three actions — "Rate on Google Play", "Recommend Calm Otter",
+   "Send feedback" — and, under it, the version line followed by one quiet
+   link "Open source, MIT license" that opens the project's GitHub
+   repository (which shows the license and its author). Until 2026-10-16
+   the source, the license and the developer's handle were three more rows
+   of the card, six in all (reported: too many).
+2. WHEN the open-source link or an external row is tapped THEN the system SHALL open that
+   URL in the device's browser (or app of the user's choice for that
    link) — this is the only place in the app that opens anything external;
    every other screen stays fully local, per CLAUDE.md's "no network
    calls" constraint (opening a browser is the user leaving the app, not
