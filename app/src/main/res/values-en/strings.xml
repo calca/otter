@@ -204,7 +204,6 @@
     <string name="action_back">Back</string>
     <string name="group_pause_chooser_subtitle">Pause together: a friend, your partner, a colleague</string>
 
-    <string name="group_pause_duration_label">Duration</string>
 
     <string name="group_pause_prefer_code_link">Prefer a code or a QR?</string>
     <string name="group_pause_start_in_label">Starts in</string>

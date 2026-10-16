@@ -15,18 +15,23 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawingPadding
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -230,7 +235,20 @@ fun GroupPauseBluetoothLobbyHostScreen(
     // *nello spazio sopra i bottoni*, invece che nella pagina intera, mentre
     // i bottoni (e il banner sotto di loro, invariato) restano l'ultima cosa
     // in basso indipendentemente da quanto contenuto c'è sopra.
-    CalmScreenColumn(contentPadding = PaddingValues(horizontal = PageMargin, vertical = 32.dp), verticalArrangement = Arrangement.Top) {
+    CalmScreenColumn(contentPadding = PaddingValues(horizontal = PageMargin, vertical = 16.dp), verticalArrangement = Arrangement.Top) {
+        // La freccia al posto del bottone "Annulla" a tutta larghezza, come
+        // in "Avvicina i telefoni" e nella pagina di Tempo insieme: stessa
+        // azione, e il fondo resta all'azione principale (segnalato: pagina
+        // "piena di cose").
+        Row(modifier = Modifier.fillMaxWidth()) {
+            IconButton(onClick = onCancel) {
+                Icon(
+                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                    contentDescription = stringResource(R.string.action_back),
+                    tint = MaterialTheme.colorScheme.primary,
+                )
+            }
+        }
         CenteredInRemainingSpace {
             ParticipantRing(participantNames = participantNames, ready = allReady)
 
@@ -269,16 +287,22 @@ fun GroupPauseBluetoothLobbyHostScreen(
             // nulla a nessuno finché non tocca "Iniziamo" (vedi il commento di
             // classe di questo file). Scorre invece di andare a capo — vedi
             // [ScrollableMinutePillRow] in GroupPauseHostScreen.kt.
-            SetupLabel(stringResource(R.string.group_pause_duration_label), topPadding = 20.dp)
+            // Senza l'etichetta "DURATA": le pillole dei minuti si spiegano da
+            // sole, come in Home.
+            Spacer(modifier = Modifier.height(20.dp))
             ScrollableMinutePillRow(
                 options = DURATION_OPTIONS,
                 selected = durationMinutes,
                 onSelect = { durationMinutes = it },
                 labelFor = { minutesLabel(it) },
             )
+            // Senza "COSA FACCIAMO?", come in "Avvicina i telefoni": la frase
+            // è già una proposta.
             TogetherActivityCard(
                 activityId = suggestion.activityId,
                 onAnother = { suggestion.another(durationMinutes) },
+                showLabel = false,
+                modifier = Modifier.padding(top = 20.dp),
             )
 
         }
@@ -312,17 +336,16 @@ fun GroupPauseBluetoothLobbyHostScreen(
                 onClick = { onWantCodeInstead(durationMinutes, suggestion.activityId) },
                 modifier = Modifier.align(Alignment.CenterHorizontally),
             )
-            OutlinedButton(
-                contentPadding = CtaPadding,
-                onClick = onCancel,
-                modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)
-            ) {
-                Text(stringResource(android.R.string.cancel))
-            }
             Button(
                 contentPadding = CtaPadding,
                 onClick = { startSession() },
                 enabled = participantNames.isNotEmpty(),
+                // Spento, nel tono tenue della tavolozza e non nel grigio
+                // pieno di default: finché non arriva qualcuno sembrava rotto.
+                colors = ButtonDefaults.buttonColors(
+                    disabledContainerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.10f),
+                    disabledContentColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.45f),
+                ),
                 modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)
             ) {
                 Text(stringResource(R.string.group_pause_start_button))
@@ -406,8 +429,11 @@ private fun ParticipantRing(participantNames: List<String>, ready: Boolean) {
     val pondBright = MaterialTheme.colorScheme.surfaceBright
     val hasParticipants = participantNames.isNotEmpty()
 
-    Box(modifier = Modifier.size(200.dp), contentAlignment = Alignment.Center) {
-        Canvas(modifier = Modifier.size(180.dp)) {
+    // Tutto in scala 0.8 (era 200dp): 160dp come le altre pagine di Tempo
+    // insieme, per far respirare la lobby.
+    val k = 0.8f
+    Box(modifier = Modifier.size(200.dp * k), contentAlignment = Alignment.Center) {
+        Canvas(modifier = Modifier.size(180.dp * k)) {
             val strokeWidth = 2.dp.toPx()
 
             // Lo stagno, fermo, disegnato per primo così l'anello esterno
@@ -415,9 +441,9 @@ private fun ParticipantRing(participantNames: List<String>, ready: Boolean) {
             // perché il disco chiaro combaci con l'OtterZenMark di 110dp
             // qui sotto — stessa proporzione con cui [TandemPawsMedallion]
             // fa combaciare il proprio disco chiaro con TogetherMark.
-            drawCircle(color = pondColor, radius = 82.dp.toPx(), alpha = 0.14f)
-            drawCircle(color = pondColor, radius = 68.dp.toPx(), alpha = 0.26f)
-            drawCircle(color = pondBright, radius = 55.dp.toPx())
+            drawCircle(color = pondColor, radius = (82.dp * k).toPx(), alpha = 0.14f)
+            drawCircle(color = pondColor, radius = (68.dp * k).toPx(), alpha = 0.26f)
+            drawCircle(color = pondBright, radius = (55.dp * k).toPx())
 
             when {
                 // Il tratteggio dice "sto aspettando qualcuno": va mostrato
@@ -439,17 +465,17 @@ private fun ParticipantRing(participantNames: List<String>, ready: Boolean) {
             }
         }
 
-        OtterZenMark(markSize = 110.dp)
+        OtterZenMark(markSize = 110.dp * k)
 
         val shown = participantNames.take(6)
-        val radius = 84.dp
+        val radius = 84.dp * k
         shown.forEachIndexed { index, _ ->
             val angleDeg = -90.0 + index * (360.0 / shown.size)
             val angleRad = Math.toRadians(angleDeg)
             val x = radius * cos(angleRad).toFloat()
             val y = radius * sin(angleRad).toFloat()
             Box(modifier = Modifier.offset(x = x, y = y)) {
-                OtterSatelliteMark(markSize = 34.dp)
+                OtterSatelliteMark(markSize = 34.dp * k)
             }
         }
     }

@@ -1059,6 +1059,23 @@ permissions these screens know about are the Bluetooth ones. That is by
 design now, but it means the Home gate is the *only* one, and anything that
 later opens Tempo Insieme from somewhere else has to carry it too.
 
+### A lighter host lobby (2026-10-16)
+
+"Waiting for someone…" had eleven elements stacked (reported: "piena di
+cose"). Now eight, none repeated:
+
+- **Back arrow at the top instead of the full-width outlined "Cancel"**,
+  like "Hold your phones together" and the chooser. Same action; the
+  bottom keeps only "Let's go", with "Prefer a code or a QR? ›" above it.
+- **No "DURATION" and "WHAT SHALL WE DO?" labels**: the minute pills
+  explain themselves, as on Home, and the activity is already a proposal
+  (`TogetherActivityCard(showLabel = false)`).
+- **"Let's go" disabled in the palette's pale tint** (`primary` at 10%,
+  text at 45%) instead of M3's flat grey, which read as broken while
+  waiting — same fix as the closing moment's "Done".
+- **`ParticipantRing` at 0.8 scale** (160dp box instead of 200), every
+  radius and mark scaled with it, so the satellites still sit on the ring.
+
 ### A lighter chooser (2026-10-16)
 
 The page below was trimmed after it read as crowded, with the choices
