@@ -249,8 +249,8 @@ internal class UsageWatcher(private val context: Context, private val handler: H
             Intent(context, MainActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK),
             PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT,
         )
-        val title = context.getString(R.string.usage_pause_heads_up_title, durationPillLabel(rule.durationMinutes))
-        val text = context.getString(R.string.usage_pause_heads_up, durationPillLabel((usedMillis / 60_000L).toInt()))
+        val title = context.getString(R.string.usage_pause_heads_up_title, durationWords(context, rule.durationMinutes))
+        val text = context.getString(R.string.usage_pause_heads_up, durationWords(context, (usedMillis / 60_000L).toInt()))
         val builder = NotificationCompat.Builder(context, CHANNEL_ID)
             .setSmallIcon(R.drawable.ic_tile_otter)
             .setContentTitle(title)

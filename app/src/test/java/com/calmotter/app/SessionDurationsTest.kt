@@ -88,4 +88,14 @@ class SessionDurationsTest {
         val midInhale = breathFullness(INHALE_MILLIS / 2)
         assertTrue(midInhale > 0.4f && midInhale < 0.6f)
     }
+
+    @Test
+    fun durationWordsSpellsItOutForSentences() {
+        val context = ApplicationProvider.getApplicationContext<Context>()
+        // I test girano in inglese (values-en).
+        assertEquals("45 minutes", durationWords(context, 45))
+        assertEquals("1 hour", durationWords(context, 60))
+        assertEquals("1 hour 30 minutes", durationWords(context, 90))
+        assertEquals("4 hours", durationWords(context, 240))
+    }
 }

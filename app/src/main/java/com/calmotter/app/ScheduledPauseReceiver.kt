@@ -108,7 +108,7 @@ class ScheduledPauseReceiver : BroadcastReceiver() {
             ACTION_HEADS_UP -> {
                 if (schedule.enabled && at > schedule.skipUntil && !sessionManager.isSessionActive()) {
                     // A sorpresa l'ora non si dice nemmeno qui: "tra 5 minuti".
-                    val duration = durationPillLabel(schedule.durationMinutes)
+                    val duration = durationWords(context, schedule.durationMinutes)
                     val (title, text) = if (schedule.isSurprise) {
                         context.getString(R.string.schedule_surprise_heads_up) to
                             context.getString(R.string.schedule_surprise_heads_up_text, duration)

@@ -245,6 +245,10 @@ for the convention to follow when adding specs for new features.
   device's browser via `ACTION_VIEW` — that's the user leaving the app
   through an explicit tap, not the app itself calling out or transmitting
   anything, so it doesn't conflict with this constraint.
+- Durations inside a sentence are spelled out with `durationWords()`
+  ("1 ora", "45 minuti", "1 ora e 30 minuti"); the short `durationPillLabel()`
+  ("1 h", "45 min") is only for tight spots — duration pills, widget, Quick
+  Settings tile — and stat figures keep "1h 30m".
 - New UI strings need entries in both `values/strings.xml` and
   `values-en/strings.xml`; `values-en/` also doubles as the reference file
   translators copy for new locales (see CONTRIBUTING.md for the full i18n

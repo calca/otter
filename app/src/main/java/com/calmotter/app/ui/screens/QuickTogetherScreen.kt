@@ -1,5 +1,7 @@
 package com.calmotter.app.ui.screens
 
+import com.calmotter.app.durationWords
+import androidx.compose.ui.platform.LocalContext
 import com.calmotter.app.ui.theme.muted
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.material3.Surface
@@ -23,7 +25,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.calmotter.app.R
-import com.calmotter.app.durationPillLabel
 import com.calmotter.app.ui.mascot.OtterTapMark
 import com.calmotter.app.ui.mascot.TogetherMark
 
@@ -75,7 +76,7 @@ fun QuickTogetherReaderScreen(
                 modifier = Modifier.padding(top = 20.dp),
             )
             Text(
-                text = stringResource(R.string.quick_together_hint, durationPillLabel(durationMinutes)),
+                text = stringResource(R.string.quick_together_hint, durationWords(LocalContext.current, durationMinutes)),
                 color = MaterialTheme.colorScheme.muted(0.75f),
                 textAlign = TextAlign.Center,
                 // Prosa centrata su più righe: più stretta, vedi [CenteredTextInset].

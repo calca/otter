@@ -1,5 +1,6 @@
 package com.calmotter.app.ui.screens
 
+import com.calmotter.app.durationWords
 import com.calmotter.app.Share
 import com.calmotter.app.ui.theme.muted
 import androidx.compose.material3.minimumInteractiveComponentSize
@@ -73,7 +74,6 @@ import com.calmotter.app.AppTheme
 import com.calmotter.app.PasswordManager
 import com.calmotter.app.PhraseManager
 import com.calmotter.app.R
-import com.calmotter.app.durationPillLabel
 import com.calmotter.app.UsagePauseManager
 
 /**
@@ -242,7 +242,7 @@ fun SettingsScreen(
                 SettingsActionRow(
                     label = stringResource(R.string.usage_pause_title),
                     value = if (usageRule.enabled) {
-                        stringResource(R.string.usage_pause_settings_value, durationPillLabel(usageRule.afterMinutes))
+                        stringResource(R.string.usage_pause_settings_value, durationWords(LocalContext.current, usageRule.afterMinutes))
                     } else {
                         stringResource(R.string.settings_slow_exit_off)
                     },

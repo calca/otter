@@ -67,20 +67,7 @@ object CalmCountdown {
     /** "55 minuti", "1 ora", "3 ore e 45 minuti": vedi la doc dell'oggetto per gli arrotondamenti. */
     @VisibleForTesting
     internal fun durationText(totalMinutes: Int, context: Context): String {
-        val res = context.resources
-        if (totalMinutes < 60) {
-            val rounded = (totalMinutes / 5) * 5
-            return res.getQuantityString(R.plurals.countdown_minutes, rounded, rounded)
-        }
-        val rounded = (totalMinutes / 15) * 15
-        val hours = rounded / 60
-        val minutes = rounded % 60
-        val hoursText = res.getQuantityString(R.plurals.countdown_hours, hours, hours)
-        if (minutes == 0) return hoursText
-        return res.getString(
-            R.string.countdown_hours_minutes,
-            hoursText,
-            res.getQuantityString(R.plurals.countdown_minutes, minutes, minutes),
-        )
+        if (totalMinutes < 60) return durationWords(context, (totalMinutes / 5) * 5)
+        return durationWords(context, (totalMinutes / 15) * 15)
     }
 }

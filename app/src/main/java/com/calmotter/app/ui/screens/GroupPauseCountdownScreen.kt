@@ -1,6 +1,7 @@
 package com.calmotter.app.ui.screens
 
-import com.calmotter.app.durationPillLabel
+import com.calmotter.app.durationWords
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -219,8 +220,8 @@ fun GroupPauseCountdownScreen(
                             R.string.group_pause_countdown_with_duration,
                             minutes,
                             seconds,
-                            // "4 h", non "240 min": come le pillole delle durate.
-                            durationPillLabel(durationMinutes),
+                            // "4 ore", non "240 min" né "4 h": in una frase, a parole.
+                            durationWords(LocalContext.current, durationMinutes),
                         ),
                         fontWeight = FontWeight.SemiBold,
                         color = MaterialTheme.colorScheme.primary,

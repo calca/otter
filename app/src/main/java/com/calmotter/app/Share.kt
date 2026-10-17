@@ -19,7 +19,7 @@ object Share {
     /** "1 h di calma, lontano dal telefono" — dopo una pausa arrivata in fondo. */
     fun pause(context: Context, effectiveMinutes: Int) = send(
         context,
-        context.getString(R.string.share_pause_text, durationPillLabel(effectiveMinutes.coerceAtLeast(1)), PLAY_STORE_URL),
+        context.getString(R.string.share_pause_text, durationWords(context, effectiveMinutes.coerceAtLeast(1)), PLAY_STORE_URL),
     )
 
     /** L'invito a installare l'app: da Tempo insieme e da Impostazioni → Info. */

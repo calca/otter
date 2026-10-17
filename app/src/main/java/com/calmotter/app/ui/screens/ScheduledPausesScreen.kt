@@ -1,5 +1,7 @@
 package com.calmotter.app.ui.screens
 
+import com.calmotter.app.durationWords
+import androidx.compose.ui.platform.LocalContext
 import com.calmotter.app.ui.theme.muted
 import androidx.compose.material3.minimumInteractiveComponentSize
 import androidx.compose.ui.semantics.clearAndSetSemantics
@@ -182,7 +184,7 @@ fun ScheduledPausesScreen(
                         Column(modifier = Modifier.weight(1f)) {
                             Row(verticalAlignment = Alignment.CenterVertically) {
                                 Text(
-                                    text = startLabel(schedule) + " · " + durationPillLabel(schedule.durationMinutes),
+                                    text = startLabel(schedule) + " · " + durationWords(LocalContext.current, schedule.durationMinutes),
                                     fontSize = 18.sp,
                                     fontWeight = FontWeight.SemiBold,
                                     color = MaterialTheme.colorScheme.primary,
@@ -293,9 +295,9 @@ fun ScheduleEditorScreen(
                         days == 0 -> stringResource(R.string.schedule_pick_a_day)
                         // Due righe centrate: quando e quanto, poi la fascia
                         // in cui può partire (su una riga sola andava a capo).
-                        surprise -> stringResource(R.string.schedule_summary_short, daysLabel(days, locale), durationPillLabel(duration)) +
+                        surprise -> stringResource(R.string.schedule_summary_short, daysLabel(days, locale), durationWords(LocalContext.current, duration)) +
                             "\n" + stringResource(R.string.schedule_summary_surprise, timeLabel(window.first), timeLabel(window.second - duration))
-                        else -> stringResource(R.string.schedule_summary_short, daysLabel(days, locale), durationPillLabel(duration))
+                        else -> stringResource(R.string.schedule_summary_short, daysLabel(days, locale), durationWords(LocalContext.current, duration))
                     },
                     color = MaterialTheme.colorScheme.muted(0.65f),
                     textAlign = TextAlign.Center,

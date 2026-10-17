@@ -61,6 +61,6 @@ class WeeklySummaryTest {
         val title = posted[0].extras.getCharSequence(android.app.Notification.EXTRA_TITLE).toString()
         val text = posted[0].extras.getCharSequence(android.app.Notification.EXTRA_TEXT).toString()
         assertEquals(context.getString(R.string.weekly_note_title), title)
-        assertEquals(context.resources.getQuantityString(R.plurals.weekly_note_pauses, 3, 3, "3 h"), text)
+        assertEquals(context.resources.getQuantityString(R.plurals.weekly_note_pauses, 3, 3, "3 hours"), text)
     }
 }

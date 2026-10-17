@@ -24,12 +24,35 @@ const val BREATHING_PAUSE_MAX_MINUTES = 10
 fun isBreathingPause(totalMillis: Long): Boolean =
     totalMillis in 1..BREATHING_PAUSE_MAX_MINUTES * 60_000L
 
-/** Etichetta delle pillole di durata della Home: "10 min", "1 h", "1 h 30". */
+/**
+ * Etichetta delle pillole di durata della Home: "10 min", "1 h", "1 h 30".
+ * Solo dove lo spazio è stretto (pillole, widget, riquadro): in una frase si
+ * usa [durationWords] — "1 h" in mezzo a un testo non è carino (segnalato).
+ */
 fun durationPillLabel(minutes: Int): String {
     if (minutes < 60) return "$minutes min"
     val hours = minutes / 60
     val rest = minutes % 60
     return if (rest == 0) "$hours h" else "$hours h $rest"
+}
+
+/**
+ * Una durata in parole, per le frasi: "45 minuti", "1 ora", "1 ora e 30
+ * minuti". Esatta, senza gli arrotondamenti del conto alla rovescia (che la
+ * usa dopo averli fatti, vedi CalmCountdown.durationText).
+ */
+fun durationWords(context: Context, minutes: Int): String {
+    val res = context.resources
+    if (minutes < 60) return res.getQuantityString(R.plurals.countdown_minutes, minutes, minutes)
+    val hours = minutes / 60
+    val rest = minutes % 60
+    val hoursText = res.getQuantityString(R.plurals.countdown_hours, hours, hours)
+    if (rest == 0) return hoursText
+    return res.getString(
+        R.string.countdown_hours_minutes,
+        hoursText,
+        res.getQuantityString(R.plurals.countdown_minutes, rest, rest),
+    )
 }
 
 /**

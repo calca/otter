@@ -31,7 +31,7 @@
     <string name="home_start_hint">Tocca &lt;b&gt;Otter&lt;/b&gt; per iniziare</string>
     <string name="otter_hint">Toccami quando vuoi una pausa</string>
     <string name="home_active_label">In pausa</string>
-    <string name="home_time_remaining">%1$d min rimasti</string>
+    <string name="home_time_remaining">Ancora %1$s</string>
     <string name="weekly_chart_today">oggi</string>
     <string-array name="weekday_initials">
         <item>D</item>
@@ -95,7 +95,7 @@
     <!-- Origine di una pausa partita da sola (PauseOrigin): etichetta di stato e titolo della notifica, benvenuto all'arrivo. -->
     <string name="pause_origin_scheduled">Pausa delle %1$s</string>
     <string name="pause_origin_surprise">Pausa a sorpresa</string>
-    <string name="pause_origin_usage">Pausa dopo %1$d min di schermo</string>
+    <string name="pause_origin_usage">Pausa dopo %1$s di schermo</string>
     <string name="pause_welcome_scheduled">È l\'ora della pausa che avevi programmato.</string>
     <string name="pause_welcome_surprise">Sorpresa! Una pausa che non ti aspettavi.</string>
     <string name="pause_welcome_usage">Lo schermo è acceso da un po\': prendiamoci una pausa.</string>
@@ -132,7 +132,7 @@
     <string name="history_clear">Svuota cronologia</string>
     <string name="history_clear_confirm">Vuoi eliminare tutta la cronologia? L\'operazione non è reversibile.</string>
     <string name="history_item_natural">Arrivata in fondo</string>
-    <string name="history_item_early">Chiusa prima — prevista %1$d min</string>
+    <string name="history_item_early">Chiusa prima — prevista %1$s</string>
     <string name="stat_sessions">pause</string>
     <string name="stat_minutes">tempo totale</string>
     <string name="stat_completed">completate</string>

@@ -31,7 +31,7 @@
     <string name="home_start_hint">Tap &lt;b&gt;Otter&lt;/b&gt; to start</string>
     <string name="otter_hint">Tap me whenever you want a pause</string>
     <string name="home_active_label">On pause</string>
-    <string name="home_time_remaining">%1$d min left</string>
+    <string name="home_time_remaining">%1$s left</string>
     <string name="weekly_chart_today">today</string>
     <string-array name="weekday_initials">
         <item>S</item>
@@ -90,7 +90,7 @@
     <!-- Origine di una pausa partita da sola (PauseOrigin): etichetta di stato e titolo della notifica, benvenuto all'arrivo. -->
     <string name="pause_origin_scheduled">Your %1$s pause</string>
     <string name="pause_origin_surprise">Surprise pause</string>
-    <string name="pause_origin_usage">Pause after %1$d min of screen time</string>
+    <string name="pause_origin_usage">Pause after %1$s of screen time</string>
     <string name="pause_welcome_scheduled">It\'s time for the pause you scheduled.</string>
     <string name="pause_welcome_surprise">Surprise! A pause you didn\'t see coming.</string>
     <string name="pause_welcome_usage">The screen has been on for a while: let\'s take a break.</string>
@@ -127,7 +127,7 @@
     <string name="history_clear">Clear history</string>
     <string name="history_clear_confirm">Delete all history? This action cannot be undone.</string>
     <string name="history_item_natural">Ran its full course</string>
-    <string name="history_item_early">Ended early — planned %1$d min</string>
+    <string name="history_item_early">Ended early — planned %1$s</string>
     <string name="stat_sessions">pauses</string>
     <string name="stat_minutes">total time</string>
     <string name="stat_completed">completed</string>

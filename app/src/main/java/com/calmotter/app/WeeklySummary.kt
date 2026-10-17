@@ -55,7 +55,7 @@ object WeeklySummary {
     /** "3 pause, 2 h 30 in tutto.": le stesse pause della scheda settimanale e il loro tempo. */
     fun noteText(context: Context, sessions: List<SessionRecord>): String {
         val (_, count, minutes) = weeklyChartData(sessions)
-        return context.resources.getQuantityString(R.plurals.weekly_note_pauses, count, count, durationPillLabel(minutes))
+        return context.resources.getQuantityString(R.plurals.weekly_note_pauses, count, count, durationWords(context, minutes))
     }
 
     /** La prossima domenica alle 20:00 dopo [now] (ora locale, ora legale compresa). */

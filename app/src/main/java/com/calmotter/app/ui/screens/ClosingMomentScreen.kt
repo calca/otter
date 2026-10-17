@@ -1,5 +1,7 @@
 package com.calmotter.app.ui.screens
 
+import com.calmotter.app.durationWords
+import androidx.compose.ui.platform.LocalContext
 import com.calmotter.app.ui.theme.muted
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
@@ -32,7 +34,6 @@ import androidx.compose.ui.unit.sp
 import com.calmotter.app.Mood
 import androidx.compose.animation.AnimatedVisibility
 import com.calmotter.app.R
-import com.calmotter.app.durationPillLabel
 import com.calmotter.app.ui.mascot.OtterZenMark
 
 /** Lunghezza massima della nota: sta su una riga della Cronologia senza troncarsi. */
@@ -71,7 +72,7 @@ fun ClosingMomentScreen(
         CenteredInRemainingSpace {
             OtterZenMark(markSize = 96.dp)
             Text(
-                text = stringResource(R.string.closing_title, durationPillLabel(effectiveMinutes.coerceAtLeast(1))),
+                text = stringResource(R.string.closing_title, durationWords(LocalContext.current, effectiveMinutes.coerceAtLeast(1))),
                 fontSize = 20.sp,
                 fontWeight = FontWeight.Bold,
                 fontStyle = FontStyle.Italic,

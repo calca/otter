@@ -1,5 +1,6 @@
 package com.calmotter.app.ui.screens
 
+import com.calmotter.app.durationWords
 import com.calmotter.app.ui.theme.muted
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.foundation.layout.heightIn
@@ -372,7 +373,7 @@ fun MainScreen(
                 color = MaterialTheme.colorScheme.muted(0.6f),
             )
             Text(
-                text = stringResource(R.string.home_time_remaining, remainingMin),
+                text = stringResource(R.string.home_time_remaining, durationWords(LocalContext.current, remainingMin)),
                 fontWeight = FontWeight.SemiBold,
                 color = MaterialTheme.colorScheme.onSurface,
                 modifier = Modifier.padding(top = 2.dp),

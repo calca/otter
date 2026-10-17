@@ -1,5 +1,7 @@
 package com.calmotter.app.ui.screens
 
+import com.calmotter.app.durationWords
+import androidx.compose.ui.platform.LocalContext
 import com.calmotter.app.ui.theme.muted
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -229,7 +231,7 @@ private fun OverviewPage(
     val summaryText = if (weekSessions == 0) {
         stringResource(R.string.weekly_summary_none)
     } else {
-        pluralStringResource(R.plurals.weekly_summary_sessions, weekSessions, weekSessions, formatHistoryMinutes(weekMinutes))
+        pluralStringResource(R.plurals.weekly_summary_sessions, weekSessions, weekSessions, durationWords(LocalContext.current, weekMinutes))
     }
 
     // Un solo passo fra le card, 12dp, invece del padding verticale di
@@ -421,7 +423,7 @@ private fun SessionRow(session: SessionRecord) {
                     text = when {
                         session.completedNaturally -> stringResource(R.string.history_item_natural)
                         session.endReason == EndReason.SLOW_EXIT -> stringResource(R.string.history_item_slow_exit)
-                        else -> stringResource(R.string.history_item_early, session.plannedMinutes)
+                        else -> stringResource(R.string.history_item_early, durationWords(LocalContext.current, session.plannedMinutes))
                     },
                     fontSize = 13.sp,
                     color = MaterialTheme.colorScheme.onSurface,

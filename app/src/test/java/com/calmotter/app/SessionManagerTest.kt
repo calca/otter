@@ -338,7 +338,7 @@ class SessionManagerTest {
         val manager = SessionManager.getInstance(context)
         manager.startSession(10, origin = PauseOrigin.USAGE, originDetail = 45)
 
-        assertEquals(context.getString(R.string.pause_origin_usage, 45), manager.originLabel())
+        assertEquals(context.getString(R.string.pause_origin_usage, "45 minutes"), manager.originLabel())
     }
 
     @Test

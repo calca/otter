@@ -1,5 +1,7 @@
 package com.calmotter.app.ui.screens
 
+import com.calmotter.app.durationWords
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -168,21 +170,8 @@ private fun weeklySummaryText(summary: WeekSummary): String = if (summary.totalS
         R.plurals.weekly_summary_sessions,
         summary.totalSessions,
         summary.totalSessions,
-        formatMinutes(summary.totalMinutes),
+        durationWords(LocalContext.current, summary.totalMinutes),
     )
-}
-
-/** Duplica HistoryScreen.kt's formatMinutes(): stessa resa "1h 30m", non
- * condivisa perché entrambe le funzioni sono private ai rispettivi file
- * (stesso pattern di last7DayMinutes/dayStart già documentato altrove). */
-private fun formatMinutes(minutes: Int): String {
-    val h = minutes / 60
-    val m = minutes % 60
-    return when {
-        h == 0 -> "${m}m"
-        m == 0 -> "${h}h"
-        else -> "${h}h ${m}m"
-    }
 }
 
 /** Stesso pattern di rememberHistoryDateFormat() in HistoryScreen.kt (non
@@ -196,6 +185,6 @@ private fun pendingSummaryText(summary: SessionManager.PendingBackgroundSummary)
     return stringResource(
         R.string.home_pending_summary,
         timeFormat.format(Date(summary.endTimeMs)),
-        formatMinutes(summary.effectiveMinutes),
+        durationWords(LocalContext.current, summary.effectiveMinutes),
     )
 }

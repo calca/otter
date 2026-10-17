@@ -1,5 +1,6 @@
 package com.calmotter.app.nfc
 
+import com.calmotter.app.durationWords
 import android.Manifest
 import android.app.NotificationChannel
 import android.app.NotificationManager
@@ -17,7 +18,6 @@ import com.calmotter.app.PasswordManager
 import com.calmotter.app.QuickTogetherActivity
 import com.calmotter.app.R
 import com.calmotter.app.SessionManager
-import com.calmotter.app.durationPillLabel
 import com.calmotter.app.isAccessibilityServiceEnabled
 import com.calmotter.app.isDndAccessGranted
 
@@ -78,7 +78,7 @@ object QuickTogetherInbox {
             context, 0, intent, PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT,
         )
         val title = context.getString(R.string.quick_together_notification, proposal.name)
-        val text = context.getString(R.string.quick_together_notification_text, durationPillLabel(proposal.durationMinutes))
+        val text = context.getString(R.string.quick_together_notification_text, durationWords(context, proposal.durationMinutes))
         val notification = NotificationCompat.Builder(context, CHANNEL_ID)
             .setSmallIcon(R.drawable.ic_tile_otter)
             .setContentTitle(title)

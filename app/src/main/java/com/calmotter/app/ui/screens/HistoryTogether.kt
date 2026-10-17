@@ -1,5 +1,7 @@
 package com.calmotter.app.ui.screens
 
+import com.calmotter.app.durationWords
+import androidx.compose.ui.platform.LocalContext
 import com.calmotter.app.ui.theme.muted
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -99,7 +101,7 @@ internal fun TogetherCard(sessions: List<SessionRecord>, modifier: Modifier = Mo
                         text = " · " + pluralStringResource(
                             R.plurals.together_companion_line,
                             total.pauses,
-                            formatHistoryMinutes(total.minutes),
+                            durationWords(LocalContext.current, total.minutes),
                             total.pauses,
                         ),
                         color = MaterialTheme.colorScheme.muted(0.75f),

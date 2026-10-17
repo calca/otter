@@ -31,7 +31,7 @@ enum class PauseOrigin {
         // l'utente l'ha impostata. A sorpresa l'ora non si dice, come nel preavviso.
         SCHEDULED -> context.getString(R.string.pause_origin_scheduled, "%02d:%02d".format(detail / 60, detail % 60))
         SURPRISE -> context.getString(R.string.pause_origin_surprise)
-        USAGE -> context.getString(R.string.pause_origin_usage, detail)
+        USAGE -> context.getString(R.string.pause_origin_usage, durationWords(context, detail))
     }
 
     /** La frase dell'otter all'arrivo di una pausa automatica; 0 per una avviata a mano. */
