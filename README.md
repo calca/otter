@@ -66,6 +66,11 @@ The best moment to start a pause is the one you'd rather skip.
   night (23:00–7:00). "Not now" works up to three times a day, unless it's
   protected.
 
+None of them arrives unexplained: the block screen says which one it is
+("Your 21:00 pause", "Surprise pause", "Pause after 45 min of screen
+time"), the otter greets you for a few seconds, and the ongoing
+notification carries the same name.
+
 ## Small Rituals
 
 - **A breathing pause.** Ten minutes, for the tense moments: the ring

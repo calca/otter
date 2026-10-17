@@ -87,6 +87,13 @@
     <string name="pause_notification_together_plain">Time together</string>
     <string name="pause_notification_remaining">About %1$s left</string>
     <string name="pause_notification_near_end">Almost over</string>
+    <!-- Origine di una pausa partita da sola (PauseOrigin): etichetta di stato e titolo della notifica, benvenuto all'arrivo. -->
+    <string name="pause_origin_scheduled">Your %1$s pause</string>
+    <string name="pause_origin_surprise">Surprise pause</string>
+    <string name="pause_origin_usage">Pause after %1$d min of screen time</string>
+    <string name="pause_welcome_scheduled">It\'s time for the pause you scheduled.</string>
+    <string name="pause_welcome_surprise">Surprise! A pause you didn\'t see coming.</string>
+    <string name="pause_welcome_usage">The screen has been on for a while: let\'s take a break.</string>
     <string name="pause_not_started_title">The pause didn\'t start</string>
     <string name="pause_not_started_text">Two permissions are needed: tap to fix them.</string>
 

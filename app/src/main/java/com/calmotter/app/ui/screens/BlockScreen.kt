@@ -16,6 +16,7 @@ import android.os.Looper
 import android.os.Handler
 import android.nfc.NfcAdapter
 import android.app.Activity
+import androidx.compose.animation.Crossfade
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.tween
@@ -346,8 +347,11 @@ fun BlockScreen(
                     .background(MaterialTheme.colorScheme.primary),
             )
             Spacer(modifier = Modifier.width(8.dp))
+            // Una pausa partita da sola dice da dove al posto di "In pausa"
+            // ("Pausa delle 21:00"): una riga sola, non due (richiesto).
+            val originLabel = remember { sessionManager.originLabel() }
             Text(
-                text = stringResource(R.string.home_active_label).uppercase(),
+                text = (originLabel ?: stringResource(R.string.home_active_label)).uppercase(),
                 style = MaterialTheme.typography.labelSmall,
                 letterSpacing = 0.12.em,
                 color = MaterialTheme.colorScheme.primary,
@@ -418,18 +422,38 @@ fun BlockScreen(
         // spente e anche nella pausa respiro: è una proposta del gruppo, non
         // una frase motivazionale.
         val groupActivity = remember { TogetherActivities.byId(controller.groupActivityId) }
-        val shownPhrase = groupActivity?.let { stringResource(it.text) } ?: phraseText.takeIf { !breathing }
-        if (shownPhrase != null) {
-            Text(
-                text = shownPhrase,
-                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f),
-                fontSize = 16.sp,
-                fontStyle = FontStyle.Italic,
-                textAlign = TextAlign.Center,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(start = CenteredTextInset, end = CenteredTextInset, bottom = 28.dp)
-            )
+        // Benvenuto di una pausa partita da sola (vedi PauseOrigin): per i
+        // primi secondi, al posto della frase, l'otter dice perché lo
+        // schermo è cambiato all'improvviso; poi sfuma nella frase. Solo la
+        // prima volta che la pausa si vede, anche nella pausa respiro.
+        val welcomeRes = remember {
+            sessionManager.origin().welcomeRes.takeIf { it != 0 && sessionManager.consumeArrivalWelcome() }
+        }
+        var welcoming by remember { mutableStateOf(welcomeRes != null) }
+        if (welcoming) {
+            LaunchedEffect(Unit) {
+                delay(ArrivalWelcomeMillis)
+                welcoming = false
+            }
+        }
+        val shownPhrase = if (welcoming && welcomeRes != null) {
+            stringResource(welcomeRes)
+        } else {
+            groupActivity?.let { stringResource(it.text) } ?: phraseText.takeIf { !breathing }
+        }
+        Crossfade(targetState = shownPhrase, animationSpec = tween(700), label = "phrase") { phrase ->
+            if (phrase != null) {
+                Text(
+                    text = phrase,
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f),
+                    fontSize = 16.sp,
+                    fontStyle = FontStyle.Italic,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(start = CenteredTextInset, end = CenteredTextInset, bottom = 28.dp)
+                )
+            }
         }
 
         // Row di sole app consentite, badge circolare tinto (primary a bassa
@@ -659,3 +683,6 @@ private fun BlockActionBadge(
         )
     }
 }
+
+/** Quanto resta il benvenuto di una pausa automatica prima di sfumare nella frase. */
+private const val ArrivalWelcomeMillis = 8_000L

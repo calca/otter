@@ -16,6 +16,7 @@ import com.calmotter.app.CalmCountdown
 import com.calmotter.app.EndReason
 import com.calmotter.app.Mood
 import com.calmotter.app.PasswordManager
+import com.calmotter.app.PauseOrigin
 import com.calmotter.app.PhraseManager
 import com.calmotter.app.ScheduledPause
 import com.calmotter.app.UsagePauseRule
@@ -163,6 +164,8 @@ class ScreenScreenshotTest(private val night: Boolean) {
     fun setUp() {
         installFakeAndroidKeyStore()
         if (night) RuntimeEnvironment.setQualifiers("+night")
+        // La frase del tempo rimasto è a caso: fissata, come sopra.
+        CalmCountdown.random = Random(1)
         compose.mainClock.autoAdvance = false
     }
 
@@ -185,6 +188,22 @@ class ScreenScreenshotTest(private val night: Boolean) {
         SessionRecord(startTimeMs = at(27, 9, 10), plannedMinutes = 30, effectiveMinutes = 30, completedNaturally = true,
             endReason = EndReason.NATURAL),
     )
+
+    /** Una pausa programmata appena partita: l'origine al posto di "In pausa" e il benvenuto. */
+    @Test
+    fun blockScheduled() {
+        SessionManager.getInstance(context).startSession(60, origin = PauseOrigin.SCHEDULED, originDetail = 21 * 60)
+        capture("block-scheduled") {
+            BlockScreen(
+                sessionManager = SessionManager.getInstance(context),
+                passwordManager = PasswordManager.getInstance(context),
+                phraseText = "“Look out the window. The world is still there.”",
+                onExpiredImmediately = {},
+                onExpiredNaturally = {},
+                onUnlocked = {},
+            )
+        }
+    }
 
     /** La Home con più profili di app consentite: la riga del profilo sotto le durate. */
     @Test

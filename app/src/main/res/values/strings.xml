@@ -92,6 +92,13 @@
     <string name="pause_notification_together_plain">Tempo insieme</string>
     <string name="pause_notification_remaining">Ancora circa %1$s</string>
     <string name="pause_notification_near_end">Quasi finita</string>
+    <!-- Origine di una pausa partita da sola (PauseOrigin): etichetta di stato e titolo della notifica, benvenuto all'arrivo. -->
+    <string name="pause_origin_scheduled">Pausa delle %1$s</string>
+    <string name="pause_origin_surprise">Pausa a sorpresa</string>
+    <string name="pause_origin_usage">Pausa dopo %1$d min di schermo</string>
+    <string name="pause_welcome_scheduled">È l\'ora della pausa che avevi programmato.</string>
+    <string name="pause_welcome_surprise">Sorpresa! Una pausa che non ti aspettavi.</string>
+    <string name="pause_welcome_usage">Lo schermo è acceso da un po\': prendiamoci una pausa.</string>
     <string name="pause_not_started_title">La pausa non è partita</string>
     <string name="pause_not_started_text">Servono due permessi: tocca per sistemarli.</string>
 

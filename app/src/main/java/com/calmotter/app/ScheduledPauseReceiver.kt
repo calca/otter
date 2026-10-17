@@ -138,6 +138,8 @@ class ScheduledPauseReceiver : BroadcastReceiver() {
                         // Nessuno l'ha scelta adesso: non cambia la durata proposta in Home.
                         rememberDuration = false,
                         profileId = schedule.profileId,
+                        origin = if (schedule.isSurprise) PauseOrigin.SURPRISE else PauseOrigin.SCHEDULED,
+                        originDetail = schedule.startMinuteOfDay,
                     )
                 }
                 manager.byId(schedule.id)?.let { ScheduleAlarms.arm(context, it) }

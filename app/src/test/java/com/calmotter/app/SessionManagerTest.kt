@@ -309,4 +309,46 @@ class SessionManagerTest {
         assertEquals(7, lastRecord().activityId)
         assertEquals(0, manager.groupActivityId())
     }
+
+    // --- Origine della pausa (PauseOrigin) ----------------------------------
+
+    @Test
+    fun aManualPauseKeepsTheGenericLabelAndNoWelcome() {
+        val manager = SessionManager.getInstance(context)
+        manager.startSession(30)
+
+        assertEquals(PauseOrigin.MANUAL, manager.origin())
+        assertEquals(null, manager.originLabel())
+        assertFalse(manager.consumeArrivalWelcome())
+    }
+
+    @Test
+    fun anAutomaticPauseSaysWhereItCameFromAndWelcomesOnce() {
+        val manager = SessionManager.getInstance(context)
+        manager.startSession(60, origin = PauseOrigin.SCHEDULED, originDetail = 21 * 60)
+
+        assertEquals(context.getString(R.string.pause_origin_scheduled, "21:00"), manager.originLabel())
+        assertTrue(manager.consumeArrivalWelcome())
+        // La schermata si riapre a ogni app bloccata: il benvenuto no.
+        assertFalse(manager.consumeArrivalWelcome())
+    }
+
+    @Test
+    fun theUsageLabelCarriesTheRuleMinutes() {
+        val manager = SessionManager.getInstance(context)
+        manager.startSession(10, origin = PauseOrigin.USAGE, originDetail = 45)
+
+        assertEquals(context.getString(R.string.pause_origin_usage, 45), manager.originLabel())
+    }
+
+    @Test
+    fun theOriginDoesNotOutliveThePause() {
+        val manager = SessionManager.getInstance(context)
+        manager.startSession(60, origin = PauseOrigin.SURPRISE)
+        manager.endSession()
+        manager.startSession(30)
+
+        assertEquals(PauseOrigin.MANUAL, manager.origin())
+        assertFalse(manager.consumeArrivalWelcome())
+    }
 }

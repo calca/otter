@@ -229,6 +229,8 @@ internal class UsageWatcher(private val context: Context, private val handler: H
             rule.durationMinutes,
             rememberDuration = false,
             profileId = rule.profileId,
+            origin = PauseOrigin.USAGE,
+            originDetail = rule.afterMinutes,
         )
     }
 

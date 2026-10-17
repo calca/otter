@@ -92,6 +92,10 @@ class SessionManager internal constructor(private val context: Context) {
         // la condivide fra i due telefoni, anche quando uno si unisce in
         // ritardo dalla notifica. null = adesso + durata.
         endAtMillis: Long? = null,
+        // Chi l'ha avviata, se non è stato l'utente in quel momento (vedi
+        // [PauseOrigin]): l'etichetta e la notifica dicono il perché.
+        origin: PauseOrigin = PauseOrigin.MANUAL,
+        originDetail: Int = 0,
     ) {
         val now = System.currentTimeMillis()
         val endTime = endAtMillis?.takeIf { it > now } ?: (now + durationMinutes * 60_000L)
@@ -107,6 +111,9 @@ class SessionManager internal constructor(private val context: Context) {
             putInt(KEY_GROUP_ACTIVITY, activityId)
             putInt(KEY_PROFILE_ID, profileId ?: AllowedAppsManager.getInstance(context).selectedProfileId())
             remove(KEY_SLOW_EXIT_DEADLINE)
+            putString(KEY_ORIGIN, origin.name)
+            putInt(KEY_ORIGIN_DETAIL, originDetail)
+            putBoolean(KEY_ARRIVAL_WELCOME, origin.isAutomatic)
         }
         dnd.capture()
         dnd.apply()
@@ -134,6 +141,28 @@ class SessionManager internal constructor(private val context: Context) {
 
     /** Profilo di app consentite della pausa in corso (vedi AllowedAppsManager). */
     fun sessionProfileId(): Int = prefs.getInt(KEY_PROFILE_ID, AllowedAppsManager.DEFAULT_PROFILE_ID)
+
+    /** Da dove è partita la pausa in corso (vedi [PauseOrigin]). */
+    fun origin(): PauseOrigin = PauseOrigin.fromName(prefs.getString(KEY_ORIGIN, null))
+
+    /** Il dettaglio dell'origine: ora programmata o minuti di schermo (vedi [PauseOrigin]). */
+    fun originDetail(): Int = prefs.getInt(KEY_ORIGIN_DETAIL, 0)
+
+    /** "Pausa delle 21:00"…, o null se l'ha avviata l'utente. */
+    fun originLabel(): String? = origin().label(context, originDetail())
+
+    /**
+     * true una volta sola per pausa automatica: la prima schermata di blocco
+     * che la mostra dà il benvenuto ("È l'ora della pausa che avevi
+     * programmato") al posto della frase. Consumato subito, non alla fine
+     * del benvenuto: la schermata si riapre a ogni app bloccata, e il
+     * benvenuto ripetuto diventerebbe rumore.
+     */
+    fun consumeArrivalWelcome(): Boolean {
+        if (!prefs.getBoolean(KEY_ARRIVAL_WELCOME, false)) return false
+        prefs.edit { remove(KEY_ARRIVAL_WELCOME) }
+        return true
+    }
 
     /** Nomi di chi condivide la pausa in corso; vuoto se non se ne conoscono. */
     fun companions(): List<String> =
@@ -211,6 +240,9 @@ class SessionManager internal constructor(private val context: Context) {
             remove(KEY_GROUP_ACTIVITY)
             remove(KEY_PROFILE_ID)
             remove(KEY_SLOW_EXIT_DEADLINE)
+            remove(KEY_ORIGIN)
+            remove(KEY_ORIGIN_DETAIL)
+            remove(KEY_ARRIVAL_WELCOME)
             // Solo una pausa arrivata in fondo merita il momento di chiusura
             // (specs/closing-moment/): mai dopo un'uscita anticipata. Una
             // nuova pausa completata sostituisce quella non ancora risposta.
@@ -319,6 +351,9 @@ class SessionManager internal constructor(private val context: Context) {
         private const val KEY_GROUP_ACTIVITY = "session_group_activity"
         private const val KEY_PROFILE_ID = "session_profile_id"
         private const val KEY_SLOW_EXIT_DEADLINE = "session_slow_exit_deadline"
+        private const val KEY_ORIGIN = "session_origin"
+        private const val KEY_ORIGIN_DETAIL = "session_origin_detail"
+        private const val KEY_ARRIVAL_WELCOME = "session_arrival_welcome"
         // Sopravvive a endSession() come il riepilogo una tantum: la pausa è
         // finita, la domanda "com'è andata?" resta in sospeso.
         private const val KEY_PENDING_REFLECTION_ID = "session_pending_reflection_id"

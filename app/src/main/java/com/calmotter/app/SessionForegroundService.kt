@@ -82,8 +82,10 @@ class SessionForegroundService : Service() {
         // cambiavano a ogni aggiornamento, ogni minuto, e la notifica di una
         // pausa calma era la cosa più irrequieta della tendina.
         val companions = sessionManager.companions()
+        // Una pausa partita da sola dice perché anche qui ("Pausa delle
+        // 21:00"): la tendina è raggiungibile anche a schermo bloccato.
         val title = when {
-            !sessionManager.isGroupSession() -> getString(R.string.pause_notification_title)
+            !sessionManager.isGroupSession() -> sessionManager.originLabel() ?: getString(R.string.pause_notification_title)
             companions.size == 1 -> getString(R.string.pause_notification_together, companions.single())
             else -> getString(R.string.pause_notification_together_plain)
         }

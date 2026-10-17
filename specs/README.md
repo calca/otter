@@ -24,6 +24,7 @@ everything described is live in `main` today.
 - [`together-activity/`](together-activity/requirements.md) — the host proposes something to do together; it travels with the pause
 - [`closing-moment/`](closing-moment/requirements.md) — "How was it?" after a completed pause, saved in History
 - [`slow-exit/`](slow-exit/requirements.md) — on by default: end a pause without the password after a 10-minute wait
+- [`pause-origin/`](pause-origin/requirements.md) — a pause that started by itself says why: label, notification title, a welcome on arrival
 - [`together-history/`](together-history/requirements.md) — time spent with each companion, and a "Together" filter
 - [`scheduled-pauses/`](scheduled-pauses/requirements.md) — recurring pauses that start by themselves; loosening needs the password
 - [`allowed-app-profiles/`](allowed-app-profiles/requirements.md) — named allowed-apps lists, chosen per pause
