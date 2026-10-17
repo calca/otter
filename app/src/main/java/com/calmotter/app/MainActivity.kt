@@ -231,6 +231,7 @@ class MainActivity : BaseActivity() {
                                 onHistory = { startActivity(Intent(this@MainActivity, HistoryActivity::class.java)) },
                                 onHistorySessions = { startActivity(HistoryActivity.intent(this@MainActivity, HistoryTab.Sessions)) },
                                 onSettings = { startActivity(Intent(this@MainActivity, SettingsActivity::class.java)) },
+                                onScheduledPauses = { startActivity(Intent(this@MainActivity, ScheduledPausesActivity::class.java)) },
                                 onQuickTogether = if (NfcAdapter.getDefaultAdapter(this@MainActivity) == null) null else { durationMinutes ->
                                     // NFC spento: le impostazioni dell'NFC, con due parole sul perché.
                                     if (NfcAdapter.getDefaultAdapter(this@MainActivity)?.isEnabled == true) {

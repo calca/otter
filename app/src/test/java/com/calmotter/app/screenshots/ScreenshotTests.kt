@@ -17,6 +17,8 @@ import com.calmotter.app.EndReason
 import com.calmotter.app.Mood
 import com.calmotter.app.PasswordManager
 import com.calmotter.app.PauseOrigin
+import com.calmotter.app.ScheduleManager
+import com.calmotter.app.OtterHint
 import com.calmotter.app.PhraseManager
 import com.calmotter.app.ScheduledPause
 import com.calmotter.app.UsagePauseRule
@@ -203,6 +205,53 @@ class ScreenScreenshotTest(private val night: Boolean) {
                 onUnlocked = {},
             )
         }
+    }
+
+    /** La Home con il fumetto del giorno sopra l'otter (specs/otter-daily-hint/). */
+    @Test
+    fun homeDailyHint() {
+        ScheduleManager.getInstance(context).save(
+            ScheduledPause(id = 0, days = 0b1111111, startMinuteOfDay = 21 * 60, durationMinutes = 60),
+        )
+        captureHomeHint("home-daily-hint", Random(2))
+    }
+
+    /** Senza pause programmate, la frase che le ricorda (il tocco apre la loro schermata). */
+    @Test
+    fun homeDailyHintSchedules() {
+        // Il primo seme per cui esce la frase sulle pause programmate (una su quattro).
+        val seed = (0..100).first { Random(it).nextInt(4) == 0 }
+        captureHomeHint("home-daily-hint-schedules", Random(seed))
+    }
+
+    private fun captureHomeHint(screen: String, random: Random) {
+        SessionHistoryManager.getInstance(context).add(history[1])
+        OtterHint.random = random
+        compose.setContent {
+            CalmOtterTheme(appTheme = AppTheme.SAGE) {
+                WindowBackground {
+                    MainScreen(
+                        resumeSignal = 0,
+                        sessionManager = SessionManager.getInstance(context),
+                        sessionHistoryManager = SessionHistoryManager.getInstance(context),
+                        isAccessibilityServiceEnabled = { true },
+                        isDndAccessGranted = { true },
+                        onGrantAccessibility = {},
+                        onGrantDnd = {},
+                        onHistory = {},
+                        onSettings = {},
+                        onQuickTogether = {},
+                        selectedDurationMinutes = 60,
+                        onSelectDuration = {},
+                        showPermissionDialog = false,
+                        onDismissPermissionDialog = {},
+                    )
+                }
+            }
+        }
+        // Il fumetto arriva dopo due secondi, con una dissolvenza.
+        compose.mainClock.advanceTimeBy(3_000)
+        Screenshots.assertMatches(compose.onRoot(), "$screen-sage-$mode")
     }
 
     /** La Home con più profili di app consentite: la riga del profilo sotto le durate. */

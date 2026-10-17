@@ -80,6 +80,10 @@ notification carries the same name.
   calm, ordinary or hard, plus a few words if you like ("walk by the
   lake"). It ends up in History next to that pause. Never after a pause
   cut short — it's a nod to time well spent, not a reproach.
+- **A daily nudge.** Open the app on a day without a pause and the otter
+  says hello once — "A little quiet?", "Ten minutes for you?" — then lets
+  you be. No counts of missed days, no notifications. If you have no
+  scheduled pauses, it sometimes reminds you it can start by itself.
 - **A Sunday evening note.** Once a week, "Your week: 7 pauses, 4 h 30 in
   all." Never streaks, goals or comparisons, and nothing at all if there
   were no pauses. One switch in Settings turns it off.

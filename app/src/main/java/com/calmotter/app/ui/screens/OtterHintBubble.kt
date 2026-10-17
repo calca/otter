@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -23,28 +24,43 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Path
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import com.calmotter.app.R
 import kotlinx.coroutines.delay
 
 /**
- * "Toccami quando vuoi una pausa", un fumetto con la punta verso l'otter
- * (vedi OtterHint per quando compare). Arriva con una dissolvenza dopo due
- * secondi, per non sovrapporsi all'arrivo in Home; un tocco lo chiude.
+ * Il fumetto con la punta verso l'otter (vedi OtterHint per quando compare e
+ * cosa dice). Arriva con una dissolvenza dopo due secondi, per non
+ * sovrapporsi all'arrivo in Home; un tocco chiama [onTap] (chiuderlo, o
+ * aprire le pause programmate). Con [autoHideMillis] sparisce anche da solo:
+ * quello del giorno è un invito, non deve restare lì a coprire la Home.
  */
 @Composable
-fun OtterHintBubble(visible: Boolean, onDismiss: () -> Unit, modifier: Modifier = Modifier) {
+fun OtterHintBubble(
+    text: String?,
+    onTap: () -> Unit,
+    onHidden: () -> Unit,
+    modifier: Modifier = Modifier,
+    autoHideMillis: Long? = null,
+) {
     var shown by remember { mutableStateOf(false) }
-    LaunchedEffect(visible) {
-        if (visible) {
+    LaunchedEffect(text) {
+        if (text != null) {
             delay(2_000)
             shown = true
+            if (autoHideMillis != null) {
+                delay(autoHideMillis)
+                shown = false
+                onHidden()
+            }
         } else {
             shown = false
         }
     }
+    // L'ultimo testo resta durante la dissolvenza in uscita.
+    var lastText by remember { mutableStateOf("") }
+    if (text != null) lastText = text
     val color = MaterialTheme.colorScheme.primary
     AnimatedVisibility(
         visible = shown,
@@ -54,14 +70,20 @@ fun OtterHintBubble(visible: Boolean, onDismiss: () -> Unit, modifier: Modifier 
     ) {
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
-            modifier = Modifier.clickable(onClick = onDismiss),
+            modifier = Modifier.clickable(onClick = onTap),
         ) {
             Surface(shape = RoundedCornerShape(16.dp), color = color, shadowElevation = 2.dp) {
                 Text(
-                    text = stringResource(R.string.otter_hint),
+                    text = lastText,
                     color = MaterialTheme.colorScheme.onPrimary,
                     fontWeight = FontWeight.Medium,
-                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 10.dp),
+                    // Le frasi del giorno hanno lunghezze diverse: le più
+                    // lunghe vanno a capo centrate invece di allargarsi fino
+                    // ai bordi della Home.
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier
+                        .widthIn(max = 260.dp)
+                        .padding(horizontal = 16.dp, vertical = 10.dp),
                 )
             }
             // La punta, verso l'otter.

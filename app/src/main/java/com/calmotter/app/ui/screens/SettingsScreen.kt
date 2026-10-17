@@ -41,6 +41,8 @@ import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.unit.em
 import com.calmotter.app.ScheduleManager
 import com.calmotter.app.SlowExitManager
+import com.calmotter.app.OtterHint
+import com.calmotter.app.ui.mascot.OtterTapMark
 import com.calmotter.app.WeeklySummary
 import com.calmotter.app.ui.mascot.SprigMark
 import androidx.compose.foundation.layout.Spacer
@@ -218,6 +220,8 @@ fun SettingsScreen(
         // password, è solo una notifica. Se le notifiche dell'app sono
         // spente lo dice, senza chiedere il permesso solo per questo.
         var weeklyNote by remember { mutableStateOf(WeeklySummary.isEnabled(context)) }
+        // Il fumetto del giorno sopra l'otter (specs/otter-daily-hint/).
+        var dailyHint by remember { mutableStateOf(OtterHint.isDailyEnabled(context)) }
         val notificationsOn = remember(resumeSignal) { WeeklySummary.notificationsAllowed(context) }
         Surface(
             shape = RoundedCornerShape(20.dp),
@@ -265,6 +269,16 @@ fun SettingsScreen(
                     onCheckedChange = {
                         weeklyNote = it
                         WeeklySummary.setEnabled(context, it)
+                    },
+                )
+                RowDivider()
+                SettingsSwitchRow(
+                    icon = { OtterTapMark(markSize = 18.dp) },
+                    label = stringResource(R.string.otter_daily_hint_toggle_label),
+                    checked = dailyHint,
+                    onCheckedChange = {
+                        dailyHint = it
+                        OtterHint.setDailyEnabled(context, it)
                     },
                 )
             }

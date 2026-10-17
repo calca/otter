@@ -1064,7 +1064,8 @@ flag). It disappears for good at the first pause, however it starts
 (`SessionManager.startSession` marks it done: otter, widget, tile,
 schedule, together), or when tapped. Only the bubble: an animated ripple
 and a coach-mark overlay were considered and dropped as louder than needed.
-Screenshot tests capture Home at 1 s, before the bubble appears.
+Screenshot tests capture Home at 1 s, before the bubble appears. Since 2026-10-17 a daily bubble follows the first one (see
+`specs/otter-daily-hint/`).
 
 ## Portrait only
 

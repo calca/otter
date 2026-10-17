@@ -30,6 +30,19 @@
 
     <string name="home_start_hint">Tocca &lt;b&gt;Otter&lt;/b&gt; per iniziare</string>
     <string name="otter_hint">Toccami quando vuoi una pausa</string>
+    <!-- Fumetto del giorno sopra l'otter (specs/otter-daily-hint/): inviti, mai rimproveri né conti dei giorni. -->
+    <string name="otter_hint_schedules">Ti dimentichi? Posso partire da solo: tocca qui.</string>
+    <string name="otter_daily_hint_toggle_label">Invito del giorno</string>
+    <string-array name="otter_daily_phrases">
+        <item>Dieci minuti per te?</item>
+        <item>Il telefono può aspettare. Toccami.</item>
+        <item>Anche una pausa breve conta.</item>
+        <item>Facciamo due respiri?</item>
+        <item>Il mondo è lì fuori. Una pausa?</item>
+        <item>Quando vuoi, io sono qui.</item>
+        <item>Un po\' di silenzio?</item>
+        <item>Alza gli occhi un momento?</item>
+    </string-array>
     <string name="home_active_label">In pausa</string>
     <string name="home_time_remaining">Ancora %1$s</string>
     <string name="weekly_chart_today">oggi</string>

@@ -6,6 +6,7 @@ import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.offset
 import com.calmotter.app.OtterHint
+import com.calmotter.app.ScheduleManager
 import com.calmotter.app.ui.mascot.OtterTapMark
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
@@ -164,6 +165,8 @@ fun MainScreen(
     // quella pausa. Di default come [onHistory].
     onHistorySessions: () -> Unit = onHistory,
     onSettings: () -> Unit,
+    // Dal fumetto del giorno che ricorda le pause programmate (OtterHint).
+    onScheduledPauses: () -> Unit = {},
     // Riceve la durata scelta qui in Home (vedi selectedDurationMinutes sotto),
     // in minuti: il flow di creazione la usa come valore iniziale del proprio
     // selettore, invece di ripartire sempre da un default indipendente — vedi
@@ -215,7 +218,11 @@ fun MainScreen(
     val allowedAppsManager = remember { AllowedAppsManager.getInstance(context) }
     var profiles by remember { mutableStateOf(allowedAppsManager.profiles()) }
     var selectedProfileId by remember { mutableIntStateOf(allowedAppsManager.selectedProfileId()) }
-    var showOtterHint by remember { mutableStateOf(false) }
+    // Il fumetto sopra l'otter (vedi OtterHint): scelto una volta per
+    // apertura della Home, non a ogni ritorno — quello del giorno si conta
+    // come mostrato appena scelto.
+    var otterHint by remember { mutableStateOf<OtterHint.Hint?>(null) }
+    var otterHintPicked by remember { mutableStateOf(false) }
 
     fun refreshDerivedState() {
         accessibilityOk = isAccessibilityServiceEnabled()
@@ -226,7 +233,16 @@ fun MainScreen(
         val history = sessionHistoryManager.getAll()
         streakDays = SessionStreak.currentStreakDays(history)
         weekSummary = weekSummaryOf(history)
-        showOtterHint = !sessionActive && OtterHint.shouldShow(context, hasHistory = history.isNotEmpty())
+        if (sessionActive) {
+            otterHint = null
+        } else if (!otterHintPicked) {
+            otterHintPicked = true
+            otterHint = OtterHint.pick(
+                context,
+                history,
+                hasSchedules = ScheduleManager.getInstance(context).all().isNotEmpty(),
+            )
+        }
         pendingSummary = sessionManager.consumePendingBackgroundSummary() ?: pendingSummary
         profiles = allowedAppsManager.profiles()
         selectedProfileId = allowedAppsManager.selectedProfileId()
@@ -344,12 +360,16 @@ fun MainScreen(
             // avanzamento: fa parte di *questa* schermata, compare con lei e
             // sfuma con lei. Il marchio no — quello è uno solo e non si
             // scambia.
+            val hint = otterHint
             OtterHintBubble(
-                visible = showOtterHint,
-                onDismiss = {
-                    OtterHint.markDone(context)
-                    showOtterHint = false
+                text = hint?.text,
+                onTap = {
+                    if (hint?.daily == false) OtterHint.markDone(context)
+                    otterHint = null
+                    if (hint?.opensSchedules == true) onScheduledPauses()
                 },
+                onHidden = { otterHint = null },
+                autoHideMillis = if (hint?.daily == true) DailyHintMillis else null,
                 modifier = Modifier.align(Alignment.TopCenter),
             )
             PondOtter(
@@ -702,3 +722,6 @@ internal fun Modifier.horizontalFadeEdge(
             }
         }
 }
+
+/** Quanto resta il fumetto del giorno prima di sparire da solo. */
+private const val DailyHintMillis = 8_000L
