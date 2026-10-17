@@ -370,6 +370,7 @@ fun MainScreen(
                 },
                 onHidden = { otterHint = null },
                 autoHideMillis = if (hint?.daily == true) DailyHintMillis else null,
+                floatOffset = otterFloatOffset,
                 modifier = Modifier.align(Alignment.TopCenter),
             )
             PondOtter(
