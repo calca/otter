@@ -8,11 +8,8 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.scaleIn
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -24,7 +21,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.RoundRect
@@ -43,7 +39,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
-import com.calmotter.app.ui.mascot.SprigMark
 import kotlinx.coroutines.delay
 
 /**
@@ -57,7 +52,8 @@ import kotlinx.coroutines.delay
  * blocco verde pieno con un triangolo attaccato sotto, che in scuro
  * diventava una macchia chiara, ma un fumetto vero — corpo e punta in un
  * solo tracciato ([BubbleShape]), chiaro con un'ombra leggera, bordo sottile,
- * testo in `primary` e il rametto davanti, come una voce dell'otter. In scuro
+ * testo in `primary`, come una voce dell'otter. Niente icona davanti (il
+ * rametto è stato provato e tolto): chi parla lo dice già la punta. In scuro
  * un fondo bianco sarebbe di nuovo una macchia: lì è un verde tenue. Entra
  * crescendo dalla punta e galleggia con l'otter ([floatOffset], la stessa
  * oscillazione), così sembra detto da lui e non appoggiato sopra.
@@ -121,26 +117,17 @@ fun OtterHintBubble(
             border = BorderStroke(1.dp, scheme.primary.copy(alpha = 0.12f)),
             modifier = Modifier.clickable(onClick = onTap),
         ) {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.padding(start = 10.dp, end = 16.dp, top = 10.dp, bottom = 10.dp + TailHeight),
-            ) {
-                // Il disegno occupa circa metà del suo riquadro: 24dp per un
-                // rametto che si veda, e foglie più piene del solito.
-                SprigMark(markSize = 24.dp, leafAlpha = 0.6f)
-                Spacer(modifier = Modifier.width(4.dp))
-                Text(
-                    text = lastText,
-                    color = scheme.primary,
-                    fontWeight = FontWeight.Medium,
-                    // Le frasi hanno lunghezze diverse: le più lunghe vanno a
-                    // capo invece di allargarsi fino ai bordi. Allineate a
-                    // sinistra, accanto al rametto: centrate su due righe
-                    // lasciavano il rametto staccato in un angolo.
-                    textAlign = TextAlign.Start,
-                    modifier = Modifier.widthIn(max = 224.dp),
-                )
-            }
+            Text(
+                text = lastText,
+                color = scheme.primary,
+                fontWeight = FontWeight.Medium,
+                // Le frasi hanno lunghezze diverse: le più lunghe vanno a
+                // capo centrate invece di allargarsi fino ai bordi.
+                textAlign = TextAlign.Center,
+                modifier = Modifier
+                    .widthIn(max = 260.dp)
+                    .padding(start = 16.dp, end = 16.dp, top = 10.dp, bottom = 10.dp + TailHeight),
+            )
         }
     }
 }

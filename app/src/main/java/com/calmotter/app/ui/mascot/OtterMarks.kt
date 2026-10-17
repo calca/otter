@@ -139,14 +139,8 @@ fun PactPawsMark(modifier: Modifier = Modifier, markSize: Dp = 96.dp) {
  * [OtterFloatMark].
  */
 @Composable
-fun SprigMark(
-    modifier: Modifier = Modifier,
-    markSize: Dp = 96.dp,
-    // Più pieno dove il rametto è piccolo e deve farsi notare (il fumetto
-    // dell'otter); 0.32 resta il tono di sempre.
-    leafAlpha: Float = 0.32f,
-) {
-    val leaf = MaterialTheme.colorScheme.primary.copy(alpha = leafAlpha)
+fun SprigMark(modifier: Modifier = Modifier, markSize: Dp = 96.dp) {
+    val leaf = MaterialTheme.colorScheme.primary.copy(alpha = 0.32f)
     val stem = MaterialTheme.colorScheme.primary
 
     Canvas(modifier = modifier.size(markSize)) {

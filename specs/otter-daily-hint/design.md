@@ -34,8 +34,10 @@ marks it done; on the schedules one it calls `onScheduledPauses`
 A speech bubble, not a solid block: body and tail are one path
 (`BubbleShape`, rounded tail), light `surface` with a 3dp shadow in light
 mode, `primary` at 22% over the background in dark mode (a white bubble
-would be a bright patch), 1dp `primary` 12% border, `primary` text, the
-sprig (`SprigMark`) before it, text start-aligned. It grows from the tail
+would be a bright patch), 1dp `primary` 12% border, `primary` text,
+centered. No icon: a sprig before the text was tried and removed — the tail
+already says who is speaking, and it pushed the text into an "icon +
+paragraph" block. It grows from the tail
 (`scaleIn` from 0.85, spring) and floats with the otter (same
 `otterFloatOffset`, read in the draw phase); with system animations off it
 only fades. Chosen over the old solid `primary` block among four renders.
