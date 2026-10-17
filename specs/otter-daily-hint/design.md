@@ -23,7 +23,7 @@
 `resumeSignal`: returning from Settings must not consume another day or
 swap the phrase. During a session the hint is cleared. `OtterHintBubble`
 takes the text, an `onTap` and an optional `autoHideMillis` (8 s for the
-daily one); it fades in after 2 s as before, and keeps the last text during
+daily one); it fades in 1.5 s after the first frame of Home is drawn (`withFrameNanos`), not after composition, and keeps the last text during
 the fade-out. The text is centered and at most 260dp wide, so the longer
 phrases wrap instead of reaching the edges. A tap on the first-pause hint
 marks it done; on the schedules one it calls `onScheduledPauses`
@@ -37,10 +37,10 @@ mode, `primary` at 22% over the background in dark mode (a white bubble
 would be a bright patch), 1dp `primary` 12% border, `primary` text,
 centered. No icon: a sprig before the text was tried and removed — the tail
 already says who is speaking, and it pushed the text into an "icon +
-paragraph" block. It grows from the tail
-(`scaleIn` from 0.85, spring) and floats with the otter (same
-`otterFloatOffset`, read in the draw phase); with system animations off it
-only fades. Chosen over the old solid `primary` block among four renders.
+paragraph" block. It enters with a slow
+fade only (900 ms; a spring scale-in from the tail was tried and made it
+pop) and floats with the otter (same `otterFloatOffset`, read in the draw
+phase). Chosen over the old solid `primary` block among four renders.
 
 ## Settings
 

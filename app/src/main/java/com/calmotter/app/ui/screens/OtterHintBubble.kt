@@ -1,11 +1,10 @@
 package com.calmotter.app.ui.screens
 
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.LinearOutSlowInEasing
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
-import androidx.compose.animation.scaleIn
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.offset
@@ -21,6 +20,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.RoundRect
@@ -29,11 +29,9 @@ import androidx.compose.ui.graphics.Outline
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.PathOperation
 import androidx.compose.ui.graphics.Shape
-import androidx.compose.ui.graphics.TransformOrigin
 import androidx.compose.ui.graphics.compositeOver
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.luminance
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Density
@@ -43,8 +41,8 @@ import kotlinx.coroutines.delay
 
 /**
  * Il fumetto con la punta verso l'otter (vedi OtterHint per quando compare e
- * cosa dice). Arriva dopo due secondi, per non sovrapporsi all'arrivo in
- * Home; un tocco chiama [onTap] (chiuderlo, o aprire le pause programmate).
+ * cosa dice). Entra sfumando un secondo e mezzo dopo che la Home è a
+ * schermo, per non sovrapporsi al suo arrivo; un tocco chiama [onTap] (chiuderlo, o aprire le pause programmate).
  * Con [autoHideMillis] sparisce anche da solo: quello del giorno è un
  * invito, non deve restare lì a coprire la Home.
  *
@@ -54,9 +52,9 @@ import kotlinx.coroutines.delay
  * solo tracciato ([BubbleShape]), chiaro con un'ombra leggera, bordo sottile,
  * testo in `primary`, come una voce dell'otter. Niente icona davanti (il
  * rametto è stato provato e tolto): chi parla lo dice già la punta. In scuro
- * un fondo bianco sarebbe di nuovo una macchia: lì è un verde tenue. Entra
- * crescendo dalla punta e galleggia con l'otter ([floatOffset], la stessa
- * oscillazione), così sembra detto da lui e non appoggiato sopra.
+ * un fondo bianco sarebbe di nuovo una macchia: lì è un verde tenue.
+ * Galleggia con l'otter ([floatOffset], la stessa oscillazione), così sembra
+ * detto da lui e non appoggiato sopra.
  */
 @Composable
 fun OtterHintBubble(
@@ -70,7 +68,11 @@ fun OtterHintBubble(
     var shown by remember { mutableStateOf(false) }
     LaunchedEffect(text) {
         if (text != null) {
-            delay(2_000)
+            // Dopo che la Home è a schermo, non dal momento in cui è stata
+            // composta: all'avvio a freddo fra le due passa del tempo, e il
+            // fumetto arrivava insieme alla pagina invece che dopo.
+            withFrameNanos { }
+            delay(1_500)
             shown = true
             if (autoHideMillis != null) {
                 delay(autoHideMillis)
@@ -85,24 +87,15 @@ fun OtterHintBubble(
     var lastText by remember { mutableStateOf("") }
     if (text != null) lastText = text
 
-    val context = LocalContext.current
-    val reduceMotion = remember { animationsDisabled(context) }
     val scheme = MaterialTheme.colorScheme
     val dark = scheme.background.luminance() < 0.5f
     val fill = if (dark) scheme.primary.copy(alpha = 0.22f).compositeOver(scheme.background) else scheme.surface
 
     AnimatedVisibility(
         visible = shown,
-        enter = if (reduceMotion) {
-            fadeIn(tween(600))
-        } else {
-            fadeIn(tween(400)) + scaleIn(
-                animationSpec = spring(dampingRatio = 0.6f, stiffness = 300f),
-                initialScale = 0.85f,
-                // Cresce dalla punta, cioè dall'otter.
-                transformOrigin = TransformOrigin(0.5f, 1f),
-            )
-        },
+        // Solo una dissolvenza lenta (richiesto): la crescita a molla dalla
+        // punta, provata, faceva "saltare fuori" il fumetto.
+        enter = fadeIn(tween(900, easing = LinearOutSlowInEasing)),
         exit = fadeOut(tween(300)),
         modifier = modifier
             .offset(y = 6.dp)
