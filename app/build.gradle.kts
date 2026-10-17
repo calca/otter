@@ -14,11 +14,10 @@ kotlin {
 }
 
 /**
- * Numero di build, da cui derivano `versionCode` e la patch di `versionName`
- * ("0.1.<numero>"). Lo passa `.github/workflows/android.yml` come
+ * Numero di build, da cui derivano `versionCode` e il metadato di build di
+ * `versionName` ("0.4.0+<numero>", vedi [otterVersionName]). Lo passa `.github/workflows/android.yml` come
  * `OTTER_BUILD_NUMBER`, valorizzato con `github.run_number`; in locale non
- * c'è e vale 1, cioè esattamente i valori fissi di prima (`versionCode = 1`,
- * `versionName = "0.1.0"` diventa "0.1.1" — l'unica differenza visibile).
+ * c'è e vale 1.
  *
  * Nasce da un problema concreto: due APK firmate uscite da due run diversi
  * si dichiaravano entrambe `0.1.0 (1)`, quindi dal telefono non c'era modo
@@ -42,14 +41,28 @@ val otterBuildNumber: Int =
     System.getenv("OTTER_BUILD_NUMBER")?.toIntOrNull()?.takeIf { it > 0 } ?: 1
 
 /**
- * Su un tag di rilascio (`v0.2.0`) `android.yml` passa il nome del tag in
- * `OTTER_VERSION_NAME`, e la versione mostrata diventa "0.2.0". Il
- * `versionCode` resta il numero di run: è quello che Play pretende
- * crescente, e un tag non lo garantisce.
+ * Il nome di versione segue semver (vedi docs/store/README.md, "Versioni").
+ * Su un tag di rilascio (`v0.5.0`) `android.yml` passa il nome del tag in
+ * `OTTER_VERSION_NAME`, e la versione mostrata è "0.5.0". Il `versionCode`
+ * resta il numero di run: è quello che Play pretende crescente, e un tag non
+ * lo garantisce.
+ *
+ * Ogni altra build parte dall'ultimo tag e aggiunge il numero di build come
+ * metadato semver: "0.4.0+171" = la 0.4.0 più le modifiche arrivate dopo.
+ * Prima era "0.1.<numero>", che dopo la 0.4.0 sembrava una versione più
+ * vecchia. Il tag si legge da git (in CI serve un checkout con i tag,
+ * `fetch-depth: 0`); senza git o senza tag vale "0.0.0".
  */
+val lastReleaseVersion: String = runCatching {
+    providers.exec {
+        commandLine("git", "describe", "--tags", "--abbrev=0", "--match", "v[0-9]*.[0-9]*.[0-9]*")
+        isIgnoreExitValue = true
+    }.standardOutput.asText.get().trim().removePrefix("v")
+}.getOrNull()?.takeIf { it.isNotBlank() } ?: "0.0.0"
+
 val otterVersionName: String =
     System.getenv("OTTER_VERSION_NAME")?.removePrefix("v")?.takeIf { it.isNotBlank() }
-        ?: "0.1.$otterBuildNumber"
+        ?: "$lastReleaseVersion+$otterBuildNumber"
 
 android {
     namespace = "com.calmotter.app"

@@ -1,0 +1,77 @@
+name: Release
+
+# Un rilascio con un bottone: `gh workflow run release.yml -f bump=minor`.
+# Calcola la versione successiva dall'ultimo tag (semver, regola in
+# docs/store/README.md, "Versioni"), controlla che le note di rilascio siano
+# state aggiornate, crea il tag e lancia android.yml sul tag, che firma e
+# carica sulla traccia interna di Play. La promozione resta a mano
+# (play-promote.yml).
+on:
+  workflow_dispatch:
+    inputs:
+      bump:
+        description: "patch = solo correzioni · minor = funzioni o cambi visibili · major = 1.0.0 o cambi che rompono"
+        type: choice
+        options: [ patch, minor, major ]
+        required: true
+
+jobs:
+  tag:
+    runs-on: ubuntu-latest
+    # Due rilasci in parallelo calcolerebbero lo stesso numero.
+    concurrency: release
+    permissions:
+      contents: write
+      actions: write
+    steps:
+    - uses: actions/checkout@v7
+      with:
+        fetch-depth: 0
+
+    - name: Compute the next version
+      id: version
+      run: |
+        last=$(git tag --list 'v[0-9]*.[0-9]*.[0-9]*' | sort -V | tail -1)
+        last=${last:-v0.0.0}
+        IFS=. read -r major minor patch <<< "${last#v}"
+        case "${{ inputs.bump }}" in
+          major) major=$((major + 1)); minor=0; patch=0 ;;
+          minor) minor=$((minor + 1)); patch=0 ;;
+          patch) patch=$((patch + 1)) ;;
+        esac
+        next="v$major.$minor.$patch"
+        echo "last=$last" >> "$GITHUB_OUTPUT"
+        echo "next=$next" >> "$GITHUB_OUTPUT"
+        echo "### $last → $next (${{ inputs.bump }})" >> "$GITHUB_STEP_SUMMARY"
+
+    # Le note vanno a Play (e alla release su GitHub) così come sono: se non
+    # sono cambiate dall'ultimo tag, i tester leggerebbero quelle di prima.
+    - name: Check the release notes
+      run: |
+        last="${{ steps.version.outputs.last }}"
+        if [ "$last" != "v0.0.0" ] && git diff --quiet "$last" HEAD -- docs/store/whatsnew; then
+          echo "::error title=Release notes not updated::docs/store/whatsnew/ is unchanged since $last"
+          exit 1
+        fi
+        for f in docs/store/whatsnew/*.txt; do
+          n=$(python3 -c "import sys; print(len(open(sys.argv[1], encoding='utf-8').read().strip()))" "$f")
+          if [ "$n" -gt 500 ]; then
+            echo "::error title=Release notes too long::$f is $n characters, Play allows 500"
+            exit 1
+          fi
+        done
+
+    - name: Create the tag
+      run: |
+        next="${{ steps.version.outputs.next }}"
+        git config user.name "github-actions[bot]"
+        git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+        git tag -a "$next" -m "Calm Otter ${next#v}"
+        git push origin "$next"
+
+    # Un tag spinto con GITHUB_TOKEN non fa partire altri workflow: lo si
+    # lancia esplicitamente, sul tag (workflow_dispatch invece è permesso).
+    - name: Build and publish the tag
+      env:
+        GH_TOKEN: ${{ github.token }}
+      run: gh workflow run android.yml --ref "${{ steps.version.outputs.next }}"

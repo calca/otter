@@ -12,8 +12,8 @@ Play Console.
   already described in that workflow.
 - **Automatic upload to Play**: the `publish-internal` job in the same
   workflow uploads that AAB to the **internal** track only for a release
-  tag (`git tag v0.2.0 && git push origin v0.2.0`; plain pushes to `main`
-  just build), with the notes in [`whatsnew/`](whatsnew) (update them before a
+  tag (made by `gh workflow run release.yml -f bump=minor`, see
+  "Versions" below; plain pushes to `main` just build), with the notes in [`whatsnew/`](whatsnew) (update them before a
   release; only languages the store listing has are sent). Promote by
   hand with `gh workflow run play-promote.yml -f from=internal -f to=alpha`
   (closed testing), later `-f from=alpha -f to=production [-f rollout=0.2]`.
@@ -30,6 +30,22 @@ Play Console.
   account with the Google Play Android Developer API enabled, invited in
   Play Console → Users and permissions with release rights for this app.
   Without it the job is skipped with a warning.
+- **Versions** follow semver, `MAJOR.MINOR.PATCH`:
+  - **patch** — fixes only, no intended visible change;
+  - **minor** — new features or visible changes (most releases while in
+    0.x);
+  - **major** — `1.0.0` when the first version is stable in production;
+    after that, only for breaking changes (e.g. data that can't be
+    migrated).
+
+  To release: update [`whatsnew/`](whatsnew), push, then
+  `gh workflow run release.yml -f bump=patch|minor|major`. It computes the
+  next tag from the last one, refuses if the notes are unchanged since then
+  or longer than 500 characters, creates the tag and runs `android.yml` on
+  it. A hand-made tag still works, but `android.yml` stops unless it is
+  `vX.Y.Z` and higher than every previous tag. Builds without a tag are
+  named after the last one plus the run number, `0.4.0+171` (semver build
+  metadata): "0.4.0 and what came after".
 - **Store listing texts** (IT/EN): [`listing.md`](listing.md).
 - **Graphics**: icon 512 × 512, feature graphic 1024 × 500 and six
   captioned phone screenshots, in Italian and English — in

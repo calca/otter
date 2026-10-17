@@ -4,7 +4,9 @@ on:
   push:
     branches: [ "main", "master" ]
     # Un tag v* (es. v0.2.0) è un rilascio: oltre alle build firmate,
-    # carica l'AAB su Play (job publish-internal).
+    # carica l'AAB su Play (job publish-internal). Il tag lo crea
+    # release.yml, che poi lancia questo workflow sul tag (un tag spinto da
+    # GITHUB_TOKEN non fa partire i workflow da solo).
     tags: [ "v*" ]
   pull_request:
     branches: [ "main", "master" ]
@@ -19,6 +21,28 @@ jobs:
 
     steps:
     - uses: actions/checkout@v7
+      with:
+        # Con i tag: il nome di versione delle build senza tag parte
+        # dall'ultimo ("0.4.0+171", vedi app/build.gradle.kts).
+        fetch-depth: 0
+
+    # Un tag di rilascio dev'essere semver (vX.Y.Z) e più alto di tutti i
+    # precedenti: altrimenti si ferma qui, prima di firmare e caricare su
+    # Play. Di solito il tag lo crea release.yml, che lo calcola da sé;
+    # questo controllo copre un tag fatto a mano.
+    - name: Check release tag
+      if: github.ref_type == 'tag'
+      run: |
+        tag="${GITHUB_REF_NAME}"
+        if ! [[ "$tag" =~ ^v(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)$ ]]; then
+          echo "::error title=Invalid release tag::$tag is not vMAJOR.MINOR.PATCH"
+          exit 1
+        fi
+        highest=$(git tag --list 'v[0-9]*.[0-9]*.[0-9]*' | grep -vx "$tag" | sort -V | tail -1)
+        if [ -n "$highest" ] && [ "$(printf '%s\n%s\n' "$highest" "$tag" | sort -V | tail -1)" != "$tag" ]; then
+          echo "::error title=Release tag not newer::$tag is not higher than $highest"
+          exit 1
+        fi
 
     - name: set up JDK 17
       uses: actions/setup-java@v6
@@ -75,7 +99,8 @@ jobs:
       if: steps.signing.outputs.available == 'true'
       env:
         OTTER_BUILD_NUMBER: ${{ github.run_number }}
-        # Su un tag v* il versionName è il tag stesso (v0.2.0 → 0.2.0).
+        # Su un tag v* il versionName è il tag stesso (v0.2.0 → 0.2.0);
+        # altrimenti l'ultimo tag più il numero di run (0.4.0+171).
         OTTER_VERSION_NAME: ${{ github.ref_type == 'tag' && github.ref_name || '' }}
         KEYSTORE_PATH: ../release.jks
         KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
@@ -99,7 +124,7 @@ jobs:
 
   # Solo un tag di rilascio (v*) finisce sul track "internal" di Play: su
   # main si lavora, e non ogni push è una versione da dare ai tester.
-  # `git tag v0.2.0 && git push origin v0.2.0` → internal, disponibile
+  # `gh workflow run release.yml -f bump=minor` → tag → internal, disponibile
   # subito ai tester interni senza revisione. Da lì si promuove a mano
   # (closed testing, poi produzione) con play-promote.yml.
   # Job separato con concurrency: due push ravvicinati aprirebbero due edit

@@ -820,7 +820,8 @@ experience" (`settings_pause_experience_label`).
 and the patch with the run number (see app/build.gradle.kts), this line is
 the only way, phone in hand, to know which build you are running — half an
 hour went into exactly that confusion while debugging on an S22. A local
-build reads "0.1.1 (build 1)", which is the honest answer for one.
+build reads "0.4.0+1 (build 1)" (last tag plus build number), which is the
+honest answer for one.
 
 ### Second pass: section order, a leftover Spacer, and a grid that only broke in Italian
 
