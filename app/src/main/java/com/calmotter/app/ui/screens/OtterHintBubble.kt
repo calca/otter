@@ -118,15 +118,17 @@ fun OtterHintBubble(
             shape = BubbleShape,
             color = fill,
             shadowElevation = if (dark) 0.dp else 3.dp,
-            border = BorderStroke(1.dp, scheme.primary.copy(alpha = 0.25f)),
+            border = BorderStroke(1.dp, scheme.primary.copy(alpha = 0.12f)),
             modifier = Modifier.clickable(onClick = onTap),
         ) {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 10.dp, bottom = 10.dp + TailHeight),
+                modifier = Modifier.padding(start = 10.dp, end = 16.dp, top = 10.dp, bottom = 10.dp + TailHeight),
             ) {
-                SprigMark(markSize = 16.dp)
-                Spacer(modifier = Modifier.width(8.dp))
+                // Il disegno occupa circa metà del suo riquadro: 24dp per un
+                // rametto che si veda, e foglie più piene del solito.
+                SprigMark(markSize = 24.dp, leafAlpha = 0.6f)
+                Spacer(modifier = Modifier.width(4.dp))
                 Text(
                     text = lastText,
                     color = scheme.primary,
