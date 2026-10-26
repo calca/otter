@@ -53,8 +53,9 @@ default under `allowed_packages`) keeps working with no migration.
   loss) — the simplest option, and consistent with how the rest of the
   profile UI treats `packages` as independent of presentation.
 - `AllowedAppLaunchItems.kt` (block-screen launch badges): in blocklist
-  mode there's no small "stays" list to show as shortcuts, so only
-  Phone + Unlock appear — showing the forbidden apps as one-tap launch
+  mode there's no small "stays" list to show as shortcuts, and Phone is
+  left out too (with everything else reachable it would look out of place),
+  so only Unlock appears — showing the forbidden apps as one-tap launch
   badges would be the opposite of the feature's intent.
 - `UsageWatcher.kt` (usage-pause "excluded from the count" check): mirrors
   `shouldBlock()`'s branch — allowlist membership keeps counting paused,

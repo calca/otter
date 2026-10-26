@@ -113,10 +113,11 @@ open, not one I want to start.
    vertical list, no visually distinct "primary action" styling setting
    Unlock apart from the app badges beyond its content), not a mini
    launcher to browse. **For a blocklist-mode profile this row never shows
-   app badges** (`AllowedAppLaunchItems.kt` — see
-   `allowed-app-profiles/design.md`'s "Mode" section): only the phone and
-   the Unlock control appear, since there is no small "stays reachable"
-   set to offer as launch shortcuts.
+   app badges, the phone included** (`AllowedAppLaunchItems.kt` — see
+   `allowed-app-profiles/design.md`'s "Mode" section): only the Unlock
+   control appears, since there is no small "stays reachable" set to offer
+   as launch shortcuts and a lone Phone badge would look out of place with
+   the rest of the phone reachable.
 2. WHEN the Unlock badge is tapped THEN the system SHALL open a dialog with
    a password field and Unlock/Cancel actions, rather than keeping a
    password field permanently visible on the block screen.
@@ -128,7 +129,7 @@ open, not one I want to start.
 5. WHEN an allowed package can no longer be resolved or launched (e.g.
    uninstalled since being allowed) THEN the system SHALL drop it from the
    list (or silently no-op the tap) rather than showing an error.
-6. The phone (device's default dialer) SHALL always appear as the first
+6. In allowlist mode, the phone (device's default dialer) SHALL always appear as the first
    app badge (before the Unlock badge and before the configurable
    allowed-apps list), regardless of the configurable allowed-apps list's
    contents — it was already always exempt from blocking, this just makes

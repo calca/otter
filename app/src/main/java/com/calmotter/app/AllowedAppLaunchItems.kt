@@ -31,8 +31,9 @@ fun loadAllowedAppLaunchItems(context: Context): List<AllowedAppLaunchItem> {
     val profile = AllowedAppsManager.getInstance(context)
         .profile(SessionManager.getInstance(context).sessionProfileId())
     // In modalità blocklist non esiste una "lista di chi resta": mostrare le
-    // app vietate come scorciatoie di avvio sarebbe l'opposto dell'intento.
-    if (profile.mode == AllowedAppsMode.BLOCKLIST) return listOfNotNull(phoneItem)
+    // app vietate come scorciatoie di avvio sarebbe l'opposto dell'intento, e
+    // nemmeno il telefono: con tutto il resto raggiungibile sarebbe fuori posto.
+    if (profile.mode == AllowedAppsMode.BLOCKLIST) return emptyList()
     val allowedItems = profile.packages
         .mapNotNull { resolveAppLaunchItem(context, it) }
         .sortedBy { it.label.lowercase() }
