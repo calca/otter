@@ -126,6 +126,16 @@ own content is visible.
 
 ## The bridge overlay shows the otter, not a black rectangle
 
+**The bridge outlives `onResume()` by `BRIDGE_HANDOFF_MS` (450 ms).**
+`BlockOverlayActivity.onResume()` fires when the system's open animation
+*starts*, not when it ends; removing the bridge there uncovered the
+screen sliding in from the side over the blocked app (seen on an API 37
+emulator, most visible when the blocked app was already on screen, e.g. a
+blocklist-mode profile). `notifyBlockScreenVisible()` now just schedules
+the dismissal after the animation time. Theme-level `windowAnimationStyle`,
+`ActivityOptions.makeCustomAnimation` and `overrideActivityTransition` were
+all tried first and did not reliably remove the slide.
+
 `BlockOverlayActivity` takes ~0.6s to be up and drawn after the
 accessibility event arrives (measured: the activity's `START` lands 1.7–2.0s
 after the blocked app is launched, the event itself somewhat before that).

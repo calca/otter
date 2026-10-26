@@ -421,6 +421,7 @@ class AppBlockerAccessibilityService : AccessibilityService() {
     companion object {
         private const val TAG = "AppBlockerA11yService"
         private const val BRIDGE_TIMEOUT_MS = 1500L
+        private const val BRIDGE_HANDOFF_MS = 450L
 
         /** Zero, non i 100ms del config XML: `notificationTimeout` è il
          * ritardo minimo con cui il sistema consegna un evento dello stesso
@@ -465,9 +466,14 @@ class AppBlockerAccessibilityService : AccessibilityService() {
         }
 
         /** Chiamato da [BlockOverlayActivity.onResume]: la vera schermata di
-         * blocco è visibile, la finestra-ponte non serve più. */
+         * blocco sta entrando. Il ponte resta ancora [BRIDGE_HANDOFF_MS], il
+         * tempo dell'animazione di apertura di sistema: `onResume` arriva
+         * all'inizio, e togliendolo subito si vedeva la schermata scorrere
+         * di lato sopra l'app bloccata (visto su emulatore API 37). */
         fun notifyBlockScreenVisible() {
-            instance?.dismissBridgeOverlay()
+            val service = instance ?: return
+            service.mainHandler.removeCallbacks(service.dismissBridgeOverlayRunnable)
+            service.mainHandler.postDelayed(service.dismissBridgeOverlayRunnable, BRIDGE_HANDOFF_MS)
         }
     }
 }
