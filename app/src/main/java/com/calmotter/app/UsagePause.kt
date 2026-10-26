@@ -26,6 +26,23 @@ const val USAGE_HEADS_UP_MILLIS = 5 * 60_000L
 /** Una pausa vera: almeno cinque minuti a schermo spento azzerano il conto. */
 const val USAGE_BREAK_MILLIS = 5 * 60_000L
 
+/** Su un caricatore wireless, senza un tocco da tanto, il telefono è appoggiato e non in uso. */
+const val USAGE_DOCKED_IDLE_MILLIS = 10 * 60_000L
+
+/**
+ * Telefono appoggiato su un caricatore wireless con lo schermo acceso ma
+ * nessun tocco da [idleMillis]: non è uso. Col cavo no — lo si usa spesso
+ * anche in carica — e su un supporto wireless usato davvero i tocchi tengono
+ * il conto vivo.
+ */
+fun isDockedIdle(
+    onWirelessCharger: Boolean,
+    screenOn: Boolean,
+    lastTouchAt: Long,
+    now: Long,
+    idleMillis: Long = USAGE_DOCKED_IDLE_MILLIS,
+): Boolean = onWirelessCharger && screenOn && lastTouchAt > 0 && now - lastTouchAt >= idleMillis
+
 /** "Non ora" sposta la pausa di quindici minuti d'uso. */
 const val USAGE_NOT_NOW_MILLIS = 15 * 60_000L
 

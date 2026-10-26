@@ -90,7 +90,7 @@ class AppBlockerAccessibilityService : AccessibilityService() {
         // comunque necessario perché il servizio compaia in Impostazioni
         // con etichetta e descrizione prima ancora di essere attivato.
         serviceInfo = (serviceInfo ?: AccessibilityServiceInfo()).apply {
-            eventTypes = AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED
+            eventTypes = AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED or INTERACTION_EVENT_TYPES
             feedbackType = AccessibilityServiceInfo.FEEDBACK_GENERIC
             notificationTimeout = EVENT_NOTIFICATION_TIMEOUT_MS
         }
@@ -98,6 +98,12 @@ class AppBlockerAccessibilityService : AccessibilityService() {
     }
 
     override fun onAccessibilityEvent(event: AccessibilityEvent?) {
+        // Solo l'istante del tocco, per riconoscere il telefono appoggiato su
+        // un caricatore wireless (UsageWatcher): nessun contenuto, nessun dato.
+        if (event != null && event.eventType and INTERACTION_EVENT_TYPES != 0) {
+            usageWatcher?.onTouch()
+            return
+        }
         if (event?.eventType != AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED) return
 
         val packageName = event.packageName?.toString() ?: return
@@ -420,6 +426,10 @@ class AppBlockerAccessibilityService : AccessibilityService() {
 
     companion object {
         private const val TAG = "AppBlockerA11yService"
+        /** Click e scorrimenti: arrivano anche senza leggere il contenuto, e non servono che come "qualcuno tocca". */
+        private const val INTERACTION_EVENT_TYPES =
+            AccessibilityEvent.TYPE_VIEW_CLICKED or AccessibilityEvent.TYPE_VIEW_LONG_CLICKED or
+                AccessibilityEvent.TYPE_VIEW_SCROLLED or AccessibilityEvent.TYPE_VIEW_TEXT_CHANGED
         private const val BRIDGE_TIMEOUT_MS = 1500L
         private const val BRIDGE_HANDOFF_MS = 450L
 

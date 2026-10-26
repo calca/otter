@@ -10,6 +10,7 @@ import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.content.pm.PackageManager
+import android.os.BatteryManager
 import android.os.Build
 import android.os.Handler
 import android.os.PowerManager
@@ -38,6 +39,12 @@ internal class UsageWatcher(private val context: Context, private val handler: H
     private var foregroundPackage: String? = null
     private val tick = Runnable { evaluate() }
 
+    // Ultimo tocco (solo in memoria): serve a riconoscere il telefono appoggiato
+    // su un caricatore wireless, vedi [isDockedIdle].
+    private var lastTouchAt = 0L
+    private var dockedIdle = false
+    private val idleCheck = Runnable { if (active()) updateExcluded() }
+
     private val screenReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {
             when (intent.action) {
@@ -46,6 +53,8 @@ internal class UsageWatcher(private val context: Context, private val handler: H
                 // Senza blocco schermo USER_PRESENT può non arrivare: acceso
                 // e non bloccato vale come sbloccato.
                 Intent.ACTION_SCREEN_ON -> if (!isKeyguardLocked()) screenOn()
+                // Il tipo di carica cambia l'idea di "appoggiato".
+                Intent.ACTION_POWER_CONNECTED, Intent.ACTION_POWER_DISCONNECTED -> if (active()) updateExcluded()
             }
         }
     }
@@ -55,6 +64,8 @@ internal class UsageWatcher(private val context: Context, private val handler: H
             addAction(Intent.ACTION_SCREEN_ON)
             addAction(Intent.ACTION_SCREEN_OFF)
             addAction(Intent.ACTION_USER_PRESENT)
+            addAction(Intent.ACTION_POWER_CONNECTED)
+            addAction(Intent.ACTION_POWER_DISCONNECTED)
         }
         ContextCompat.registerReceiver(context, screenReceiver, filter, ContextCompat.RECEIVER_NOT_EXPORTED)
         if (active()) sync()
@@ -76,6 +87,7 @@ internal class UsageWatcher(private val context: Context, private val handler: H
 
     fun stop() {
         handler.removeCallbacks(tick)
+        handler.removeCallbacks(idleCheck)
         runCatching { context.unregisterReceiver(screenReceiver) }
         // Accessibilità spenta: non si conta più (spec, User Story 3).
         counter.screenOff(System.currentTimeMillis())
@@ -86,6 +98,16 @@ internal class UsageWatcher(private val context: Context, private val handler: H
     fun onForegroundApp(packageName: String) {
         foregroundPackage = packageName
         if (active()) updateExcluded()
+    }
+
+    /** Un tocco sullo schermo: nient'altro che l'istante, in memoria. */
+    fun onTouch() {
+        lastTouchAt = System.currentTimeMillis()
+        if (!active()) return
+        when {
+            dockedIdle -> updateExcluded()
+            onWirelessCharger() -> scheduleIdleCheck()
+        }
     }
 
     /** Una pausa è partita o finita, di qualunque tipo: il conto riparte da zero. */
@@ -125,6 +147,7 @@ internal class UsageWatcher(private val context: Context, private val handler: H
     private fun screenOn() {
         if (!active()) return
         val now = System.currentTimeMillis()
+        lastTouchAt = now
         if (counter.screenOn(now)) {
             // Una pausa vera (5 minuti a schermo spento): l'avviso non serve più.
             cancelHeadsUp()
@@ -156,9 +179,31 @@ internal class UsageWatcher(private val context: Context, private val handler: H
             AllowedAppsMode.BLOCKLIST -> pkg !in profile.packages
         }
         val excludedApp = pkg != null && (BlockPolicy.isCallScreen(pkg) || pkg == defaultDialer() || staysDuringPause)
-        counter.setExcluded(now, sessionActive || excludedApp)
+        val baseExcluded = sessionActive || excludedApp
+
+        val wireless = onWirelessCharger()
+        dockedIdle = isDockedIdle(wireless, counter.state.screenOn, lastTouchAt, now)
+        handler.removeCallbacks(idleCheck)
+        if (wireless && counter.state.screenOn && !dockedIdle) scheduleIdleCheck()
+
+        // Entrando nell'inattività da appoggio, il conto si ferma dall'ultimo
+        // tocco: i minuti in cui nessuno toccava non sono uso.
+        val startsIdle = dockedIdle && !baseExcluded && !counter.state.excluded
+        counter.setExcluded(if (startsIdle) lastTouchAt else now, baseExcluded || dockedIdle)
         save()
         evaluate()
+    }
+
+    private fun scheduleIdleCheck() {
+        handler.removeCallbacks(idleCheck)
+        val wait = lastTouchAt + USAGE_DOCKED_IDLE_MILLIS - System.currentTimeMillis()
+        handler.postDelayed(idleCheck, wait.coerceAtLeast(1_000L))
+    }
+
+    private fun onWirelessCharger(): Boolean {
+        val plugged = context.registerReceiver(null, IntentFilter(Intent.ACTION_BATTERY_CHANGED))
+            ?.getIntExtra(BatteryManager.EXTRA_PLUGGED, 0) ?: 0
+        return plugged and BatteryManager.BATTERY_PLUGGED_WIRELESS != 0
     }
 
     private fun evaluate() {

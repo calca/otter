@@ -25,6 +25,28 @@ class UsagePauseTest {
         LocalDateTime.of(y, mo, d, h, mi).atZone(rome).toInstant().toEpochMilli()
 
     @Test
+    fun aPhoneIdleOnAWirelessChargerIsNotInUse() {
+        assertFalse(isDockedIdle(true, true, t0, t0 + 9 * min))
+        assertTrue(isDockedIdle(true, true, t0, t0 + 10 * min))
+        // Col cavo si usa spesso anche in carica; schermo spento non c'entra.
+        assertFalse(isDockedIdle(false, true, t0, t0 + 30 * min))
+        assertFalse(isDockedIdle(true, false, t0, t0 + 30 * min))
+        assertFalse(isDockedIdle(true, true, 0L, t0 + 30 * min))
+    }
+
+    @Test
+    fun theIdleMinutesOnTheDockAreNotCounted() {
+        val c = UsageCounter()
+        c.screenOn(t0)
+        // Ultimo tocco a +20, poi appoggiato: il conto si ferma dall'ultimo tocco.
+        c.setExcluded(t0 + 20 * min, true)
+        assertEquals(20 * min, c.usedMillis(t0 + 60 * min))
+        // Un tocco: riparte da lì.
+        c.setExcluded(t0 + 60 * min, false)
+        assertEquals(25 * min, c.usedMillis(t0 + 65 * min))
+    }
+
+    @Test
     fun countsOnlyWithTheScreenOn() {
         val c = UsageCounter()
         c.screenOn(t0)

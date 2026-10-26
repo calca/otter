@@ -116,6 +116,28 @@ Strings (IT / EN):
 | `usage_pause_not_now` | Non ora | Not now |
 | `usage_pause_explain` | Conta il tempo con lo schermo acceso, senza guardare quali app usi. Si azzera dopo 5 minuti a schermo spento. | Counts the time with the screen on, without looking at which apps you use. It resets after 5 minutes with the screen off. |
 
+## Phone resting on a wireless charger
+
+A phone docked on a wireless pad with the screen left on (Samsung screen
+saver, "Stay awake", charger wake-ups) counted as in use and started a pause
+after the threshold. Rule (`isDockedIdle`): **on a wireless charger
+(`BATTERY_PLUGGED_WIRELESS`), screen on, no touch for 10 minutes** → the
+count stops, back-dated to the last touch (those idle minutes are not use),
+and resumes at the next touch. Wired charging is untouched, since the phone
+is often used while plugged in; a wireless dock used for real keeps counting
+because every touch resets the 10 minutes. The "someone is touching" signal is a
+click / long-click / scroll / text-change accessibility event
+(`INTERACTION_EVENT_TYPES`; only its instant is kept, in memory, never
+saved — no content, no app, no coordinates).
+`TYPE_TOUCH_INTERACTION_START` was tried first and **never arrives**: it
+is only sent in touch-exploration mode. The click/scroll events arrive
+without reading content but depend on what each app emits (seen on the
+API 37 emulator: the launcher/search yes, Chrome's first-run page no), so
+an app that emits none (a game, a web view) looks idle after 10 minutes on
+a wireless charger. That, and a video watched for 10+ minutes without
+touching, are the accepted cost. `UsageWatcher` also listens to `POWER_CONNECTED`/
+`POWER_DISCONNECTED` to re-evaluate when the charger changes.
+
 ## Privacy
 
 Nothing about which apps are used is saved or counted. The only use of
