@@ -189,7 +189,9 @@ class AllowedAppsActivity : BaseActivity() {
         editingProfileId = id
         updateTitle()
         val allowed = allowedAppsManager.packagesFor(id)
-        allApps = allApps.map { it.copy(isAllowed = it.packageName in allowed) }
+        allApps = allApps
+            .map { it.copy(isAllowed = it.packageName in allowed) }
+            .sortedWith(compareBy({ !it.isAllowed }, { it.label.lowercase() }))
     }
 
     // ── Caricamento app ───────────────────────────────────────────────────
