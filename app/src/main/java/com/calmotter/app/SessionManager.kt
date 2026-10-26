@@ -47,6 +47,9 @@ class SessionManager internal constructor(private val context: Context) {
         return true
     }
 
+    /** Istante di fine programmato della pausa in corso (0 se non attiva). */
+    fun endTimeMillis(): Long = prefs.getLong(KEY_END_TIME, 0L)
+
     /** Millisecondi rimanenti alla fine della pausa (0 se non attiva/scaduta). */
     fun remainingMillis(): Long {
         val end = prefs.getLong(KEY_END_TIME, 0L)

@@ -53,7 +53,18 @@ class BlockSessionController(
      */
     val canReleaseOthers: Boolean = nfcAvailable && isGroup && isHost && groupTag != 0 && hasCompanions
 
+    /** Fine programmata della pausa, letta una volta: serve a distinguere la scadenza dalla fine anticipata. */
+    private val plannedEndMillis: Long = session.endTimeMillis()
+
     fun remainingMillis(): Long = session.remainingMillis()
+
+    /**
+     * Il conto è arrivato a zero perché la pausa è finita *prima* del suo
+     * termine (password, widget, tile, un'altra schermata di blocco): il
+     * tempo rimanente di una sessione chiusa è 0, ma non è una scadenza.
+     */
+    fun endedEarlyElsewhere(): Boolean =
+        plannedEndMillis > 0 && System.currentTimeMillis() < plannedEndMillis - EARLY_END_SLACK_MS
 
     /** Quanto della pausa è passato, da 0 a 1, per l'anello di avanzamento. */
     fun progress(remainingMillis: Long = remainingMillis()): Float =
@@ -119,3 +130,6 @@ class BlockSessionController(
         return canReleaseOthers
     }
 }
+
+/** Tolleranza sull'orario di fine: un tick appena prima della scadenza resta una scadenza. */
+private const val EARLY_END_SLACK_MS = 2_000L

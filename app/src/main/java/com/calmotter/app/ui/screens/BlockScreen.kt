@@ -198,6 +198,13 @@ fun BlockScreen(
             delay(CalmCountdown.nextTickDelayMillis(remaining))
             remaining = controller.remainingMillis()
         }
+        // Sessione chiusa altrove prima del termine (es. con la password da
+        // un'altra schermata): non è una scadenza, quindi niente chiusura
+        // dell'anello né momento di feedback — si esce in silenzio.
+        if (controller.endedEarlyElsewhere()) {
+            onExpiredImmediately()
+            return@LaunchedEffect
+        }
         controller.finishNaturally()
         // La pausa è arrivata in fondo da sé: l'anello si compie e si
         // scioglie prima di lasciare la schermata (vedi [RingReleaseBurst]).

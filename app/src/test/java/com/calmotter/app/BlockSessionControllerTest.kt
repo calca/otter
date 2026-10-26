@@ -35,6 +35,16 @@ class BlockSessionControllerTest {
     private fun lastRecord() = SessionHistoryManager.getInstance(context).getAll().first()
 
     @Test
+    fun aSessionEndedElsewhereBeforeItsTimeIsNotAnExpiry() {
+        session.startSession(60)
+        val c = controller()
+        assertFalse(c.endedEarlyElsewhere())
+        session.endSession()
+        assertTrue(c.endedEarlyElsewhere())
+        assertEquals(0L, session.pendingReflectionId())
+    }
+
+    @Test
     fun theHostWhoUnlocksEarlyIsOfferedToReleaseTheOthers() {
         session.startSession(60, isGroupSession = true, companions = listOf("Marta"), groupTag = 7, isHost = true)
         val c = controller()
