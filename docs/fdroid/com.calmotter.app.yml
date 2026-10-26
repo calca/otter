@@ -1,0 +1,37 @@
+# Bozza della ricetta per fdroiddata (metadata/com.calmotter.app.yml).
+# Va proposta come merge request su https://gitlab.com/fdroid/fdroiddata;
+# i testi e le immagini dello store vengono da fastlane/metadata/ in questo repo.
+Categories:
+  - Time
+  - System
+License: MIT
+AuthorName: calca
+WebSite: https://github.com/calca/otter
+SourceCode: https://github.com/calca/otter
+IssueTracker: https://github.com/calca/otter/issues
+Changelog: https://github.com/calca/otter/releases
+
+AutoName: Calm Otter
+
+RepoType: git
+Repo: https://github.com/calca/otter.git
+
+Builds:
+  - versionName: 0.6.0
+    versionCode: 176
+    commit: v0.6.0
+    subdir: app
+    sudo:
+      - apt-get update
+      - apt-get install -y openjdk-17-jdk-headless
+      - update-java-alternatives -a
+    # Stesso versionCode della build di Play (numero di run di android.yml sul
+    # tag): lo legge app/build.gradle.kts dalle proprietà Gradle.
+    prebuild: printf 'otterBuildNumber=176\notterVersionName=0.6.0\n' >> ../gradle.properties
+    gradle:
+      - stable
+
+# Il versionCode non sta nel codice (è il numero di run della CI), quindi
+# l'aggiornamento automatico dai tag non lo ricava: ogni release si aggiunge a mano.
+AutoUpdateMode: None
+UpdateCheckMode: None

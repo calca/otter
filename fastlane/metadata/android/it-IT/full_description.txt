@@ -1,0 +1,31 @@
+Metti giù il telefono, di proposito.
+
+Calm Otter è una pausa vera dal telefono. Tocchi l'otter, scegli quanto, e per quel tempo le app si fermano e le notifiche tacciono. Restano il Telefono, le sveglie, la musica e le poche app che scegli tu. Per staccare la sera, concentrarti sullo studio o sul lavoro, o stare davvero con chi hai accanto.
+
+COME FUNZIONA
+• Da 10 minuti a 4 ore, con un tocco
+• Le altre app restano coperte fino alla fine della pausa
+• Non disturbare si attiva da solo, le chiamate passano sempre
+• Scegli tu quali app restano: Mappe di giorno, nessuna la sera
+
+UN PATTO, NON UNA GABBIA
+La pausa la chiude prima del tempo solo chi conosce la password: tu, oppure una persona di fiducia che la sceglie per te. Se non è raggiungibile c'è un'uscita lenta: aspetti dieci minuti e la pausa finisce.
+
+PAUSE CHE PARTONO DA SOLE
+• Programmate: "nei giorni feriali alle 21:00, per un'ora"
+• A sorpresa: in un momento a caso nelle due ore dopo l'orario che scegli
+• Dopo un uso lungo: una pausa breve quando sei al telefono da tanto, con un avviso cinque minuti prima. Conta solo il tempo a schermo acceso, mai quali app usi, e di notte non parte.
+
+TEMPO INSIEME
+Avvicinate i telefoni e partite insieme. Senza NFC, o in tanti, c'è un QR, un codice o una stanza via Bluetooth. L'app propone anche cosa fare: una passeggiata, una partita a carte, o niente, solo stare insieme.
+
+PICCOLI RITUALI
+• Una pausa respiro di dieci minuti
+• "Com'è andata?" alla fine, con una parola e una nota se vuoi
+• La tua settimana a colpo d'occhio, con un obiettivo se lo vuoi
+
+PRIVACY, DAVVERO
+Nessun account, nessuna pubblicità, nessuna analisi. Calm Otter non ha nemmeno il permesso di usare internet: tutto resta sul telefono. Il codice è aperto, su GitHub.
+
+ONESTÀ SUI LIMITI
+È un blocco "morbido": usa il servizio di accessibilità e Non disturbare, che si possono disattivare dalle impostazioni di Android. Il servizio di accessibilità serve solo a sapere quale app è in primo piano, per coprirla durante una pausa e, se lo attivi, per contare il tempo a schermo acceso. Non legge lo schermo né quello che scrivi.

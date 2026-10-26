@@ -1,0 +1,31 @@
+Put the phone down, on purpose.
+
+Calm Otter is a real break from your phone. Tap the otter, choose how long, and for that time your apps stop and notifications go quiet. Phone calls, alarms, your music and the few apps you pick still work. For switching off in the evening, focusing on study or work, or really being with the people around you.
+
+HOW IT WORKS
+• From 10 minutes to 4 hours, with one tap
+• Other apps stay covered until the pause ends
+• Do Not Disturb turns on by itself, calls always get through
+• You choose which apps stay: Maps by day, none in the evening
+
+A PACT, NOT A CAGE
+Only the person who knows the password can end a pause early: you, or someone you trust who sets it for you. If they can't be reached, there's a slow way out: wait ten minutes and the pause ends.
+
+PAUSES THAT START ON THEIR OWN
+• Scheduled: "weekdays at 9pm, for an hour"
+• Surprise: at a random moment in the two hours after the time you pick
+• After long use: a short pause when you've been on your phone for a long time, with a heads-up five minutes before. It counts screen-on time only, never which apps you use, and it never starts at night.
+
+TIME TOGETHER
+Hold your phones together and start at the same moment. Without NFC, or with more people, there's a QR code, a code or a Bluetooth lobby. The app even suggests something to do: a walk, a game of cards, or nothing at all, just being together.
+
+SMALL RITUALS
+• A 10-minute breathing pause
+• "How was it?" at the end, with a word and a note if you like
+• Your week at a glance, with a goal if you want one
+
+PRIVACY, FOR REAL
+No account, no ads, no analytics. Calm Otter doesn't even have permission to use the internet: everything stays on your phone. The code is open, on GitHub.
+
+HONEST ABOUT ITS LIMITS
+It's a "soft" block: it relies on the Accessibility service and Do Not Disturb, which can be switched off in Android settings. The Accessibility service is used only to know which app is in the foreground, to cover it during a pause and, if you turn it on, to count screen-on time. It doesn't read the screen or what you type.

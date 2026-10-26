@@ -36,9 +36,15 @@ kotlin {
  * numerazione sua, più avanti di questa, e le sue build si sarebbero
  * dichiarate più recenti di quelle firmate. A timbrare la versione è solo il
  * workflow che produce artefatti installabili.
+ *
+ * Le stesse due cose si possono passare come proprietà Gradle
+ * (`-PotterBuildNumber=176 -PotterVersionName=0.6.0`): la ricetta di F-Droid
+ * (docs/fdroid/) compila da un tag senza la nostra CI e le usa per ottenere
+ * lo stesso `versionCode` della build di Play. L'ambiente ha la precedenza.
  */
 val otterBuildNumber: Int =
-    System.getenv("OTTER_BUILD_NUMBER")?.toIntOrNull()?.takeIf { it > 0 } ?: 1
+    (System.getenv("OTTER_BUILD_NUMBER") ?: providers.gradleProperty("otterBuildNumber").orNull)
+        ?.toIntOrNull()?.takeIf { it > 0 } ?: 1
 
 /**
  * Il nome di versione segue semver (vedi docs/store/README.md, "Versioni").
@@ -61,7 +67,8 @@ val lastReleaseVersion: String = runCatching {
 }.getOrNull()?.takeIf { it.isNotBlank() } ?: "0.0.0"
 
 val otterVersionName: String =
-    System.getenv("OTTER_VERSION_NAME")?.removePrefix("v")?.takeIf { it.isNotBlank() }
+    (System.getenv("OTTER_VERSION_NAME") ?: providers.gradleProperty("otterVersionName").orNull)
+        ?.removePrefix("v")?.takeIf { it.isNotBlank() }
         ?: "$lastReleaseVersion+$otterBuildNumber"
 
 android {
@@ -93,7 +100,12 @@ android {
             // (BUNDLE-METADATA), Play lo usa da solo per deoffuscare i crash.
             isMinifyEnabled = true
             isShrinkResources = true
-            signingConfig = signingConfigs.getByName("release")
+            // Senza KEYSTORE_PATH (build di F-Droid, che firma con la propria
+            // chiave, o chi compila in locale) esce un APK non firmato invece
+            // di fallire su un keystore che non c'è.
+            if (System.getenv("KEYSTORE_PATH") != null) {
+                signingConfig = signingConfigs.getByName("release")
+            }
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
         }
     }
