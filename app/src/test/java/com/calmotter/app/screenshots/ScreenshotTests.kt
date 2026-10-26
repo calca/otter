@@ -1,6 +1,7 @@
 package com.calmotter.app.screenshots
 
 import android.content.Context
+import android.graphics.Bitmap
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
@@ -11,6 +12,7 @@ import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onRoot
 import androidx.test.core.app.ApplicationProvider
 import com.calmotter.app.AllowedAppsManager
+import com.calmotter.app.AllowedAppsMode
 import com.calmotter.app.AppTheme
 import com.calmotter.app.CalmCountdown
 import com.calmotter.app.EndReason
@@ -26,6 +28,8 @@ import com.calmotter.app.SessionHistoryManager
 import com.calmotter.app.SessionManager
 import com.calmotter.app.SessionRecord
 import com.calmotter.app.installFakeAndroidKeyStore
+import com.calmotter.app.ui.screens.AllowedAppsScreen
+import com.calmotter.app.ui.screens.AppItem
 import com.calmotter.app.ui.screens.BlockScreen
 import com.calmotter.app.ui.screens.ClosingMomentScreen
 import com.calmotter.app.ui.screens.HistoryScreen
@@ -371,6 +375,43 @@ class ScreenScreenshotTest(private val night: Boolean) {
             onManageAppsVerified = {},
             onChangePassword = {},
             onOpenSource = {},
+        )
+    }
+
+    private fun testIcon(): Bitmap = Bitmap.createBitmap(40, 40, Bitmap.Config.ARGB_8888)
+
+    /** Il nuovo picker di modalità (allowlist/blocklist, issue #2) sotto le pillole dei profili. */
+    @Test
+    fun allowedApps() = capture("allowed-apps") {
+        val apps = listOf(
+            AppItem(label = "Mappe", packageName = "com.maps", icon = testIcon(), isAllowed = true),
+            AppItem(label = "Messaggi", packageName = "com.messages", icon = testIcon(), isAllowed = false),
+            AppItem(label = "Social", packageName = "com.social", icon = testIcon(), isAllowed = false),
+        )
+        AllowedAppsScreen(
+            isLoading = false,
+            apps = apps,
+            onToggle = {},
+            onRefresh = {},
+            profiles = AllowedAppsManager.getInstance(context).profiles(),
+            editingProfileId = AllowedAppsManager.DEFAULT_PROFILE_ID,
+        )
+    }
+
+    @Test
+    fun allowedAppsBlocklist() = capture("allowed-apps-blocklist") {
+        AllowedAppsManager.getInstance(context).setMode(AllowedAppsManager.DEFAULT_PROFILE_ID, AllowedAppsMode.BLOCKLIST)
+        val apps = listOf(
+            AppItem(label = "Social", packageName = "com.social", icon = testIcon(), isAllowed = true),
+            AppItem(label = "Mappe", packageName = "com.maps", icon = testIcon(), isAllowed = false),
+        )
+        AllowedAppsScreen(
+            isLoading = false,
+            apps = apps,
+            onToggle = {},
+            onRefresh = {},
+            profiles = AllowedAppsManager.getInstance(context).profiles(),
+            editingProfileId = AllowedAppsManager.DEFAULT_PROFILE_ID,
         )
     }
 }

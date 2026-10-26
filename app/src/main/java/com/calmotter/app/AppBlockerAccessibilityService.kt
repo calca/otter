@@ -144,7 +144,8 @@ class AppBlockerAccessibilityService : AccessibilityService() {
         // La tastiera resta necessaria a parte: la sua finestra si dichiara
         // `isFullScreen = true` (verificato su S22), quindi il filtro qui
         // sopra da solo non la coprirebbe.
-        if (!BlockPolicy.shouldBlock(sessionActive, event.isFullScreen, packageName, allowedPackages())) return
+        val profile = sessionProfile()
+        if (!BlockPolicy.shouldBlock(sessionActive, event.isFullScreen, packageName, exemptPackages(), profile.mode, profile.packages)) return
         showBlockScreen()
     }
 
@@ -160,7 +161,8 @@ class AppBlockerAccessibilityService : AccessibilityService() {
     private fun checkCurrentApp() {
         val packageName = lastFullScreenPackage ?: return
         val sessionActive = SessionManager.getInstance(applicationContext).isSessionActive()
-        if (!BlockPolicy.shouldBlock(sessionActive, true, packageName, allowedPackages())) return
+        val profile = sessionProfile()
+        if (!BlockPolicy.shouldBlock(sessionActive, true, packageName, exemptPackages(), profile.mode, profile.packages)) return
         showBlockScreen()
     }
 
@@ -366,16 +368,19 @@ class AppBlockerAccessibilityService : AccessibilityService() {
         }
     }
 
-    private fun allowedPackages(): Set<String> {
+    private fun exemptPackages(): Set<String> {
         val telecomManager = getSystemService(Context.TELECOM_SERVICE) as? TelecomManager
-        return BlockPolicy.allowedPackages(
+        return BlockPolicy.exemptPackages(
             defaultDialer = telecomManager?.defaultDialerPackage, // app Telefono di default del dispositivo
             ownPackage = packageName,                            // questa stessa app, per mostrare il blocco
             keyboards = keyboardPackages(),
-            userAllowed = AllowedAppsManager.getInstance(applicationContext)
-                .packagesFor(SessionManager.getInstance(applicationContext).sessionProfileId()),
         )
     }
+
+    /** Il profilo (app + modalità allowlist/blocklist) scelto per la sessione in corso. */
+    private fun sessionProfile(): AllowedAppsProfile =
+        AllowedAppsManager.getInstance(applicationContext)
+            .profile(SessionManager.getInstance(applicationContext).sessionProfileId())
 
     /**
      * Le tastiere installate sul dispositivo.

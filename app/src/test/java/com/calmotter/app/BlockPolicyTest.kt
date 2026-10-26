@@ -15,15 +15,20 @@ import org.junit.Test
 class BlockPolicyTest {
 
     private val own = "com.calmotter.app"
-    private val allowed = BlockPolicy.allowedPackages(
+    private val exempt = BlockPolicy.exemptPackages(
         defaultDialer = "com.google.android.dialer",
         ownPackage = own,
         keyboards = setOf("com.google.android.inputmethod.latin"),
-        userAllowed = setOf("com.example.maps"),
     )
+    private val userPackages = setOf("com.example.maps")
 
-    private fun block(pkg: String, session: Boolean = true, fullScreen: Boolean = true) =
-        BlockPolicy.shouldBlock(session, fullScreen, pkg, allowed)
+    private fun block(
+        pkg: String,
+        session: Boolean = true,
+        fullScreen: Boolean = true,
+        mode: AllowedAppsMode = AllowedAppsMode.ALLOWLIST,
+        packages: Set<String> = userPackages,
+    ) = BlockPolicy.shouldBlock(session, fullScreen, pkg, exempt, mode, packages)
 
     @Test
     fun nonAllowedAppIsBlockedDuringASession() {
@@ -77,7 +82,7 @@ class BlockPolicyTest {
 
     @Test
     fun missingDefaultDialerDoesNotAllowAnythingElse() {
-        val set = BlockPolicy.allowedPackages(null, own, emptySet(), emptySet())
+        val set = BlockPolicy.exemptPackages(null, own, emptySet())
         assertEquals(
             // Le schermate di chiamata note restano consentite anche senza
             // dialer predefinito: le chiamate passano sempre.
@@ -90,9 +95,29 @@ class BlockPolicyTest {
     fun theUnlockPathIsNotAccidentallyBlocked() {
         // Regressione: ogni pacchetto che serve a sbloccare (questa app, le
         // tastiere, systemUI) deve restare consentito anche con whitelist vuota.
-        val minimal = BlockPolicy.allowedPackages(null, own, setOf("ime"), emptySet())
+        val minimal = BlockPolicy.exemptPackages(null, own, setOf("ime"))
         for (pkg in listOf(own, "ime", BlockPolicy.SYSTEM_UI_PACKAGE)) {
-            assertFalse(BlockPolicy.shouldBlock(true, true, pkg, minimal))
+            assertFalse(BlockPolicy.shouldBlock(true, true, pkg, minimal, AllowedAppsMode.ALLOWLIST, emptySet()))
         }
+    }
+
+    @Test
+    fun blocklistModeBlocksOnlyListedPackages() {
+        assertTrue(block("com.instagram.android", mode = AllowedAppsMode.BLOCKLIST, packages = setOf("com.instagram.android")))
+        assertFalse(block("com.example.anything.else", mode = AllowedAppsMode.BLOCKLIST, packages = setOf("com.instagram.android")))
+    }
+
+    @Test
+    fun blocklistModeStillExemptsSystemDialerKeyboardsAndSelf() {
+        // Anche se (per errore) finissero nella lista vietata, questi pacchetti devono restare esenti.
+        val everythingForbidden = exempt
+        for (pkg in exempt) {
+            assertFalse(block(pkg, mode = AllowedAppsMode.BLOCKLIST, packages = everythingForbidden))
+        }
+    }
+
+    @Test
+    fun emptyBlocklistBlocksNothing() {
+        assertFalse(block("com.instagram.android", mode = AllowedAppsMode.BLOCKLIST, packages = emptySet()))
     }
 }

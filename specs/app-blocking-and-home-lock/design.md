@@ -14,22 +14,29 @@
 | File | Role |
 |---|---|
 | `AppBlockerAccessibilityService.kt` | Watches `TYPE_WINDOW_STATE_CHANGED` events; launches `BlockOverlayActivity` for non-exempt foreground apps |
-| `AllowedAppsManager.kt` | Plain-`SharedPreferences` set of extra allowed package names |
+| `AllowedAppsManager.kt` | Named profiles, each a package set **and** a mode (allowlist/blocklist — see `allowed-app-profiles/design.md`'s "Mode" section) |
 | `AllowedAppsActivity.kt` / `ui/screens/AllowedAppsScreen.kt` | Password-gated editor; loads all launcher-intent activities off the main thread |
 | `BlockOverlayActivity.kt` | Hosts `BlockScreen` for the "blocked app opened" case |
 | `MainActivity.kt` | Also hosts `BlockScreen` when the app is opened (or a session starts) during an active session |
 | `AllowedAppLaunchItems.kt` | `loadAllowedAppLaunchItems()`/`launchAllowedApp()`, shared by `MainActivity` and `BlockOverlayActivity` so both pass the same allowed-apps row to `BlockScreen` |
 | `ui/screens/BlockScreen.kt` | Shared Composable for all three block entry points, byte-for-byte identical in every case (see "Three block screens, one screen" below) |
 
-## Blocking decision (`AppBlockerAccessibilityService.allowedPackages()`)
+## Blocking decision (`AppBlockerAccessibilityService` + `BlockPolicy`)
 
-Always-exempt set, recomputed per event (not cached):
-`TelecomManager.defaultDialerPackage`, `com.android.systemui`, `android`,
-Calm Otter's own package, every **enabled keyboard**
-(`InputMethodManager.enabledInputMethodList`) — unioned with
-`AllowedAppsManager.getAllowedPackages()`. If `sessionManager.isSessionActive()`
-is false, the service returns immediately without even computing the exempt
-set (cheap common case).
+Always-exempt set, recomputed per event (not cached) by
+`BlockPolicy.exemptPackages()`: `TelecomManager.defaultDialerPackage`,
+`com.android.systemui`, `android`, Calm Otter's own package, every
+**enabled keyboard** (`InputMethodManager.enabledInputMethodList`). If
+`sessionManager.isSessionActive()` is false, the service returns
+immediately without even computing the exempt set (cheap common case).
+
+The session's profile (`mode` + `packages`, from `AllowedAppsManager`) is
+read separately and passed to `BlockPolicy.shouldBlock()` alongside the
+exempt set: in allowlist mode (the original, and still the default)
+everything not in `packages` is blocked; in blocklist mode only what's in
+`packages` is blocked (issue #2, "Not Allowed Apps" — see
+`allowed-app-profiles/design.md`'s "Mode" section for the full picture,
+including why `MAX_ALLOWED_APPS` below is allowlist-only).
 
 **Only full-screen windows count.** Before any of the package checks, the
 service drops events whose `isFullScreen` is false. A window opening *over*
@@ -569,7 +576,11 @@ never offered a way to launch one.
   actually *added* (`AllowedAppsActivity.toggleApp()` — attempting a 4th
   shows a `allowed_apps_limit_reached` toast and does nothing, rather than
   accepting it and truncating the display elsewhere) so the stored
-  whitelist and what `BlockScreen` shows never disagree. The phone doesn't
+  whitelist and what `BlockScreen` shows never disagree. **Allowlist-mode
+  only**: a blocklist-mode profile (see `allowed-app-profiles/design.md`'s
+  "Mode" section) has no cap — the whole point is blocking a handful of
+  apps while leaving the rest of the phone free, and in that mode this row
+  of badges isn't shown at all (see `AllowedAppLaunchItems.kt` below). The phone doesn't
   count against it (see above).
 - **`AllowedAppsActivity.loadApps()` excludes the dialer package from the
   editable list entirely** (`dialerPackageName()`, exposed from

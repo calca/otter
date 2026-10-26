@@ -55,8 +55,10 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.calmotter.app.AllowedAppsManager
+import com.calmotter.app.AllowedAppsMode
 import com.calmotter.app.AllowedAppsProfile
 import com.calmotter.app.R
+import com.calmotter.app.ui.theme.muted
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.ButtonDefaults
@@ -122,6 +124,7 @@ fun AllowedAppsScreen(
     onCreateProfile: (String) -> Unit = {},
     onRenameProfile: (String) -> Unit = {},
     onDeleteProfile: () -> Unit = {},
+    onChangeMode: (AllowedAppsMode) -> Unit = {},
 ) {
     var searchQuery by rememberSaveable { mutableStateOf("") }
 
@@ -129,6 +132,7 @@ fun AllowedAppsScreen(
         if (searchQuery.isEmpty()) apps
         else apps.filter { it.label.contains(searchQuery, ignoreCase = true) }
     }
+    val editingMode = profiles.firstOrNull { it.id == editingProfileId }?.mode ?: AllowedAppsMode.ALLOWLIST
 
     Column(modifier = Modifier.fillMaxSize().safeDrawingPadding()) {
         if (profiles.isNotEmpty()) {
@@ -141,6 +145,7 @@ fun AllowedAppsScreen(
                 onRenameProfile = onRenameProfile,
                 onDeleteProfile = onDeleteProfile,
             )
+            ModePicker(mode = editingMode, onChange = onChangeMode)
         }
         CalmTextField(
             value = searchQuery,
@@ -165,7 +170,10 @@ fun AllowedAppsScreen(
         )
 
         Text(
-            text = stringResource(R.string.allowed_apps_intro),
+            text = stringResource(
+                if (editingMode == AllowedAppsMode.BLOCKLIST) R.string.allowed_apps_intro_blocklist
+                else R.string.allowed_apps_intro
+            ),
             color = MaterialTheme.colorScheme.onSurface,
             fontSize = 13.sp,
             modifier = Modifier
@@ -377,6 +385,39 @@ private fun ProfileBar(
                 }
             },
         )
+    }
+}
+
+/**
+ * Allowlist ("Solo queste") o blocklist ("Tutte tranne queste") per il
+ * profilo in modifica — stesso idioma delle pillole di durata/profilo
+ * ([CalmPill] come scelta a due esclusiva, non un componente nuovo).
+ * Cambiare modalità non svuota [AllowedAppsProfile.packages]: le stesse app
+ * selezionate vengono reinterpretate col nuovo significato.
+ */
+@Composable
+private fun ModePicker(mode: AllowedAppsMode, onChange: (AllowedAppsMode) -> Unit) {
+    Column(modifier = Modifier.fillMaxWidth().padding(horizontal = PageMargin, vertical = 8.dp)) {
+        Text(
+            text = stringResource(R.string.allowed_apps_mode_label),
+            fontSize = 13.sp,
+            color = MaterialTheme.colorScheme.muted(0.7f),
+        )
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            modifier = Modifier.padding(top = 6.dp),
+        ) {
+            CalmPill(
+                label = stringResource(R.string.allowed_apps_mode_allowlist),
+                selected = mode == AllowedAppsMode.ALLOWLIST,
+                onClick = { onChange(AllowedAppsMode.ALLOWLIST) },
+            )
+            CalmPill(
+                label = stringResource(R.string.allowed_apps_mode_blocklist),
+                selected = mode == AllowedAppsMode.BLOCKLIST,
+                onClick = { onChange(AllowedAppsMode.BLOCKLIST) },
+            )
+        }
     }
 }
 

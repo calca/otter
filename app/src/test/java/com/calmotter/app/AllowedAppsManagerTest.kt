@@ -81,4 +81,38 @@ class AllowedAppsManagerTest {
         manager.setPackages(AllowedAppsManager.DEFAULT_PROFILE_ID, setOf("com.maps"))
         assertEquals(setOf("com.maps"), manager.packagesFor(42))
     }
+
+    @Test
+    fun newProfilesDefaultToAllowlistMode() {
+        val evening = manager.createProfile("Sera")!!
+        assertEquals(AllowedAppsMode.ALLOWLIST, manager.profile(evening.id).mode)
+        assertEquals(AllowedAppsMode.ALLOWLIST, manager.profile(AllowedAppsManager.DEFAULT_PROFILE_ID).mode)
+    }
+
+    @Test
+    fun theDefaultProfileReadsAsAllowlistWithNoStoredMode() {
+        // Il campo mode non esisteva prima: nessuna chiave scritta per questo profilo.
+        context.getSharedPreferences("calm_otter_allowed_apps", Context.MODE_PRIVATE)
+            .edit().putStringSet("allowed_packages", setOf("com.maps")).commit()
+        assertEquals(AllowedAppsMode.ALLOWLIST, manager.profiles()[0].mode)
+    }
+
+    @Test
+    fun setModePersistsPerProfile() {
+        val evening = manager.createProfile("Sera")!!
+        manager.setMode(evening.id, AllowedAppsMode.BLOCKLIST)
+        assertEquals(AllowedAppsMode.BLOCKLIST, manager.profile(evening.id).mode)
+        assertEquals(AllowedAppsMode.ALLOWLIST, manager.profile(AllowedAppsManager.DEFAULT_PROFILE_ID).mode)
+    }
+
+    @Test
+    fun deletingAProfileClearsItsMode() {
+        val evening = manager.createProfile("Sera")!!
+        manager.setMode(evening.id, AllowedAppsMode.BLOCKLIST)
+        manager.deleteProfile(evening.id)
+
+        val reused = manager.createProfile("Sera di nuovo")!!
+        assertEquals(evening.id, reused.id)
+        assertEquals(AllowedAppsMode.ALLOWLIST, manager.profile(reused.id).mode)
+    }
 }

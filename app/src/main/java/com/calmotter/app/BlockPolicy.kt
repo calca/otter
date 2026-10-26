@@ -37,19 +37,19 @@ object BlockPolicy {
         packageName in IN_CALL_PACKAGES || packageName.endsWith(".incallui")
 
     /**
-     * L'insieme dei pacchetti consentiti: dialer predefinito, schermate di
-     * chiamata note ([IN_CALL_PACKAGES]), systemUI, dialog di sistema, questa
-     * stessa app (per mostrare il blocco), le tastiere abilitate e la
-     * whitelist scelta dall'utente.
+     * L'insieme dei pacchetti sempre esenti, in qualunque modalità: dialer
+     * predefinito, schermate di chiamata note ([IN_CALL_PACKAGES]), systemUI,
+     * dialog di sistema, questa stessa app (per mostrare il blocco), le
+     * tastiere abilitate. Non include la lista scelta dall'utente: il suo
+     * significato dipende dalla modalità del profilo (vedi [shouldBlock]).
      */
-    fun allowedPackages(
+    fun exemptPackages(
         defaultDialer: String?,
         ownPackage: String,
         keyboards: Set<String>,
-        userAllowed: Set<String>,
     ): Set<String> =
         setOfNotNull(defaultDialer, SYSTEM_UI_PACKAGE, ANDROID_PACKAGE, ownPackage) +
-            IN_CALL_PACKAGES + keyboards + userAllowed
+            IN_CALL_PACKAGES + keyboards
 
     /**
      * `true` se la finestra appena comparsa va coperta con il blocco.
@@ -57,12 +57,22 @@ object BlockPolicy {
      * - Senza sessione attiva non si blocca mai.
      * - Solo finestre a schermo intero: popup e barre di sistema aprono
      *   finestre sopra la schermata corrente, già giudicata.
-     * - Un pacchetto consentito non si blocca, né una schermata di chiamata.
+     * - Un pacchetto esente non si blocca mai, né una schermata di chiamata.
+     * - In [AllowedAppsMode.ALLOWLIST] si blocca tutto tranne [userPackages];
+     *   in [AllowedAppsMode.BLOCKLIST] si blocca solo [userPackages].
      */
     fun shouldBlock(
         sessionActive: Boolean,
         isFullScreen: Boolean,
         packageName: String,
-        allowedPackages: Set<String>,
-    ): Boolean = sessionActive && isFullScreen && packageName !in allowedPackages && !isCallScreen(packageName)
+        exemptPackages: Set<String>,
+        mode: AllowedAppsMode,
+        userPackages: Set<String>,
+    ): Boolean {
+        if (!sessionActive || !isFullScreen || isCallScreen(packageName) || packageName in exemptPackages) return false
+        return when (mode) {
+            AllowedAppsMode.ALLOWLIST -> packageName !in userPackages
+            AllowedAppsMode.BLOCKLIST -> packageName in userPackages
+        }
+    }
 }

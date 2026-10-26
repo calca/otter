@@ -44,8 +44,30 @@ the pause allows what fits the moment.
 4. The widget, the Quick Settings tile and Time together SHALL use the
    last chosen profile; a scheduled pause SHALL use its own profile.
 
+## User Story 3: Allowlist vs blocklist (issue #2, "Not Allowed Apps")
+
+As the accountability partner, I want some profiles to say "only block
+these apps" instead of "only allow these apps", so I can leave the rest of
+the phone free and just shut off the one or two things that matter.
+
+### Acceptance Criteria
+
+1. Each profile SHALL have a mode, **allowlist** or **blocklist**, chosen
+   independently per profile (not one app-wide setting).
+2. In allowlist mode (the default, and the only mode before this story),
+   only the profile's apps stay reachable during a pause; everything else
+   is blocked, capped at `MAX_ALLOWED_APPS` (3).
+3. In blocklist mode, only the profile's apps are blocked during a pause;
+   everything else, Home included, stays reachable. There SHALL be no cap
+   on how many apps can be picked.
+4. Phone, the keyboard and system UI SHALL stay reachable in every profile
+   regardless of mode, as today (`BlockPolicy`).
+5. Switching a profile's mode SHALL NOT clear its selected apps — the same
+   list is reinterpreted under the new mode.
+
 ## Out of scope
 
 - Time-based automatic profile switching (that is a scheduled pause with a
   profile).
 - Per-profile Do Not Disturb settings.
+- A confirmation prompt when switching a profile's mode.

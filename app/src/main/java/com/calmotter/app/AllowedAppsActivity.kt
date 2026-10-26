@@ -98,6 +98,10 @@ class AllowedAppsActivity : BaseActivity() {
                         profiles = allowedAppsManager.profiles()
                         editProfile(AllowedAppsManager.DEFAULT_PROFILE_ID)
                     },
+                    onChangeMode = { mode ->
+                        allowedAppsManager.setMode(editingProfileId, mode)
+                        profiles = allowedAppsManager.profiles()
+                    },
                 )
             }
         }
@@ -141,14 +145,17 @@ class AllowedAppsActivity : BaseActivity() {
      * Tetto di [AllowedAppsManager.MAX_ALLOWED_APPS]: tentare di aggiungerne
      * una in più non fa nulla (a parte il Toast) invece di accettarla e
      * troncare altrove — così l'elenco mostrato qui resta sempre coerente
-     * con quello che finisce effettivamente in whitelist.
+     * con quello che finisce effettivamente in whitelist. Il tetto vale solo
+     * in modalità allowlist: in blocklist non ha senso limitare quante app
+     * si possono vietare.
      */
     private fun toggleApp(item: AppItem) {
         val newIsAllowed = !item.isAllowed
 
         val current = allowedAppsManager.packagesFor(editingProfileId).toMutableSet()
         if (newIsAllowed) {
-            if (current.size >= AllowedAppsManager.MAX_ALLOWED_APPS) {
+            val mode = allowedAppsManager.profile(editingProfileId).mode
+            if (mode == AllowedAppsMode.ALLOWLIST && current.size >= AllowedAppsManager.MAX_ALLOWED_APPS) {
                 Toast.makeText(
                     this,
                     resources.getQuantityString(

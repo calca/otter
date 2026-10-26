@@ -66,6 +66,9 @@ all-or-nothing.
    why (the block screen's icon row needs to stay short; lowered from 5 to
    3 after phone + 5 apps + unlock, 7 badges, didn't fit one row and the
    unlock badge itself became unreachable — see that story for the fix).
+   **Allowlist mode only** (see `allowed-app-profiles/requirements.md`'s
+   User Story 3, issue #2 "Not Allowed Apps") — a blocklist-mode profile
+   has no cap.
 
 ## User Story 3: Home button during a session
 
@@ -77,7 +80,13 @@ escape route than switching apps.
 1. WHEN the Home button is pressed WHILE a session is active THEN the
    user's launcher SHALL be covered by the same block screen as any other
    blocked app — the launcher is not on the allowed list, so
-   `AppBlockerAccessibilityService` handles it like any other app.
+   `AppBlockerAccessibilityService` handles it like any other app. This is
+   specific to allowlist-mode profiles (the default-deny model this story
+   describes): in a blocklist-mode profile (see
+   `allowed-app-profiles/requirements.md`'s User Story 3) Home is **not**
+   covered unless the launcher's own package happens to be on the
+   forbidden list — by design, since the whole point of that mode is
+   leaving the rest of the phone, Home included, reachable.
 2. Calm Otter SHALL NOT offer to become the device's Home app. Until
    2026-10-16 it could (a switch in Settings), intercepting Home itself and
    forwarding every press to the real launcher outside pauses. Removed: it
@@ -103,7 +112,11 @@ open, not one I want to start.
    the app badges) — deliberately understated (no full-color icons, no
    vertical list, no visually distinct "primary action" styling setting
    Unlock apart from the app badges beyond its content), not a mini
-   launcher to browse.
+   launcher to browse. **For a blocklist-mode profile this row never shows
+   app badges** (`AllowedAppLaunchItems.kt` — see
+   `allowed-app-profiles/design.md`'s "Mode" section): only the phone and
+   the Unlock control appear, since there is no small "stays reachable"
+   set to offer as launch shortcuts.
 2. WHEN the Unlock badge is tapped THEN the system SHALL open a dialog with
    a password field and Unlock/Cancel actions, rather than keeping a
    password field permanently visible on the block screen.

@@ -3,8 +3,16 @@ package com.calmotter.app
 import android.content.Context
 import androidx.core.content.edit
 
-/** Una lista con nome di app che restano raggiungibili durante una pausa. */
-data class AllowedAppsProfile(val id: Int, val name: String, val packages: Set<String>) {
+/** Come [AllowedAppsProfile.packages] decide chi resta raggiungibile durante una pausa. */
+enum class AllowedAppsMode { ALLOWLIST, BLOCKLIST }
+
+/** Una lista con nome di app, in modalità allowlist (solo queste restano raggiungibili) o blocklist (tutte tranne queste). */
+data class AllowedAppsProfile(
+    val id: Int,
+    val name: String,
+    val packages: Set<String>,
+    val mode: AllowedAppsMode = AllowedAppsMode.ALLOWLIST,
+) {
     val isDefault: Boolean get() = id == AllowedAppsManager.DEFAULT_PROFILE_ID
 }
 
@@ -34,6 +42,7 @@ class AllowedAppsManager internal constructor(private val context: Context) {
                 id = id,
                 name = prefs.getString(nameKey(id), null).orEmpty(),
                 packages = prefs.getStringSet(packagesKey(id), emptySet()) ?: emptySet(),
+                mode = modeFor(id),
             )
         }
         return AllowedAppsProfile(
@@ -42,6 +51,7 @@ class AllowedAppsManager internal constructor(private val context: Context) {
             // Stessa chiave della lista unica di prima: chi l'aveva la ritrova
             // come profilo predefinito, senza migrazioni.
             packages = prefs.getStringSet(KEY_PACKAGES, emptySet()) ?: emptySet(),
+            mode = modeFor(DEFAULT_PROFILE_ID),
         )
     }
 
@@ -51,6 +61,18 @@ class AllowedAppsManager internal constructor(private val context: Context) {
         val key = if (profileId == DEFAULT_PROFILE_ID || profileId !in extraProfileIds()) KEY_PACKAGES else packagesKey(profileId)
         prefs.edit { putStringSet(key, packages) }
     }
+
+    /** Imposta la modalità (allowlist/blocklist) di questo profilo. */
+    fun setMode(profileId: Int, mode: AllowedAppsMode) {
+        prefs.edit { putString(modeKey(profileId), mode.name) }
+    }
+
+    // Chiave assente o corrotta legge come ALLOWLIST: ogni profilo già
+    // persistito prima che questo campo esistesse (incluso il predefinito)
+    // continua a deserializzare senza migrazioni.
+    private fun modeFor(id: Int): AllowedAppsMode =
+        runCatching { AllowedAppsMode.valueOf(prefs.getString(modeKey(id), null) ?: "") }
+            .getOrDefault(AllowedAppsMode.ALLOWLIST)
 
     fun canCreateProfile(): Boolean = extraProfileIds().size < MAX_EXTRA_PROFILES
 
@@ -78,6 +100,7 @@ class AllowedAppsManager internal constructor(private val context: Context) {
             putString(KEY_PROFILE_IDS, (extraProfileIds() - id).joinToString(","))
             remove(nameKey(id))
             remove(packagesKey(id))
+            remove(modeKey(id))
             if (prefs.getInt(KEY_SELECTED, DEFAULT_PROFILE_ID) == id) putInt(KEY_SELECTED, DEFAULT_PROFILE_ID)
         }
     }
@@ -99,6 +122,7 @@ class AllowedAppsManager internal constructor(private val context: Context) {
 
     private fun nameKey(id: Int) = "profile_${id}_name"
     private fun packagesKey(id: Int) = "profile_${id}_packages"
+    private fun modeKey(id: Int) = "profile_${id}_mode"
 
     companion object {
         // Tetto alle app configurabili dall'utente per profilo (il telefono

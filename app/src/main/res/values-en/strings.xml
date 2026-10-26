@@ -188,6 +188,10 @@
     <string name="confirm">Confirm</string>
     <string name="allowed_apps_title">Apps that stay during a pause</string>
     <string name="allowed_apps_intro">During a pause everything stops except the phone and the apps you pick here. Picked ones appear at the top.</string>
+    <string name="allowed_apps_intro_blocklist">During a pause everything stays reachable except the apps you pick here.</string>
+    <string name="allowed_apps_mode_label">During the pause</string>
+    <string name="allowed_apps_mode_allowlist">Only these</string>
+    <string name="allowed_apps_mode_blocklist">All except these</string>
     <string name="allowed_apps_search">Search apps</string>
     <string name="allowed_apps_clear_search">Clear search</string>
     <string name="allowed_apps_empty_filtered">No apps found</string>

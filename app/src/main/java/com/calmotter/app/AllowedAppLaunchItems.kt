@@ -27,10 +27,13 @@ import com.calmotter.app.ui.screens.AllowedAppLaunchItem
  */
 fun loadAllowedAppLaunchItems(context: Context): List<AllowedAppLaunchItem> {
     val phoneItem = resolveAppLaunchItem(context, dialerPackageName(context))
-    // Le app del profilo della pausa in corso (specs/allowed-app-profiles/).
-    val allowed = AllowedAppsManager.getInstance(context)
-        .packagesFor(SessionManager.getInstance(context).sessionProfileId())
-    val allowedItems = allowed
+    // Il profilo della pausa in corso (specs/allowed-app-profiles/).
+    val profile = AllowedAppsManager.getInstance(context)
+        .profile(SessionManager.getInstance(context).sessionProfileId())
+    // In modalità blocklist non esiste una "lista di chi resta": mostrare le
+    // app vietate come scorciatoie di avvio sarebbe l'opposto dell'intento.
+    if (profile.mode == AllowedAppsMode.BLOCKLIST) return listOfNotNull(phoneItem)
+    val allowedItems = profile.packages
         .mapNotNull { resolveAppLaunchItem(context, it) }
         .sortedBy { it.label.lowercase() }
         .take(AllowedAppsManager.MAX_ALLOWED_APPS)

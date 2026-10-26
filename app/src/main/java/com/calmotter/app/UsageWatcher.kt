@@ -150,11 +150,12 @@ internal class UsageWatcher(private val context: Context, private val handler: H
         val now = System.currentTimeMillis()
         val pkg = foregroundPackage
         val sessionActive = SessionManager.getInstance(context).isSessionActive()
-        val excludedApp = pkg != null && (
-            BlockPolicy.isCallScreen(pkg) ||
-                pkg == defaultDialer() ||
-                pkg in AllowedAppsManager.getInstance(context).packagesFor(manager.rule().profileId)
-            )
+        val profile = AllowedAppsManager.getInstance(context).profile(manager.rule().profileId)
+        val staysDuringPause = pkg != null && when (profile.mode) {
+            AllowedAppsMode.ALLOWLIST -> pkg in profile.packages
+            AllowedAppsMode.BLOCKLIST -> pkg !in profile.packages
+        }
+        val excludedApp = pkg != null && (BlockPolicy.isCallScreen(pkg) || pkg == defaultDialer() || staysDuringPause)
         counter.setExcluded(now, sessionActive || excludedApp)
         save()
         evaluate()

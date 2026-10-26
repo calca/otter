@@ -190,6 +190,10 @@
     <string name="confirm">Conferma</string>
     <string name="allowed_apps_title">App che restano durante la pausa</string>
     <string name="allowed_apps_intro">Durante la pausa si ferma tutto, tranne il telefono e le app che scegli qui. Quelle scelte appaiono in cima.</string>
+    <string name="allowed_apps_intro_blocklist">Durante la pausa resta tutto raggiungibile, tranne le app che scegli qui.</string>
+    <string name="allowed_apps_mode_label">Durante la pausa</string>
+    <string name="allowed_apps_mode_allowlist">Solo queste</string>
+    <string name="allowed_apps_mode_blocklist">Tutte tranne queste</string>
     <string name="allowed_apps_search">Cerca app</string>
     <string name="allowed_apps_clear_search">Cancella ricerca</string>
     <string name="allowed_apps_empty_filtered">Nessuna app trovata</string>
