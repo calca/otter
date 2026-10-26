@@ -18,20 +18,20 @@ Repo: https://github.com/calca/otter.git
 
 Builds:
   - versionName: 0.6.0
-    versionCode: 176
+    versionCode: 600
     commit: v0.6.0
     subdir: app
     sudo:
       - apt-get update
       - apt-get install -y openjdk-17-jdk-headless
       - update-java-alternatives -a
-    # Stesso versionCode della build di Play (numero di run di android.yml sul
-    # tag): lo legge app/build.gradle.kts dalle proprietà Gradle.
-    prebuild: printf 'otterBuildNumber=176\notterVersionName=0.6.0\n' >> ../gradle.properties
+    # Il versionCode dell'app per F-Droid è derivato dalla versione
+    # (major*10000 + minor*100 + patch), non dal numero di run di Play.
+    prebuild: printf 'otterBuildNumber=%c\notterVersionName=%v\n' >> ../gradle.properties
     gradle:
       - stable
 
-# Il versionCode non sta nel codice (è il numero di run della CI), quindi
-# l'aggiornamento automatico dai tag non lo ricava: ogni release si aggiunge a mano.
-AutoUpdateMode: None
-UpdateCheckMode: None
+# docs/fdroid/version.properties lo scrive release.yml prima di creare il tag.
+AutoUpdateMode: Version
+UpdateCheckMode: Tags ^v[0-9.]+$
+UpdateCheckData: docs/fdroid/version.properties|versionCode=(\d+)|.|versionName=(.+)
