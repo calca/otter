@@ -37,7 +37,7 @@ in `res/xml/accessibility_service_config.xml`), so Play requires:
    > Calm Otter is a digital-wellbeing app: the user (or a person they
    > trust) starts a timed pause during which every app except the phone
    > dialer and a short list of allowed apps is covered by a full-screen
-   > pause screen. The AccessibilityService listens only to
+   > pause screen. The AccessibilityService listens to
    > TYPE_WINDOW_STATE_CHANGED events to learn which app is in the
    > foreground, and during an active pause, if it isn't allowed, shows the
    > pause screen on top of it. It keeps the last foreground app in memory
@@ -46,7 +46,11 @@ in `res/xml/accessibility_service_config.xml`), so Play requires:
    > use" feature, the same events and the screen on/off broadcasts are
    > used to count continuous screen-on time and start a short pause when
    > it passes the user's limit; only a few timestamps are stored on the
-   > device, never which apps were used. It does not retrieve window
+   > device, never which apps were used. For that feature only, the
+   > service also receives view-click, scroll and text-change events and
+   > uses just the moment they happen (never their content or the app) to
+   > tell a phone resting on a wireless charger from one being used. It
+   > does not retrieve window
    > content (canRetrieveWindowContent=false), does not read text or user
    > input, does not perform actions on other apps, and transmits nothing:
    > the app has no INTERNET permission.
