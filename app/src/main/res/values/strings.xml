@@ -189,6 +189,7 @@
     <string name="manage_allowed_apps_password_prompt">Inserisci la password per modificare l\'elenco</string>
     <string name="confirm">Conferma</string>
     <string name="allowed_apps_title">App che restano durante la pausa</string>
+    <string name="allowed_apps_title_blocklist">App bloccate durante la pausa</string>
     <string name="allowed_apps_intro">Durante la pausa si ferma tutto, tranne il telefono e le app che scegli qui. Quelle scelte appaiono in cima.</string>
     <string name="allowed_apps_intro_blocklist">Durante la pausa resta tutto raggiungibile, tranne le app che scegli qui.</string>
     <string name="allowed_apps_mode_label">Durante la pausa</string>
@@ -334,6 +335,7 @@
     <string name="allowed_profile_name_hint">Es. Sera, Lavoro</string>
     <string name="allowed_profile_save">Salva</string>
     <string name="home_profile_line">App che restano: %1$s</string>
+    <string name="home_profile_line_blocklist">App bloccate: %1$s</string>
     <string name="home_profile_dialog_title">Quali app restano in questa pausa?</string>
     <!-- Attività da fare insieme (specs/together-activity/): prima persona plurale, una sola attività per voce -->
     <string name="together_activity_together">Niente: stiamo assieme</string>

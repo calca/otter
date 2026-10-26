@@ -187,6 +187,7 @@
     <string name="manage_allowed_apps_password_prompt">Enter the password to edit the list</string>
     <string name="confirm">Confirm</string>
     <string name="allowed_apps_title">Apps that stay during a pause</string>
+    <string name="allowed_apps_title_blocklist">Apps blocked during a pause</string>
     <string name="allowed_apps_intro">During a pause everything stops except the phone and the apps you pick here. Picked ones appear at the top.</string>
     <string name="allowed_apps_intro_blocklist">During a pause everything stays reachable except the apps you pick here.</string>
     <string name="allowed_apps_mode_label">During the pause</string>
@@ -331,6 +332,7 @@
     <string name="allowed_profile_name_hint">E.g. Evening, Work</string>
     <string name="allowed_profile_save">Save</string>
     <string name="home_profile_line">Apps that stay: %1$s</string>
+    <string name="home_profile_line_blocklist">Blocked apps: %1$s</string>
     <string name="home_profile_dialog_title">Which apps stay in this pause?</string>
     <!-- Attività da fare insieme (specs/together-activity/): prima persona plurale, una sola attività per voce -->
     <string name="together_activity_together">Nothing: let\'s just be together</string>

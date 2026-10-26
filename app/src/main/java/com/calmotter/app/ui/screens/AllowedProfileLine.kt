@@ -27,6 +27,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
+import com.calmotter.app.AllowedAppsMode
 import com.calmotter.app.AllowedAppsProfile
 import com.calmotter.app.R
 
@@ -53,7 +54,11 @@ internal fun AllowedProfileLine(
     // pulire la Home (segnalato). Il nome basta, perché il profilo l'ha
     // chiamato chi lo usa. TalkBack legge ancora la frase intera
     // ("Consentite: Standard").
-    val description = stringResource(R.string.home_profile_line, selectedName)
+    val blocklist = profiles.firstOrNull { it.id == selectedProfileId }?.mode == AllowedAppsMode.BLOCKLIST
+    val description = stringResource(
+        if (blocklist) R.string.home_profile_line_blocklist else R.string.home_profile_line,
+        selectedName,
+    )
     val muted = MaterialTheme.colorScheme.muted(0.6f)
     TextButton(
         onClick = { picking = true },

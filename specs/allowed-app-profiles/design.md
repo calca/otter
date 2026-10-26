@@ -59,6 +59,10 @@ default under `allowed_packages`) keeps working with no migration.
 - `UsageWatcher.kt` (usage-pause "excluded from the count" check): mirrors
   `shouldBlock()`'s branch — allowlist membership keeps counting paused,
   blocklist membership does the opposite.
+- Wording: in blocklist mode the editor title reads "Apps blocked during a
+  pause" (`allowed_apps_title_blocklist`, updated live as mode/profile
+  change) and the Home profile line's TalkBack text "Blocked apps: <name>"
+  (`home_profile_line_blocklist`), since "apps that stay" would be backwards.
 - Home-button consequence: in blocklist mode, pressing Home during a pause
   does **not** land on the block screen unless the device launcher's own
   package happens to be in the forbidden list — correct and intended

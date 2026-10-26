@@ -61,16 +61,14 @@ class AllowedAppsActivity : BaseActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        supportActionBar?.apply {
-            title = getString(R.string.allowed_apps_title)
-            setDisplayHomeAsUpEnabled(true)
-        }
+        supportActionBar?.setDisplayHomeAsUpEnabled(true)
 
         allowedAppsManager = AllowedAppsManager.getInstance(applicationContext)
         profiles = allowedAppsManager.profiles()
         savedInstanceState?.getInt(STATE_EDITING_PROFILE)
             ?.takeIf { id -> profiles.any { it.id == id } }
             ?.let { editingProfileId = it }
+        updateTitle()
 
         setContent {
             CalmOtterTheme(appTheme = ThemeManager.getTheme(this)) {
@@ -101,6 +99,7 @@ class AllowedAppsActivity : BaseActivity() {
                     onChangeMode = { mode ->
                         allowedAppsManager.setMode(editingProfileId, mode)
                         profiles = allowedAppsManager.profiles()
+                        updateTitle()
                     },
                 )
             }
@@ -178,9 +177,17 @@ class AllowedAppsActivity : BaseActivity() {
         }
     }
 
+    private fun updateTitle() {
+        val blocklist = allowedAppsManager.profile(editingProfileId).mode == AllowedAppsMode.BLOCKLIST
+        supportActionBar?.title = getString(
+            if (blocklist) R.string.allowed_apps_title_blocklist else R.string.allowed_apps_title,
+        )
+    }
+
     /** Passa a modificare un altro profilo: stesse app, spunte di quel profilo. */
     private fun editProfile(id: Int) {
         editingProfileId = id
+        updateTitle()
         val allowed = allowedAppsManager.packagesFor(id)
         allApps = allApps.map { it.copy(isAllowed = it.packageName in allowed) }
     }
