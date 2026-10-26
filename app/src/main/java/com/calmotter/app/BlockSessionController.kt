@@ -64,7 +64,8 @@ class BlockSessionController(
      * tempo rimanente di una sessione chiusa è 0, ma non è una scadenza.
      */
     fun endedEarlyElsewhere(): Boolean =
-        plannedEndMillis > 0 && System.currentTimeMillis() < plannedEndMillis - EARLY_END_SLACK_MS
+        plannedEndMillis > 0 && !session.isSessionActive() &&
+            System.currentTimeMillis() < plannedEndMillis - EARLY_END_SLACK_MS
 
     /** Quanto della pausa è passato, da 0 a 1, per l'anello di avanzamento. */
     fun progress(remainingMillis: Long = remainingMillis()): Float =
