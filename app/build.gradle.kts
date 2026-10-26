@@ -14,62 +14,49 @@ kotlin {
 }
 
 /**
- * Numero di build, da cui derivano `versionCode` e il metadato di build di
- * `versionName` ("0.4.0+<numero>", vedi [otterVersionName]). Lo passa `.github/workflows/android.yml` come
- * `OTTER_BUILD_NUMBER`, valorizzato con `github.run_number`; in locale non
- * c'è e vale 1.
+ * `versionCode` e `versionName` stanno fissi in `defaultConfig` (sotto): sono
+ * quelli di F-Droid, che compila dal tag senza la nostra CI e li legge dal
+ * sorgente. `release.yml` li riscrive con un commit prima di creare il tag
+ * (`versionCode` = major*10000 + minor*100 + patch: 0.6.0 → 600).
  *
- * Nasce da un problema concreto: due APK firmate uscite da due run diversi
- * si dichiaravano entrambe `0.1.0 (1)`, quindi dal telefono non c'era modo
- * di sapere quale delle due fosse installata — durante il debug di un bug
- * su S22 si è persa mezz'ora proprio su questo. Con `versionCode` crescente
- * un aggiornamento si installa anche sopra la build precedente senza
- * disinstallare, e la Play Store lo pretende comunque per ogni caricamento.
+ * `.github/workflows/android.yml`, che firma per Play e per i tester, li
+ * sostituisce con questi due valori d'ambiente:
  *
- * Conseguenza da tenere a mente: una build locale vale sempre 1, quindi non
- * si installa *sopra* una build di CI (Android rifiuta il downgrade di
- * `versionCode`). Per sostituirla basta passare un numero più alto a mano:
+ * - `OTTER_BUILD_NUMBER` (`github.run_number`) diventa il `versionCode`.
+ *   Nasce da un problema concreto: due APK firmate uscite da due run diversi
+ *   si dichiaravano entrambe `0.1.0 (1)`, quindi dal telefono non c'era modo
+ *   di sapere quale delle due fosse installata — durante il debug di un bug
+ *   su S22 si è persa mezz'ora proprio su questo. Con `versionCode` crescente
+ *   un aggiornamento si installa anche sopra la build precedente senza
+ *   disinstallare, e la Play Store lo pretende comunque per ogni caricamento.
+ *   Variabile dedicata, non `GITHUB_RUN_NUMBER` diretta: quest'ultima esiste
+ *   in *qualunque* workflow, e `ci.yml` (che compila solo debug) ha una
+ *   numerazione sua, più avanti di questa. A timbrare la versione è solo il
+ *   workflow che produce artefatti installabili.
+ * - `OTTER_VERSION_NAME` è il nome del tag su un rilascio (`v0.5.0` →
+ *   "0.5.0"). Senza, ma con `OTTER_BUILD_NUMBER`, la versione parte
+ *   dall'ultimo tag e aggiunge il numero di build come metadato semver:
+ *   "0.4.0+171" = la 0.4.0 più le modifiche arrivate dopo. Il tag si legge da
+ *   git (in CI serve un checkout con i tag, `fetch-depth: 0`); senza git o
+ *   senza tag vale "0.0.0".
+ *
+ * In locale non c'è nessuna delle due e valgono i valori fissi: una build
+ * locale non si installa *sopra* una di CI (Android rifiuta il downgrade del
+ * `versionCode`). Per sostituirla si passa un numero più alto a mano:
  * `OTTER_BUILD_NUMBER=999 ./gradlew assembleBetaDebug`.
- *
- * **Variabile dedicata, non `GITHUB_RUN_NUMBER` diretta.** Quest'ultima
- * esiste in *qualunque* workflow: `ci.yml` (che compila solo debug) ha una
- * numerazione sua, più avanti di questa, e le sue build si sarebbero
- * dichiarate più recenti di quelle firmate. A timbrare la versione è solo il
- * workflow che produce artefatti installabili.
- *
- * Le stesse due cose si possono passare come proprietà Gradle
- * (`-PotterBuildNumber=176 -PotterVersionName=0.6.0`): la ricetta di F-Droid
- * (docs/fdroid/) compila da un tag senza la nostra CI e le usa per ottenere
- * lo stesso `versionCode` della build di Play. L'ambiente ha la precedenza.
  */
-val otterBuildNumber: Int =
-    (System.getenv("OTTER_BUILD_NUMBER") ?: providers.gradleProperty("otterBuildNumber").orNull)
-        ?.toIntOrNull()?.takeIf { it > 0 } ?: 1
+val ciBuildNumber: Int? = System.getenv("OTTER_BUILD_NUMBER")?.toIntOrNull()?.takeIf { it > 0 }
 
-/**
- * Il nome di versione segue semver (vedi docs/store/README.md, "Versioni").
- * Su un tag di rilascio (`v0.5.0`) `android.yml` passa il nome del tag in
- * `OTTER_VERSION_NAME`, e la versione mostrata è "0.5.0". Il `versionCode`
- * resta il numero di run: è quello che Play pretende crescente, e un tag non
- * lo garantisce.
- *
- * Ogni altra build parte dall'ultimo tag e aggiunge il numero di build come
- * metadato semver: "0.4.0+171" = la 0.4.0 più le modifiche arrivate dopo.
- * Prima era "0.1.<numero>", che dopo la 0.4.0 sembrava una versione più
- * vecchia. Il tag si legge da git (in CI serve un checkout con i tag,
- * `fetch-depth: 0`); senza git o senza tag vale "0.0.0".
- */
-val lastReleaseVersion: String = runCatching {
+val ciVersionName: String? =
+    System.getenv("OTTER_VERSION_NAME")?.removePrefix("v")?.takeIf { it.isNotBlank() }
+        ?: ciBuildNumber?.let { "${lastReleaseVersion()}+$it" }
+
+fun lastReleaseVersion(): String = runCatching {
     providers.exec {
         commandLine("git", "describe", "--tags", "--abbrev=0", "--match", "v[0-9]*.[0-9]*.[0-9]*")
         isIgnoreExitValue = true
     }.standardOutput.asText.get().trim().removePrefix("v")
 }.getOrNull()?.takeIf { it.isNotBlank() } ?: "0.0.0"
-
-val otterVersionName: String =
-    (System.getenv("OTTER_VERSION_NAME") ?: providers.gradleProperty("otterVersionName").orNull)
-        ?.removePrefix("v")?.takeIf { it.isNotBlank() }
-        ?: "$lastReleaseVersion+$otterBuildNumber"
 
 android {
     namespace = "com.calmotter.app"
@@ -80,8 +67,10 @@ android {
         applicationId = "com.calmotter.app"
         minSdk = 26
         targetSdk = 37
-        versionCode = otterBuildNumber
-        versionName = otterVersionName
+        versionCode = 600
+        versionName = "0.6.0"
+        ciBuildNumber?.let { versionCode = it }
+        ciVersionName?.let { versionName = it }
     }
 
     signingConfigs {

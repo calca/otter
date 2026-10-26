@@ -61,23 +61,25 @@ jobs:
           fi
         done
 
-    # F-Droid legge versione e changelog dal tag: il versionCode è derivato
-    # dalla versione (0.7.1 → 701), un canale a parte da quello di Play, il
-    # cui versionCode è il numero di run. Il commit con i due file precede il
-    # tag, così il tag li contiene (docs/fdroid/README.md).
+    # F-Droid compila dal tag e legge versione e changelog dal sorgente: il
+    # versionCode è derivato dalla versione (0.7.1 → 701), un canale a parte
+    # da quello di Play, il cui versionCode è il numero di run (vedi
+    # app/build.gradle.kts). Il commit con le due righe e i changelog precede
+    # il tag, così il tag li contiene (docs/fdroid/README.md).
     - name: Stamp the F-Droid version
       run: |
         next="${{ steps.version.outputs.next }}"
         IFS=. read -r major minor patch <<< "${next#v}"
         code=$((major * 10000 + minor * 100 + patch))
-        printf 'versionName=%s\nversionCode=%s\n' "${next#v}" "$code" > docs/fdroid/version.properties
+        sed -i -E "s/^( *versionCode = )[0-9]+\$/\1$code/; s/^( *versionName = \")[^\"]+\"\$/\1${next#v}\"/" app/build.gradle.kts
+        grep -q "versionCode = $code\$" app/build.gradle.kts && grep -q "versionName = \"${next#v}\"\$" app/build.gradle.kts
         for l in en-US it-IT; do
           mkdir -p "fastlane/metadata/android/$l/changelogs"
           cp "docs/store/whatsnew/$l.txt" "fastlane/metadata/android/$l/changelogs/$code.txt"
         done
         git config user.name "github-actions[bot]"
         git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-        git add docs/fdroid/version.properties fastlane
+        git add app/build.gradle.kts fastlane
         git commit -m "F-Droid: versione ${next#v} ($code)"
         git push origin HEAD:main
 
