@@ -1,0 +1,1 @@
+Piccolo rilascio, nessuna novità visibile: abbiamo sistemato come viene costruita l'app per prepararla a F-Droid. Grazie a chi sta provando Calm Otter!

@@ -1,0 +1,1 @@
+Small release, nothing new to see: we reworked how the app is built to get it ready for F-Droid. Thanks to everyone testing Calm Otter!
