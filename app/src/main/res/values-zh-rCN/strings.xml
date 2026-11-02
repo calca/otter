@@ -1,0 +1,469 @@
+<resources>
+    <string name="app_name">Calm Otter</string>
+    <string name="settings_title">设置</string>
+    <string name="settings_permissions_label">权限</string>
+    <string name="settings_theme_label">主题</string>
+    <string name="settings_pause_label">暂停期间</string>
+    <string name="settings_auto_label">自动</string>
+    <string name="settings_password_label">密码</string>
+    <string name="settings_password_set_by">由%1$s设置</string>
+    <string name="permission_row_accessibility">无障碍</string>
+    <string name="permission_row_dnd">勿扰模式</string>
+    <string name="permission_action_grant">授权</string>
+    <string name="permission_action_done">已完成</string>
+    <string name="home_permission_dialog_title">需要以下权限</string>
+    <string name="permission_reason_accessibility">无障碍：用于识别当前打开的应用，并显示暂停界面。</string>
+    <string name="permission_reason_dnd">勿扰模式：用于在暂停期间静音通知，同时允许来电、闹钟和音乐。</string>
+    <string name="close">关闭</string>
+    <string name="settings_info_label">关于</string>
+    <string name="settings_info_open_source">开源，MIT 许可证</string>
+    <string name="settings_info_feedback">发送反馈</string>
+    <string name="settings_version">Calm Otter %1$s（构建 %2$d）</string>
+
+    <string name="hint_partner_name">你的名字（可选）</string>
+    <string name="hint_new_password">新密码</string>
+    <string name="hint_confirm_password">确认密码</string>
+    <string name="show_password">显示密码</string>
+    <string name="hide_password">隐藏密码</string>
+    <string name="password_too_short">密码至少需要 4 个字符</string>
+    <string name="passwords_dont_match">两次输入的密码不一致</string>
+
+    <string name="home_start_hint">点按&lt;b&gt;水獭&lt;/b&gt;开始</string>
+    <string name="otter_hint">想休息一下时，点我就好</string>
+    <!-- Fumetto del giorno sopra l'otter (specs/otter-daily-hint/): inviti, mai rimproveri né conti dei giorni. -->
+    <string name="otter_hint_schedules">总是忘记？我可以自己开始：点这里。</string>
+    <string name="otter_daily_hint_toggle_label">每日提示</string>
+    <string-array name="otter_daily_phrases">
+        <item>留十分钟给自己？</item>
+        <item>手机可以等一等。点我吧。</item>
+        <item>短短的暂停也算数。</item>
+        <item>我们来做几次深呼吸？</item>
+        <item>世界就在外面。暂停一下？</item>
+        <item>你随时想来，我都在。</item>
+        <item>安静一会儿？</item>
+        <item>抬头看看远处？</item>
+    </string-array>
+    <string name="home_active_label">暂停中</string>
+    <string name="home_time_remaining">剩余%1$s</string>
+    <string name="weekly_chart_today">今天</string>
+    <string-array name="weekday_initials">
+        <item>日</item>
+        <item>一</item>
+        <item>二</item>
+        <item>三</item>
+        <item>四</item>
+        <item>五</item>
+        <item>六</item>
+    </string-array>
+    <string-array name="calm_countdown_near_end_phrases">
+        <item>快到了</item>
+        <item>再等一小会儿……</item>
+        <item>世界可以再等一等</item>
+        <item>就快到了</item>
+        <item>最后一刻宁静</item>
+    </string-array>
+    <string-array name="calm_countdown_template_phrases">
+        <item>大约还剩%1$s</item>
+        <item>你还有%1$s属于自己</item>
+        <item>还有%1$s的宁静</item>
+        <item>再享受%1$s吧</item>
+        <item>%1$s的平静</item>
+    </string-array>
+    <plurals name="countdown_minutes">
+        <item quantity="other">%1$d 分钟</item>
+    </plurals>
+    <plurals name="countdown_hours">
+        <item quantity="other">%1$d 小时</item>
+    </plurals>
+    <string name="countdown_hours_minutes">%1$s%2$s</string>
+    <string name="hint_unlock_password">密码</string>
+    <string name="unlock">解锁</string>
+    <string name="wrong_password">密码错误</string>
+    <plurals name="password_locked_out">
+        <item quantity="other">错误次数过多，请在 %1$d 秒后重试。</item>
+    </plurals>
+
+    <string name="accessibility_service_description">让 Calm Otter 知道哪个应用位于前台，以便用暂停界面将其覆盖。</string>
+
+    <string name="theme_sage">鼠尾草</string>
+    <string name="theme_dusk_sand">暮沙</string>
+    <string name="theme_dawn_clay">晨陶</string>
+    <string name="theme_still_water">静水</string>
+
+    <string name="notification_channel_name">暂停进行中</string>
+    <string name="notification_channel_description">显示当前暂停的状态</string>
+    <string name="pause_notification_title">你正在暂停中</string>
+    <string name="pause_notification_together">与%1$s共度的时光</string>
+    <string name="pause_notification_together_plain">共度的时光</string>
+    <string name="pause_notification_remaining">大约还剩%1$s</string>
+    <string name="pause_notification_near_end">即将结束</string>
+    <!-- Origine di una pausa partita da sola (PauseOrigin): etichetta di stato e titolo della notifica, benvenuto all'arrivo. -->
+    <string name="pause_origin_scheduled">你的%1$s暂停</string>
+    <string name="pause_origin_surprise">惊喜暂停</string>
+    <string name="pause_origin_usage">屏幕使用%1$s后的暂停</string>
+    <string name="pause_welcome_scheduled">到了你预定的暂停时间。</string>
+    <string name="pause_welcome_surprise">惊喜！一次你没想到的暂停。</string>
+    <string name="pause_welcome_usage">屏幕已经亮了很久：休息一下吧。</string>
+    <string name="pause_not_started_title">暂停没有开始</string>
+    <string name="pause_not_started_text">需要两项权限：点按以设置。</string>
+
+    <string name="history_tab_overview">概览</string>
+    <string name="history_tab_sessions">暂停</string>
+    <!-- Streak/week row in Home, for one opening only: the previous pause
+         ended while the phone was closed, with no end-of-pause screen there
+         to tell the story live. %1$s is the time (e.g. "14:32"), %2$s the
+         effective duration (e.g. "1h 5m"). -->
+    <string name="home_pending_summary">暂停于 %1$s 结束（%2$s）</string>
+    <string name="weekly_summary_none">本周还没有暂停</string>
+    <plurals name="weekly_summary_sessions">
+        <item quantity="other">本周 %1$d 次暂停 · %2$s</item>
+    </plurals>
+
+    <string name="history_title">历史记录</string>
+    <string name="history_empty">还没有暂停记录</string>
+    <string-array name="history_empty_phrases">
+        <item>你找回的时间会显示在这里。想开始时随时开始。</item>
+        <item>还没有暂停记录，也是个不错的起点。</item>
+        <item>第一次暂停最难，之后会水到渠成。</item>
+    </string-array>
+    <string name="history_clear">清除历史记录</string>
+    <string name="history_clear_confirm">删除所有历史记录？此操作无法撤销。</string>
+    <string name="history_item_natural">完整结束</string>
+    <string name="history_item_early">提前结束 — 原计划 %1$s</string>
+    <string name="stat_sessions">暂停次数</string>
+    <string name="stat_minutes">总时长</string>
+    <string name="stat_completed">已完成</string>
+    <string name="stat_completed_fraction">%1$d / %2$d</string>
+
+    <plurals name="streak_days">
+        <item quantity="other">连续 %1$d 天</item>
+    </plurals>
+
+    <string name="weekly_goal_none">本周还没有设定目标</string>
+    <string name="weekly_goal_set_button">设定目标</string>
+    <string name="weekly_goal_edit_button">修改目标</string>
+    <string name="weekly_goal_dialog_title">每周目标</string>
+    <string name="weekly_goal_type_sessions">暂停次数</string>
+    <string name="weekly_goal_type_minutes">分钟</string>
+    <plurals name="weekly_goal_progress_sessions">
+        <item quantity="other">本周已完成 %1$d / %2$d 次暂停</item>
+    </plurals>
+    <plurals name="weekly_goal_progress_minutes">
+        <item quantity="other">本周已完成 %1$d / %2$d 分钟</item>
+    </plurals>
+
+    <string name="history_export">导出历史记录</string>
+    <string name="history_export_empty">没有可导出的暂停记录</string>
+
+    <string name="manage_allowed_apps">保留的应用</string>
+    <string name="change_password">修改密码</string>
+    <string name="change_password_title">修改密码</string>
+    <string name="change_password_info">只有知道当前密码的人才能设置新密码。</string>
+    <string name="change_password_confirm">保存新密码</string>
+    <string name="hint_current_password">当前密码</string>
+    <string name="wrong_current_password">当前密码不正确</string>
+    <string name="password_changed">密码已更新</string>
+    <string name="phrases_toggle_label">显示语句</string>
+    <string name="manage_allowed_apps_password_prompt">输入密码以编辑列表</string>
+    <string name="confirm">确认</string>
+    <string name="allowed_apps_title">暂停期间保留的应用</string>
+    <string name="allowed_apps_title_blocklist">暂停期间被屏蔽的应用</string>
+    <string name="allowed_apps_intro">暂停期间，除了电话和你在这里选择的应用，其他一切都会停止。已选择的应用显示在最上方。</string>
+    <string name="allowed_apps_intro_blocklist">暂停期间，除了你在这里选择的应用，其他一切仍可使用。</string>
+    <string name="allowed_apps_mode_label">暂停期间</string>
+    <string name="allowed_apps_mode_allowlist">仅限这些</string>
+    <string name="allowed_apps_mode_blocklist">除这些之外全部</string>
+    <string name="allowed_apps_search">搜索应用</string>
+    <string name="allowed_apps_clear_search">清除搜索</string>
+    <string name="allowed_apps_empty_filtered">未找到应用</string>
+    <string name="save">保存</string>
+    <string name="allowed_apps_saved">列表已更新</string>
+    <plurals name="allowed_apps_limit_reached">
+        <item quantity="other">最多 %1$d 个应用</item>
+    </plurals>
+
+    <string name="widget_description">一键开始暂停</string>
+    <string name="widget_label_idle">暂停</string>
+    <string name="widget_label_active">暂停中</string>
+
+    <!-- Onboarding -->
+    <string name="onb1_title">真正离开手机，休息一下</string>
+    <string name="onb1_body">选择时长：除了&lt;b&gt;电话和你挑选的几个应用&lt;/b&gt;，其他一切都会停止。</string>
+    <string name="onb4_title">一起选择密码</string>
+    <string name="onb4_body">把手机交给你信任的人：&lt;b&gt;只有对方才能提前结束暂停&lt;/b&gt;。</string>
+    <string name="onb4_note">你不需要知道密码：这就是约定。</string>
+    <string name="onb5_title">一切就绪</string>
+    <string name="onb5_body">需要休息时，打开应用并&lt;b&gt;点按水獭&lt;/b&gt;。</string>
+    <string name="onb5_note">其余的事可以等一等。</string>
+    <string name="onb_next">下一步</string>
+    <string name="onb_back">返回</string>
+    <string name="onb_finish">开始吧</string>
+
+    <!-- Time Together, formerly "Group pause" (specs/group-pause/) -->
+    <string name="group_pause_entry_button">共度时光</string>
+    <string name="group_pause_chooser_create_desc">选择时长并发出邀请</string>
+    <string name="group_pause_chooser_join_desc">加入已经建好的暂停</string>
+    <string name="group_pause_chooser_create">创建</string>
+    <string name="group_pause_chooser_join">加入</string>
+    <string name="action_back">返回</string>
+    <string name="group_pause_chooser_subtitle">一起暂停：朋友、伴侣、同事</string>
+
+
+    <string name="group_pause_prefer_code_link">想用代码或二维码？</string>
+    <string name="group_pause_start_in_label">开始于</string>
+    <string name="group_pause_share_hint">请对方扫描此二维码，\n或分享下方的代码</string>
+    <string name="group_pause_code_copy">复制</string>
+    <string name="group_pause_code_copied">代码已复制</string>
+    <string name="group_pause_countdown_with_duration">%1$d:%2$02d 后开始 · 时长：%3$s</string>
+
+    <string name="group_pause_join_title">加入共度时光</string>
+    <string name="group_pause_join_scan_tab">扫描</string>
+    <string name="group_pause_camera_permission_rationale">扫描二维码需要相机权限。</string>
+    <string name="group_pause_scan_instruction">将相机对准二维码</string>
+    <string name="group_pause_manual_entry_link">手动输入代码</string>
+    <string name="group_pause_scan_instead">改为扫描二维码</string>
+    <string name="group_pause_manual_code_hint">粘贴或输入代码</string>
+    <string name="group_pause_manual_code_join_button">加入</string>
+    <string name="group_pause_invalid_code">代码无效或已过期</string>
+
+    <string name="release_others_title">其他人仍在暂停中</string>
+    <string name="release_others_body">将你的手机靠近对方的手机，与你一起解锁。</string>
+    <string name="release_others_done">完成</string>
+    <string name="unlock_or_tap_hint">……或者，等发起暂停的人结束自己的暂停后，将手机靠近对方的手机</string>
+    <string name="block_group_with_one">与%1$s在一起</string>
+    <plurals name="block_group_with_many">
+        <item quantity="other">与%1$s等 %2$d 人在一起</item>
+    </plurals>
+    <string name="history_with_companions">与%1$s</string>
+    <string name="block_group_indicator">这是共度的时光</string>
+
+    <!-- Live lobby: Bluetooth + NFC (Phase 2) -->
+    <string name="group_pause_bt_gentle_notice">邀请他人需要蓝牙。</string>
+    <string name="group_pause_bt_gentle_action">打开蓝牙</string>
+    <string name="group_pause_bt_permission_notice">邀请他人需要蓝牙权限。</string>
+    <string name="group_pause_bt_permission_action">授予权限</string>
+
+    <string name="group_pause_lobby_waiting_title">等待其他人加入……</string>
+    <string name="group_pause_lobby_waiting_subtitle">让手机互相靠近，或使用蓝牙</string>
+    <string name="group_pause_lobby_with_one">%1$s与你在一起</string>
+    <string name="group_pause_lobby_with_two">%1$s和%2$s与你在一起</string>
+    <plurals name="group_pause_lobby_with_many">
+        <item quantity="other">%1$s等 %2$d 人与你在一起</item>
+    </plurals>
+    <string name="group_pause_lobby_ready_subtitle">准备好后，大家一起开始</string>
+    <string name="group_pause_start_button">开始吧</string>
+
+    <string name="group_pause_join_nfc_title">让手机互相靠近以找到彼此</string>
+    <string name="group_pause_join_listening_subtitle">将两部手机背靠背贴近，或在下方选择朋友的名字</string>
+    <string name="group_pause_join_pick_hint">点按朋友的名字以连接</string>
+    <string name="group_pause_join_your_name">你显示为%1$s</string>
+    <string name="group_pause_join_search_hero_title">寻找正在等你的人</string>
+    <string name="group_pause_join_code_link">扫描或输入代码</string>
+    <string name="group_pause_join_searching">正在寻找朋友……</string>
+    <string name="group_pause_join_connecting">正在连接……</string>
+    <string name="group_pause_join_lobby_duration">%1$s的暂停</string>
+    <string name="group_pause_join_waiting_host">已连接 — 等待发起人开始……</string>
+    <string name="group_pause_join_error">连接已断开。</string>
+    <string name="group_pause_join_retry_button">重试</string>
+    <string name="group_pause_nfc_service_description">共度时光 — 通过 NFC 进行蓝牙交换</string>
+
+    <!-- Relaxing phrases shown during pause (optional) -->
+    <string-array name="pause_phrases">
+        <item>深呼吸。这一刻属于你。</item>
+        <item>安静，是对自己的一种尊重。</item>
+        <item>你没有错过什么，你正在收获一些东西。</item>
+        <item>心灵需要留白，才能给想法腾出空间。</item>
+        <item>每一次暂停，都是对自己的一份小小关照。</item>
+        <item>看看窗外，世界依然在那里。</item>
+        <item>如果此刻没有手机，你会做什么？</item>
+        <item>无聊是创造力的沃土。</item>
+        <item>你比自己以为的更专注于当下。</item>
+        <item>少一点屏幕，多一点深度。</item>
+        <item>当思绪慢下来，身体自然知道该怎么做。</item>
+        <item>你选择了当下，而不是屏幕。</item>
+    </string-array>
+    <string name="phrase_format">“%1$s”</string>
+    <!-- Pausa respiro (specs/breathing-pause/): al posto della frase. -->
+    <string name="breathing_in">吸气</string>
+    <string name="breathing_out">呼气</string>
+    <string name="breathing_slowly">缓缓呼吸</string>
+    <!-- Sottotitolo del riquadro nelle Impostazioni rapide, senza pausa in corso: %1$s = "1 h" -->
+    <string name="tile_idle_subtitle">点按开始暂停 · %1$s</string>
+    <!-- Profili di app consentite (specs/allowed-app-profiles/) -->
+    <string name="allowed_profile_default_name">标准</string>
+    <string name="allowed_profile_new">+ 新建</string>
+    <string name="allowed_profile_edit_title">编辑配置</string>
+    <string name="allowed_profile_delete_action">删除配置</string>
+    <string name="allowed_profile_delete">删除</string>
+    <string name="allowed_profile_delete_title">删除“%1$s”？</string>
+    <string name="allowed_profile_delete_body">之后的暂停将重新使用“标准”配置。</string>
+    <string name="allowed_profile_name_title">配置名称</string>
+    <string name="allowed_profile_name_hint">例如：晚间、工作</string>
+    <string name="allowed_profile_save">保存</string>
+    <string name="home_profile_line">保留的应用：%1$s</string>
+    <string name="home_profile_line_blocklist">被屏蔽的应用：%1$s</string>
+    <string name="home_profile_dialog_title">这次暂停保留哪些应用？</string>
+    <!-- Attività da fare insieme (specs/together-activity/): prima persona plurale, una sola attività per voce -->
+    <string name="together_activity_together">什么都不做：就这样在一起</string>
+    <string name="together_activity_tea">泡一壶茶，慢慢喝</string>
+    <string name="together_activity_coffee">一起喝杯咖啡，不着急</string>
+    <string name="together_activity_best_of_week">互相讲讲这周最美好的事</string>
+    <string name="together_activity_balcony">一起走到阳台，看看四周</string>
+    <string name="together_activity_album">一起把一张专辑从头听到尾</string>
+    <string name="together_activity_short_walk">绕着街区散个步</string>
+    <string name="together_activity_cook_simple">一起做点简单的饭菜</string>
+    <string name="together_activity_read">各读各的书，待在同一个房间</string>
+    <string name="together_activity_cards">一起玩一局纸牌</string>
+    <string name="together_activity_board_game">一起玩一局桌游</string>
+    <string name="together_activity_tidy">一起整理家里的一个角落</string>
+    <string name="together_activity_draw">各画点什么，然后互相看看</string>
+    <string name="together_activity_write">各写点什么，然后读给对方听</string>
+    <string name="together_activity_places">一起列一份想去的地方清单</string>
+    <string name="together_activity_long_walk">去远一点的地方散步，没有目的地</string>
+    <string name="together_activity_slow_dinner">慢慢做一顿晚餐</string>
+    <string name="together_activity_park">去公园坐一会儿</string>
+    <string name="together_activity_photos">一起翻翻老相册</string>
+    <string name="together_activity_board_afternoon">用一个下午玩桌游</string>
+    <string name="together_activity_somewhere_new">去附近一个我们没去过的地方</string>
+    <string name="together_category_outside">户外</string>
+    <string name="together_category_table">餐桌旁</string>
+    <string name="together_category_games">游戏</string>
+    <string name="together_category_slow">慢时光</string>
+    <string name="together_activity_label">我们做点什么？</string>
+    <string name="together_activity_another">换一个主意</string>
+    <!-- Cronologia: uscita lenta e momento di chiusura -->
+    <string name="history_item_slow_exit">未使用密码而结束</string>
+    <string name="mood_calm">平静</string>
+    <string name="mood_ordinary">平常</string>
+    <string name="mood_hard">艰难</string>
+    <!-- Momento di chiusura (specs/closing-moment/) -->
+    <string name="closing_title">%1$s的平静。</string>
+    <string name="closing_question">感觉怎么样？</string>
+    <string name="closing_note_hint">你做了什么？（可选）</string>
+    <string name="closing_done">完成</string>
+    <string name="closing_skip">跳过</string>
+    <!-- Uscita lenta (specs/slow-exit/) -->
+    <plurals name="slow_exit_action">
+        <item quantity="other">%1$d 分钟后离开</item>
+    </plurals>
+    <string name="slow_exit_context_title">联系不上掌握密码的人？</string>
+    <string name="slow_exit_context_body">暂停也可以在等待后结束，并会记录在历史记录中。</string>
+    <string name="slow_exit_stay">继续暂停</string>
+    <string name="slow_exit_waiting">暂停即将结束，未使用密码</string>
+    <string name="settings_slow_exit_label">无需密码离开</string>
+    <string name="settings_slow_exit_off">关闭</string>
+    <string name="settings_slow_exit_pill">%1$d 分钟</string>
+    <string name="settings_slow_exit_dialog_body">等待一段时间后，无需密码即可结束暂停。比密码更宽松：请一起商量后再选择。</string>
+    <string name="onboarding_slow_exit_note">如果你们联系不上彼此，等待 10 分钟后暂停也会结束。</string>
+    <!-- Time together in Cronologia (specs/together-history/) -->
+    <string name="history_filter_together">共度</string>
+    <string name="together_card_title">与谁</string>
+    <string name="together_period_month">本月</string>
+    <string name="together_period_all">全部时间</string>
+    <string name="together_none_month">本月没有共度的暂停。</string>
+    <plurals name="together_companion_line">
+        <item quantity="other">%1$s，共 %2$d 次暂停</item>
+    </plurals>
+    <!-- Pause programmate (specs/scheduled-pauses/) -->
+    <string name="schedule_channel_name">定时暂停</string>
+    <string name="schedule_heads_up">你的暂停将于 %1$s 开始</string>
+    <string name="schedule_heads_up_text">5 分钟后开始，时长%1$s。</string>
+    <!-- Pause programmate: schermata -->
+    <string name="schedule_title">定时暂停</string>
+    <string name="schedule_intro">在你选择的日期和时间自动开始的暂停。</string>
+    <string name="schedule_empty">还没有定时暂停。</string>
+    <string name="schedule_exact_notice">为了让手机闲置时暂停也能准时开始，请允许 Calm Otter 使用“闹钟和提醒”。否则可能会晚几分钟开始。</string>
+    <string name="schedule_exact_action">允许</string>
+    <string name="schedule_add">添加定时暂停</string>
+    <string name="schedule_new_title">新建定时暂停</string>
+    <string name="schedule_edit_title">定时暂停</string>
+    <string name="schedule_days_label">日期</string>
+    <string name="schedule_time_label">时间</string>
+    <string name="schedule_duration_label">时长</string>
+    <string name="schedule_duration_shorter">更短</string>
+    <string name="schedule_duration_longer">更长</string>
+    <string name="schedule_profile_label">保留的应用</string>
+    <string name="schedule_skip_next">跳过下一次</string>
+    <string name="schedule_delete">删除暂停</string>
+    <string name="schedule_summary_short">%1$s · 时长%2$s</string>
+    <string name="schedule_surprise_label">惊喜</string>
+    <string name="schedule_surprise_hint">在你所选时间之后的 2 小时内，随机时刻开始。</string>
+    <string name="schedule_surprise_tag">惊喜</string>
+    <string name="schedule_window_from_label">不早于</string>
+    <string name="schedule_summary_surprise">在 %1$s 到 %2$s 之间开始</string>
+    <string name="schedule_surprise_heads_up">5 分钟后有一次惊喜暂停</string>
+    <string name="schedule_surprise_heads_up_text">时长%1$s。</string>
+    <string name="schedule_pick_a_day">请至少选择一天</string>
+    <string name="schedule_every_day">每天</string>
+    <string name="schedule_weekdays">周一至周五</string>
+    <string name="schedule_weekend">周六至周日</string>
+    <string name="schedule_password_prompt">此更改会放宽定时暂停：需要输入密码。</string>
+    <string name="schedule_lock_prompt">保护定时暂停需要输入密码。</string>
+    <string name="schedule_locked_label">受密码保护</string>
+    <string name="schedule_locked_hint">一份约定：关闭、缩短或删除它都需要密码。</string>
+    <string name="settings_schedule_label">定时暂停</string>
+    <plurals name="settings_schedule_count">
+        <item quantity="other">%1$d 个已启用</item>
+    </plurals>
+    <string name="settings_schedule_none">无</string>
+    <string name="usage_pause_title">长时间使用后</string>
+    <string name="usage_pause_channel_name">长时间使用后的暂停</string>
+    <string name="usage_pause_heads_up_title">5 分钟后有一次%1$s的暂停</string>
+    <string name="usage_pause_explain">当你长时间使用手机时，会自动开始的暂停。它只统计屏幕亮起的时间，不会查看你使用了哪些应用；屏幕熄灭 5 分钟后重新计时。</string>
+    <string name="usage_pause_needs_permissions">它和暂停一样需要 Calm Otter 的无障碍权限：没有权限就不会计时。</string>
+    <string name="usage_pause_after">使用满</string>
+    <string name="usage_pause_after_less">更早</string>
+    <string name="usage_pause_after_more">更晚</string>
+    <string name="usage_pause_duration">暂停</string>
+    <string name="usage_pause_locked_hint">一份约定：没有“暂不”，关闭、推迟或缩短它都需要密码。</string>
+    <string name="usage_pause_rules">开始前 5 分钟会先提醒，每天最多可以点“暂不” 3 次。通话和保留的应用不计入时间，夜间 23:00 到 7:00 不会开始。</string>
+    <string name="usage_pause_heads_up">你已经使用手机%1$s了。</string>
+    <string name="usage_pause_not_now">暂不</string>
+    <string name="usage_pause_password_prompt">此更改会放宽长时间使用后的暂停：需要输入密码。</string>
+    <string name="usage_pause_lock_prompt">保护长时间使用后的暂停需要输入密码。</string>
+    <string name="usage_pause_settings_value">使用满%1$s</string>
+    <!-- Nota della settimana (specs/weekly-summary/) -->
+    <string name="weekly_note_channel">每周小结</string>
+    <string name="weekly_note_title">你的一周</string>
+    <plurals name="weekly_note_pauses">
+        <item quantity="other">%1$d 次暂停，共%2$s。</item>
+    </plurals>
+    <string name="weekly_note_toggle_label">周日晚间小结</string>
+    <string name="weekly_note_notifications_off">Calm Otter 的通知已关闭</string>
+    <!-- Cronologia per mese (specs/history-by-month/) -->
+    <string name="history_month_empty">本月没有暂停记录。</string>
+    <string name="history_show_earlier">显示更早的月份</string>
+    <!-- Pausa di gruppo: versioni diverse dell'app -->
+    <string name="group_pause_other_version">此代码来自不同版本的 Calm Otter：请在两部手机上更新应用。</string>
+    <string name="group_pause_other_version_lobby">对方手机上的 Calm Otter 版本不同：请在两部手机上更新应用。</string>
+    <!-- Informativa sull'accessibilità prima delle impostazioni di sistema (richiesta da Google Play) -->
+    <string name="a11y_disclosure_title">Calm Otter 如何使用无障碍功能</string>
+    <string name="a11y_disclosure_what">Calm Otter 仅使用 Android 的无障碍服务来识别当前位于前台的应用：以便用暂停界面将其覆盖；如果你开启“长时间使用后”，还会用来统计屏幕亮起的时间。</string>
+    <string name="a11y_disclosure_not">它不会读取屏幕上的内容或你输入的文字，也不会收集、存储或向任何地方发送这些信息：应用不使用互联网。</string>
+    <string name="a11y_disclosure_off">你可以随时在无障碍设置中关闭它。</string>
+    <string name="a11y_disclosure_accept">同意并继续</string>
+    <string name="a11y_disclosure_decline">暂不</string>
+
+    <!-- Condivisione e inviti (Share.kt): menu di condivisione di Android, nessuna rete. -->
+    <string name="share_pause_text">远离手机的%1$s平静时光。来自 Calm Otter 🦦 %2$s</string>
+    <string name="share_invite_text">要不要一起放下手机休息一会儿？下载 Calm Otter 🦦 %1$s</string>
+    <string name="share_chooser_title">分享</string>
+    <string name="closing_share">分享这次暂停</string>
+    <string name="group_pause_invite_link">朋友没有 Calm Otter？邀请 TA</string>
+    <string name="settings_info_recommend">推荐 Calm Otter</string>
+    <string name="settings_info_rate">在 Google Play 上评分</string>
+
+    <!-- "Avvicina i telefoni" (specs/nfc-quick-together/). -->
+    <string name="quick_together_title">让两部手机互相靠近</string>
+    <string name="quick_together_other_ways">二维码、代码或蓝牙</string>
+    <string name="quick_together_hint">背靠背贴近，时长%1$s。另一部手机只需亮屏。</string>
+    <string name="quick_together_with">与%1$s一起暂停</string>
+    <string name="quick_together_refused_in_pause">%1$s已经在暂停中。</string>
+    <string name="quick_together_refused_setup">%1$s需要先完成 Calm Otter 的设置。</string>
+    <string name="quick_together_not_ready">对方手机没有响应。请让两部手机再贴近一会儿。</string>
+    <string name="quick_together_channel">一起暂停</string>
+    <string name="quick_together_notification">%1$s提议一起暂停</string>
+    <string name="quick_together_notification_text">%1$s，现在开始。</string>
+    <string name="quick_together_join">加入</string>
+    <string name="quick_together_nfc_off">打开 NFC，一碰即可开始共同暂停。</string>
+</resources>

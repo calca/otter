@@ -1,0 +1,4 @@
+<resources>
+    <!-- See values/strings.xml in this same flavor source set. -->
+    <string name="app_name">Calm Otter Beta</string>
+</resources>

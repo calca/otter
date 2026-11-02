@@ -1,1 +1,1 @@
-Piccolo rilascio, nessuna novità visibile: abbiamo sistemato come viene costruita l'app per prepararla a F-Droid. Grazie a chi sta provando Calm Otter!
+Novità: Calm Otter ora parla cinese semplificato (简体中文). Grazie a chi sta provando l'app e a chi lo ha chiesto!
