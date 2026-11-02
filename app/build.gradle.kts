@@ -67,8 +67,8 @@ android {
         applicationId = "com.calmotter.app"
         minSdk = 26
         targetSdk = 37
-        versionCode = 601
-        versionName = "0.6.1"
+        versionCode = 602
+        versionName = "0.6.2"
         ciBuildNumber?.let { versionCode = it }
         ciVersionName?.let { versionName = it }
     }

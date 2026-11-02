@@ -1,0 +1,1 @@
+New: Calm Otter now speaks Simplified Chinese (简体中文). Thanks to everyone testing, and to whoever asked for it!
