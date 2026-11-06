@@ -7,7 +7,12 @@ import android.app.PendingIntent
 import android.app.Service
 import android.content.Context
 import android.content.Intent
+import android.content.pm.ServiceInfo
+import android.os.Build
 import android.util.Log
+import androidx.core.app.ServiceCompat
+import com.calmotter.app.sound.RelaxSound
+import com.calmotter.app.sound.RelaxSoundPlayer
 import android.os.Handler
 import android.os.IBinder
 import android.os.Looper
@@ -28,6 +33,11 @@ import android.os.Looper
 class SessionForegroundService : Service() {
 
     private lateinit var sessionManager: SessionManager
+    private var soundPlayer: RelaxSoundPlayer? = null
+    // Vero se il servizio è partito anche come riproduzione multimediale: dal
+    // boot (Android 15) o in certi stati il sistema lo rifiuta, e allora la
+    // pausa resta valida ma in silenzio.
+    private var mediaForeground = false
     private val handler = Handler(Looper.getMainLooper())
     private val updateRunnable = object : Runnable {
         override fun run() {
@@ -50,15 +60,60 @@ class SessionForegroundService : Service() {
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        startForeground(NOTIFICATION_ID, buildNotification())
-        handler.post(updateRunnable)
+        if (!mediaForeground) enterForeground()
+        syncSoundPlayback()
+        if (intent?.action != ACTION_SYNC_SOUND) {
+            handler.removeCallbacks(updateRunnable)
+            handler.post(updateRunnable)
+        }
         return START_STICKY // il sistema tenta di riavviarlo se viene killato
+    }
+
+    /**
+     * Va in primo piano. Con un suono scelto dichiara anche la riproduzione
+     * multimediale (specs/relax-sound/); se il sistema la rifiuta, ripiega sul
+     * solo tipo di prima e la pausa resta senza suono.
+     */
+    private fun enterForeground() {
+        val notification = buildNotification()
+        val wantsSound = sessionManager.sessionSound() != RelaxSound.OFF
+        if (wantsSound && Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            try {
+                ServiceCompat.startForeground(
+                    this, NOTIFICATION_ID, notification,
+                    ServiceInfo.FOREGROUND_SERVICE_TYPE_SPECIAL_USE or ServiceInfo.FOREGROUND_SERVICE_TYPE_MEDIA_PLAYBACK,
+                )
+                mediaForeground = true
+                return
+            } catch (e: Exception) {
+                Log.w("SessionForegroundService", "Primo piano multimediale rifiutato, la pausa resta senza suono", e)
+            }
+        }
+        // Il tipo va detto anche qui: senza, da Android 14 valgono tutti quelli
+        // del manifest, multimediale compreso.
+        ServiceCompat.startForeground(
+            this, NOTIFICATION_ID, notification,
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) ServiceInfo.FOREGROUND_SERVICE_TYPE_SPECIAL_USE else 0,
+        )
+    }
+
+    /** Allinea il suono a ciò che la pausa chiede: suona, è in pausa (spento dall'utente) o tace. */
+    private fun syncSoundPlayback() {
+        val sound = if (mediaForeground) sessionManager.sessionSound() else RelaxSound.OFF
+        val player = soundPlayer ?: RelaxSoundPlayer(this).also { soundPlayer = it }
+        when {
+            sound == RelaxSound.OFF -> player.stop()
+            sessionManager.isSoundMuted() -> player.stop()
+            else -> if (!player.isPlaying) player.play(sound)
+        }
     }
 
     override fun onBind(intent: Intent?): IBinder? = null
 
     override fun onDestroy() {
         handler.removeCallbacks(updateRunnable)
+        soundPlayer?.stop()
+        soundPlayer = null
         super.onDestroy()
     }
 
@@ -137,6 +192,21 @@ class SessionForegroundService : Service() {
                 context.startForegroundService(Intent(context, SessionForegroundService::class.java))
             } catch (e: IllegalStateException) {
                 Log.w("SessionForegroundService", "Avvio in primo piano rifiutato, riprovo all'apertura", e)
+            }
+        }
+
+        private const val ACTION_SYNC_SOUND = "com.calmotter.app.action.SYNC_SOUND"
+
+        /** Fa riallineare il suono (acceso/spento dall'utente) a un servizio già in corso. */
+        fun syncSound(context: Context) {
+            val sessionManager = SessionManager.getInstance(context)
+            if (!sessionManager.isSessionActive()) return
+            try {
+                context.startService(
+                    Intent(context, SessionForegroundService::class.java).setAction(ACTION_SYNC_SOUND),
+                )
+            } catch (e: IllegalStateException) {
+                Log.w("SessionForegroundService", "Impossibile aggiornare il suono", e)
             }
         }
 

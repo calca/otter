@@ -2,6 +2,7 @@ package com.calmotter.app
 
 import android.content.Context
 import androidx.test.core.app.ApplicationProvider
+import com.calmotter.app.sound.RelaxSound
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
@@ -114,5 +115,34 @@ class AllowedAppsManagerTest {
         val reused = manager.createProfile("Sera di nuovo")!!
         assertEquals(evening.id, reused.id)
         assertEquals(AllowedAppsMode.ALLOWLIST, manager.profile(reused.id).mode)
+    }
+
+    @Test
+    fun soundDefaultsToTheGeneralOneAndTheGeneralOneToOff() {
+        assertEquals(RelaxSound.OFF, manager.generalSound())
+        assertNull(manager.profile(AllowedAppsManager.DEFAULT_PROFILE_ID).sound)
+        assertEquals(RelaxSound.OFF, manager.effectiveSound(AllowedAppsManager.DEFAULT_PROFILE_ID))
+    }
+
+    @Test
+    fun aProfileSoundOverridesTheGeneralAndNullGoesBack() {
+        val evening = manager.createProfile("Sera")!!
+        manager.setGeneralSound(RelaxSound.BROWN)
+        assertEquals(RelaxSound.BROWN, manager.effectiveSound(evening.id))
+        manager.setSound(evening.id, RelaxSound.RAIN)
+        assertEquals(RelaxSound.RAIN, manager.effectiveSound(evening.id))
+        assertEquals(RelaxSound.BROWN, manager.effectiveSound(AllowedAppsManager.DEFAULT_PROFILE_ID))
+        manager.setSound(evening.id, null)
+        assertEquals(RelaxSound.BROWN, manager.effectiveSound(evening.id))
+    }
+
+    @Test
+    fun deletingAProfileClearsItsSound() {
+        val evening = manager.createProfile("Sera")!!
+        manager.setSound(evening.id, RelaxSound.DRONE)
+        manager.deleteProfile(evening.id)
+        val reborn = manager.createProfile("Notte")!!
+        assertEquals(evening.id, reborn.id)
+        assertNull(reborn.sound)
     }
 }
