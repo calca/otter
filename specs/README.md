@@ -42,6 +42,7 @@ Each feature has:
 ## Proposed (not built yet)
 
 - [`relax-sound/`](relax-sound/requirements.md) — a soft generated sound under the pause (rain, waves, noise, drone); **Status: Proposed**.
+- [`floating-bubble/`](floating-bubble/requirements.md) — a small bubble over other apps during a pause and before one starts (issue #4); **Status: Proposed**.
 
 New proposals are written before the code and
 marked **Status: Proposed** at the top of each file, with "Decisioni

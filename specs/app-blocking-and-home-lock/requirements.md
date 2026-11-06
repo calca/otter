@@ -31,7 +31,10 @@ so the user can't just use another app instead.
    THEN the system SHALL show a brief confirmation and close the block
    screen.
 6. The user cannot dismiss the block screen with the back button while it
-   is showing (`BlockOverlayActivity` swallows back-press).
+   is showing (`BlockOverlayActivity` swallows back-press). Exception: when
+   the pause runs a profile in "all except these" mode (blocklist), back
+   leaves the forbidden app for the home screen, since the rest of the
+   phone is free (issue #5).
 
 ## User Story 2: Allowed-apps whitelist
 

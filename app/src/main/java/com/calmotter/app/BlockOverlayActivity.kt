@@ -1,5 +1,6 @@
 package com.calmotter.app
 
+import android.content.Intent
 import android.os.Bundle
 import androidx.activity.OnBackPressedCallback
 import androidx.activity.compose.setContent
@@ -31,7 +32,20 @@ class BlockOverlayActivity : BaseActivity() {
 
         onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
             override fun handleOnBackPressed() {
-                // Intenzionalmente vuoto per bloccare il tasto back
+                // Pausa con solo alcune app vietate: il resto del telefono è
+                // libero, quindi il back deve far uscire dall'app vietata
+                // (alla home) invece di restare muto. Con la lista "solo
+                // queste" resta intenzionalmente vuoto: tutto è bloccato.
+                val profile = AllowedAppsManager.getInstance(applicationContext)
+                    .profile(SessionManager.getInstance(applicationContext).sessionProfileId())
+                if (profile.mode == AllowedAppsMode.BLOCKLIST) {
+                    startActivity(
+                        Intent(Intent.ACTION_MAIN)
+                            .addCategory(Intent.CATEGORY_HOME)
+                            .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                    )
+                    finish()
+                }
             }
         })
 
