@@ -13,7 +13,10 @@
 | `SessionManager.kt` | Holds the chosen sound for the active session; `startSession()` gains a `sound` parameter |
 | `ui/screens/MainScreen.kt` | "Sound" row of `CalmPill` in the pause setup |
 | `ui/screens/BlockScreen.kt` | The small toggle |
-| `ScheduleManager.kt` / scheduled-pause editor | A `sound` field on a schedule, default OFF |
+| `AllowedAppsManager.kt` | `AllowedAppsProfile` gains `sound: RelaxSound?` (null = use the general one), key `profile_<id>_sound`, removed in `deleteProfile` like `mode` |
+| `AllowedAppsScreen.kt` | A sound row on the profile screen, below the mode picker |
+| `SettingsScreen.kt` | The general sound row |
+| group-pause recipe (`GroupPauseRecipe*`) | Carries the sound id; only the host phone's service plays it; version bump |
 
 ## How the sound is made
 
@@ -43,10 +46,12 @@ together. Do not ship it while the production request is under review.
 
 ## Persistence
 
-`LastDurationStore`-style: one key for the last chosen sound. A schedule
-gets a `sound` column in its stored form (default OFF, missing reads as OFF,
-so existing schedules need no migration). No new permission besides the
-service one above: no storage, no microphone.
+The general sound is one key in the app's plain SharedPreferences (default
+OFF). Per profile: `profile_<id>_sound`, read with
+`runCatching { valueOf }.getOrNull()`, so a missing or corrupt value means
+"Default" and existing profiles need no migration. Schedules store no sound:
+they already store a profile. No new permission besides the service one
+above: no storage, no microphone.
 
 ## Notes
 
@@ -68,14 +73,21 @@ service one above: no storage, no microphone.
 - `SessionManager` test: the sound stops with the session on every end path.
 - `AccessibilityAuditTest`: the toggle has a name and a 48 dp area.
 
+## Decisioni prese
+
+1. **Suoni:** tutti e quattro (Rain, Waves, Brown noise, Drone).
+2. **Dove si sceglie:** Impostazioni (suono generale) e profilo (suono per
+   profilo, con "Predefinito" = quello generale).
+3. **Pausa condivisa:** decide chi crea la pausa e il suono esce solo dal
+   suo telefono. Due telefoni con lo stesso rumore nella stessa stanza non
+   sono sincronizzati. Costo: la ricetta cambia formato (controllo di
+   versione già presente); se l'host ha le cuffie nessun altro sente.
+4. **Pause programmate:** seguono il suono del profilo scelto, nessun campo
+   proprio.
+
 ## Decisioni aperte
 
-1. **Which sounds to ship first:** all four, or only brown noise and rain.
-2. **Where the picker lives:** Home next to the duration pills, or a row in
-   Settings with the choice remembered.
-3. **Group pauses:** each phone its own sound (proposed), or the host's
-   choice in the recipe (changes the recipe format, and the version check).
-4. **Sound on a scheduled pause:** per schedule (proposed), or follow the
-   last choice.
-5. **Timing:** after the production access, because of the new foreground
-   service declaration.
+1. **Rename:** "Apps that stay" è il nome del profilo in Home, Impostazioni e
+   pause programmate; con il suono dentro va ripensato (es. "Profile").
+2. **Quando:** dopo l'accesso alla produzione, per la nuova dichiarazione del
+   servizio in primo piano.

@@ -17,14 +17,18 @@ pause has something calm under it.
 
 ### Acceptance Criteria
 
-1. WHEN the user sets up a pause THEN the system SHALL offer a "Sound" choice:
-   Off, Rain, Waves, Brown noise, Drone. The default SHALL be Off.
+1. THE system SHALL offer four sounds: Rain, Waves, Brown noise, Drone, or
+   Off. A **general sound** is set in Settings (default Off). Each allowed-apps
+   profile has its own sound: "Default" (use the general one), Off, or one of
+   the four. The profile screen therefore holds both the apps and the sound.
 2. WHEN a pause starts with a sound chosen THEN the system SHALL start it and
    keep it going with the screen off and the app in the background.
 3. WHEN the pause ends, for any reason (natural expiry, password, NFC, slow
    exit, boot restore finding no session) THEN the sound SHALL stop.
-4. THE system SHALL remember the last choice, like the last duration, and
-   scheduled pauses SHALL use the sound set on that schedule, Off if none.
+4. A pause SHALL use the sound of the profile it runs with; a scheduled pause
+   uses the profile it was set up with, so it needs no sound field of its own.
+5. WHEN a profile is deleted THEN pauses SHALL use the Standard profile, and
+   its sound, as they already do for apps.
 
 ## User Story 2: Control from the block screen
 
@@ -53,8 +57,13 @@ As the phone's user, I want the sound to give way to what matters.
 
 ## Group pauses
 
-1. In a time together, each phone SHALL choose its own sound; the choice does
-   not travel in the recipe. See "Decisioni aperte".
+1. In a time together, the host's sound travels in the recipe and plays on
+   the **host's phone only**. Guest phones stay silent.
+2. A guest's block screen SHALL say where the sound is coming from ("Rain
+   plays on <host>'s phone") and SHALL NOT show the toggle.
+3. WHEN the host's pause ends THEN the sound SHALL stop with it.
+4. A phone running a version without this feature SHALL see the existing
+   "different version" message when joining; the recipe format changes.
 
 ## Out of scope
 
