@@ -85,9 +85,16 @@ above: no storage, no microphone.
 4. **Pause programmate:** seguono il suono del profilo scelto, nessun campo
    proprio.
 
+5. **Nome:** "Profile" (it. "Profilo"). "Apps that stay" era già sbagliato
+   con la modalità "All except these" e lo sarebbe ancora di più con il
+   suono dentro; "Profile" è già usato in "Edit profile", "Delete profile" e
+   `AllowedAppsProfile`. Cambiano le etichette che parlano di app: la riga
+   delle Impostazioni diventa "Profiles", la riga della Home "Profile:
+   <nome>", l'etichetta delle pause programmate "Profile". I titoli
+   dell'elenco di app dentro il profilo restano. Stringhe da aggiornare in
+   it, en e zh-CN.
+
 ## Decisioni aperte
 
-1. **Rename:** "Apps that stay" è il nome del profilo in Home, Impostazioni e
-   pause programmate; con il suono dentro va ripensato (es. "Profile").
-2. **Quando:** dopo l'accesso alla produzione, per la nuova dichiarazione del
+1. **Quando:** dopo l'accesso alla produzione, per la nuova dichiarazione del
    servizio in primo piano.
