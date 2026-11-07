@@ -1,6 +1,6 @@
 # Relax Sound — Design
 
-> **Status: Proposed** (2026-11-06). Not built yet.
+> **Status: Proposed** (2026-11-06). Built as a test build on 2026-11-06 (general sound, per-profile sound, block-screen toggle, host-only sound in a pause together); not released. Still missing: the guest label "plays on <host>'s phone" and the sound in the group recipe.
 
 ## Key files
 

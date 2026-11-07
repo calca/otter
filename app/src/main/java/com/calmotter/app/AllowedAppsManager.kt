@@ -2,6 +2,7 @@ package com.calmotter.app
 
 import android.content.Context
 import androidx.core.content.edit
+import com.calmotter.app.sound.RelaxSound
 
 /** Come [AllowedAppsProfile.packages] decide chi resta raggiungibile durante una pausa. */
 enum class AllowedAppsMode { ALLOWLIST, BLOCKLIST }
@@ -12,6 +13,8 @@ data class AllowedAppsProfile(
     val name: String,
     val packages: Set<String>,
     val mode: AllowedAppsMode = AllowedAppsMode.ALLOWLIST,
+    /** Il suono di relax di questo profilo; null = quello generale (specs/relax-sound/). */
+    val sound: RelaxSound? = null,
 ) {
     val isDefault: Boolean get() = id == AllowedAppsManager.DEFAULT_PROFILE_ID
 }
@@ -43,6 +46,7 @@ class AllowedAppsManager internal constructor(private val context: Context) {
                 name = prefs.getString(nameKey(id), null).orEmpty(),
                 packages = prefs.getStringSet(packagesKey(id), emptySet()) ?: emptySet(),
                 mode = modeFor(id),
+                sound = soundFor(id),
             )
         }
         return AllowedAppsProfile(
@@ -52,6 +56,7 @@ class AllowedAppsManager internal constructor(private val context: Context) {
             // come profilo predefinito, senza migrazioni.
             packages = prefs.getStringSet(KEY_PACKAGES, emptySet()) ?: emptySet(),
             mode = modeFor(DEFAULT_PROFILE_ID),
+            sound = soundFor(DEFAULT_PROFILE_ID),
         )
     }
 
@@ -73,6 +78,25 @@ class AllowedAppsManager internal constructor(private val context: Context) {
     private fun modeFor(id: Int): AllowedAppsMode =
         runCatching { AllowedAppsMode.valueOf(prefs.getString(modeKey(id), null) ?: "") }
             .getOrDefault(AllowedAppsMode.ALLOWLIST)
+
+    // Chiave assente o corrotta = null = "Predefinito": ogni profilo già
+    // persistito continua a leggere senza migrazioni.
+    private fun soundFor(id: Int): RelaxSound? = RelaxSound.fromName(prefs.getString(soundKey(id), null))
+
+    /** Imposta il suono di questo profilo; null = usare il suono generale. */
+    fun setSound(profileId: Int, sound: RelaxSound?) {
+        prefs.edit { if (sound == null) remove(soundKey(profileId)) else putString(soundKey(profileId), sound.name) }
+    }
+
+    /** Il suono generale (Impostazioni), per i profili che non ne scelgono uno; di base spento. */
+    fun generalSound(): RelaxSound = RelaxSound.fromName(prefs.getString(KEY_GENERAL_SOUND, null)) ?: RelaxSound.OFF
+
+    fun setGeneralSound(sound: RelaxSound) {
+        prefs.edit { putString(KEY_GENERAL_SOUND, sound.name) }
+    }
+
+    /** Il suono che una pausa con questo profilo fa partire: quello del profilo o, in mancanza, il generale. */
+    fun effectiveSound(profileId: Int): RelaxSound = profile(profileId).sound ?: generalSound()
 
     fun canCreateProfile(): Boolean = extraProfileIds().size < MAX_EXTRA_PROFILES
 
@@ -101,6 +125,7 @@ class AllowedAppsManager internal constructor(private val context: Context) {
             remove(nameKey(id))
             remove(packagesKey(id))
             remove(modeKey(id))
+            remove(soundKey(id))
             if (prefs.getInt(KEY_SELECTED, DEFAULT_PROFILE_ID) == id) putInt(KEY_SELECTED, DEFAULT_PROFILE_ID)
         }
     }
@@ -123,6 +148,7 @@ class AllowedAppsManager internal constructor(private val context: Context) {
     private fun nameKey(id: Int) = "profile_${id}_name"
     private fun packagesKey(id: Int) = "profile_${id}_packages"
     private fun modeKey(id: Int) = "profile_${id}_mode"
+    private fun soundKey(id: Int) = "profile_${id}_sound"
 
     companion object {
         // Tetto alle app configurabili dall'utente per profilo (il telefono
@@ -145,6 +171,7 @@ class AllowedAppsManager internal constructor(private val context: Context) {
         private const val KEY_PACKAGES = "allowed_packages"
         private const val KEY_PROFILE_IDS = "profile_ids"
         private const val KEY_SELECTED = "selected_profile"
+        private const val KEY_GENERAL_SOUND = "general_sound"
 
         /** L'istanza dell'app: vive in [AppGraph], una per Application (vedi CalmOtterApplication). */
         fun getInstance(context: Context): AllowedAppsManager = context.appGraph.allowedAppsManager

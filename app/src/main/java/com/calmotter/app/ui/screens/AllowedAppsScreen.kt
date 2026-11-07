@@ -57,6 +57,7 @@ import androidx.compose.ui.unit.sp
 import com.calmotter.app.AllowedAppsManager
 import com.calmotter.app.AllowedAppsMode
 import com.calmotter.app.AllowedAppsProfile
+import com.calmotter.app.sound.RelaxSound
 import com.calmotter.app.R
 import com.calmotter.app.ui.theme.muted
 import androidx.compose.material.icons.filled.Edit
@@ -125,6 +126,7 @@ fun AllowedAppsScreen(
     onRenameProfile: (String) -> Unit = {},
     onDeleteProfile: () -> Unit = {},
     onChangeMode: (AllowedAppsMode) -> Unit = {},
+    onChangeSound: (RelaxSound?) -> Unit = {},
 ) {
     var searchQuery by rememberSaveable { mutableStateOf("") }
 
@@ -146,6 +148,12 @@ fun AllowedAppsScreen(
                 onDeleteProfile = onDeleteProfile,
             )
             ModePicker(mode = editingMode, onChange = onChangeMode)
+            SoundPicker(
+                selected = profiles.firstOrNull { it.id == editingProfileId }?.sound,
+                allowDefault = true,
+                onChange = onChangeSound,
+                modifier = Modifier.padding(horizontal = PageMargin, vertical = 8.dp),
+            )
         }
         CalmTextField(
             value = searchQuery,

@@ -177,7 +177,7 @@
     <string name="history_export">Esporta cronologia</string>
     <string name="history_export_empty">Nessuna pausa da esportare</string>
 
-    <string name="manage_allowed_apps">App che restano</string>
+    <string name="manage_allowed_apps">Profili</string>
     <string name="change_password">Cambia password</string>
     <string name="change_password_title">Cambia password</string>
     <string name="change_password_info">Solo chi conosce la password attuale può impostarne una nuova.</string>
@@ -334,7 +334,7 @@
     <string name="allowed_profile_name_title">Nome del profilo</string>
     <string name="allowed_profile_name_hint">Es. Sera, Lavoro</string>
     <string name="allowed_profile_save">Salva</string>
-    <string name="home_profile_line">App che restano: %1$s</string>
+    <string name="home_profile_line">Profilo: %1$s</string>
     <string name="home_profile_line_blocklist">App bloccate: %1$s</string>
     <string name="home_profile_dialog_title">Quali app restano in questa pausa?</string>
     <!-- Attività da fare insieme (specs/together-activity/): prima persona plurale, una sola attività per voce -->
@@ -418,7 +418,7 @@
     <string name="schedule_duration_label">Durata</string>
     <string name="schedule_duration_shorter">Più breve</string>
     <string name="schedule_duration_longer">Più lunga</string>
-    <string name="schedule_profile_label">App che restano</string>
+    <string name="schedule_profile_label">Profilo</string>
     <string name="schedule_skip_next">Salta la prossima</string>
     <string name="schedule_delete">Elimina pausa</string>
     <string name="schedule_summary_short">%1$s · per %2$s</string>
@@ -504,4 +504,16 @@
     <string name="quick_together_notification_text">%1$s, da adesso.</string>
     <string name="quick_together_join">Unisciti</string>
     <string name="quick_together_nfc_off">Attiva l\'NFC per avviare una pausa insieme con un tocco.</string>
+
+    <!-- Suono di relax generato dall'app (specs/relax-sound/) -->
+    <string name="relax_sound_label">Suono</string>
+    <string name="relax_sound_off">Nessuno</string>
+    <string name="relax_sound_rain">Pioggia</string>
+    <string name="relax_sound_waves">Onde</string>
+    <string name="relax_sound_brown">Rumore bruno</string>
+    <string name="relax_sound_drone">Drone</string>
+    <string name="relax_sound_default">Predefinito</string>
+    <string name="relax_sound_dialog_body">Il suono che accompagna la pausa. Ogni profilo può sceglierne uno suo.</string>
+    <string name="relax_sound_playing">%1$s · acceso</string>
+    <string name="relax_sound_stopped">%1$s · spento</string>
 </resources>

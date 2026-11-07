@@ -11,6 +11,9 @@
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <!-- Android 14+: specifica il tipo del foreground service -->
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE" />
+    <!-- Suono di relax generato dall'app durante la pausa (specs/relax-sound/):
+         solo se l'utente ne sceglie uno, il servizio si dichiara anche multimediale. -->
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK" />
     <!-- Android 13+: necessario per mostrare notifiche -->
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
 
@@ -255,7 +258,7 @@
         <service
             android:name=".SessionForegroundService"
             android:exported="false"
-            android:foregroundServiceType="specialUse">
+            android:foregroundServiceType="specialUse|mediaPlayback">
             <property
                 android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
                 android:value="Keeps a user-started focus pause running until it ends: the timer notification, Do Not Disturb and the app block stay active" />
