@@ -71,7 +71,6 @@ import com.calmotter.app.CalmCountdown
 import com.calmotter.app.PasswordManager
 import com.calmotter.app.R
 import com.calmotter.app.SessionManager
-import com.calmotter.app.sound.RelaxSound
 import com.calmotter.app.nfc.NfcTapGuard
 import com.calmotter.app.ui.mascot.OtterZenMark
 import kotlinx.coroutines.delay
@@ -462,22 +461,6 @@ fun BlockScreen(
                         .padding(start = CenteredTextInset, end = CenteredTextInset, bottom = 28.dp)
                 )
             }
-        }
-
-        // Il suono di relax di questa pausa, se ce n'è uno (specs/relax-sound/):
-        // si può spegnere e riaccendere senza password, non allenta nulla.
-        val relaxSound = remember { sessionManager.sessionSound() }
-        if (relaxSound != RelaxSound.OFF) {
-            var soundOn by remember { mutableStateOf(!sessionManager.isSoundMuted()) }
-            SoundToggle(
-                sound = relaxSound,
-                playing = soundOn,
-                onToggle = { on ->
-                    soundOn = on
-                    sessionManager.setSoundMuted(!on)
-                },
-                modifier = Modifier.padding(bottom = 12.dp),
-            )
         }
 
         // Row di sole app consentite, badge circolare tinto (primary a bassa

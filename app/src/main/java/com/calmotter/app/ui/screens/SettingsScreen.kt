@@ -49,7 +49,6 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Notifications
-import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.material3.Icon
 import com.calmotter.app.BuildConfig
@@ -73,13 +72,11 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import com.calmotter.app.AllowedAppsManager
 import com.calmotter.app.AppTheme
 import com.calmotter.app.PasswordManager
 import com.calmotter.app.PhraseManager
 import com.calmotter.app.R
 import com.calmotter.app.UsagePauseManager
-import com.calmotter.app.sound.RelaxSound
 
 /**
  * Configurazione, in quest'ordine — Tema, Password, Pausa, Permessi,
@@ -139,10 +136,6 @@ fun SettingsScreen(
 
     // Uscita lenta: prima la password, poi la scelta (Spenta / 5 / 10 / 15).
     val context = LocalContext.current
-    // Suono generale (specs/relax-sound/): nessuna password, non allenta il blocco.
-    val allowedAppsManager = remember { AllowedAppsManager.getInstance(context) }
-    var generalSound by remember { mutableStateOf(allowedAppsManager.generalSound()) }
-    var showSoundDialog by rememberSaveable { mutableStateOf(false) }
     val slowExitManager = remember { SlowExitManager.getInstance(context) }
     var slowExitEnabled by remember { mutableStateOf(slowExitManager.isEnabled()) }
     var slowExitWait by remember { mutableIntStateOf(slowExitManager.waitMinutes()) }
@@ -205,13 +198,6 @@ fun SettingsScreen(
                             modifier = Modifier.size(18.dp),
                         )
                     },
-                )
-                RowDivider()
-                SettingsActionRow(
-                    label = stringResource(R.string.relax_sound_label),
-                    value = stringResource(generalSound.labelRes),
-                    onClick = { showSoundDialog = true },
-                    icon = { RowIcon(Icons.Default.PlayArrow) },
                 )
                 RowDivider()
                 SettingsSwitchRow(
@@ -403,37 +389,6 @@ fun SettingsScreen(
             confirmButton = {
                 TextButton(onClick = { showSlowExitChoice = false }) {
                     Text(stringResource(android.R.string.cancel))
-                }
-            },
-        )
-    }
-
-    if (showSoundDialog) {
-        AlertDialog(
-            onDismissRequest = { showSoundDialog = false },
-            title = { Text(stringResource(R.string.relax_sound_label)) },
-            text = {
-                Column {
-                    Text(
-                        text = stringResource(R.string.relax_sound_dialog_body),
-                        modifier = Modifier.padding(bottom = 12.dp),
-                    )
-                    SoundPicker(
-                        selected = generalSound,
-                        allowDefault = false,
-                        showLabel = false,
-                        onChange = { picked ->
-                            if (picked != null) {
-                                generalSound = picked
-                                allowedAppsManager.setGeneralSound(picked)
-                            }
-                        },
-                    )
-                }
-            },
-            confirmButton = {
-                TextButton(onClick = { showSoundDialog = false }) {
-                    Text(stringResource(R.string.close))
                 }
             },
         )

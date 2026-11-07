@@ -101,10 +101,6 @@ class AllowedAppsActivity : BaseActivity() {
                         profiles = allowedAppsManager.profiles()
                         updateTitle()
                     },
-                    onChangeSound = { sound ->
-                        allowedAppsManager.setSound(editingProfileId, sound)
-                        profiles = allowedAppsManager.profiles()
-                    },
                 )
             }
         }

@@ -2,7 +2,6 @@ package com.calmotter.app
 
 import android.content.Context
 import androidx.core.content.edit
-import com.calmotter.app.sound.RelaxSound
 
 /**
  * Gestisce lo stato "sessione di pausa attiva/non attiva", la sua durata e,
@@ -115,7 +114,6 @@ class SessionManager internal constructor(private val context: Context) {
             putInt(KEY_GROUP_ACTIVITY, activityId)
             putInt(KEY_PROFILE_ID, profileId ?: AllowedAppsManager.getInstance(context).selectedProfileId())
             remove(KEY_SLOW_EXIT_DEADLINE)
-            remove(KEY_SOUND_MUTED)
             putString(KEY_ORIGIN, origin.name)
             putInt(KEY_ORIGIN_DETAIL, originDetail)
             putBoolean(KEY_ARRIVAL_WELCOME, origin.isAutomatic)
@@ -130,25 +128,6 @@ class SessionManager internal constructor(private val context: Context) {
         PauseWidgetProvider.updateAllWidgets(context)
         PauseTileService.requestRefresh(context)
         AppBlockerAccessibilityService.onSessionStarted()
-    }
-
-    /**
-     * Il suono di relax di questa pausa: quello del suo profilo (o il generale).
-     * In una pausa di gruppo suona solo il telefono di chi l'ha creata
-     * (specs/relax-sound/): gli altri restano in silenzio.
-     */
-    fun sessionSound(): RelaxSound {
-        if (isGroupSession() && !isGroupHost()) return RelaxSound.OFF
-        return AllowedAppsManager.getInstance(context).effectiveSound(sessionProfileId())
-    }
-
-    /** Vero se l'utente ha spento il suono per il resto di questa pausa. */
-    fun isSoundMuted(): Boolean = prefs.getBoolean(KEY_SOUND_MUTED, false)
-
-    /** Spegne o riaccende il suono senza finire la pausa: non allenta nulla, niente password. */
-    fun setSoundMuted(muted: Boolean) {
-        prefs.edit { putBoolean(KEY_SOUND_MUTED, muted) }
-        SessionForegroundService.syncSound(context)
     }
 
     /** Vero se la sessione attiva (o appena terminata) era una pausa di gruppo. */
@@ -264,7 +243,6 @@ class SessionManager internal constructor(private val context: Context) {
             remove(KEY_GROUP_ACTIVITY)
             remove(KEY_PROFILE_ID)
             remove(KEY_SLOW_EXIT_DEADLINE)
-            remove(KEY_SOUND_MUTED)
             remove(KEY_ORIGIN)
             remove(KEY_ORIGIN_DETAIL)
             remove(KEY_ARRIVAL_WELCOME)
@@ -375,7 +353,6 @@ class SessionManager internal constructor(private val context: Context) {
         private const val KEY_PENDING_SUMMARY_MINUTES = "session_pending_summary_minutes"
         private const val KEY_GROUP_ACTIVITY = "session_group_activity"
         private const val KEY_PROFILE_ID = "session_profile_id"
-        private const val KEY_SOUND_MUTED = "session_sound_muted"
         private const val KEY_SLOW_EXIT_DEADLINE = "session_slow_exit_deadline"
         private const val KEY_ORIGIN = "session_origin"
         private const val KEY_ORIGIN_DETAIL = "session_origin_detail"
