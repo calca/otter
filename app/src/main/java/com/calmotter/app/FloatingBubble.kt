@@ -8,11 +8,11 @@ import android.view.MotionEvent
 import android.view.View
 import android.view.ViewConfiguration
 import android.view.WindowManager
-import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -125,15 +125,18 @@ internal class FloatingBubbleWindow(private val service: android.accessibilityse
             setViewTreeSavedStateRegistryOwner(lifecycleOwner)
             setContent {
                 CalmOtterTheme(appTheme = appTheme) {
-                    Surface(
-                        shape = CircleShape,
-                        color = MaterialTheme.colorScheme.primary,
-                        contentColor = MaterialTheme.colorScheme.onPrimary,
-                        shadowElevation = 6.dp,
+                    // Non un Surface: quello di Material3 consuma i tocchi e
+                    // il trascinamento/click della finestra non arriverebbero.
+                    Box(
+                        Modifier
+                            .background(MaterialTheme.colorScheme.primary, CircleShape)
+                            .padding(horizontal = 14.dp, vertical = 12.dp),
                     ) {
-                        Row(Modifier.padding(horizontal = 14.dp, vertical = 12.dp)) {
-                            Text(text, style = MaterialTheme.typography.labelLarge)
-                        }
+                        Text(
+                            text,
+                            style = MaterialTheme.typography.labelLarge,
+                            color = MaterialTheme.colorScheme.onPrimary,
+                        )
                     }
                 }
             }
