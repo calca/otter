@@ -1,1 +1,1 @@
-Novità: Calm Otter ora parla cinese semplificato (简体中文). Grazie a chi sta provando l'app e a chi lo ha chiesto!
+Correzione: in una pausa "tutte tranne queste", il tasto Indietro ora esce dall'app vietata e porta alla home. Grazie della segnalazione!

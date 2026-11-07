@@ -1,1 +1,1 @@
-New: Calm Otter now speaks Simplified Chinese (简体中文). Thanks to everyone testing, and to whoever asked for it!
+Fix: with a "all except these" pause, the Back button now leaves a blocked app and takes you home. Thanks for the report!
