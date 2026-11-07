@@ -1,0 +1,1 @@
+Fix: with a "all except these" pause, the Back button now leaves a blocked app and takes you home. Thanks for the report!

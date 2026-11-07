@@ -1,0 +1,1 @@
+Correzione: in una pausa "tutte tranne queste", il tasto Indietro ora esce dall'app vietata e porta alla home. Grazie della segnalazione!
