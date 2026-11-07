@@ -2,8 +2,8 @@ name: Play promote
 
 # Promuove la release attiva di un track Play a un altro, con le note di
 # docs/store/whatsnew/. Solo a mano: `gh workflow run play-promote.yml -f from=internal -f to=alpha`.
-# In produzione crea anche la release su GitHub con l'APK firmato da Google
-# (github-release.yml).
+# Crea anche la release su GitHub con l'APK firmato da Google
+# (github-release.yml): pre-release in alpha, definitiva in produzione.
 # "alpha" è il closed testing (lista Testing); closed testing e produzione
 # passano dalla revisione di Google, che parte da sola al commit.
 on:
@@ -52,12 +52,12 @@ jobs:
 
   github-release:
     needs: promote
-    if: inputs.to == 'production'
     uses: ./.github/workflows/github-release.yml
     permissions:
       contents: write
     with:
       version_code: ${{ needs.promote.outputs.version_code }}
       name: ${{ needs.promote.outputs.name }}
+      prerelease: ${{ inputs.to != 'production' }}
     secrets:
       PLAY_SERVICE_ACCOUNT_JSON: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON }}

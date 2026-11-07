@@ -19,8 +19,9 @@ Play Console.
   (closed testing), later `-f from=alpha -f to=production [-f rollout=0.2]`.
   Promotion sends the notes currently in `whatsnew/`, not the ones of the
   source track, so a fix to the notes after tagging still lands.
-  Promoting to production also creates the GitHub release for the tag
-  (`github-release.yml`) with Play's **Google-signed universal APK** and its
+  Promoting to closed testing (alpha) creates the GitHub **pre-release** for
+  the tag; promoting to production turns that same release into the latest
+  one (`github-release.yml`). Each carries Play's **Google-signed universal APK** and its
   SHA-256 — the same build as the Play Store, so users can switch source
   without uninstalling (an APK signed with our upload key would not install
   over Play's, and uninstalling loses the password). To retry by hand:
