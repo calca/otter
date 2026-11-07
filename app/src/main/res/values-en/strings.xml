@@ -513,4 +513,11 @@
     <string name="relax_sound_dialog_body">The sound that goes with a pause. Each profile can pick its own.</string>
     <string name="relax_sound_playing">%1$s · on</string>
     <string name="relax_sound_stopped">%1$s · off</string>
+
+    <!-- Floating bubble (specs/floating-bubble/) -->
+    <string name="bubble_toggle_label">Bubble over other apps</string>
+    <string name="bubble_toggle_hint">Shows the time left, or until the start, over other apps</string>
+    <string name="bubble_upcoming">in %1$s</string>
+    <string name="bubble_description_active">Pause running, %1$s left. Tap to open Calm Otter</string>
+    <string name="bubble_description_upcoming">A pause starts in %1$s. Tap to open Calm Otter</string>
 </resources>

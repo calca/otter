@@ -28,16 +28,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.LifecycleOwner
-import androidx.lifecycle.LifecycleRegistry
-import androidx.lifecycle.ViewModelStore
-import androidx.lifecycle.ViewModelStoreOwner
 import androidx.lifecycle.setViewTreeLifecycleOwner
 import androidx.lifecycle.setViewTreeViewModelStoreOwner
-import androidx.savedstate.SavedStateRegistry
-import androidx.savedstate.SavedStateRegistryController
-import androidx.savedstate.SavedStateRegistryOwner
 import androidx.savedstate.setViewTreeSavedStateRegistryOwner
 import com.calmotter.app.ui.mascot.OtterZenMark
 import com.calmotter.app.ui.screens.OtterAnchoredScreen
@@ -62,10 +54,16 @@ class AppBlockerAccessibilityService : AccessibilityService() {
 
     private val mainHandler = Handler(Looper.getMainLooper())
     private var bridgeOverlay: View? = null
-    private var bridgeOwner: BridgeOverlayOwner? = null
+    private var bridgeOwner: OverlayLifecycleOwner? = null
     private val dismissBridgeOverlayRunnable = Runnable { dismissBridgeOverlay() }
     /** Pausa dopo un uso lungo (specs/usage-pause/): vive finché vive il servizio. */
     private var usageWatcher: UsageWatcher? = null
+
+    /** Bolla sopra le altre app (specs/floating-bubble/). */
+    private var bubble: FloatingBubbleWindow? = null
+    private val bubbleTick = Runnable { refreshBubble() }
+    /** Quando parte la prossima pausa annunciata dall'avviso; 0 = nessuna. Solo in memoria. */
+    private var upcomingStartsAt = 0L
 
     override fun onServiceConnected() {
         super.onServiceConnected()
@@ -95,6 +93,42 @@ class AppBlockerAccessibilityService : AccessibilityService() {
             notificationTimeout = EVENT_NOTIFICATION_TIMEOUT_MS
         }
         usageWatcher = UsageWatcher(applicationContext, mainHandler).also { it.start() }
+        refreshBubble()
+    }
+
+    /**
+     * Mostra, aggiorna o toglie la bolla secondo [bubbleState]. Si richiama a
+     * ogni cambio che la riguarda e ogni 30 secondi finché è visibile (il
+     * testo è in minuti: non serve un tick al secondo).
+     */
+    private fun refreshBubble() {
+        mainHandler.removeCallbacks(bubbleTick)
+        val now = System.currentTimeMillis()
+        val sessionManager = SessionManager.getInstance(applicationContext)
+        val state = bubbleState(
+            enabled = BubbleSettings.isEnabled(this),
+            ownAppInForeground = lastFullScreenPackage == packageName,
+            sessionActive = sessionManager.isSessionActive(),
+            sessionEndsAt = sessionManager.endTimeMillis(),
+            upcomingStartsAt = upcomingStartsAt,
+            now = now,
+        )
+        val window = bubble ?: FloatingBubbleWindow(this).also { bubble = it }
+        when (state) {
+            BubbleState.Hidden -> window.hide()
+            is BubbleState.Active -> {
+                val time = durationPillLabel(bubbleMinutes(state.endsAt, now))
+                val description = getString(R.string.bubble_description_active, time)
+                if (window.isShown) window.update(time, description) else window.show(time, description)
+            }
+            is BubbleState.Upcoming -> {
+                val time = durationPillLabel(bubbleMinutes(state.startsAt, now))
+                val label = getString(R.string.bubble_upcoming, time)
+                val description = getString(R.string.bubble_description_upcoming, time)
+                if (window.isShown) window.update(label, description) else window.show(label, description)
+            }
+        }
+        if (state != BubbleState.Hidden) mainHandler.postDelayed(bubbleTick, BUBBLE_TICK_MS)
     }
 
     override fun onAccessibilityEvent(event: AccessibilityEvent?) {
@@ -109,7 +143,11 @@ class AppBlockerAccessibilityService : AccessibilityService() {
         val packageName = event.packageName?.toString() ?: return
         // Anche fuori sessione: serve a [onSessionStarted]. Solo in memoria,
         // mai salvato.
-        if (event.isFullScreen) lastFullScreenPackage = packageName
+        if (event.isFullScreen) {
+            val changed = lastFullScreenPackage != packageName
+            lastFullScreenPackage = packageName
+            if (changed) refreshBubble()
+        }
         // Tastiere e barre di sistema si aprono *sopra* l'app: non la cambiano.
         if (event.isFullScreen && packageName !in keyboardPackages() &&
             packageName != BlockPolicy.SYSTEM_UI_PACKAGE && packageName != BlockPolicy.ANDROID_PACKAGE
@@ -200,7 +238,7 @@ class AppBlockerAccessibilityService : AccessibilityService() {
         if (bridgeOverlay != null) return
         try {
             val windowManager = getSystemService(Context.WINDOW_SERVICE) as WindowManager
-            val owner = BridgeOverlayOwner()
+            val owner = OverlayLifecycleOwner()
             val appTheme = ThemeManager.getTheme(this)
             val fraction = sessionProgressFraction()
             val realSystemBarsBottomPx = realSystemBarsBottomPx(windowManager)
@@ -345,35 +383,6 @@ class AppBlockerAccessibilityService : AccessibilityService() {
         bridgeOwner = null
     }
 
-    /**
-     * Minimo indispensabile perché un `ComposeView` possa vivere dentro una
-     * finestra aggiunta a mano da un servizio: Compose pretende dall'albero
-     * delle view un `LifecycleOwner` e un `SavedStateRegistryOwner` (li
-     * troverebbe da sé solo dentro un'Activity/Fragment). Vita legata alla
-     * singola comparsa della finestra-ponte: creato in
-     * [showBridgeOverlay], distrutto in [dismissBridgeOverlay].
-     */
-    private class BridgeOverlayOwner : LifecycleOwner, ViewModelStoreOwner, SavedStateRegistryOwner {
-        private val lifecycleRegistry = LifecycleRegistry(this)
-        private val savedStateRegistryController = SavedStateRegistryController.create(this)
-
-        override val lifecycle: Lifecycle get() = lifecycleRegistry
-        override val viewModelStore: ViewModelStore = ViewModelStore()
-        override val savedStateRegistry: SavedStateRegistry
-            get() = savedStateRegistryController.savedStateRegistry
-
-        fun start() {
-            savedStateRegistryController.performAttach()
-            savedStateRegistryController.performRestore(null)
-            lifecycleRegistry.currentState = Lifecycle.State.RESUMED
-        }
-
-        fun destroy() {
-            lifecycleRegistry.currentState = Lifecycle.State.DESTROYED
-            viewModelStore.clear()
-        }
-    }
-
     private fun exemptPackages(): Set<String> {
         val telecomManager = getSystemService(Context.TELECOM_SERVICE) as? TelecomManager
         return BlockPolicy.exemptPackages(
@@ -414,11 +423,15 @@ class AppBlockerAccessibilityService : AccessibilityService() {
 
     override fun onInterrupt() {
         dismissBridgeOverlay()
+        bubble?.hide()
     }
 
     override fun onDestroy() {
         usageWatcher?.stop()
         usageWatcher = null
+        mainHandler.removeCallbacks(bubbleTick)
+        bubble?.hide()
+        bubble = null
         dismissBridgeOverlay()
         if (instance === this) instance = null
         super.onDestroy()
@@ -432,6 +445,7 @@ class AppBlockerAccessibilityService : AccessibilityService() {
                 AccessibilityEvent.TYPE_VIEW_SCROLLED or AccessibilityEvent.TYPE_VIEW_TEXT_CHANGED
         private const val BRIDGE_TIMEOUT_MS = 1500L
         private const val BRIDGE_HANDOFF_MS = 450L
+        private const val BUBBLE_TICK_MS = 30_000L
 
         /** Zero, non i 100ms del config XML: `notificationTimeout` è il
          * ritardo minimo con cui il sistema consegna un evento dello stesso
@@ -452,15 +466,35 @@ class AppBlockerAccessibilityService : AccessibilityService() {
         fun onSessionStarted() {
             val service = instance ?: return
             service.mainHandler.post {
+                service.upcomingStartsAt = 0L
                 service.checkCurrentApp()
                 service.usageWatcher?.onSessionChanged()
+                service.refreshBubble()
             }
         }
 
         /** Chiamato da [SessionManager.endSession]: il conto dell'uso riparte da zero. */
         fun onSessionEnded() {
             val service = instance ?: return
-            service.mainHandler.post { service.usageWatcher?.onSessionChanged() }
+            service.mainHandler.post {
+                service.usageWatcher?.onSessionChanged()
+                service.refreshBubble()
+            }
+        }
+
+        /** L'avviso di una pausa programmata (0 = annullato): la bolla fa il conto alla rovescia. */
+        fun onPauseUpcoming(startsAt: Long) {
+            val service = instance ?: return
+            service.mainHandler.post {
+                service.upcomingStartsAt = startsAt
+                service.refreshBubble()
+            }
+        }
+
+        /** L'interruttore in Impostazioni è cambiato. */
+        fun onBubbleSettingChanged() {
+            val service = instance ?: return
+            service.mainHandler.post { service.refreshBubble() }
         }
 
         /** "Non ora" dalla notifica: vedi [UsageWatcher.onNotNow]. */

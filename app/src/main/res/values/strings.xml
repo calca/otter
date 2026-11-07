@@ -516,4 +516,11 @@
     <string name="relax_sound_dialog_body">Il suono che accompagna la pausa. Ogni profilo può sceglierne uno suo.</string>
     <string name="relax_sound_playing">%1$s · acceso</string>
     <string name="relax_sound_stopped">%1$s · spento</string>
+
+    <!-- Bolla sopra le altre app (specs/floating-bubble/) -->
+    <string name="bubble_toggle_label">Bolla sulle altre app</string>
+    <string name="bubble_toggle_hint">Mostra il tempo che resta, o che manca all\'inizio, sopra le altre app</string>
+    <string name="bubble_upcoming">tra %1$s</string>
+    <string name="bubble_description_active">Pausa in corso, restano %1$s. Tocca per aprire Calm Otter</string>
+    <string name="bubble_description_upcoming">Una pausa inizia tra %1$s. Tocca per aprire Calm Otter</string>
 </resources>

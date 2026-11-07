@@ -78,6 +78,7 @@ import com.calmotter.app.AppTheme
 import com.calmotter.app.PasswordManager
 import com.calmotter.app.PhraseManager
 import com.calmotter.app.R
+import com.calmotter.app.BubbleSettings
 import com.calmotter.app.UsagePauseManager
 import com.calmotter.app.sound.RelaxSound
 
@@ -212,6 +213,18 @@ fun SettingsScreen(
                     value = stringResource(generalSound.labelRes),
                     onClick = { showSoundDialog = true },
                     icon = { RowIcon(Icons.Default.PlayArrow) },
+                )
+                RowDivider()
+                var bubbleOn by remember { mutableStateOf(BubbleSettings.isEnabled(context)) }
+                SettingsSwitchRow(
+                    icon = { RowIcon(Icons.Default.Notifications) },
+                    label = stringResource(R.string.bubble_toggle_label),
+                    subtitle = stringResource(R.string.bubble_toggle_hint),
+                    checked = bubbleOn,
+                    onCheckedChange = {
+                        bubbleOn = it
+                        BubbleSettings.setEnabled(context, it)
+                    },
                 )
                 RowDivider()
                 SettingsSwitchRow(

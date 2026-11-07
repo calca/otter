@@ -478,4 +478,11 @@
     <string name="relax_sound_dialog_body">暂停时陪伴你的声音。每个配置可以选择自己的声音。</string>
     <string name="relax_sound_playing">%1$s · 开</string>
     <string name="relax_sound_stopped">%1$s · 关</string>
+
+    <!-- 悬浮气泡 -->
+    <string name="bubble_toggle_label">其他应用上的气泡</string>
+    <string name="bubble_toggle_hint">在其他应用上方显示剩余时间或距离开始的时间</string>
+    <string name="bubble_upcoming">%1$s后</string>
+    <string name="bubble_description_active">暂停进行中，还剩 %1$s。点按打开 Calm Otter</string>
+    <string name="bubble_description_upcoming">暂停将在 %1$s后开始。点按打开 Calm Otter</string>
 </resources>

@@ -116,12 +116,14 @@ class ScheduledPauseReceiver : BroadcastReceiver() {
                         context.getString(R.string.schedule_heads_up, DateFormat.getTimeInstance(DateFormat.SHORT).format(Date(at))) to
                             context.getString(R.string.schedule_heads_up_text, duration)
                     }
+                    AppBlockerAccessibilityService.onPauseUpcoming(at)
                     notify(context, HEADS_UP_NOTIFICATION_ID + schedule.id, title, text,
                         // L'avviso vale fino alla partenza: dopo non dice più nulla.
                         timeoutMillis = (at - System.currentTimeMillis()).coerceAtLeast(1L))
                 }
             }
             ACTION_START -> {
+                AppBlockerAccessibilityService.onPauseUpcoming(0L)
                 // L'avviso "alle 21:00 inizia…" non serve più, comunque vada:
                 // restava nella tendina anche a pausa partita (segnalato).
                 NotificationManagerCompat.from(context).cancel(HEADS_UP_NOTIFICATION_ID + schedule.id)
