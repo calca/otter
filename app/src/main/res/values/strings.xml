@@ -188,15 +188,11 @@
     <string name="phrases_toggle_label">Mostra le frasi</string>
     <string name="manage_allowed_apps_password_prompt">Inserisci la password per modificare l\'elenco</string>
     <string name="confirm">Conferma</string>
-    <string name="allowed_apps_explain_allowlist">Si ferma tutto tranne il telefono e le app che scegli qui sotto, fino a %1$d.</string>
-    <string name="allowed_apps_explain_blocklist">Si fermano solo le app che scegli qui sotto. Il resto del telefono resta libero.</string>
     <string name="allowed_apps_count_allowlist">Restano aperte · %1$d di %2$d</string>
     <string name="allowed_apps_count_blocklist">Bloccate · %1$d</string>
     <string name="allowed_section_profile">Profilo</string>
-    <string name="allowed_section_apps">App</string>
-    <string name="allowed_apps_mode_label">Durante la pausa</string>
-    <string name="allowed_apps_mode_allowlist">Blocca tutto, tranne…</string>
-    <string name="allowed_apps_mode_blocklist">Blocca solo…</string>
+    <string name="allowed_apps_mode_allowlist">Blocca tutto, tranne</string>
+    <string name="allowed_apps_mode_blocklist">Blocca solo</string>
     <string name="allowed_apps_search">Cerca app</string>
     <string name="allowed_apps_clear_search">Cancella ricerca</string>
     <string name="allowed_apps_empty_filtered">Nessuna app trovata</string>
@@ -328,6 +324,7 @@
     <!-- Profili di app consentite (specs/allowed-app-profiles/) -->
     <string name="allowed_profile_default_name">Standard</string>
     <string name="allowed_profile_new">+ Nuovo</string>
+    <string name="allowed_profile_new_menu">Nuovo profilo</string>
     <string name="allowed_profile_edit_title">Modifica profilo</string>
     <string name="allowed_profile_delete_action">Elimina profilo</string>
     <string name="allowed_profile_delete">Elimina</string>
@@ -514,7 +511,7 @@
     <string name="relax_sound_waves">Onde</string>
     <string name="relax_sound_brown">Rumore bruno</string>
     <string name="relax_sound_drone">Drone</string>
-    <string name="relax_sound_default">Predefinito</string>
+    <string name="relax_sound_default">Come in Impostazioni</string>
     <string name="relax_sound_dialog_body">Il suono che accompagna la pausa. Ogni profilo può sceglierne uno suo.</string>
     <string name="relax_sound_playing">%1$s · acceso</string>
     <string name="relax_sound_stopped">%1$s · spento</string>

@@ -5,16 +5,25 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.heading
-import androidx.compose.ui.unit.Dp
-import androidx.compose.ui.unit.em
 import androidx.compose.ui.semantics.toggleableState
 import androidx.compose.ui.state.ToggleableState
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.ArrowDropDown
+import androidx.compose.material.icons.filled.Check
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.SegmentedButton
+import androidx.compose.material3.SegmentedButtonDefaults
+import androidx.compose.material3.SingleChoiceSegmentedButtonRow
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
-import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
@@ -141,11 +150,11 @@ fun AllowedAppsScreen(
     val editingMode = editing?.mode ?: AllowedAppsMode.ALLOWLIST
     val pickedCount = apps.count { it.isAllowed }
 
-    // Una sola colonna che scorre: profilo, suono e modalità salgono via con
-    // la lista invece di restare fissi a rubarle metà schermo. Ordine: prima
-    // chi (profilo), poi il suono, poi le app con la loro regola subito sopra
-    // la lista a cui si riferisce — prima il suono stava in mezzo e "Solo
-    // queste" finiva tre blocchi sopra le app che intendeva (segnalato).
+    // Il meno possibile sopra la lista (segnalato: "troppe pillole e troppo
+    // testo, le app troppo in basso"): profilo e suono sono due righe che
+    // aprono un menu e un dialogo, la regola un solo controllo a due
+    // segmenti; cosa significa una spunta lo dice la riga del conteggio
+    // subito sopra le app. Tutto scorre insieme alla lista.
     PullToRefreshBox(
         isRefreshing = isLoading,
         onRefresh = onRefresh,
@@ -153,14 +162,13 @@ fun AllowedAppsScreen(
     ) {
         LazyColumn(
             modifier = Modifier.fillMaxSize(),
-            contentPadding = PaddingValues(bottom = 8.dp),
+            contentPadding = PaddingValues(top = 8.dp, bottom = 8.dp),
         ) {
-            if (profiles.isNotEmpty()) {
+            if (profiles.isNotEmpty() && editing != null) {
                 item(key = "profile") {
-                    ScreenSectionLabel(stringResource(R.string.allowed_section_profile), topPadding = 16.dp)
-                    ProfileBar(
+                    ProfileRow(
                         profiles = profiles,
-                        editingProfileId = editingProfileId,
+                        editing = editing,
                         canCreateProfile = canCreateProfile,
                         onSelectProfile = onSelectProfile,
                         onCreateProfile = onCreateProfile,
@@ -169,19 +177,11 @@ fun AllowedAppsScreen(
                     )
                 }
                 item(key = "sound") {
-                    ScreenSectionLabel(stringResource(R.string.relax_sound_label))
-                    SoundPicker(
-                        selected = editing?.sound,
-                        allowDefault = true,
-                        onChange = onChangeSound,
-                        showLabel = false,
-                        modifier = Modifier.padding(horizontal = PageMargin),
-                    )
+                    SoundRow(selected = editing.sound, onChange = onChangeSound)
                 }
-            }
-            item(key = "mode") {
-                ScreenSectionLabel(stringResource(R.string.allowed_section_apps))
-                ModePicker(mode = editingMode, showPicker = profiles.isNotEmpty(), onChange = onChangeMode)
+                item(key = "mode") {
+                    ModePicker(mode = editingMode, onChange = onChangeMode)
+                }
             }
             item(key = "search") {
                 CalmTextField(
@@ -207,8 +207,6 @@ fun AllowedAppsScreen(
                 )
             }
             item(key = "count") {
-                // Cosa vuol dire un interruttore acceso, detto sopra la lista:
-                // "resta aperta" o "bloccata" a seconda della regola.
                 Text(
                     text = if (editingMode == AllowedAppsMode.BLOCKLIST) {
                         stringResource(R.string.allowed_apps_count_blocklist, pickedCount)
@@ -243,20 +241,70 @@ fun AllowedAppsScreen(
     }
 }
 
-/** Etichetta di sezione, stesso stile di quelle delle Impostazioni. */
+/**
+ * Una riga "etichetta … valore", alta almeno 48dp, tutta toccabile:
+ * profilo e suono stanno ciascuno su una riga invece che in una fila di
+ * pillole. TalkBack la legge una volta, "Profilo, Standard".
+ */
 @Composable
-private fun ScreenSectionLabel(text: String, topPadding: Dp = 24.dp) {
-    Text(
-        text = text.uppercase(),
-        style = MaterialTheme.typography.labelSmall,
-        letterSpacing = 0.12.em,
-        color = MaterialTheme.colorScheme.muted(0.55f),
+private fun ChoiceRow(label: String, value: String, icon: ImageVector, onClick: () -> Unit) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = PageMargin)
-            .padding(top = topPadding, bottom = 8.dp)
-            .semantics { heading() },
+            .heightIn(min = 48.dp)
+            .clickable(onClick = onClick)
+            .padding(horizontal = PageMargin, vertical = 6.dp)
+            .semantics(mergeDescendants = true) {},
+    ) {
+        Text(
+            text = label,
+            color = MaterialTheme.colorScheme.muted(0.7f),
+            modifier = Modifier.weight(1f),
+        )
+        Text(
+            text = value,
+            color = MaterialTheme.colorScheme.onSurface,
+            fontWeight = FontWeight.SemiBold,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+        )
+        Icon(
+            imageVector = icon,
+            contentDescription = null,
+            tint = MaterialTheme.colorScheme.primary,
+            modifier = Modifier.padding(start = 4.dp).size(20.dp),
+        )
+    }
+}
+
+/** Il suono del profilo: una riga, e le scelte in un dialogo (come in Impostazioni). */
+@Composable
+private fun SoundRow(selected: RelaxSound?, onChange: (RelaxSound?) -> Unit) {
+    var open by rememberSaveable { mutableStateOf(false) }
+    ChoiceRow(
+        label = stringResource(R.string.relax_sound_label),
+        value = stringResource(selected?.labelRes ?: R.string.relax_sound_default),
+        icon = Icons.AutoMirrored.Filled.KeyboardArrowRight,
+        onClick = { open = true },
     )
+    if (open) {
+        AlertDialog(
+            onDismissRequest = { open = false },
+            title = { Text(stringResource(R.string.relax_sound_label)) },
+            text = {
+                SoundPicker(
+                    selected = selected,
+                    allowDefault = true,
+                    showLabel = false,
+                    onChange = { onChange(it); open = false },
+                )
+            },
+            confirmButton = {
+                TextButton(onClick = { open = false }) { Text(stringResource(android.R.string.ok)) }
+            },
+        )
+    }
 }
 
 @Composable
@@ -347,50 +395,67 @@ private fun calmSwitchColors(): SwitchColors = SwitchDefaults.colors(
 private const val PROFILE_NAME_MAX = 20
 
 /**
- * Le pillole dei profili in cima alla schermata, più "Nuovo" finché c'è
- * posto. Il profilo scelto, se non è lo Standard, porta una matita: toccarlo
- * apre "Modifica profilo" (nome, e in fondo "Elimina profilo"). Prima
- * "Rinomina" ed "Elimina" stavano sotto le pillole come due link sciolti,
- * staccati dal profilo a cui si riferivano.
+ * Il profilo in modifica, su una riga: toccandola si apre un menu con gli
+ * altri profili, "Nuovo profilo" finché c'è posto e, per un profilo che non
+ * è lo Standard, "Modifica profilo" (nome, e da lì elimina). Prima era una
+ * fila di pillole, con la matita sulla pillola scelta.
  */
-@OptIn(ExperimentalLayoutApi::class)
 @Composable
-private fun ProfileBar(
+private fun ProfileRow(
     profiles: List<AllowedAppsProfile>,
-    editingProfileId: Int,
+    editing: AllowedAppsProfile,
     canCreateProfile: Boolean,
     onSelectProfile: (Int) -> Unit,
     onCreateProfile: (String) -> Unit,
     onRenameProfile: (String) -> Unit,
     onDeleteProfile: () -> Unit,
 ) {
+    var menuOpen by remember { mutableStateOf(false) }
     var naming by rememberSaveable { mutableStateOf<String?>(null) } // null = nessun dialogo; "" = nuovo
     var editingName by rememberSaveable { mutableStateOf(false) }
     var confirmingDelete by rememberSaveable { mutableStateOf(false) }
-    val editing = profiles.firstOrNull { it.id == editingProfileId } ?: profiles.first()
 
-    Column(modifier = Modifier.fillMaxWidth().padding(horizontal = PageMargin)) {
-        FlowRow(
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp),
-        ) {
-            profiles.forEach { profile ->
-                val editable = profile.id == editing.id && !profile.isDefault
-                CalmPill(
-                    label = profile.name,
-                    selected = profile.id == editing.id,
-                    trailingIcon = if (editable) Icons.Filled.Edit else null,
-                    trailingIconDescription = stringResource(R.string.allowed_profile_edit_title),
-                    onClick = { if (editable) editingName = true else onSelectProfile(profile.id) },
-                )
-            }
-            if (canCreateProfile) {
-                CalmPill(
-                    label = stringResource(R.string.allowed_profile_new),
-                    selected = false,
-                    isChoice = false,
-                    onClick = { naming = "" },
-                )
+    Box {
+        ChoiceRow(
+            label = stringResource(R.string.allowed_section_profile),
+            value = editing.name,
+            icon = Icons.Default.ArrowDropDown,
+            onClick = { menuOpen = true },
+        )
+        // Ancorato a destra, sotto il nome del profilo: un DropdownMenu si
+        // apre dal bordo sinistro del suo genitore.
+        Box(Modifier.align(Alignment.BottomEnd).padding(end = PageMargin)) {
+            DropdownMenu(
+                expanded = menuOpen,
+                onDismissRequest = { menuOpen = false },
+                // Colore del tema, non il surfaceContainer di serie di M3
+                // (lilla, le palette non lo personalizzano).
+                containerColor = MaterialTheme.colorScheme.surface,
+            ) {
+                profiles.forEach { profile ->
+                    DropdownMenuItem(
+                        text = { Text(profile.name) },
+                        trailingIcon = if (profile.id == editing.id) {
+                            { Icon(Icons.Default.Check, contentDescription = null) }
+                        } else null,
+                        onClick = { menuOpen = false; onSelectProfile(profile.id) },
+                    )
+                }
+                if (canCreateProfile || !editing.isDefault) HorizontalDivider()
+                if (canCreateProfile) {
+                    DropdownMenuItem(
+                        text = { Text(stringResource(R.string.allowed_profile_new_menu)) },
+                        leadingIcon = { Icon(Icons.Default.Add, contentDescription = null) },
+                        onClick = { menuOpen = false; naming = "" },
+                    )
+                }
+                if (!editing.isDefault) {
+                    DropdownMenuItem(
+                        text = { Text(stringResource(R.string.allowed_profile_edit_title)) },
+                        leadingIcon = { Icon(Icons.Filled.Edit, contentDescription = null) },
+                        onClick = { menuOpen = false; editingName = true },
+                    )
+                }
             }
         }
     }
@@ -431,49 +496,41 @@ private fun ProfileBar(
 }
 
 /**
- * La regola del profilo: "Blocca tutto, tranne…" (allowlist) o "Blocca
- * solo…" (blocklist), con sotto una frase che dice cosa succede. Le due
- * pillole sono frasi complete che finiscono nella lista sotto: prima erano
- * "Solo queste"/"Tutte tranne queste", senza dire queste cosa né se
- * restavano aperte o bloccate. Cambiare regola non svuota
- * [AllowedAppsProfile.packages]: le stesse app cambiano significato.
+ * La regola del profilo in un solo controllo a due segmenti: "Blocca tutto,
+ * tranne" (allowlist) o "Blocca solo" (blocklist). Niente etichetta né
+ * paragrafo: la riga del conteggio sopra la lista dice cosa vuol dire una
+ * spunta. Cambiare regola non svuota [AllowedAppsProfile.packages]: le
+ * stesse app cambiano significato.
  */
-@OptIn(ExperimentalLayoutApi::class)
 @Composable
-private fun ModePicker(mode: AllowedAppsMode, showPicker: Boolean, onChange: (AllowedAppsMode) -> Unit) {
-    Column(modifier = Modifier.fillMaxWidth().padding(horizontal = PageMargin)) {
-        if (showPicker) {
-            Text(
-                text = stringResource(R.string.allowed_apps_mode_label),
-                color = MaterialTheme.colorScheme.onSurface,
+private fun ModePicker(mode: AllowedAppsMode, onChange: (AllowedAppsMode) -> Unit) {
+    val options = listOf(
+        AllowedAppsMode.ALLOWLIST to R.string.allowed_apps_mode_allowlist,
+        AllowedAppsMode.BLOCKLIST to R.string.allowed_apps_mode_blocklist,
+    )
+    // Colori espliciti: i default usano secondaryContainer, che le palette
+    // non personalizzano (vedi CLAUDE.md, "Theming").
+    val colors = SegmentedButtonDefaults.colors(
+        activeContainerColor = MaterialTheme.colorScheme.primary,
+        activeContentColor = MaterialTheme.colorScheme.onPrimary,
+        activeBorderColor = MaterialTheme.colorScheme.primary,
+        inactiveContainerColor = MaterialTheme.colorScheme.background,
+        inactiveContentColor = MaterialTheme.colorScheme.onSurface,
+        inactiveBorderColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.4f),
+    )
+    SingleChoiceSegmentedButtonRow(
+        modifier = Modifier.fillMaxWidth().padding(horizontal = PageMargin, vertical = 8.dp),
+    ) {
+        options.forEachIndexed { index, (value, label) ->
+            SegmentedButton(
+                selected = mode == value,
+                onClick = { onChange(value) },
+                shape = SegmentedButtonDefaults.itemShape(index = index, count = options.size),
+                colors = colors,
+                icon = {},
+                label = { Text(stringResource(label), maxLines = 1, overflow = TextOverflow.Ellipsis) },
             )
-            FlowRow(
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp),
-                modifier = Modifier.padding(top = 8.dp),
-            ) {
-                CalmPill(
-                    label = stringResource(R.string.allowed_apps_mode_allowlist),
-                    selected = mode == AllowedAppsMode.ALLOWLIST,
-                    onClick = { onChange(AllowedAppsMode.ALLOWLIST) },
-                )
-                CalmPill(
-                    label = stringResource(R.string.allowed_apps_mode_blocklist),
-                    selected = mode == AllowedAppsMode.BLOCKLIST,
-                    onClick = { onChange(AllowedAppsMode.BLOCKLIST) },
-                )
-            }
         }
-        Text(
-            text = if (mode == AllowedAppsMode.BLOCKLIST) {
-                stringResource(R.string.allowed_apps_explain_blocklist)
-            } else {
-                stringResource(R.string.allowed_apps_explain_allowlist, AllowedAppsManager.MAX_ALLOWED_APPS)
-            },
-            fontSize = 13.sp,
-            color = MaterialTheme.colorScheme.muted(0.7f),
-            modifier = Modifier.padding(top = 8.dp),
-        )
     }
 }
 

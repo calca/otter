@@ -12,7 +12,7 @@
 | `AppBlockerAccessibilityService.kt` | `shouldBlock()` reads the active session's profile (`mode` + `packages`) instead of a single allowed set |
 | `AllowedAppLaunchItems.kt` | Block-screen launch badges: mode-aware (see "Mode" below) |
 | `UsageWatcher.kt` | Usage-pause "stays excluded from the count" check: mode-aware (see "Mode" below) |
-| `AllowedAppsActivity.kt` / `AllowedAppsScreen.kt` | One scrolling column with section labels: Profile (pills, add; rename/delete from the selected pill's pencil), Sound, Apps (rule pills + a sentence on what happens, search, a count line "Stay open · 1 of 3" / "Blocked · 2", the list) |
+| `AllowedAppsActivity.kt` / `AllowedAppsScreen.kt` | One scrolling column: a Profile row (menu: profiles, New profile, Edit profile), a Sound row (dialog), the rule as a two-segment control, search, a count line "Stay open · 1 of 3" / "Blocked · 2", the list |
 | `MainScreen.kt` | Profile line under the pills, only with 2+ profiles |
 
 ## Storage
@@ -122,3 +122,9 @@ after the search, and the same "on" switch meant "stays" in one mode and
 says what a switched-on row means. Everything scrolls together, so the
 controls give their space back to the list. The sound sits before the apps
 rather than after: at the end of a long app list nobody would find it.
+
+Second pass (same day, after testing rc2: "too many pills, too much text,
+apps too low, sound is too many pills"): profile and sound became one row
+each (a menu and a dialog), the rule a two-segment control without label or
+explanation, section labels went away. The count line above the list is the
+only text left. "Default" sound reads "Same as Settings".
