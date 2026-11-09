@@ -12,7 +12,7 @@
 | `AppBlockerAccessibilityService.kt` | `shouldBlock()` reads the active session's profile (`mode` + `packages`) instead of a single allowed set |
 | `AllowedAppLaunchItems.kt` | Block-screen launch badges: mode-aware (see "Mode" below) |
 | `UsageWatcher.kt` | Usage-pause "stays excluded from the count" check: mode-aware (see "Mode" below) |
-| `AllowedAppsActivity.kt` / `AllowedAppsScreen.kt` | Profile switcher at the top (pills), add; rename/delete from the selected pill's pencil; mode picker (two pills) below the profile switcher |
+| `AllowedAppsActivity.kt` / `AllowedAppsScreen.kt` | One scrolling column with section labels: Profile (pills, add; rename/delete from the selected pill's pencil), Sound, Apps (rule pills + a sentence on what happens, search, a count line "Stay open · 1 of 3" / "Blocked · 2", the list) |
 | `MainScreen.kt` | Profile line under the pills, only with 2+ profiles |
 
 ## Storage
@@ -109,3 +109,16 @@ editor row, Home dialog ("Which apps stay in this pause?"), TalkBack line
 ("Apps that stay: Standard"), the limit ("At most 10 apps"); store
 listing, privacy policy and README follow. Resource keys unchanged.
 
+
+## Page layout (2026-11-09)
+
+The page read as confusing (reported): "Only these / All except these" did
+not say what "these" were nor whether they stayed or were blocked, the sound
+sat between that choice and the list it referred to, the explanation came
+after the search, and the same "on" switch meant "stays" in one mode and
+"blocked" in the other. Now: title "Profiles"; sections **Profile**,
+**Sound**, **Apps**; the rule as full phrases ("Block all except…" /
+"Block only…") with a sentence under it; a count line above the list that
+says what a switched-on row means. Everything scrolls together, so the
+controls give their space back to the list. The sound sits before the apps
+rather than after: at the end of a long app list nobody would find it.

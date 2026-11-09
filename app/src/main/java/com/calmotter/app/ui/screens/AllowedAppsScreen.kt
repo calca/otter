@@ -4,6 +4,9 @@ import android.graphics.Bitmap
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.em
 import androidx.compose.ui.semantics.toggleableState
 import androidx.compose.ui.state.ToggleableState
 import androidx.compose.foundation.Image
@@ -134,95 +137,126 @@ fun AllowedAppsScreen(
         if (searchQuery.isEmpty()) apps
         else apps.filter { it.label.contains(searchQuery, ignoreCase = true) }
     }
-    val editingMode = profiles.firstOrNull { it.id == editingProfileId }?.mode ?: AllowedAppsMode.ALLOWLIST
+    val editing = profiles.firstOrNull { it.id == editingProfileId }
+    val editingMode = editing?.mode ?: AllowedAppsMode.ALLOWLIST
+    val pickedCount = apps.count { it.isAllowed }
 
-    Column(modifier = Modifier.fillMaxSize().safeDrawingPadding()) {
-        if (profiles.isNotEmpty()) {
-            ProfileBar(
-                profiles = profiles,
-                editingProfileId = editingProfileId,
-                canCreateProfile = canCreateProfile,
-                onSelectProfile = onSelectProfile,
-                onCreateProfile = onCreateProfile,
-                onRenameProfile = onRenameProfile,
-                onDeleteProfile = onDeleteProfile,
-            )
-            ModePicker(mode = editingMode, onChange = onChangeMode)
-            SoundPicker(
-                selected = profiles.firstOrNull { it.id == editingProfileId }?.sound,
-                allowDefault = true,
-                onChange = onChangeSound,
-                modifier = Modifier.padding(horizontal = PageMargin, vertical = 8.dp),
-            )
-        }
-        CalmTextField(
-            value = searchQuery,
-            onValueChange = { searchQuery = it },
-            label = stringResource(R.string.allowed_apps_search),
-            leadingIcon = {
-                Icon(imageVector = Icons.Default.Search, contentDescription = null)
-            },
-            trailingIcon = {
-                if (searchQuery.isNotEmpty()) {
-                    IconButton(onClick = { searchQuery = "" }) {
-                        Icon(
-                            imageVector = Icons.Default.Clear,
-                            contentDescription = stringResource(R.string.allowed_apps_clear_search)
-                        )
-                    }
-                }
-            },
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = PageMargin, vertical = 16.dp)
-        )
-
-        Text(
-            text = stringResource(
-                if (editingMode == AllowedAppsMode.BLOCKLIST) R.string.allowed_apps_intro_blocklist
-                else R.string.allowed_apps_intro
-            ),
-            color = MaterialTheme.colorScheme.onSurface,
-            fontSize = 13.sp,
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = PageMargin)
-                .padding(bottom = 8.dp)
-        )
-
-        PullToRefreshBox(
-            isRefreshing = isLoading,
-            onRefresh = onRefresh,
-            modifier = Modifier
-                .fillMaxWidth()
-                .weight(1f)
+    // Una sola colonna che scorre: profilo, suono e modalità salgono via con
+    // la lista invece di restare fissi a rubarle metà schermo. Ordine: prima
+    // chi (profilo), poi il suono, poi le app con la loro regola subito sopra
+    // la lista a cui si riferisce — prima il suono stava in mezzo e "Solo
+    // queste" finiva tre blocchi sopra le app che intendeva (segnalato).
+    PullToRefreshBox(
+        isRefreshing = isLoading,
+        onRefresh = onRefresh,
+        modifier = Modifier.fillMaxSize().safeDrawingPadding(),
+    ) {
+        LazyColumn(
+            modifier = Modifier.fillMaxSize(),
+            contentPadding = PaddingValues(bottom = 8.dp),
         ) {
-            if (!isLoading && filteredApps.isEmpty()) {
-                Box(
+            if (profiles.isNotEmpty()) {
+                item(key = "profile") {
+                    ScreenSectionLabel(stringResource(R.string.allowed_section_profile), topPadding = 16.dp)
+                    ProfileBar(
+                        profiles = profiles,
+                        editingProfileId = editingProfileId,
+                        canCreateProfile = canCreateProfile,
+                        onSelectProfile = onSelectProfile,
+                        onCreateProfile = onCreateProfile,
+                        onRenameProfile = onRenameProfile,
+                        onDeleteProfile = onDeleteProfile,
+                    )
+                }
+                item(key = "sound") {
+                    ScreenSectionLabel(stringResource(R.string.relax_sound_label))
+                    SoundPicker(
+                        selected = editing?.sound,
+                        allowDefault = true,
+                        onChange = onChangeSound,
+                        showLabel = false,
+                        modifier = Modifier.padding(horizontal = PageMargin),
+                    )
+                }
+            }
+            item(key = "mode") {
+                ScreenSectionLabel(stringResource(R.string.allowed_section_apps))
+                ModePicker(mode = editingMode, showPicker = profiles.isNotEmpty(), onChange = onChangeMode)
+            }
+            item(key = "search") {
+                CalmTextField(
+                    value = searchQuery,
+                    onValueChange = { searchQuery = it },
+                    label = stringResource(R.string.allowed_apps_search),
+                    leadingIcon = {
+                        Icon(imageVector = Icons.Default.Search, contentDescription = null)
+                    },
+                    trailingIcon = {
+                        if (searchQuery.isNotEmpty()) {
+                            IconButton(onClick = { searchQuery = "" }) {
+                                Icon(
+                                    imageVector = Icons.Default.Clear,
+                                    contentDescription = stringResource(R.string.allowed_apps_clear_search)
+                                )
+                            }
+                        }
+                    },
                     modifier = Modifier
-                        .fillMaxSize()
-                        .padding(32.dp),
-                    contentAlignment = Alignment.Center
-                ) {
+                        .fillMaxWidth()
+                        .padding(horizontal = PageMargin, vertical = 12.dp)
+                )
+            }
+            item(key = "count") {
+                // Cosa vuol dire un interruttore acceso, detto sopra la lista:
+                // "resta aperta" o "bloccata" a seconda della regola.
+                Text(
+                    text = if (editingMode == AllowedAppsMode.BLOCKLIST) {
+                        stringResource(R.string.allowed_apps_count_blocklist, pickedCount)
+                    } else {
+                        stringResource(R.string.allowed_apps_count_allowlist, pickedCount, AllowedAppsManager.MAX_ALLOWED_APPS)
+                    },
+                    style = MaterialTheme.typography.labelLarge,
+                    color = MaterialTheme.colorScheme.onSurface,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = PageMargin)
+                        .padding(bottom = 6.dp)
+                        .semantics { heading() },
+                )
+            }
+            if (!isLoading && filteredApps.isEmpty()) {
+                item(key = "empty") {
                     Text(
                         text = stringResource(R.string.allowed_apps_empty_filtered),
                         color = MaterialTheme.colorScheme.onSurface,
                         textAlign = TextAlign.Center,
                         fontSize = 15.sp,
+                        modifier = Modifier.fillMaxWidth().padding(32.dp),
                     )
                 }
             } else {
-                LazyColumn(
-                    modifier = Modifier.fillMaxSize(),
-                    contentPadding = PaddingValues(bottom = 8.dp)
-                ) {
-                    items(filteredApps, key = { it.packageName }) { item ->
-                        AppRow(item = item, onToggle = onToggle)
-                    }
+                items(filteredApps, key = { it.packageName }) { item ->
+                    AppRow(item = item, onToggle = onToggle)
                 }
             }
         }
     }
+}
+
+/** Etichetta di sezione, stesso stile di quelle delle Impostazioni. */
+@Composable
+private fun ScreenSectionLabel(text: String, topPadding: Dp = 24.dp) {
+    Text(
+        text = text.uppercase(),
+        style = MaterialTheme.typography.labelSmall,
+        letterSpacing = 0.12.em,
+        color = MaterialTheme.colorScheme.muted(0.55f),
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = PageMargin)
+            .padding(top = topPadding, bottom = 8.dp)
+            .semantics { heading() },
+    )
 }
 
 @Composable
@@ -335,7 +369,7 @@ private fun ProfileBar(
     var confirmingDelete by rememberSaveable { mutableStateOf(false) }
     val editing = profiles.firstOrNull { it.id == editingProfileId } ?: profiles.first()
 
-    Column(modifier = Modifier.fillMaxWidth().padding(start = 16.dp, end = 16.dp, top = 16.dp)) {
+    Column(modifier = Modifier.fillMaxWidth().padding(horizontal = PageMargin)) {
         FlowRow(
             horizontalArrangement = Arrangement.spacedBy(8.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp),
@@ -397,35 +431,49 @@ private fun ProfileBar(
 }
 
 /**
- * Allowlist ("Solo queste") o blocklist ("Tutte tranne queste") per il
- * profilo in modifica — stesso idioma delle pillole di durata/profilo
- * ([CalmPill] come scelta a due esclusiva, non un componente nuovo).
- * Cambiare modalità non svuota [AllowedAppsProfile.packages]: le stesse app
- * selezionate vengono reinterpretate col nuovo significato.
+ * La regola del profilo: "Blocca tutto, tranne…" (allowlist) o "Blocca
+ * solo…" (blocklist), con sotto una frase che dice cosa succede. Le due
+ * pillole sono frasi complete che finiscono nella lista sotto: prima erano
+ * "Solo queste"/"Tutte tranne queste", senza dire queste cosa né se
+ * restavano aperte o bloccate. Cambiare regola non svuota
+ * [AllowedAppsProfile.packages]: le stesse app cambiano significato.
  */
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
-private fun ModePicker(mode: AllowedAppsMode, onChange: (AllowedAppsMode) -> Unit) {
-    Column(modifier = Modifier.fillMaxWidth().padding(horizontal = PageMargin, vertical = 8.dp)) {
+private fun ModePicker(mode: AllowedAppsMode, showPicker: Boolean, onChange: (AllowedAppsMode) -> Unit) {
+    Column(modifier = Modifier.fillMaxWidth().padding(horizontal = PageMargin)) {
+        if (showPicker) {
+            Text(
+                text = stringResource(R.string.allowed_apps_mode_label),
+                color = MaterialTheme.colorScheme.onSurface,
+            )
+            FlowRow(
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+                modifier = Modifier.padding(top = 8.dp),
+            ) {
+                CalmPill(
+                    label = stringResource(R.string.allowed_apps_mode_allowlist),
+                    selected = mode == AllowedAppsMode.ALLOWLIST,
+                    onClick = { onChange(AllowedAppsMode.ALLOWLIST) },
+                )
+                CalmPill(
+                    label = stringResource(R.string.allowed_apps_mode_blocklist),
+                    selected = mode == AllowedAppsMode.BLOCKLIST,
+                    onClick = { onChange(AllowedAppsMode.BLOCKLIST) },
+                )
+            }
+        }
         Text(
-            text = stringResource(R.string.allowed_apps_mode_label),
+            text = if (mode == AllowedAppsMode.BLOCKLIST) {
+                stringResource(R.string.allowed_apps_explain_blocklist)
+            } else {
+                stringResource(R.string.allowed_apps_explain_allowlist, AllowedAppsManager.MAX_ALLOWED_APPS)
+            },
             fontSize = 13.sp,
             color = MaterialTheme.colorScheme.muted(0.7f),
+            modifier = Modifier.padding(top = 8.dp),
         )
-        Row(
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-            modifier = Modifier.padding(top = 6.dp),
-        ) {
-            CalmPill(
-                label = stringResource(R.string.allowed_apps_mode_allowlist),
-                selected = mode == AllowedAppsMode.ALLOWLIST,
-                onClick = { onChange(AllowedAppsMode.ALLOWLIST) },
-            )
-            CalmPill(
-                label = stringResource(R.string.allowed_apps_mode_blocklist),
-                selected = mode == AllowedAppsMode.BLOCKLIST,
-                onClick = { onChange(AllowedAppsMode.BLOCKLIST) },
-            )
-        }
     }
 }
 

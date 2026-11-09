@@ -177,7 +177,7 @@
             tools:ignore="LockedOrientationActivity"
             android:name=".AllowedAppsActivity"
             android:exported="false"
-            android:label="@string/allowed_apps_title"
+            android:label="@string/manage_allowed_apps"
             android:theme="@style/Theme.CalmOtter.WithActionBar" />
 
         <activity

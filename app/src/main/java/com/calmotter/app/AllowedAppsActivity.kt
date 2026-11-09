@@ -182,10 +182,9 @@ class AllowedAppsActivity : BaseActivity() {
     }
 
     private fun updateTitle() {
-        val blocklist = allowedAppsManager.profile(editingProfileId).mode == AllowedAppsMode.BLOCKLIST
-        supportActionBar?.title = getString(
-            if (blocklist) R.string.allowed_apps_title_blocklist else R.string.allowed_apps_title,
-        )
+        // Un titolo solo: la regola (resta / bloccate) ora la dice la pagina,
+        // sopra la lista. Prima il titolo cambiava con la modalità.
+        supportActionBar?.title = getString(R.string.manage_allowed_apps)
     }
 
     /** Passa a modificare un altro profilo: stesse app, spunte di quel profilo. */
