@@ -36,7 +36,7 @@ import androidx.savedstate.SavedStateRegistry
 import androidx.savedstate.SavedStateRegistryController
 import androidx.savedstate.SavedStateRegistryOwner
 import androidx.savedstate.setViewTreeSavedStateRegistryOwner
-import com.calmotter.app.ui.mascot.OtterFloatMark
+import com.calmotter.app.ui.mascot.OtterZenMark
 import com.calmotter.app.ui.theme.CalmOtterTheme
 import kotlin.math.abs
 
@@ -130,7 +130,7 @@ internal class FloatingBubbleWindow(private val service: android.accessibilityse
             setViewTreeSavedStateRegistryOwner(lifecycleOwner)
             setContent {
                 CalmOtterTheme(appTheme = appTheme) {
-                    // L'otter della Home in un cerchio, con il tempo in
+                    // La lontra della Home in un cerchio, con il tempo in
                     // un'etichetta sotto: si riconosce come Calm Otter senza
                     // leggere. Niente Surface (quello di Material3 consuma i
                     // tocchi: trascinamento e click non arriverebbero) e
@@ -145,9 +145,9 @@ internal class FloatingBubbleWindow(private val service: android.accessibilityse
                                 .border(2.dp, MaterialTheme.colorScheme.primary, CircleShape)
                                 .clip(CircleShape),
                         ) {
-                            // Il disegno ha margini suoi: più grande del cerchio
-                            // e ritagliato, la testa lo riempie.
-                            OtterFloatMark(markSize = 72.dp)
+                            // La lontra di Home e blocco (OtterZenMark), non
+                            // l'OtterFloatMark tenue: si riconosce subito.
+                            OtterZenMark(markSize = 52.dp)
                         }
                         Text(
                             text,
