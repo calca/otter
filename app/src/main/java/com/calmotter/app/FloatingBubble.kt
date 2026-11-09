@@ -9,6 +9,8 @@ import android.view.View
 import android.view.ViewConfiguration
 import android.view.WindowManager
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.CircleShape
@@ -17,7 +19,9 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.unit.dp
 import androidx.core.content.edit
@@ -32,6 +36,7 @@ import androidx.savedstate.SavedStateRegistry
 import androidx.savedstate.SavedStateRegistryController
 import androidx.savedstate.SavedStateRegistryOwner
 import androidx.savedstate.setViewTreeSavedStateRegistryOwner
+import com.calmotter.app.ui.mascot.OtterFloatMark
 import com.calmotter.app.ui.theme.CalmOtterTheme
 import kotlin.math.abs
 
@@ -125,17 +130,34 @@ internal class FloatingBubbleWindow(private val service: android.accessibilityse
             setViewTreeSavedStateRegistryOwner(lifecycleOwner)
             setContent {
                 CalmOtterTheme(appTheme = appTheme) {
-                    // Non un Surface: quello di Material3 consuma i tocchi e
-                    // il trascinamento/click della finestra non arriverebbero.
-                    Box(
-                        Modifier
-                            .background(MaterialTheme.colorScheme.primary, CircleShape)
-                            .padding(horizontal = 14.dp, vertical = 12.dp),
-                    ) {
+                    // L'otter della Home in un cerchio, con il tempo in
+                    // un'etichetta sotto: si riconosce come Calm Otter senza
+                    // leggere. Niente Surface (quello di Material3 consuma i
+                    // tocchi: trascinamento e click non arriverebbero) e
+                    // niente ombra (la finestra stretta la taglia a rettangolo).
+                    Box(contentAlignment = Alignment.TopCenter) {
+                        Box(
+                            contentAlignment = Alignment.Center,
+                            modifier = Modifier
+                                .padding(bottom = 14.dp)
+                                .size(56.dp)
+                                .background(MaterialTheme.colorScheme.background, CircleShape)
+                                .border(2.dp, MaterialTheme.colorScheme.primary, CircleShape)
+                                .clip(CircleShape),
+                        ) {
+                            // Il disegno ha margini suoi: più grande del cerchio
+                            // e ritagliato, la testa lo riempie.
+                            OtterFloatMark(markSize = 72.dp)
+                        }
                         Text(
                             text,
-                            style = MaterialTheme.typography.labelLarge,
+                            style = MaterialTheme.typography.labelMedium,
                             color = MaterialTheme.colorScheme.onPrimary,
+                            maxLines = 1,
+                            modifier = Modifier
+                                .align(Alignment.BottomCenter)
+                                .background(MaterialTheme.colorScheme.primary, CircleShape)
+                                .padding(horizontal = 8.dp, vertical = 2.dp),
                         )
                     }
                 }
