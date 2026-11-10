@@ -168,7 +168,6 @@
     <string name="confirm">确认</string>
     <string name="allowed_apps_count_allowlist">保留 · %1$d / %2$d</string>
     <string name="allowed_apps_count_blocklist">已屏蔽 · %1$d</string>
-    <string name="allowed_section_profile">配置</string>
     <string name="allowed_apps_mode_allowlist">全部屏蔽，除了</string>
     <string name="allowed_apps_mode_blocklist">只屏蔽</string>
     <string name="allowed_apps_search">搜索应用</string>

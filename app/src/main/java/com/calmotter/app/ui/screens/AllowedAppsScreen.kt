@@ -12,11 +12,11 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.ArrowDropDown
-import androidx.compose.material.icons.filled.Check
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.PrimaryScrollableTabRow
+import androidx.compose.material3.Tab
+import androidx.compose.material3.TabRowDefaults
+import androidx.compose.ui.unit.Dp
 import androidx.compose.material3.SegmentedButton
 import androidx.compose.material3.SegmentedButtonDefaults
 import androidx.compose.material3.SingleChoiceSegmentedButtonRow
@@ -166,7 +166,7 @@ fun AllowedAppsScreen(
         ) {
             if (profiles.isNotEmpty() && editing != null) {
                 item(key = "profile") {
-                    ProfileRow(
+                    ProfileTabs(
                         profiles = profiles,
                         editing = editing,
                         canCreateProfile = canCreateProfile,
@@ -395,13 +395,13 @@ private fun calmSwitchColors(): SwitchColors = SwitchDefaults.colors(
 private const val PROFILE_NAME_MAX = 20
 
 /**
- * Il profilo in modifica, su una riga: toccandola si apre un menu con gli
- * altri profili, "Nuovo profilo" finché c'è posto e, per un profilo che non
- * è lo Standard, "Modifica profilo" (nome, e da lì elimina). Prima era una
- * fila di pillole, con la matita sulla pillola scelta.
+ * I profili come schede in cima alla pagina: tutti visibili, uno tocco per
+ * passare dall'uno all'altro, "+" in fondo finché c'è posto e la matita
+ * (nome, e da lì elimina) per un profilo che non è lo Standard. Prima era
+ * una fila di pillole, poi una riga con un menu a tendina ("confusionaria").
  */
 @Composable
-private fun ProfileRow(
+private fun ProfileTabs(
     profiles: List<AllowedAppsProfile>,
     editing: AllowedAppsProfile,
     canCreateProfile: Boolean,
@@ -410,55 +410,74 @@ private fun ProfileRow(
     onRenameProfile: (String) -> Unit,
     onDeleteProfile: () -> Unit,
 ) {
-    var menuOpen by remember { mutableStateOf(false) }
     var naming by rememberSaveable { mutableStateOf<String?>(null) } // null = nessun dialogo; "" = nuovo
     var editingName by rememberSaveable { mutableStateOf(false) }
     var confirmingDelete by rememberSaveable { mutableStateOf(false) }
 
-    Box {
-        ChoiceRow(
-            label = stringResource(R.string.allowed_section_profile),
-            value = editing.name,
-            icon = Icons.Default.ArrowDropDown,
-            onClick = { menuOpen = true },
-        )
-        // Ancorato a destra, sotto il nome del profilo: un DropdownMenu si
-        // apre dal bordo sinistro del suo genitore.
-        Box(Modifier.align(Alignment.BottomEnd).padding(end = PageMargin)) {
-            DropdownMenu(
-                expanded = menuOpen,
-                onDismissRequest = { menuOpen = false },
-                // Colore del tema, non il surfaceContainer di serie di M3
-                // (lilla, le palette non lo personalizzano).
-                containerColor = MaterialTheme.colorScheme.surface,
-            ) {
-                profiles.forEach { profile ->
-                    DropdownMenuItem(
-                        text = { Text(profile.name) },
-                        trailingIcon = if (profile.id == editing.id) {
-                            { Icon(Icons.Default.Check, contentDescription = null) }
-                        } else null,
-                        onClick = { menuOpen = false; onSelectProfile(profile.id) },
-                    )
-                }
-                if (canCreateProfile || !editing.isDefault) HorizontalDivider()
-                if (canCreateProfile) {
-                    DropdownMenuItem(
-                        text = { Text(stringResource(R.string.allowed_profile_new_menu)) },
-                        leadingIcon = { Icon(Icons.Default.Add, contentDescription = null) },
-                        onClick = { menuOpen = false; naming = "" },
-                    )
-                }
-                if (!editing.isDefault) {
-                    DropdownMenuItem(
-                        text = { Text(stringResource(R.string.allowed_profile_edit_title)) },
-                        leadingIcon = { Icon(Icons.Filled.Edit, contentDescription = null) },
-                        onClick = { menuOpen = false; editingName = true },
-                    )
-                }
+    val primary = MaterialTheme.colorScheme.primary
+    val selectedIndex = profiles.indexOfFirst { it.id == editing.id }.coerceAtLeast(0)
+    Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
+        // Colori espliciti: i default usano ruoli che le palette non
+        // personalizzano (vedi CLAUDE.md, "Theming"). edgePadding + il
+        // padding interno della Tab (16dp) = PageMargin.
+        PrimaryScrollableTabRow(
+            selectedTabIndex = selectedIndex,
+            modifier = Modifier.weight(1f),
+            containerColor = MaterialTheme.colorScheme.background,
+            contentColor = primary,
+            edgePadding = PageMargin - 16.dp,
+            minTabWidth = 48.dp,
+            indicator = {
+                TabRowDefaults.PrimaryIndicator(
+                    modifier = Modifier.tabIndicatorOffset(selectedIndex, matchContentSize = true),
+                    width = Dp.Unspecified,
+                    color = primary,
+                )
+            },
+            // La linea sta sotto tutta la riga (matita compresa), non solo
+            // sotto le schede.
+            divider = {},
+        ) {
+            profiles.forEach { profile ->
+                Tab(
+                    selected = profile.id == editing.id,
+                    onClick = { onSelectProfile(profile.id) },
+                    selectedContentColor = primary,
+                    unselectedContentColor = MaterialTheme.colorScheme.muted(0.7f),
+                    text = {
+                        Text(
+                            profile.name,
+                            fontWeight = if (profile.id == editing.id) FontWeight.SemiBold else FontWeight.Normal,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                        )
+                    },
+                )
+            }
+            if (canCreateProfile) {
+                Tab(
+                    selected = false,
+                    onClick = { naming = "" },
+                    unselectedContentColor = primary,
+                    icon = {
+                        Icon(Icons.Default.Add, contentDescription = stringResource(R.string.allowed_profile_new_menu))
+                    },
+                )
+            }
+        }
+        // Lo Standard non si rinomina né si elimina: la matita c'è solo
+        // sugli altri profili.
+        if (!editing.isDefault) {
+            IconButton(onClick = { editingName = true }, modifier = Modifier.padding(end = PageMargin - 12.dp)) {
+                Icon(
+                    Icons.Filled.Edit,
+                    contentDescription = stringResource(R.string.allowed_profile_edit_title),
+                    tint = primary,
+                )
             }
         }
     }
+    HorizontalDivider(color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.12f))
 
     naming?.let { initial ->
         ProfileNameDialog(

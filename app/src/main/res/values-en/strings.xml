@@ -188,7 +188,6 @@
     <string name="confirm">Confirm</string>
     <string name="allowed_apps_count_allowlist">Stay open · %1$d of %2$d</string>
     <string name="allowed_apps_count_blocklist">Blocked · %1$d</string>
-    <string name="allowed_section_profile">Profile</string>
     <string name="allowed_apps_mode_allowlist">Block all except</string>
     <string name="allowed_apps_mode_blocklist">Block only</string>
     <string name="allowed_apps_search">Search apps</string>
