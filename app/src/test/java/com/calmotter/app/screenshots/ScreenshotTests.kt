@@ -29,6 +29,7 @@ import com.calmotter.app.SessionManager
 import com.calmotter.app.SessionRecord
 import com.calmotter.app.installFakeAndroidKeyStore
 import com.calmotter.app.ui.screens.AllowedAppsScreen
+import com.calmotter.app.ui.screens.ProfilesScreen
 import com.calmotter.app.ui.screens.AppItem
 import com.calmotter.app.ui.screens.BlockScreen
 import com.calmotter.app.ui.screens.ClosingMomentScreen
@@ -380,7 +381,7 @@ class ScreenScreenshotTest(private val night: Boolean) {
 
     private fun testIcon(): Bitmap = Bitmap.createBitmap(40, 40, Bitmap.Config.ARGB_8888)
 
-    /** Il nuovo picker di modalità (allowlist/blocklist, issue #2) sotto le pillole dei profili. */
+    /** La pagina di un profilo: suono, regola (allowlist/blocklist, issue #2), app. */
     @Test
     fun allowedApps() = capture("allowed-apps") {
         val apps = listOf(
@@ -393,8 +394,7 @@ class ScreenScreenshotTest(private val night: Boolean) {
             apps = apps,
             onToggle = {},
             onRefresh = {},
-            profiles = AllowedAppsManager.getInstance(context).profiles(),
-            editingProfileId = AllowedAppsManager.DEFAULT_PROFILE_ID,
+            profile = AllowedAppsManager.getInstance(context).profile(AllowedAppsManager.DEFAULT_PROFILE_ID),
         )
     }
 
@@ -410,8 +410,23 @@ class ScreenScreenshotTest(private val night: Boolean) {
             apps = apps,
             onToggle = {},
             onRefresh = {},
-            profiles = AllowedAppsManager.getInstance(context).profiles(),
-            editingProfileId = AllowedAppsManager.DEFAULT_PROFILE_ID,
+            profile = AllowedAppsManager.getInstance(context).profile(AllowedAppsManager.DEFAULT_PROFILE_ID),
+        )
+    }
+
+    /** Il bivio dei profili: uno per regola, con riassunto e "Nuovo profilo" in fondo. */
+    @Test
+    fun profiles() = capture("profiles") {
+        val manager = AllowedAppsManager.getInstance(context)
+        manager.setPackages(AllowedAppsManager.DEFAULT_PROFILE_ID, setOf("com.maps", "com.messages"))
+        val work = manager.createProfile("Lavoro")!!
+        manager.setMode(work.id, AllowedAppsMode.BLOCKLIST)
+        manager.setPackages(work.id, setOf("com.social"))
+        ProfilesScreen(
+            profiles = manager.profiles(),
+            canCreateProfile = manager.canCreateProfile(),
+            onOpenProfile = {},
+            onCreateProfile = {},
         )
     }
 }

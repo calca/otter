@@ -45,6 +45,7 @@ class TopLevelScreenSafeDrawingPaddingTest {
 
     private val screens = listOf(
         TopLevelScreen("AllowedAppsScreen", listOf("AllowedAppsScreen.kt")),
+        TopLevelScreen("ProfilesScreen", listOf("ProfilesScreen.kt")),
         // Nessuna chiamata propria a safeDrawingPadding(): delega interamente
         // a OtterAnchoredScreen (vedi il suo corpo, e MainActivity.kt per il
         // motivo — Home e BlockScreen condividono l'otter come elemento

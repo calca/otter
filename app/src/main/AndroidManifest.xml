@@ -175,6 +175,14 @@
         <activity
             android:screenOrientation="portrait"
             tools:ignore="LockedOrientationActivity"
+            android:name=".ProfilesActivity"
+            android:exported="false"
+            android:label="@string/manage_allowed_apps"
+            android:theme="@style/Theme.CalmOtter.WithActionBar" />
+
+        <activity
+            android:screenOrientation="portrait"
+            tools:ignore="LockedOrientationActivity"
             android:name=".AllowedAppsActivity"
             android:exported="false"
             android:label="@string/manage_allowed_apps"

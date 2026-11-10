@@ -129,9 +129,16 @@ each (a menu and a dialog), the rule a two-segment control without label or
 explanation, section labels went away. The count line above the list is the
 only text left. "Default" sound reads "Same as Settings".
 
-Third pass (2026-11-10, "the dropdown is confusing"): profiles are tabs at
-the top of the page (`PrimaryScrollableTabRow`, one tab per profile, a "+"
-tab while there is room), so every profile is visible and one tap away.
-The pencil at the end of the row opens rename/delete for a non-default
-profile. Sound row, rule segments, search, count line and list are as in
-the second pass.
+Third pass (2026-11-10, "the dropdown is confusing", then tabs): choosing a
+profile and configuring it are now two pages. `ProfilesActivity` /
+`ProfilesScreen` is the fork reached from Settings (after the password):
+one card per profile with its rule and app count ("Blocks everything except
+2 apps", "Blocks only 4 apps", "Blocks everything" / "Blocks nothing" at
+zero) and its sound, plus "New profile" pinned at the bottom while there is
+room. The list shows even with only Standard, so the page never changes
+shape and "New profile" is always where you expect it. Tapping a card (or
+creating a profile) opens `AllowedAppsActivity` with `EXTRA_PROFILE_ID`:
+the title is the profile name, rename (pencil) and delete (bin, with
+confirmation) are ActionBar icons on non-default profiles, and the page
+body is sound row, rule segments, search, count line, apps. Deleting
+returns to the list; the list reloads on resume.

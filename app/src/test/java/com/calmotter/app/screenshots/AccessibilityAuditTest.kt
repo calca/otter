@@ -17,6 +17,7 @@ import androidx.compose.ui.test.captureToImage
 import androidx.compose.ui.graphics.asAndroidBitmap
 import androidx.test.core.app.ApplicationProvider
 import com.calmotter.app.AllowedAppsManager
+import com.calmotter.app.ui.screens.ProfilesScreen
 import com.calmotter.app.AppTheme
 import com.calmotter.app.CalmCountdown
 import com.calmotter.app.PasswordManager
@@ -208,6 +209,12 @@ class AccessibilityAuditTest(private val night: Boolean) {
             accessibilityOn = true,
             onChange = {},
         )
+    }
+
+    @Test fun profiles() = audit("profiles") {
+        val manager = AllowedAppsManager.getInstance(context)
+        manager.createProfile("Lavoro")
+        ProfilesScreen(profiles = manager.profiles(), canCreateProfile = true, onOpenProfile = {}, onCreateProfile = {})
     }
 
     @Test fun settings() = audit("settings") {

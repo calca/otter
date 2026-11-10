@@ -329,6 +329,17 @@
     <string name="allowed_profile_name_title">Profile name</string>
     <string name="allowed_profile_name_hint">E.g. Evening, Work</string>
     <string name="allowed_profile_save">Save</string>
+    <string name="profile_summary_all">Blocks everything</string>
+    <string name="profile_summary_none">Blocks nothing</string>
+    <plurals name="profile_summary_allowlist">
+        <item quantity="one">Blocks everything except %d app</item>
+        <item quantity="other">Blocks everything except %d apps</item>
+    </plurals>
+    <plurals name="profile_summary_blocklist">
+        <item quantity="one">Blocks only %d app</item>
+        <item quantity="other">Blocks only %d apps</item>
+    </plurals>
+    <string name="profile_summary_sound">Sound: %1$s</string>
     <string name="home_profile_line">Profile: %1$s</string>
     <string name="home_profile_line_blocklist">Blocked apps: %1$s</string>
     <string name="home_profile_dialog_title">Which apps stay in this pause?</string>

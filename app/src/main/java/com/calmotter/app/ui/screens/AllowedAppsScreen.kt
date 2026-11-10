@@ -11,19 +11,10 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.PrimaryScrollableTabRow
-import androidx.compose.material3.Tab
-import androidx.compose.material3.TabRowDefaults
-import androidx.compose.ui.unit.Dp
 import androidx.compose.material3.SegmentedButton
 import androidx.compose.material3.SegmentedButtonDefaults
 import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
@@ -43,8 +34,6 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchColors
 import androidx.compose.material3.SwitchDefaults
@@ -72,12 +61,7 @@ import com.calmotter.app.AllowedAppsProfile
 import com.calmotter.app.sound.RelaxSound
 import com.calmotter.app.R
 import com.calmotter.app.ui.theme.muted
-import androidx.compose.material.icons.filled.Edit
-import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.width
 
 /**
  * Modello UI di una singola app installata sul dispositivo.
@@ -128,15 +112,10 @@ fun AllowedAppsScreen(
     apps: List<AppItem>,
     onToggle: (AppItem) -> Unit,
     onRefresh: () -> Unit,
-    // Profili (specs/allowed-app-profiles/): quale si sta modificando e le
-    // azioni su di essi. Tutta la schermata è già dietro la password.
-    profiles: List<AllowedAppsProfile> = emptyList(),
-    editingProfileId: Int = AllowedAppsManager.DEFAULT_PROFILE_ID,
-    canCreateProfile: Boolean = false,
-    onSelectProfile: (Int) -> Unit = {},
-    onCreateProfile: (String) -> Unit = {},
-    onRenameProfile: (String) -> Unit = {},
-    onDeleteProfile: () -> Unit = {},
+    // Il profilo di questa pagina (specs/allowed-app-profiles/): si sceglie
+    // prima, in ProfilesScreen; nome ed eliminazione stanno nell'ActionBar.
+    // Tutta la schermata è già dietro la password.
+    profile: AllowedAppsProfile? = null,
     onChangeMode: (AllowedAppsMode) -> Unit = {},
     onChangeSound: (RelaxSound?) -> Unit = {},
 ) {
@@ -146,15 +125,14 @@ fun AllowedAppsScreen(
         if (searchQuery.isEmpty()) apps
         else apps.filter { it.label.contains(searchQuery, ignoreCase = true) }
     }
-    val editing = profiles.firstOrNull { it.id == editingProfileId }
-    val editingMode = editing?.mode ?: AllowedAppsMode.ALLOWLIST
+    val editingMode = profile?.mode ?: AllowedAppsMode.ALLOWLIST
     val pickedCount = apps.count { it.isAllowed }
 
     // Il meno possibile sopra la lista (segnalato: "troppe pillole e troppo
-    // testo, le app troppo in basso"): profilo e suono sono due righe che
-    // aprono un menu e un dialogo, la regola un solo controllo a due
-    // segmenti; cosa significa una spunta lo dice la riga del conteggio
-    // subito sopra le app. Tutto scorre insieme alla lista.
+    // testo, le app troppo in basso"): il suono è una riga che apre un
+    // dialogo, la regola un solo controllo a due segmenti; cosa significa
+    // una spunta lo dice la riga del conteggio subito sopra le app. Tutto
+    // scorre insieme alla lista.
     PullToRefreshBox(
         isRefreshing = isLoading,
         onRefresh = onRefresh,
@@ -164,20 +142,9 @@ fun AllowedAppsScreen(
             modifier = Modifier.fillMaxSize(),
             contentPadding = PaddingValues(top = 8.dp, bottom = 8.dp),
         ) {
-            if (profiles.isNotEmpty() && editing != null) {
-                item(key = "profile") {
-                    ProfileTabs(
-                        profiles = profiles,
-                        editing = editing,
-                        canCreateProfile = canCreateProfile,
-                        onSelectProfile = onSelectProfile,
-                        onCreateProfile = onCreateProfile,
-                        onRenameProfile = onRenameProfile,
-                        onDeleteProfile = onDeleteProfile,
-                    )
-                }
+            if (profile != null) {
                 item(key = "sound") {
-                    SoundRow(selected = editing.sound, onChange = onChangeSound)
+                    SoundRow(selected = profile.sound, onChange = onChangeSound)
                 }
                 item(key = "mode") {
                     ModePicker(mode = editingMode, onChange = onChangeMode)
@@ -394,124 +361,25 @@ private fun calmSwitchColors(): SwitchColors = SwitchDefaults.colors(
 /** Lunghezza massima del nome di un profilo: deve stare in una pillola. */
 private const val PROFILE_NAME_MAX = 20
 
-/**
- * I profili come schede in cima alla pagina: tutti visibili, uno tocco per
- * passare dall'uno all'altro, "+" in fondo finché c'è posto e la matita
- * (nome, e da lì elimina) per un profilo che non è lo Standard. Prima era
- * una fila di pillole, poi una riga con un menu a tendina ("confusionaria").
- */
+/** Conferma prima di eliminare un profilo (dalla pagina del profilo). */
 @Composable
-private fun ProfileTabs(
-    profiles: List<AllowedAppsProfile>,
-    editing: AllowedAppsProfile,
-    canCreateProfile: Boolean,
-    onSelectProfile: (Int) -> Unit,
-    onCreateProfile: (String) -> Unit,
-    onRenameProfile: (String) -> Unit,
-    onDeleteProfile: () -> Unit,
-) {
-    var naming by rememberSaveable { mutableStateOf<String?>(null) } // null = nessun dialogo; "" = nuovo
-    var editingName by rememberSaveable { mutableStateOf(false) }
-    var confirmingDelete by rememberSaveable { mutableStateOf(false) }
-
-    val primary = MaterialTheme.colorScheme.primary
-    val selectedIndex = profiles.indexOfFirst { it.id == editing.id }.coerceAtLeast(0)
-    Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
-        // Colori espliciti: i default usano ruoli che le palette non
-        // personalizzano (vedi CLAUDE.md, "Theming"). edgePadding + il
-        // padding interno della Tab (16dp) = PageMargin.
-        PrimaryScrollableTabRow(
-            selectedTabIndex = selectedIndex,
-            modifier = Modifier.weight(1f),
-            containerColor = MaterialTheme.colorScheme.background,
-            contentColor = primary,
-            edgePadding = PageMargin - 16.dp,
-            minTabWidth = 48.dp,
-            indicator = {
-                TabRowDefaults.PrimaryIndicator(
-                    modifier = Modifier.tabIndicatorOffset(selectedIndex, matchContentSize = true),
-                    width = Dp.Unspecified,
-                    color = primary,
-                )
-            },
-            // La linea sta sotto tutta la riga (matita compresa), non solo
-            // sotto le schede.
-            divider = {},
-        ) {
-            profiles.forEach { profile ->
-                Tab(
-                    selected = profile.id == editing.id,
-                    onClick = { onSelectProfile(profile.id) },
-                    selectedContentColor = primary,
-                    unselectedContentColor = MaterialTheme.colorScheme.muted(0.7f),
-                    text = {
-                        Text(
-                            profile.name,
-                            fontWeight = if (profile.id == editing.id) FontWeight.SemiBold else FontWeight.Normal,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis,
-                        )
-                    },
-                )
+internal fun ProfileDeleteDialog(name: String, onConfirm: () -> Unit, onDismiss: () -> Unit) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(stringResource(R.string.allowed_profile_delete_title, name)) },
+        text = { Text(stringResource(R.string.allowed_profile_delete_body)) },
+        confirmButton = {
+            TextButton(
+                onClick = onConfirm,
+                colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.error),
+            ) {
+                Text(stringResource(R.string.allowed_profile_delete))
             }
-            if (canCreateProfile) {
-                Tab(
-                    selected = false,
-                    onClick = { naming = "" },
-                    unselectedContentColor = primary,
-                    icon = {
-                        Icon(Icons.Default.Add, contentDescription = stringResource(R.string.allowed_profile_new_menu))
-                    },
-                )
-            }
-        }
-        // Lo Standard non si rinomina né si elimina: la matita c'è solo
-        // sugli altri profili.
-        if (!editing.isDefault) {
-            IconButton(onClick = { editingName = true }, modifier = Modifier.padding(end = PageMargin - 12.dp)) {
-                Icon(
-                    Icons.Filled.Edit,
-                    contentDescription = stringResource(R.string.allowed_profile_edit_title),
-                    tint = primary,
-                )
-            }
-        }
-    }
-    HorizontalDivider(color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.12f))
-
-    naming?.let { initial ->
-        ProfileNameDialog(
-            initial = initial,
-            onDismiss = { naming = null },
-            onConfirm = { onCreateProfile(it); naming = null },
-        )
-    }
-    if (editingName) {
-        ProfileNameDialog(
-            initial = editing.name,
-            title = stringResource(R.string.allowed_profile_edit_title),
-            onDismiss = { editingName = false },
-            onConfirm = { onRenameProfile(it); editingName = false },
-            onDelete = { editingName = false; confirmingDelete = true },
-        )
-    }
-    if (confirmingDelete) {
-        AlertDialog(
-            onDismissRequest = { confirmingDelete = false },
-            title = { Text(stringResource(R.string.allowed_profile_delete_title, editing.name)) },
-            text = { Text(stringResource(R.string.allowed_profile_delete_body)) },
-            confirmButton = {
-                TextButton(onClick = { onDeleteProfile(); confirmingDelete = false }) {
-                    Text(stringResource(R.string.allowed_profile_delete))
-                }
-            },
-            dismissButton = {
-                TextButton(onClick = { confirmingDelete = false }) {
-                    Text(stringResource(android.R.string.cancel))
-                }
-            },
-        )
-    }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) { Text(stringResource(android.R.string.cancel)) }
+        },
+    )
 }
 
 /**
@@ -554,38 +422,22 @@ private fun ModePicker(mode: AllowedAppsMode, onChange: (AllowedAppsMode) -> Uni
 }
 
 @Composable
-private fun ProfileNameDialog(
+internal fun ProfileNameDialog(
     initial: String,
     onDismiss: () -> Unit,
     onConfirm: (String) -> Unit,
     title: String = stringResource(R.string.allowed_profile_name_title),
-    onDelete: (() -> Unit)? = null,
 ) {
     var name by rememberSaveable { mutableStateOf(initial) }
     AlertDialog(
         onDismissRequest = onDismiss,
         title = { Text(title) },
         text = {
-            Column {
-                CalmTextField(
-                    value = name,
-                    onValueChange = { name = it.take(PROFILE_NAME_MAX) },
-                    label = stringResource(R.string.allowed_profile_name_hint),
-                )
-                // Separata dal nome e in rosso: l'unica azione distruttiva
-                // del dialogo, che comunque chiede conferma.
-                if (onDelete != null) {
-                    Spacer(Modifier.height(16.dp))
-                    TextButton(
-                        onClick = onDelete,
-                        colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.error),
-                    ) {
-                        Icon(Icons.Filled.Delete, contentDescription = null, modifier = Modifier.size(18.dp))
-                        Spacer(Modifier.width(8.dp))
-                        Text(stringResource(R.string.allowed_profile_delete_action))
-                    }
-                }
-            }
+            CalmTextField(
+                value = name,
+                onValueChange = { name = it.take(PROFILE_NAME_MAX) },
+                label = stringResource(R.string.allowed_profile_name_hint),
+            )
         },
         confirmButton = {
             TextButton(onClick = { onConfirm(name.trim()) }, enabled = name.isNotBlank()) {

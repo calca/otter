@@ -2,18 +2,21 @@ package com.calmotter.app
 
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.annotation.SuppressLint
 import android.os.Bundle
+import android.view.Menu
 import android.view.MenuItem
 import android.widget.Toast
 import androidx.activity.compose.setContent
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.core.graphics.drawable.toBitmap
 import androidx.lifecycle.lifecycleScope
 import com.calmotter.app.ui.screens.AllowedAppsScreen
 import com.calmotter.app.ui.screens.AppItem
+import com.calmotter.app.ui.screens.ProfileDeleteDialog
+import com.calmotter.app.ui.screens.ProfileNameDialog
 import com.calmotter.app.ui.theme.CalmOtterTheme
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -29,7 +32,11 @@ import kotlinx.coroutines.withContext
  * mostrarlo con una checkbox deselezionabile sarebbe fuorviante — sembrerebbe
  * un'app che l'utente deve ricordarsi di abilitare.
  *
- * Raggiungibile solo dopo verifica password in MainActivity.
+ * La pagina di un profilo ([EXTRA_PROFILE_ID]), aperta dal bivio
+ * [ProfilesActivity]: suono, regola e app. Il nome e l'eliminazione (non
+ * per lo Standard) sono icone nell'ActionBar.
+ *
+ * Raggiungibile solo dopo verifica password in Impostazioni.
  * Le modifiche vengono salvate immediatamente al toggle di ogni riga,
  * senza bisogno di un pulsante Salva esplicito.
  *
@@ -45,8 +52,10 @@ class AllowedAppsActivity : BaseActivity() {
     private lateinit var allowedAppsManager: AllowedAppsManager
 
     private var isLoading by mutableStateOf(true)
-    private var profiles by mutableStateOf<List<AllowedAppsProfile>>(emptyList())
-    private var editingProfileId by mutableIntStateOf(AllowedAppsManager.DEFAULT_PROFILE_ID)
+    private var profile by mutableStateOf<AllowedAppsProfile?>(null)
+    private var editingProfileId = AllowedAppsManager.DEFAULT_PROFILE_ID
+    private var renaming by mutableStateOf(false)
+    private var confirmingDelete by mutableStateOf(false)
     private var allApps by mutableStateOf<List<AppItem>>(emptyList())
     private var loadJob: Job? = null
 
@@ -55,7 +64,8 @@ class AllowedAppsActivity : BaseActivity() {
     // da targetSdk 36 ignora screenOrientation): senza, si richiudeva.
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
-        outState.putInt(STATE_EDITING_PROFILE, editingProfileId)
+        outState.putBoolean(STATE_RENAMING, renaming)
+        outState.putBoolean(STATE_CONFIRMING_DELETE, confirmingDelete)
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -64,11 +74,12 @@ class AllowedAppsActivity : BaseActivity() {
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
 
         allowedAppsManager = AllowedAppsManager.getInstance(applicationContext)
-        profiles = allowedAppsManager.profiles()
-        savedInstanceState?.getInt(STATE_EDITING_PROFILE)
-            ?.takeIf { id -> profiles.any { it.id == id } }
-            ?.let { editingProfileId = it }
-        updateTitle()
+        editingProfileId = intent.getIntExtra(EXTRA_PROFILE_ID, AllowedAppsManager.DEFAULT_PROFILE_ID)
+        // Un profilo che non c'è più (eliminato altrove): niente da mostrare.
+        if (allowedAppsManager.profiles().none { it.id == editingProfileId }) { finish(); return }
+        reloadProfile()
+        renaming = savedInstanceState?.getBoolean(STATE_RENAMING) ?: false
+        confirmingDelete = savedInstanceState?.getBoolean(STATE_CONFIRMING_DELETE) ?: false
 
         setContent {
             CalmOtterTheme(appTheme = ThemeManager.getTheme(this)) {
@@ -77,44 +88,70 @@ class AllowedAppsActivity : BaseActivity() {
                     apps = allApps,
                     onToggle = ::toggleApp,
                     onRefresh = { refreshApps(showConfirmation = true) },
-                    profiles = profiles,
-                    editingProfileId = editingProfileId,
-                    canCreateProfile = allowedAppsManager.canCreateProfile(),
-                    onSelectProfile = ::editProfile,
-                    onCreateProfile = { name ->
-                        allowedAppsManager.createProfile(name)?.let { created ->
-                            profiles = allowedAppsManager.profiles()
-                            editProfile(created.id)
-                        }
-                    },
-                    onRenameProfile = { name ->
-                        allowedAppsManager.renameProfile(editingProfileId, name)
-                        profiles = allowedAppsManager.profiles()
-                    },
-                    onDeleteProfile = {
-                        allowedAppsManager.deleteProfile(editingProfileId)
-                        profiles = allowedAppsManager.profiles()
-                        editProfile(AllowedAppsManager.DEFAULT_PROFILE_ID)
-                    },
+                    profile = profile,
                     onChangeMode = { mode ->
                         allowedAppsManager.setMode(editingProfileId, mode)
-                        profiles = allowedAppsManager.profiles()
-                        updateTitle()
+                        reloadProfile()
                     },
                     onChangeSound = { sound ->
                         allowedAppsManager.setSound(editingProfileId, sound)
-                        profiles = allowedAppsManager.profiles()
+                        reloadProfile()
                     },
                 )
+                val current = profile
+                if (renaming && current != null) {
+                    ProfileNameDialog(
+                        initial = current.name,
+                        title = getString(R.string.allowed_profile_edit_title),
+                        onDismiss = { renaming = false },
+                        onConfirm = { name ->
+                            allowedAppsManager.renameProfile(editingProfileId, name)
+                            renaming = false
+                            reloadProfile()
+                        },
+                    )
+                }
+                if (confirmingDelete && current != null) {
+                    ProfileDeleteDialog(
+                        name = current.name,
+                        onDismiss = { confirmingDelete = false },
+                        onConfirm = {
+                            allowedAppsManager.deleteProfile(editingProfileId)
+                            finish()
+                        },
+                    )
+                }
             }
         }
 
         refreshApps(showConfirmation = false)
     }
 
-    override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        if (item.itemId == android.R.id.home) { finish(); return true }
-        return super.onOptionsItemSelected(item)
+    // Due icone sempre in vista, come in Cronologia: sono le sole azioni
+    // della pagina. Lo Standard non si rinomina né si elimina.
+    @SuppressLint("AlwaysShowAction")
+    override fun onCreateOptionsMenu(menu: Menu): Boolean {
+        if (profile?.isDefault == false) {
+            menu.add(0, MENU_RENAME, 0, getString(R.string.allowed_profile_edit_title))
+                .setIcon(R.drawable.ic_profile_edit)
+                .setShowAsAction(MenuItem.SHOW_AS_ACTION_ALWAYS)
+            menu.add(0, MENU_DELETE, 1, getString(R.string.allowed_profile_delete_action))
+                .setIcon(R.drawable.ic_history_delete)
+                .setShowAsAction(MenuItem.SHOW_AS_ACTION_ALWAYS)
+        }
+        return true
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem): Boolean = when (item.itemId) {
+        android.R.id.home -> { finish(); true }
+        MENU_RENAME -> { renaming = true; true }
+        MENU_DELETE -> { confirmingDelete = true; true }
+        else -> super.onOptionsItemSelected(item)
+    }
+
+    private fun reloadProfile() {
+        profile = allowedAppsManager.profile(editingProfileId)
+        updateTitle()
     }
 
     /**
@@ -182,19 +219,9 @@ class AllowedAppsActivity : BaseActivity() {
     }
 
     private fun updateTitle() {
-        // Un titolo solo: la regola (resta / bloccate) ora la dice la pagina,
-        // sopra la lista. Prima il titolo cambiava con la modalità.
-        supportActionBar?.title = getString(R.string.manage_allowed_apps)
-    }
-
-    /** Passa a modificare un altro profilo: stesse app, spunte di quel profilo. */
-    private fun editProfile(id: Int) {
-        editingProfileId = id
-        updateTitle()
-        val allowed = allowedAppsManager.packagesFor(id)
-        allApps = allApps
-            .map { it.copy(isAllowed = it.packageName in allowed) }
-            .sortedWith(compareBy({ !it.isAllowed }, { it.label.lowercase() }))
+        // Il nome del profilo: la regola (restano / bloccate) la dice la
+        // pagina, sopra la lista.
+        supportActionBar?.title = profile?.name ?: getString(R.string.manage_allowed_apps)
     }
 
     // ── Caricamento app ───────────────────────────────────────────────────
@@ -243,7 +270,11 @@ class AllowedAppsActivity : BaseActivity() {
             }
     }
 
-    private companion object {
-        const val STATE_EDITING_PROFILE = "editing_profile"
+    companion object {
+        const val EXTRA_PROFILE_ID = "profile_id"
+        private const val STATE_RENAMING = "renaming"
+        private const val STATE_CONFIRMING_DELETE = "confirming_delete"
+        private const val MENU_RENAME = 1
+        private const val MENU_DELETE = 2
     }
 }

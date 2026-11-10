@@ -332,6 +332,17 @@
     <string name="allowed_profile_name_title">Nome del profilo</string>
     <string name="allowed_profile_name_hint">Es. Sera, Lavoro</string>
     <string name="allowed_profile_save">Salva</string>
+    <string name="profile_summary_all">Blocca tutto</string>
+    <string name="profile_summary_none">Non blocca nulla</string>
+    <plurals name="profile_summary_allowlist">
+        <item quantity="one">Blocca tutto, tranne %d app</item>
+        <item quantity="other">Blocca tutto, tranne %d app</item>
+    </plurals>
+    <plurals name="profile_summary_blocklist">
+        <item quantity="one">Blocca solo %d app</item>
+        <item quantity="other">Blocca solo %d app</item>
+    </plurals>
+    <string name="profile_summary_sound">Suono: %1$s</string>
     <string name="home_profile_line">Profilo: %1$s</string>
     <string name="home_profile_line_blocklist">App bloccate: %1$s</string>
     <string name="home_profile_dialog_title">Quali app restano in questa pausa?</string>

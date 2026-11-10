@@ -298,6 +298,15 @@
     <string name="allowed_profile_name_title">配置名称</string>
     <string name="allowed_profile_name_hint">例如：晚间、工作</string>
     <string name="allowed_profile_save">保存</string>
+    <string name="profile_summary_all">屏蔽全部</string>
+    <string name="profile_summary_none">不屏蔽任何应用</string>
+    <plurals name="profile_summary_allowlist">
+        <item quantity="other">屏蔽全部，除了 %d 个应用</item>
+    </plurals>
+    <plurals name="profile_summary_blocklist">
+        <item quantity="other">只屏蔽 %d 个应用</item>
+    </plurals>
+    <string name="profile_summary_sound">声音：%1$s</string>
     <string name="home_profile_line">配置：%1$s</string>
     <string name="home_profile_line_blocklist">被屏蔽的应用：%1$s</string>
     <string name="home_profile_dialog_title">这次暂停保留哪些应用？</string>

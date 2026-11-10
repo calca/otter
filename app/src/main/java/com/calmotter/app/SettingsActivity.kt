@@ -68,7 +68,7 @@ class SettingsActivity : BaseActivity() {
                     onGrantAccessibility = { startActivity(Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS)) },
                     onGrantDnd = { startActivity(Intent(Settings.ACTION_NOTIFICATION_POLICY_ACCESS_SETTINGS)) },
                     onPickTheme = { theme -> pickTheme(theme) },
-                    onManageAppsVerified = { startActivity(Intent(this, AllowedAppsActivity::class.java)) },
+                    onManageAppsVerified = { startActivity(Intent(this, ProfilesActivity::class.java)) },
                     onScheduledPauses = { startActivity(Intent(this, ScheduledPausesActivity::class.java)) },
                     onUsagePause = { startActivity(Intent(this, UsagePauseActivity::class.java)) },
                     onChangePassword = { startActivity(Intent(this, ChangePasswordActivity::class.java)) },
