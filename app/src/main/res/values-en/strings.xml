@@ -520,6 +520,7 @@
     <string name="relax_sound_drone">Drone</string>
     <string name="relax_sound_default">Same as Settings</string>
     <string name="relax_sound_dialog_body">The sound that goes with a pause. Each profile can pick its own.</string>
+    <string name="relax_sound_preview_hint">Tap a sound to hear it.</string>
     <string name="relax_sound_playing">%1$s · on</string>
     <string name="relax_sound_stopped">%1$s · off</string>
 

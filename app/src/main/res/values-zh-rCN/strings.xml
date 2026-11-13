@@ -483,6 +483,7 @@
     <string name="relax_sound_drone">低频长音</string>
     <string name="relax_sound_default">跟随设置</string>
     <string name="relax_sound_dialog_body">暂停时陪伴你的声音。每个配置可以选择自己的声音。</string>
+    <string name="relax_sound_preview_hint">点按声音即可试听。</string>
     <string name="relax_sound_playing">%1$s · 开</string>
     <string name="relax_sound_stopped">%1$s · 关</string>
 

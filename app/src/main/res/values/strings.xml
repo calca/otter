@@ -523,6 +523,7 @@
     <string name="relax_sound_drone">Drone</string>
     <string name="relax_sound_default">Come in Impostazioni</string>
     <string name="relax_sound_dialog_body">Il suono che accompagna la pausa. Ogni profilo può sceglierne uno suo.</string>
+    <string name="relax_sound_preview_hint">Tocca un suono per ascoltarlo.</string>
     <string name="relax_sound_playing">%1$s · acceso</string>
     <string name="relax_sound_stopped">%1$s · spento</string>
 

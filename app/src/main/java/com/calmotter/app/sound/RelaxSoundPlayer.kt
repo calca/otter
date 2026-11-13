@@ -46,8 +46,8 @@ class RelaxSoundPlayer(private val context: Context) {
 
     val isPlaying: Boolean get() = running && !paused
 
-    /** Parte (o cambia suono). [sound] OFF ferma. */
-    fun play(sound: RelaxSound) {
+    /** Parte (o cambia suono). [sound] OFF ferma. L'anteprima usa una dissolvenza più corta. */
+    fun play(sound: RelaxSound, fadeInSeconds: Float = FADE_IN_SECONDS) {
         stop()
         if (sound == RelaxSound.OFF) return
         val attrs = AudioAttributes.Builder()
@@ -86,7 +86,7 @@ class RelaxSoundPlayer(private val context: Context) {
         val generator = SoundGenerator(sound)
         worker = Thread({
             val block = ShortArray(BLOCK)
-            var fade = 0f // dissolvenza in entrata, circa 3 secondi
+            var fade = 0f // dissolvenza in entrata, [fadeInSeconds]
             while (running) {
                 if (paused) {
                     try { Thread.sleep(150) } catch (_: InterruptedException) { break }
@@ -96,7 +96,7 @@ class RelaxSoundPlayer(private val context: Context) {
                 if (fade < 1f || ducked) {
                     val gain = (if (fade < 1f) fade else 1f) * (if (ducked) DUCK_GAIN else 1f)
                     for (i in block.indices) block[i] = (block[i] * gain).toInt().toShort()
-                    fade = (fade + BLOCK.toFloat() / (SoundGenerator.SAMPLE_RATE * FADE_IN_SECONDS)).coerceAtMost(1f)
+                    fade = (fade + BLOCK.toFloat() / (SoundGenerator.SAMPLE_RATE * fadeInSeconds)).coerceAtMost(1f)
                 }
                 if (newTrack.write(block, 0, block.size) < 0) break
             }

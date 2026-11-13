@@ -49,6 +49,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -256,6 +257,12 @@ private fun SoundRow(selected: RelaxSound?, onChange: (RelaxSound?) -> Unit) {
         onClick = { open = true },
     )
     if (open) {
+        // Il dialogo resta aperto dopo la scelta: il suono toccato si sente
+        // finché non si chiude (prima la scelta lo chiudeva, alla cieca).
+        val context = LocalContext.current
+        val preview = rememberSoundPreview {
+            AllowedAppsManager.getInstance(context).generalSound()
+        }
         AlertDialog(
             onDismissRequest = { open = false },
             title = { Text(stringResource(R.string.relax_sound_label)) },
@@ -264,7 +271,8 @@ private fun SoundRow(selected: RelaxSound?, onChange: (RelaxSound?) -> Unit) {
                     selected = selected,
                     allowDefault = true,
                     showLabel = false,
-                    onChange = { onChange(it); open = false },
+                    onChange = onChange,
+                    onPreview = preview,
                 )
             },
             confirmButton = {

@@ -20,6 +20,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.semantics.Role
 import com.calmotter.app.R
 import com.calmotter.app.sound.RelaxSound
+import com.calmotter.app.sound.RelaxSoundPlayer
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.remember
+import androidx.compose.ui.platform.LocalContext
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import com.calmotter.app.ui.theme.muted
 
 /**
@@ -36,6 +43,9 @@ fun SoundPicker(
     onChange: (RelaxSound?) -> Unit,
     modifier: Modifier = Modifier,
     showLabel: Boolean = true,
+    // Con un'anteprima (vedi rememberSoundPreview), toccare un suono lo fa
+    // anche sentire, e sotto le pillole lo dice una riga.
+    onPreview: ((RelaxSound?) -> Unit)? = null,
 ) {
     Column(modifier = modifier.fillMaxWidth()) {
         if (showLabel) {
@@ -54,16 +64,24 @@ fun SoundPicker(
                 CalmPill(
                     label = stringResource(R.string.relax_sound_default),
                     selected = selected == null,
-                    onClick = { onChange(null) },
+                    onClick = { onChange(null); onPreview?.invoke(null) },
                 )
             }
             RelaxSound.entries.forEach { sound ->
                 CalmPill(
                     label = stringResource(sound.labelRes),
                     selected = selected == sound,
-                    onClick = { onChange(sound) },
+                    onClick = { onChange(sound); onPreview?.invoke(sound) },
                 )
             }
+        }
+        if (onPreview != null) {
+            Text(
+                text = stringResource(R.string.relax_sound_preview_hint),
+                fontSize = 13.sp,
+                color = MaterialTheme.colorScheme.muted(0.7f),
+                modifier = Modifier.padding(top = 12.dp),
+            )
         }
     }
 }
@@ -96,3 +114,31 @@ fun SoundToggle(
         )
     }
 }
+
+/**
+ * Anteprima per i dialoghi di scelta del suono: il suono toccato parte
+ * subito (dissolvenza breve) e resta finché il dialogo è aperto; si ferma
+ * chiudendolo, lasciando l'app o scegliendo "Spento". [defaultSound] è
+ * quello che suona per "Come in Impostazioni" (null).
+ */
+@Composable
+fun rememberSoundPreview(defaultSound: () -> RelaxSound = { RelaxSound.OFF }): (RelaxSound?) -> Unit {
+    val context = LocalContext.current
+    val player = remember { RelaxSoundPlayer(context.applicationContext) }
+    val lifecycleOwner = LocalLifecycleOwner.current
+    DisposableEffect(lifecycleOwner) {
+        val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_STOP) player.stop()
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose {
+            lifecycleOwner.lifecycle.removeObserver(observer)
+            player.stop()
+        }
+    }
+    return remember(player) {
+        { sound -> player.play(sound ?: defaultSound(), fadeInSeconds = PREVIEW_FADE_IN_SECONDS) }
+    }
+}
+
+private const val PREVIEW_FADE_IN_SECONDS = 0.4f

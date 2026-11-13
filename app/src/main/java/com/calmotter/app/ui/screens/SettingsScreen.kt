@@ -422,6 +422,7 @@ fun SettingsScreen(
     }
 
     if (showSoundDialog) {
+        val preview = rememberSoundPreview()
         AlertDialog(
             onDismissRequest = { showSoundDialog = false },
             title = { Text(stringResource(R.string.relax_sound_label)) },
@@ -441,6 +442,7 @@ fun SettingsScreen(
                                 allowedAppsManager.setGeneralSound(picked)
                             }
                         },
+                        onPreview = preview,
                     )
                 }
             },
