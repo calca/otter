@@ -4,16 +4,16 @@ name: Release candidate
 # beta (si installa accanto alla stable, applicationId .beta), firmato con la
 # chiave di caricamento, come pre-release. Per provare funzioni nuove prima
 # di metterle in un rilascio vero (release.yml):
-#   gh workflow run rc.yml --ref rc-0.7 -f version=0.7.0-rc1
+#   gh workflow run rc.yml --ref rc-1.1 -f version=1.1.0-rc1
 #
-# Il tag è `0.7.0-rc1`, senza la "v": così non rientra nei tag di rilascio
+# Il tag è `1.1.0-rc1`, senza la "v": così non rientra nei tag di rilascio
 # (v*), che lanciano android.yml e arrivano su Play, né nel calcolo della
 # versione successiva di release.yml.
 on:
   workflow_dispatch:
     inputs:
       version:
-        description: "Versione della candidata, es. 0.7.0-rc1 (senza la v)"
+        description: "Versione della candidata, es. 1.1.0-rc1 (senza la v)"
         type: string
         required: true
       notes:
