@@ -1,1 +1,1 @@
-Fix: with a "all except these" pause, the Back button now leaves a blocked app and takes you home. Thanks for the report!
+First public release of Calm Otter. Start a pause and, for its whole length, your apps stay blocked (Phone doesn't) and notifications go quiet; only whoever knows the password can end it early. Profiles of allowed or blocked apps, scheduled pauses or pauses after long use, pauses together with other phones, history and a weekly goal. Everything stays on your phone: no account, no network.

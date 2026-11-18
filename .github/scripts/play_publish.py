@@ -1,6 +1,6 @@
 """Pubblicazione su Google Play via Android Publisher API v3.
 
-Due comandi, usati dai workflow in .github/workflows/:
+I comandi, usati dai workflow in .github/workflows/:
 
   upload   --aab <file> --track internal [--notes-dir docs/store/whatsnew]
       carica l'AAB e lo rende disponibile sul track (android.yml, a ogni
@@ -9,6 +9,13 @@ Due comandi, usati dai workflow in .github/workflows/:
       prende la release attiva di un track e la mette su un altro, con le
       note di --notes-dir se date, altrimenti le stesse (play-promote.yml,
       a mano). Su GitHub Actions scrive version_code e name in GITHUB_OUTPUT.
+  screenshots  --dir docs/store/screenshots
+      sostituisce gli screenshot del telefono della scheda dello store con
+      quelli di <dir>/<lingua>/*.png, in ordine di nome (play-listing.yml,
+      a mano). Solo le lingue che la scheda ha.
+  listing  --file docs/store/listing.md
+      aggiorna descrizione breve e completa di it-IT ed en-US con i testi
+      di listing.md (play-listing.yml, a mano). Titolo e resto invariati.
   universal-apk  --version-code 151 --out calm-otter.apk
       scarica l'APK universale che Play genera dall'AAB, firmato con la
       chiave di Google (github-release.yml). Non uno firmato da noi: quello
@@ -28,6 +35,7 @@ import argparse
 import json
 import os
 import pathlib
+import re
 import sys
 
 from google.oauth2 import service_account
@@ -126,6 +134,67 @@ def promote(args) -> None:
             out.write(f"name={release['name']}\n")
 
 
+# Le cartelle di docs/store/screenshots/ hanno la lingua corta, Play quella
+# con la regione.
+SCREENSHOT_LANGUAGES = {"it": "it-IT", "en": "en-US"}
+
+
+def screenshots(args) -> None:
+    s = session()
+    edit = call(s, "POST", f"{API}/edits")["id"]
+    languages = listing_languages(s, edit)
+    done = []
+    for short, language in SCREENSHOT_LANGUAGES.items():
+        files = sorted((pathlib.Path(args.dir) / short).glob("*.png"))
+        if language not in languages or not files:
+            continue
+        base = f"{API}/edits/{edit}/listings/{language}/phoneScreenshots"
+        call(s, "DELETE", base)
+        for f in files:
+            with open(f, "rb") as data:
+                call(s, "POST", f"{UPLOAD_API}/edits/{edit}/listings/{language}/phoneScreenshots",
+                     params={"uploadType": "media"}, headers={"Content-Type": "image/png"},
+                     data=data, timeout=120)
+        done.append(f"{language}: {len(files)}")
+    if not done:
+        sys.exit("Nessuna lingua della scheda ha screenshot in " + args.dir)
+    call(s, "POST", f"{API}/edits/{edit}:commit")
+    print("screenshot caricati -> " + ", ".join(done))
+
+
+def read_listing(path: pathlib.Path) -> dict[str, dict[str, str]]:
+    """Le descrizioni di listing.md: la breve dai punti "**IT** (75): …",
+    la completa dal blocco di codice sotto "## Full description — …"."""
+    text = path.read_text()
+    out = {}
+    for short, language, title in (("IT", "it-IT", "Italiano"), ("EN", "en-US", "English")):
+        brief = re.search(rf"^- \*\*{short}\*\* \(\d+\): (.+)$", text, re.M)
+        full = re.search(rf"^## Full description — {title} \(\d+\)\n\n```\n(.*?)\n```", text, re.M | re.S)
+        if not brief or not full:
+            sys.exit(f"{path}: testi {title} non trovati")
+        if len(brief.group(1)) > 80 or len(full.group(1)) > 4000:
+            sys.exit(f"{path}: testi {title} oltre i limiti di Play (80 / 4000)")
+        out[language] = {"shortDescription": brief.group(1).strip(), "fullDescription": full.group(1)}
+    return out
+
+
+def listing(args) -> None:
+    s = session()
+    edit = call(s, "POST", f"{API}/edits")["id"]
+    languages = listing_languages(s, edit)
+    done = []
+    for language, texts in read_listing(pathlib.Path(args.file)).items():
+        if language not in languages:
+            continue
+        # PATCH: cambia solo i campi passati, il titolo resta quello di Play.
+        call(s, "PATCH", f"{API}/edits/{edit}/listings/{language}", json=texts)
+        done.append(language)
+    if not done:
+        sys.exit("Nessuna lingua della scheda in " + args.file)
+    call(s, "POST", f"{API}/edits/{edit}:commit")
+    print("testi della scheda aggiornati -> " + ", ".join(done))
+
+
 def universal_apk(args) -> None:
     s = session()
     generated = call(s, "GET", f"{API}/generatedApks/{args.version_code}")
@@ -161,6 +230,14 @@ def main() -> None:
     pr.add_argument("--rollout", type=float, default=1.0)
     pr.add_argument("--notes-dir")
     pr.set_defaults(func=promote)
+
+    sc = sub.add_parser("screenshots")
+    sc.add_argument("--dir", default="docs/store/screenshots")
+    sc.set_defaults(func=screenshots)
+
+    li = sub.add_parser("listing")
+    li.add_argument("--file", default="docs/store/listing.md")
+    li.set_defaults(func=listing)
 
     ua = sub.add_parser("universal-apk")
     ua.add_argument("--version-code", required=True)

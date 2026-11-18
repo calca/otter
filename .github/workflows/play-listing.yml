@@ -1,0 +1,40 @@
+name: Play listing
+
+# Aggiorna la scheda Play dal repo: i testi (descrizione breve e completa,
+# it-IT ed en-US) da docs/store/listing.md e gli screenshot del telefono da
+# docs/store/screenshots/ (generati da StoreScreenshotsTest). Solo a mano:
+# `gh workflow run play-listing.yml -f what=texts|screenshots|all`. Il commit
+# dell'edit manda la scheda in revisione da solo, come "Invia in revisione"
+# nella Console.
+on:
+  workflow_dispatch:
+    inputs:
+      what:
+        description: Cosa aggiornare
+        type: choice
+        options: [all, texts, screenshots]
+        default: all
+
+concurrency: play-publish
+
+jobs:
+  listing:
+    runs-on: ubuntu-latest
+    env:
+      PLAY_SERVICE_ACCOUNT_JSON: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON }}
+    steps:
+    - uses: actions/checkout@v7
+
+    - uses: actions/setup-python@v6
+      with:
+        python-version: '3.12'
+
+    - run: pip install --quiet google-auth requests
+
+    - name: Texts
+      if: inputs.what != 'screenshots'
+      run: python .github/scripts/play_publish.py listing --file docs/store/listing.md
+
+    - name: Screenshots
+      if: inputs.what != 'texts'
+      run: python .github/scripts/play_publish.py screenshots --dir docs/store/screenshots

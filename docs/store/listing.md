@@ -26,18 +26,18 @@ rejects keyword stuffing). The full description stays honest about the
 limits, and makes no claim the app doesn't keep: the app does show "N days
 in a row", so no "no streaks" promise.
 
-## Full description — Italiano (2107)
+## Full description — Italiano (2079)
 
 ```
 Metti giù il telefono, di proposito.
 
-Calm Otter è una pausa vera dal telefono. Tocchi l'otter, scegli quanto, e per quel tempo le app si fermano e le notifiche tacciono. Restano il Telefono, le sveglie, la musica e le poche app che scegli tu. Per staccare la sera, concentrarti sullo studio o sul lavoro, o stare davvero con chi hai accanto.
+Calm Otter è una pausa vera dal telefono. Tocchi l'otter, scegli quanto, e per quel tempo le app si fermano e le notifiche tacciono. Per staccare la sera, concentrarti sullo studio o sul lavoro, o stare davvero con chi hai accanto.
 
 COME FUNZIONA
 • Da 10 minuti a 4 ore, con un tocco
-• Le altre app restano coperte fino alla fine della pausa
-• Non disturbare si attiva da solo, le chiamate passano sempre
-• Scegli tu quali app restano: Mappe di giorno, nessuna la sera
+• Blocchi tutto tranne le app che ti servono, oppure solo quelle che ti distraggono
+• Profili diversi per momenti diversi: Mappe di giorno, nessuna app la sera
+• Non disturbare si attiva da solo, chiamate e sveglie passano sempre
 
 UN PATTO, NON UNA GABBIA
 La pausa la chiude prima del tempo solo chi conosce la password: tu, oppure una persona di fiducia che la sceglie per te. Se non è raggiungibile c'è un'uscita lenta: aspetti dieci minuti e la pausa finisce.
@@ -62,18 +62,18 @@ ONESTÀ SUI LIMITI
 È un blocco "morbido": usa il servizio di accessibilità e Non disturbare, che si possono disattivare dalle impostazioni di Android. Il servizio di accessibilità serve solo a sapere quale app è in primo piano, per coprirla durante una pausa e, se lo attivi, per contare il tempo a schermo acceso. Non legge lo schermo né quello che scrivi.
 ```
 
-## Full description — English (2086)
+## Full description — English (2077)
 
 ```
 Put the phone down, on purpose.
 
-Calm Otter is a real break from your phone. Tap the otter, choose how long, and for that time your apps stop and notifications go quiet. Phone calls, alarms, your music and the few apps you pick still work. For switching off in the evening, focusing on study or work, or really being with the people around you.
+Calm Otter is a real break from your phone. Tap the otter, choose how long, and for that time your apps stop and notifications go quiet. For switching off in the evening, focusing on study or work, or really being with the people around you.
 
 HOW IT WORKS
 • From 10 minutes to 4 hours, with one tap
-• Other apps stay covered until the pause ends
-• Do Not Disturb turns on by itself, calls always get through
-• You choose which apps stay: Maps by day, none in the evening
+• Block everything except the apps you need, or just the ones that distract you
+• Different profiles for different moments: Maps by day, no apps in the evening
+• Do Not Disturb turns on by itself, calls and alarms always get through
 
 A PACT, NOT A CAGE
 Only the person who knows the password can end a pause early: you, or someone you trust who sets it for you. If they can't be reached, there's a slow way out: wait ten minutes and the pause ends.
@@ -100,8 +100,7 @@ It's a "soft" block: it relies on the Accessibility service and Do Not Disturb, 
 
 ## Graphics
 
-Generated from the app's own composables, Sage palette, one set per
-language:
+Generated from the app's own composables, one set per language:
 
 | Asset | File | Play requirement |
 |---|---|---|
@@ -109,9 +108,14 @@ language:
 | Feature graphic | `graphics/feature-it.png`, `graphics/feature-en.png` | 1024 × 500 |
 | Phone screenshots | `screenshots/it/01…06-*.png`, `screenshots/en/…` | 2–8 images; these are 1080 × 1920 (9:16) |
 
-Each screenshot is a caption on the dark green of the palette above the
-real screen in a phone frame: home, pause, time together, scheduled
-pauses, "how was it?", history. Regenerate after a design change with
+Each screenshot is a caption above the real screen in a large phone frame
+that runs off the bottom edge, on the dark color of one of the four
+palettes (a different one per screenshot, so the row on Play doesn't read
+as one image): home, pause, time together, scheduled pauses, "how was
+it?", history. Upload them with `gh workflow run play-listing.yml -f what=screenshots`
+(`what=texts` uploads the short and full descriptions above, in both
+languages; `all`, the default, does both). Either way the listing goes to
+review. Regenerate after a design change with
 `./gradlew testStableDebugUnitTest --tests "*StoreScreenshotsTest*" -Pstore.graphics=true`
 (the icon: `--tests "*StoreGraphicsTest*"`, same flag). Captions live in
 `StoreScreenshotsTest.kt`.
