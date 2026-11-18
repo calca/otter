@@ -1,0 +1,27 @@
+name: Play listing
+
+# Sostituisce gli screenshot del telefono della scheda Play con quelli di
+# docs/store/screenshots/ (generati da StoreScreenshotsTest). Solo a mano:
+# `gh workflow run play-listing.yml`. Il commit dell'edit manda la scheda in
+# revisione da solo, come "Invia in revisione" nella Console.
+on:
+  workflow_dispatch:
+
+concurrency: play-publish
+
+jobs:
+  screenshots:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v7
+
+    - uses: actions/setup-python@v6
+      with:
+        python-version: '3.12'
+
+    - name: Upload screenshots
+      env:
+        PLAY_SERVICE_ACCOUNT_JSON: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON }}
+      run: |
+        pip install --quiet google-auth requests
+        python .github/scripts/play_publish.py screenshots --dir docs/store/screenshots
