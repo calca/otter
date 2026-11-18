@@ -13,6 +13,9 @@ I comandi, usati dai workflow in .github/workflows/:
       sostituisce gli screenshot del telefono della scheda dello store con
       quelli di <dir>/<lingua>/*.png, in ordine di nome (play-listing.yml,
       a mano). Solo le lingue che la scheda ha.
+  listing  --file docs/store/listing.md
+      aggiorna descrizione breve e completa di it-IT ed en-US con i testi
+      di listing.md (play-listing.yml, a mano). Titolo e resto invariati.
   universal-apk  --version-code 151 --out calm-otter.apk
       scarica l'APK universale che Play genera dall'AAB, firmato con la
       chiave di Google (github-release.yml). Non uno firmato da noi: quello
@@ -32,6 +35,7 @@ import argparse
 import json
 import os
 import pathlib
+import re
 import sys
 
 from google.oauth2 import service_account
@@ -158,6 +162,39 @@ def screenshots(args) -> None:
     print("screenshot caricati -> " + ", ".join(done))
 
 
+def read_listing(path: pathlib.Path) -> dict[str, dict[str, str]]:
+    """Le descrizioni di listing.md: la breve dai punti "**IT** (75): …",
+    la completa dal blocco di codice sotto "## Full description — …"."""
+    text = path.read_text()
+    out = {}
+    for short, language, title in (("IT", "it-IT", "Italiano"), ("EN", "en-US", "English")):
+        brief = re.search(rf"^- \*\*{short}\*\* \(\d+\): (.+)$", text, re.M)
+        full = re.search(rf"^## Full description — {title} \(\d+\)\n\n```\n(.*?)\n```", text, re.M | re.S)
+        if not brief or not full:
+            sys.exit(f"{path}: testi {title} non trovati")
+        if len(brief.group(1)) > 80 or len(full.group(1)) > 4000:
+            sys.exit(f"{path}: testi {title} oltre i limiti di Play (80 / 4000)")
+        out[language] = {"shortDescription": brief.group(1).strip(), "fullDescription": full.group(1)}
+    return out
+
+
+def listing(args) -> None:
+    s = session()
+    edit = call(s, "POST", f"{API}/edits")["id"]
+    languages = listing_languages(s, edit)
+    done = []
+    for language, texts in read_listing(pathlib.Path(args.file)).items():
+        if language not in languages:
+            continue
+        # PATCH: cambia solo i campi passati, il titolo resta quello di Play.
+        call(s, "PATCH", f"{API}/edits/{edit}/listings/{language}", json=texts)
+        done.append(language)
+    if not done:
+        sys.exit("Nessuna lingua della scheda in " + args.file)
+    call(s, "POST", f"{API}/edits/{edit}:commit")
+    print("testi della scheda aggiornati -> " + ", ".join(done))
+
+
 def universal_apk(args) -> None:
     s = session()
     generated = call(s, "GET", f"{API}/generatedApks/{args.version_code}")
@@ -197,6 +234,10 @@ def main() -> None:
     sc = sub.add_parser("screenshots")
     sc.add_argument("--dir", default="docs/store/screenshots")
     sc.set_defaults(func=screenshots)
+
+    li = sub.add_parser("listing")
+    li.add_argument("--file", default="docs/store/listing.md")
+    li.set_defaults(func=listing)
 
     ua = sub.add_parser("universal-apk")
     ua.add_argument("--version-code", required=True)
