@@ -93,9 +93,9 @@ class StoreScreenshotsTest(private val lang: String) {
         @ParameterizedRobolectricTestRunner.Parameters(name = "{0}")
         fun params(): List<Array<Any>> = listOf(arrayOf<Any>("it"), arrayOf<Any>("en"))
 
-        /** Il telefono degli screenshot test, che qui viene rimpicciolito nella cornice. */
-        private val PHONE_W = 411.dp
+        /** Il telefono degli screenshot test, rimpicciolito nella cornice. */
         private val PHONE_H = 891.dp
+        private val PHONE_W = 411.dp
     }
 
     @get:Rule val compose = createComposeRule()
@@ -112,48 +112,75 @@ class StoreScreenshotsTest(private val lang: String) {
     }
 
     private fun save(name: String, dir: File) {
-        compose.mainClock.advanceTimeBy(1_000)
+        compose.mainClock.advanceTimeBy(4_000)
         val bitmap = compose.onRoot().captureToImage().asAndroidBitmap()
         dir.mkdirs()
         File(dir, name).outputStream().use { bitmap.compress(Bitmap.CompressFormat.PNG, 100, it) }
     }
 
-    /** 1080x1920 (9:16, il formato che Play preferisce per i telefoni). */
-    private fun storeShot(name: String, caption: String, screen: @Composable () -> Unit) {
+    /**
+     * 1080x1920 (9:16, il formato che Play preferisce per i telefoni).
+     * Play li mostra piccoli, in fila: per questo il telefono è grande e
+     * esce dal bordo in basso (niente fondo vuoto rimpicciolito), e ogni
+     * schermata ha una delle quattro palette dell'app, così la fila non è
+     * sei volte lo stesso verde.
+     */
+    private fun storeShot(name: String, caption: String, theme: AppTheme, screen: @Composable () -> Unit) {
         RuntimeEnvironment.setQualifiers("$lang-w360dp-h640dp-xxhdpi")
         compose.setContent {
-            CalmOtterTheme(appTheme = AppTheme.SAGE) {
+            CalmOtterTheme(appTheme = theme) {
                 val colors = MaterialTheme.colorScheme
-                Column(
-                    modifier = Modifier.fillMaxSize().background(colors.primary),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                ) {
-                    Text(
-                        caption,
-                        color = colors.onPrimary,
-                        fontSize = 29.sp,
-                        lineHeight = 35.sp,
-                        fontWeight = FontWeight.Bold,
-                        textAlign = TextAlign.Center,
-                        modifier = Modifier.fillMaxWidth().height(128.dp).padding(start = 28.dp, end = 28.dp, top = 36.dp),
-                    )
-                    Phone(scale = 0.54f, screen = screen)
+                Box(modifier = Modifier.fillMaxSize().background(colors.primary)) {
+                    // Gli anelli dello stagno, appena visibili dietro il telefono.
+                    Canvas(modifier = Modifier.fillMaxSize()) {
+                        val c = Offset(size.width / 2, size.height * 0.62f)
+                        listOf(0.95f, 0.72f, 0.5f).forEach { r ->
+                            drawCircle(colors.onPrimary.copy(alpha = 0.06f), radius = size.width * r, center = c, style = Stroke(1.5.dp.toPx()))
+                        }
+                        drawCircle(colors.onPrimary.copy(alpha = 0.04f), radius = size.width * 0.5f, center = c)
+                    }
+                    Column(
+                        modifier = Modifier.fillMaxSize(),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                    ) {
+                        Text(
+                            caption,
+                            color = colors.onPrimary,
+                            fontSize = 31.sp,
+                            lineHeight = 36.sp,
+                            fontWeight = FontWeight.Bold,
+                            textAlign = TextAlign.Center,
+                            modifier = Modifier.fillMaxWidth().height(134.dp).padding(start = 24.dp, end = 24.dp, top = 36.dp),
+                        )
+                        // Ancorato in alto e libero di uscire dal fondo: senza
+                        // `unbounded` la colonna lo centrerebbe, coprendo la didascalia.
+                        Box(
+                            modifier = Modifier.fillMaxWidth().weight(1f)
+                                .wrapContentHeight(Alignment.Top, unbounded = true),
+                            contentAlignment = Alignment.TopCenter,
+                        ) { Phone(scale = 0.72f, screenHeight = PHONE_H, screen = screen) }
+                    }
                 }
             }
         }
         save(name, File("../docs/store/screenshots/$lang"))
     }
 
-    /** La schermata vera, larga e alta come un telefono, rimpicciolita dentro una cornice. */
+    /**
+     * La schermata vera, grande come un telefono, rimpicciolita dentro una
+     * cornice. Alta quanto il telefono vero e non meno: la Home e la pausa
+     * ancorano l'otter all'altezza dello schermo, e sotto le ~890dp lo
+     * spostano (vedi OtterAnchoredScreen). Il fondo esce dall'immagine.
+     */
     @Composable
-    private fun Phone(scale: Float, screen: @Composable () -> Unit) {
-        val bezel = 6.dp
+    private fun Phone(scale: Float, screenHeight: Dp, screen: @Composable () -> Unit) {
+        val bezel = 7.dp
         val w: Dp = PHONE_W * scale
-        val h: Dp = PHONE_H * scale
+        val h: Dp = screenHeight * scale
         Box(
             modifier = Modifier
-                .size(w + bezel * 2, h + bezel * 2)
-                .clip(RoundedCornerShape(30.dp))
+                .requiredSize(w + bezel * 2, h + bezel * 2)
+                .clip(RoundedCornerShape(34.dp))
                 .background(Color(0xFF1C2420))
                 .padding(bezel),
             contentAlignment = Alignment.Center,
@@ -161,13 +188,12 @@ class StoreScreenshotsTest(private val lang: String) {
             Box(
                 modifier = Modifier
                     .size(w, h)
-                    .clip(RoundedCornerShape(24.dp))
-                    .border(0.5.dp, Color.Black.copy(alpha = 0.2f), RoundedCornerShape(24.dp)),
+                    .clip(RoundedCornerShape(27.dp)),
                 contentAlignment = Alignment.Center,
             ) {
                 Box(
                     modifier = Modifier
-                        .requiredSize(PHONE_W, PHONE_H)
+                        .requiredSize(PHONE_W, screenHeight)
                         .graphicsLayer(scaleX = scale, scaleY = scale)
                         .background(MaterialTheme.colorScheme.background),
                 ) { screen() }
@@ -198,7 +224,7 @@ class StoreScreenshotsTest(private val lang: String) {
     fun s1Home() {
         val historyManager = SessionHistoryManager.getInstance(context)
         history.forEach { historyManager.add(it) }
-        storeShot("01-home.png", t("Una pausa vera\ndal telefono", "A real break\nfrom your phone")) {
+        storeShot("01-home.png", t("Una pausa vera\ndal telefono", "A real break\nfrom your phone"), AppTheme.SAGE) {
             MainScreen(
                 resumeSignal = 0,
                 sessionManager = SessionManager.getInstance(context),
@@ -221,7 +247,7 @@ class StoreScreenshotsTest(private val lang: String) {
     @Test
     fun s2Block() {
         SessionManager.getInstance(context).startSession(60)
-        storeShot("02-pause.png", t("Si ferma tutto,\ntranne il telefono", "Everything stops\nbut the phone")) {
+        storeShot("02-pause.png", t("Si ferma tutto,\ntranne il telefono", "Everything stops\nbut the phone"), AppTheme.STILL_WATER) {
             BlockScreen(
                 sessionManager = SessionManager.getInstance(context),
                 passwordManager = PasswordManager.getInstance(context),
@@ -235,17 +261,19 @@ class StoreScreenshotsTest(private val lang: String) {
     }
 
     @Test
-    fun s3Together() = storeShot("03-together.png", t("Una pausa insieme,\ncon un tocco", "Pause together,\nwith one tap")) {
+    fun s3Together() = storeShot("03-together.png", t("Una pausa insieme,\ncon un tocco", "Pause together,\nwith one tap"), AppTheme.DAWN_CLAY) {
         QuickTogetherReaderScreen(durationMinutes = 60, activityId = 16, message = null, onAnotherActivity = {}, onOtherWays = {}, onBack = {})
     }
 
     @Test
-    fun s4Schedules() = storeShot("04-schedules.png", t("Pause che partono\nda sole", "Pauses that start\non their own")) {
+    fun s4Schedules() = storeShot("04-schedules.png", t("Pause che partono\nda sole", "Pauses that start\non their own"), AppTheme.SAGE) {
         ScheduledPausesScreen(
             schedules = listOf(
                 ScheduledPause(id = 1, days = 0b0011111, startMinuteOfDay = 21 * 60, durationMinutes = 60),
                 ScheduledPause(id = 2, days = 0b1000000, startMinuteOfDay = 9 * 60, durationMinutes = 120),
                 ScheduledPause(id = 3, days = 0b0011111, startMinuteOfDay = 14 * 60, durationMinutes = 30, windowEndMinuteOfDay = 16 * 60),
+                ScheduledPause(id = 4, days = 0b0100000, startMinuteOfDay = 10 * 60, durationMinutes = 180),
+                ScheduledPause(id = 5, days = 0b1111111, startMinuteOfDay = 22 * 60 + 30, durationMinutes = 45),
             ),
             onToggle = {},
             onEdit = {},
@@ -253,12 +281,12 @@ class StoreScreenshotsTest(private val lang: String) {
     }
 
     @Test
-    fun s5Closing() = storeShot("05-closing.png", t("Un attimo per dire\ncom'è andata", "A moment to say\nhow it went")) {
+    fun s5Closing() = storeShot("05-closing.png", t("Un attimo per dire\ncom'è andata", "A moment to say\nhow it went"), AppTheme.DUSK_SAND) {
         ClosingMomentScreen(effectiveMinutes = 60, onDone = { _, _ -> }, onSkip = {})
     }
 
     @Test
-    fun s6History() = storeShot("06-history.png", t("La tua settimana,\na colpo d'occhio", "Your week,\nat a glance")) {
+    fun s6History() = storeShot("06-history.png", t("La tua settimana,\na colpo d'occhio", "Your week,\nat a glance"), AppTheme.STILL_WATER) {
         HistoryScreen(sessions = history, goal = null, onEditGoal = {}, now = System.currentTimeMillis())
     }
 
@@ -278,7 +306,7 @@ class StoreScreenshotsTest(private val lang: String) {
     }
 
     /**
-     * Chiara di proposito: gli screenshot sono su verde scuro, e accanto a
+     * Chiara di proposito: gli screenshot sono su fondi scuri, e accanto a
      * loro un'immagine chiara si distingue invece di confondersi.
      */
     @Composable
